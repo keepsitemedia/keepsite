@@ -1,0 +1,75 @@
+backend:
+  name: git-gateway
+  branch: master
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "settings"
+    label: "Site Settings"
+    files:
+      - name: "site"
+        label: "Site & Footer"
+        file: "src/data/site.json"
+        fields:
+          - { name: "brand", label: "Brand name", widget: "string" }
+          - { name: "email", label: "Contact email", widget: "string" }
+          - name: "nav"
+            label: "Navigation"
+            widget: "list"
+            fields:
+              - { name: "label", label: "Label", widget: "string" }
+              - { name: "href", label: "Link", widget: "string" }
+          - { name: "footerNote", label: "Footer note", widget: "text" }
+
+      - name: "home"
+        label: "Home Page"
+        file: "src/data/home.json"
+        fields:
+          - { name: "heroHeadline", label: "Hero headline", widget: "string" }
+          - { name: "heroSub", label: "Hero subtext", widget: "text" }
+          - { name: "hourlyLine", label: "Hourly billing line", widget: "text" }
+          - name: "valueProps"
+            label: "Value props"
+            widget: "list"
+            fields:
+              - { name: "title", label: "Title", widget: "string" }
+              - { name: "body", label: "Body", widget: "text" }
+          - { name: "closingHeadline", label: "Closing headline", widget: "string" }
+
+      - name: "pricing"
+        label: "Pricing Page"
+        file: "src/data/pricing.json"
+        fields:
+          - { name: "intro", label: "Intro", widget: "text" }
+          - name: "tiers"
+            label: "Tiers"
+            widget: "list"
+            fields:
+              - { name: "name", label: "Name", widget: "string" }
+              - { name: "price", label: "Price", widget: "string" }
+              - { name: "blurb", label: "Blurb", widget: "text" }
+              - { name: "features", label: "Features", widget: "list", field: { name: "feature", label: "Feature", widget: "string" } }
+          - name: "hourly"
+            label: "Hourly section"
+            widget: "object"
+            fields:
+              - { name: "title", label: "Title", widget: "string" }
+              - { name: "lines", label: "Lines", widget: "list", field: { name: "line", label: "Line", widget: "string" } }
+          - { name: "ownership", label: "Ownership note", widget: "text" }
+
+  - name: "portfolio"
+    label: "Portfolio"
+    folder: "src/content/portfolio"
+    create: true
+    extension: "md"
+    format: "frontmatter"
+    slug: "{{slug}}"
+    fields:
+      - { name: "title", label: "Title", widget: "string" }
+      - { name: "blurb", label: "Blurb", widget: "text" }
+      - { name: "url", label: "Live URL", widget: "string" }
+      - { name: "thumbnail", label: "Thumbnail", widget: "image", required: false }
+      - { name: "order", label: "Sort order", widget: "number", default: 0 }
+      - { name: "body", label: "Body (optional)", widget: "markdown", required: false }
