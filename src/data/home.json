@@ -8,5 +8,15 @@
     { "title": "Effortless updates", "body": "Want to make edits yourself? I can add a simple visual editor so you change text and images without touching code." },
     { "title": "Personal & direct", "body": "You work with me directly — no account managers, no tickets. Just clear pricing and honest work." }
   ],
+  "runningCosts": {
+    "heading": "What does it cost to keep running? $0 a month.",
+    "intro": "Most web shops put you on a subscription — hosting fees, “platform” fees, maintenance retainers that bill every month whether you need anything or not. I don't work that way. Here's why your site costs nothing to keep online:",
+    "points": [
+      { "label": "Free hosting, for good", "detail": "Your site is static — fast HTML, CSS, and images that Netlify's free tier serves at no cost. No usage meter, no surprise bills." },
+      { "label": "Nothing to maintain", "detail": "No database and no server means nothing to patch, renew, or pay for behind the scenes. It just keeps running." },
+      { "label": "The accounts are yours", "detail": "The GitHub repo and Netlify project are in your name. There's no middleman subscription sitting between you and your own website." },
+      { "label": "Pay only to change it", "detail": "When you want updates, you pay by the hour for the time it takes — and nothing in between. Never a monthly fee." }
+    ]
+  },
   "closingHeadline": "Ready for a site that's truly yours?"
 }

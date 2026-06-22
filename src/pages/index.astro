@@ -28,6 +28,23 @@ import home from '../data/home.json';
       </div>
     </section>
 
+    <section class="section">
+      <div class="container">
+        <div class="costs-panel">
+          <h2>{home.runningCosts.heading}</h2>
+          <p class="costs-intro muted">{home.runningCosts.intro}</p>
+          <div class="grid grid-2 costs-grid">
+            {home.runningCosts.points.map((p) => (
+              <div class="cost-point">
+                <h3>{p.label}</h3>
+                <p class="muted">{p.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="section center">
       <div class="container">
         <h2>{home.closingHeadline}</h2>
@@ -41,4 +58,22 @@ import home from '../data/home.json';
   .hero-sub { max-width: 56ch; font-size: 1.15rem; }
   .hourly { max-width: 56ch; margin-top: var(--space-3); font-size: 0.95rem; }
   .hero h1 { max-width: 18ch; }
+
+  /* "No ongoing costs" panel — sits on a solid surface so it reads
+     clearly above the dotted page background. */
+  .costs-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: var(--space-4);
+  }
+  .costs-intro { max-width: 62ch; }
+  .costs-grid { margin-top: var(--space-4); }
+  .cost-point h3 { margin-bottom: var(--space-1); }
+  .cost-point h3::before {
+    content: "✓";
+    color: var(--color-accent);
+    font-weight: 800;
+    margin-right: 0.5rem;
+  }
 </style>
