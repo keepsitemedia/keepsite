@@ -104,8 +104,8 @@ import home from '../data/home.json';
   if (canvas && host) {
     const ctx = canvas.getContext('2d');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const LINK_DIST = 130;      // px: connect nodes closer than this
-    const SPEED = 0.25;         // px/frame drift
+    const LINK_DIST = 150;      // px: connect nodes closer than this
+    const SPEED = 0.20;         // px/frame drift
     const ACCENT = '47, 125, 91'; // --color-accent as RGB
 
     let w = 0, h = 0, dpr = 1;
