@@ -25,30 +25,28 @@ Page copy and settings live in `src/data/*.json`. Portfolio entries are markdown
 
 ## Connecting the domain (keepsitemedia.com via Namecheap)
 
-The site is configured for `https://keepsitemedia.com` (`site` in `astro.config.mjs`). After the first Netlify deploy, point the Namecheap domain at Netlify:
+After the first Netlify deploy, point the Namecheap domain at Netlify. **Netlify recommends using `www.keepsitemedia.com` as the primary domain** — an apex-only (`keepsitemedia.com`) primary doesn't get the full CDN benefits. These steps set up `www` as primary with the bare apex redirecting to it.
 
-1. **Add the domain in Netlify:** Site → **Domain management → Add a domain** → enter `keepsitemedia.com`. Netlify will list it with both the apex (`keepsitemedia.com`) and the `www` subdomain, and show the DNS values it wants.
+1. **Add the domain in Netlify:** Site → **Domain management → Add a domain** → enter `keepsitemedia.com`, then also add `www.keepsitemedia.com`. Set **`www.keepsitemedia.com` as the Primary domain**.
 
-2. **Decide who runs DNS.** Two options — pick one:
+2. **Add DNS records at Namecheap** — Domain List → Manage → **Advanced DNS**. First delete Namecheap's default parking records (the `CNAME` on `@`/`www` and any **URL Redirect** record), then add:
 
-   **Option A — Keep DNS at Namecheap (simplest, recommended).** Leave the nameservers alone and just add records.
-   - In Namecheap: **Domain List → Manage → Advanced DNS**.
-   - Remove the default Namecheap "parking" records (the CNAME on `@`/`www` and any URL-redirect record), then add:
-     - **A record** — Host `@`, Value `75.2.60.5` (Netlify's load balancer IP — confirm the exact IP Netlify shows you under *Domain management*, as it can change).
-     - **CNAME record** — Host `www`, Value `<your-site-name>.netlify.app` (your Netlify subdomain, shown in the dashboard).
-   - Set TTL to **Automatic**.
+   **`www` subdomain (the primary):**
+   - **CNAME** — Host `www`, Value `<your-site-name>.netlify.app` (your Netlify subdomain, shown in the dashboard). TTL **Automatic**.
 
-   **Option B — Let Netlify run DNS (Netlify DNS).** More features (automatic apex handling), but you hand Netlify control of the zone.
-   - In Netlify, choose **Set up Netlify DNS** for the domain and copy the 4 nameservers it gives you (e.g. `dns1.p0X.nsone.net`).
-   - In Namecheap: **Domain List → Manage → Nameservers → Custom DNS**, paste those 4, save.
+   **Apex `keepsitemedia.com` (redirects to `www`)** — use whichever record type your DNS supports:
+   - **Recommended — ALIAS / ANAME / flattened CNAME:** Host `@`, Value `apex-loadbalancer.netlify.com`. More resilient than an A record.
+   - **Fallback — A record:** Host `@`, Value `75.2.60.5`.
 
-3. **Wait for DNS to propagate** (usually minutes, up to ~24h). Namecheap changes can take a little while to show up.
+   > Heads-up: Namecheap's standard **BasicDNS** usually has no ALIAS/ANAME record type. If you don't see one in Advanced DNS, use the **A record** fallback (`@` → `75.2.60.5`) — it works fine; the ALIAS option is just slightly more resilient.
 
-4. **Enable HTTPS:** in Netlify → **Domain management → HTTPS**, click **Verify DNS configuration**, then **Provision certificate** (free Let's Encrypt). Once issued, turn on **Force HTTPS**.
+3. **Wait for DNS to propagate** — usually minutes, up to ~24h.
 
-5. **Set the primary domain:** in Netlify, set `keepsitemedia.com` (or `www`, your choice) as the **Primary domain** so the other redirects to it.
+4. **Enable HTTPS:** Netlify → **Domain management → HTTPS** → **Verify DNS configuration** → **Provision certificate** (free Let's Encrypt). Once issued, turn on **Force HTTPS**.
 
-> Tip: the apex/`www` choice is cosmetic — Netlify redirects one to the other either way. If you ever change the canonical URL, update `site` in `astro.config.mjs` to match.
+> **Canonical URL:** because `www` is the primary domain, `site` in `astro.config.mjs` is set to `https://www.keepsitemedia.com`. If you'd rather make the bare apex the primary instead, change it back to `https://keepsitemedia.com` and flip the Primary domain in Netlify.
+
+> **Alternative — let Netlify run DNS:** instead of the records above, set Namecheap's nameservers to the 4 Netlify provides (Domain List → Manage → **Nameservers → Custom DNS**). That auto-handles the apex, but hands Netlify control of the whole DNS zone.
 
 ## Enabling the inquiry form
 
