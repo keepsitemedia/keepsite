@@ -21,12 +21,15 @@ Page copy and settings live in `src/data/*.json`. Portfolio entries are markdown
 2. In Netlify: **Add new site → Import from Git**, pick the repo. Build settings are read from `netlify.toml` (build `npm run build`, publish `dist`).
 3. Deploy.
 
+> **Branch note:** This repo's default branch is `main`, and the DecapCMS config (`public/admin/config.yml`) is set to `branch: main`. If you create your GitHub repo with a different default branch name, update that value in `public/admin/config.yml` to match before deploying.
+
 ## Enabling the inquiry form
 
 Netlify Forms is automatic — Netlify detects the `inquiry` form on the contact page at deploy time. To get emailed on each submission:
 
-- Netlify dashboard → **Forms → Form notifications → Add notification → Email notification**.
-- Send to **snic9004@gmail.com**.
+1. After the first deploy, confirm the `inquiry` form appears under **Netlify → Forms** (Netlify detects it automatically from the deployed static HTML).
+2. Then set up the notification: **Forms → Form notifications → Add notification → Email notification**.
+3. Send to **snic9004@gmail.com**.
 
 ## Enabling the CMS (/admin)
 

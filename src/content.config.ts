@@ -6,7 +6,7 @@ const portfolio = defineCollection({
   schema: z.object({
     title: z.string(),
     blurb: z.string(),
-    url: z.string(),
+    url: z.string().url(),
     thumbnail: z.string().optional(),
     order: z.number().default(0),
   }),
