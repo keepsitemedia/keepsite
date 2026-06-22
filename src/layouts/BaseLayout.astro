@@ -1,0 +1,16 @@
+---
+import '../styles/global.css';
+const { title, description = 'Keepsite Media builds websites you own and keep — no lock-in, no monthly fees.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
