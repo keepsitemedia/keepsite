@@ -1,0 +1,12 @@
+{
+  "heroHeadline": "I build websites you actually keep.",
+  "heroSub": "When the work is done, the site is yours — the git repo, the Netlify account, all of it. No lock-in, no monthly fees, no platform holding your business hostage.",
+  "hourlyLine": "Need a change later? Pay by the hour: $50 for the first hour, $75 each hour after, 1-hour minimum. That's it.",
+  "valueProps": [
+    { "title": "You own it", "body": "The code lives in your GitHub and deploys from your Netlify. I hand over the keys — you're never locked in." },
+    { "title": "No ongoing costs", "body": "Static sites on Netlify's free tier mean $0/month hosting. You pay me to build it, then it's yours to run for free." },
+    { "title": "Effortless updates", "body": "Want to make edits yourself? I can add a simple visual editor so you change text and images without touching code." },
+    { "title": "Personal & direct", "body": "You work with me directly — no account managers, no tickets. Just clear pricing and honest work." }
+  ],
+  "closingHeadline": "Ready for a site that's truly yours?"
+}
