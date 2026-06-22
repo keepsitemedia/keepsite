@@ -1,0 +1,17 @@
+---
+import site from '../data/site.json';
+const year = 2026;
+---
+<footer class="site-footer">
+  <div class="container">
+    <p class="footer-note">{site.footerNote}</p>
+    <p class="muted">
+      <a href={`mailto:${site.email}`}>{site.email}</a> · © {year} {site.brand}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer { border-top: 1px solid var(--color-border); padding: var(--space-4) 0; margin-top: var(--space-5); }
+  .footer-note { max-width: 46ch; font-weight: 600; }
+</style>
