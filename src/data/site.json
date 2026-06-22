@@ -1,0 +1,11 @@
+{
+  "brand": "Keepsite Media",
+  "email": "snic9004@gmail.com",
+  "nav": [
+    { "label": "Home", "href": "/" },
+    { "label": "Portfolio", "href": "/portfolio" },
+    { "label": "Pricing", "href": "/pricing" },
+    { "label": "Get in touch", "href": "/contact" }
+  ],
+  "footerNote": "You keep everything — the git repo, the Netlify account, the whole site. No lock-in, no monthly fees."
+}

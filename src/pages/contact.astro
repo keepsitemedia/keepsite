@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import site from '../data/site.json';
+---
+<BaseLayout title="Get in touch — Keepsite Media">
+  <main>
+    <section class="section">
+      <div class="container narrow">
+        <h1>Let's build something you'll own</h1>
+
+        <div id="inquiry-form-block">
+          <p class="muted" style="max-width:54ch">Tell me a bit about your project. I'll reply personally — no bots, no sales funnel.</p>
+          <form
+            name="inquiry"
+            method="POST"
+            data-netlify="true"
+            data-netlify-honeypot="bot-field"
+            action="/contact?success=1"
+            class="inquiry-form"
+          >
+            <input type="hidden" name="form-name" value="inquiry" />
+            <p class="hidden-field">
+              <label>Don't fill this out: <input name="bot-field" /></label>
+            </p>
+
+            <label class="field">
+              <span>Your name</span>
+              <input type="text" name="name" required autocomplete="name" />
+            </label>
+
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" required autocomplete="email" />
+            </label>
+
+            <label class="field">
+              <span>What are you after?</span>
+              <select name="project-type">
+                <option value="Static site ($400)">Static site ($400)</option>
+                <option value="Static + DecapCMS ($750)">Static + DecapCMS ($750)</option>
+                <option value="Not sure yet">Not sure yet</option>
+                <option value="Updates to an existing site">Updates to an existing site</option>
+                <option value="Something else">Something else</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Project details</span>
+              <textarea name="message" rows="5" required></textarea>
+            </label>
+
+            <button type="submit" class="btn">Send inquiry</button>
+          </form>
+        </div>
+
+        <div id="inquiry-success" class="card success" hidden>
+          <h2>Thanks — message received.</h2>
+          <p class="muted">I'll get back to you soon at the email you provided. If it's urgent, reach me directly at <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  if (new URLSearchParams(window.location.search).get('success') === '1') {
+    document.getElementById('inquiry-form-block')?.setAttribute('hidden', '');
+    document.getElementById('inquiry-success')?.removeAttribute('hidden');
+    document.getElementById('inquiry-success')?.scrollIntoView();
+  }
+</script>
+
+<style>
+  .narrow { max-width: 640px; }
+  .inquiry-form { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+  .field { display: grid; gap: 0.4rem; }
+  .field span { font-weight: 600; }
+  .field input, .field select, .field textarea {
+    font: inherit; padding: 0.7rem 0.8rem; border: 1.5px solid var(--color-border);
+    border-radius: 10px; background: var(--color-surface); color: var(--color-text); width: 100%;
+  }
+  .field textarea { resize: vertical; }
+  .hidden-field { display: none; }
+  .success { border-color: var(--color-accent); }
+</style>
