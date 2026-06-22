@@ -1,0 +1,142 @@
+---
+// Decorative animated "connected node network" rendered as a fixed,
+// full-viewport backdrop behind all page content. Pure canvas, no deps.
+// Sits below content and the (opaque) header/footer/cards, so it only
+// shows through the page's background gaps.
+---
+<canvas id="bg-net" class="bg-net" aria-hidden="true"></canvas>
+
+<style>
+  .bg-net {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;          /* behind body content, above the page background */
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('bg-net') as HTMLCanvasElement | null;
+
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const LINK_DIST = 150;        // px: connect nodes closer than this
+    const SPEED = 0.20;           // px/frame drift
+    const ACCENT = '47, 125, 91'; // --color-accent as RGB
+
+    let w = 0, h = 0, dpr = 1;
+    let nodes: { x: number; y: number; vx: number; vy: number }[] = [];
+    let raf = 0;
+    let running = false;
+
+    const rand = (n: number) => Math.random() * n;
+
+    function build() {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas!.width = Math.round(w * dpr);
+      canvas!.height = Math.round(h * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // density scales with viewport area, capped so it never gets heavy
+      const count = Math.max(18, Math.min(70, Math.round((w * h) / 16000)));
+      nodes = Array.from({ length: count }, () => ({
+        x: rand(w),
+        y: rand(h),
+        vx: (Math.random() - 0.5) * SPEED * 2,
+        vy: (Math.random() - 0.5) * SPEED * 2,
+      }));
+    }
+
+    function frame() {
+      ctx!.clearRect(0, 0, w, h);
+
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x <= 0 || n.x >= w) n.vx *= -1;
+        if (n.y <= 0 || n.y >= h) n.vy *= -1;
+      }
+
+      // links
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < LINK_DIST) {
+            const a = (1 - dist / LINK_DIST) * 0.28;
+            ctx!.strokeStyle = `rgba(${ACCENT}, ${a})`;
+            ctx!.lineWidth = 1;
+            ctx!.beginPath();
+            ctx!.moveTo(nodes[i].x, nodes[i].y);
+            ctx!.lineTo(nodes[j].x, nodes[j].y);
+            ctx!.stroke();
+          }
+        }
+      }
+
+      // nodes
+      ctx!.fillStyle = `rgba(${ACCENT}, 0.55)`;
+      for (const n of nodes) {
+        ctx!.beginPath();
+        ctx!.arc(n.x, n.y, 1.8, 0, Math.PI * 2);
+        ctx!.fill();
+      }
+
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      if (running || reduce.matches) return;
+      running = true;
+      raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      running = false;
+      cancelAnimationFrame(raf);
+    }
+
+    function drawStatic() {
+      // single frame for reduced-motion users — texture without movement
+      ctx!.clearRect(0, 0, w, h);
+      frame();
+      stop();
+    }
+
+    // Pause on a hidden tab to save battery
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else if (!reduce.matches) start();
+    });
+
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const wasRunning = running;
+        stop();
+        build();
+        if (wasRunning && !reduce.matches) start();
+        else if (reduce.matches) drawStatic();
+      }, 150);
+    });
+
+    build();
+    if (reduce.matches) drawStatic();
+    else start();
+
+    // React if the user toggles the OS motion setting live
+    reduce.addEventListener?.('change', () => {
+      if (reduce.matches) {
+        stop();
+        drawStatic();
+      } else {
+        start();
+      }
+    });
+  }
+</script>

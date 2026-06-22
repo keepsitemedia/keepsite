@@ -19,13 +19,16 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  background: var(--color-bg);   /* base layer; the node-network canvas sits above this and below content */
+}
 
 body {
   margin: 0;
   font-family: var(--font-sans);
   color: var(--color-text);
-  background: var(--color-bg);
+  background: transparent;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
