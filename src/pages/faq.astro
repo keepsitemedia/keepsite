@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import faq from '../data/faq.json';
+---
+<BaseLayout title="FAQ | Keepsite Media" description="Answers to common questions about how Keepsite Media builds, hosts, and hands over your website.">
+  <main>
+    <section class="section">
+      <div class="container">
+        <h1>Frequently asked questions</h1>
+        <p class="intro muted">{faq.intro}</p>
+
+        <div class="faq" style="margin-top: var(--space-4)">
+          {faq.groups.map((group) => (
+            <div class="faq-group">
+              <h2>{group.title}</h2>
+              <div class="faq-list">
+                {group.items.map((item) => (
+                  <details class="faq-item">
+                    <summary>
+                      <span>{item.q}</span>
+                      <span class="marker" aria-hidden="true"></span>
+                    </summary>
+                    <p class="answer muted">{item.a}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p class="cta" style="margin-top: var(--space-5)">
+          Still have a question? <a class="btn" href="/contact">Get in touch</a>
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .intro { max-width: 60ch; }
+
+  .faq { display: grid; gap: var(--space-5); }
+  .faq-group h2 { margin-bottom: var(--space-3); }
+  .faq-list { display: grid; gap: var(--space-2); }
+
+  .faq-item {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 0 var(--space-3);
+    overflow: hidden;
+  }
+  .faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item[open] summary { color: var(--color-accent); }
+
+  .marker {
+    position: relative;
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+  }
+  .marker::before,
+  .marker::after {
+    content: "";
+    position: absolute;
+    background: currentColor;
+    transition: opacity 0.15s ease;
+  }
+  .marker::before { top: 6px; left: 0; width: 14px; height: 2px; }
+  .marker::after { top: 0; left: 6px; width: 2px; height: 14px; }
+  .faq-item[open] .marker::after { opacity: 0; }
+
+  .answer { margin: 0; padding-bottom: var(--space-3); max-width: 66ch; }
+
+  .cta { font-weight: 600; }
+  .cta .btn { margin-left: var(--space-1); }
+</style>

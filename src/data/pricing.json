@@ -3,7 +3,7 @@
   "tiers": [
     {
       "name": "Static site",
-      "price": "$400",
+      "price": "$500",
       "blurb": "A fast, well-built website, ready to launch and yours to own.",
       "features": [
         "Custom responsive design",
@@ -15,11 +15,11 @@
     {
       "name": "Static site + DecapCMS",
       "price": "$750",
-      "blurb": "Everything in the static site, plus a visual editor so you can update the content yourself.",
+      "blurb": "Everything in the static site, plus a visual editor for the sections you'll update most, like a blog or portfolio.",
       "features": [
         "Everything in the static site",
-        "Edit text and images in your browser",
-        "No code required for content changes",
+        "Edit your blog and portfolio in your browser",
+        "Set up for the everyday edits a business makes",
         "Still $0 a month to run"
       ]
     }

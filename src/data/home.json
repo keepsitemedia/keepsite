@@ -5,7 +5,7 @@
   "valueProps": [
     { "title": "You own it", "body": "The code sits in your own GitHub and deploys from your own Netlify. Once the site is built, all of it transfers to you." },
     { "title": "No ongoing costs", "body": "Static sites run on Netlify's free tier, so hosting costs $0 a month. You pay me to build the site, and after that it costs nothing to keep online." },
-    { "title": "Edit it yourself", "body": "Want to make your own changes? I can add a simple visual editor so you can update text and images without going near the code." },
+    { "title": "Edit it yourself", "body": "I can set up a simple visual editor for the parts you'll update most, like a blog or portfolio, so you can post and tweak those yourself without going near the code. Bigger changes, I handle." },
     { "title": "Work with me directly", "body": "You deal with me, not a sales team or a support queue. Clear pricing, and a real person answering your email." }
   ],
   "runningCosts": {

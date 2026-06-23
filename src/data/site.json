@@ -5,6 +5,7 @@
     { "label": "Home", "href": "/" },
     { "label": "Portfolio", "href": "/portfolio" },
     { "label": "Pricing", "href": "/pricing" },
+    { "label": "FAQ", "href": "/faq" },
     { "label": "Get in touch", "href": "/contact" }
   ],
   "footerNote": "You keep everything: the code, the GitHub repo, and the Netlify account. No lock-in, and nothing to pay each month."

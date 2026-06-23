@@ -1,0 +1,82 @@
+{
+  "intro": "Honest answers to the questions people ask most. If yours isn't here, just get in touch and I'll happily walk you through it.",
+  "groups": [
+    {
+      "title": "The tech, in plain English",
+      "items": [
+        {
+          "q": "Where does my website actually live?",
+          "a": "Your site is hosted on Netlify, a service that serves your pages quickly to visitors anywhere in the world. It runs on Netlify's free tier, so there's no server for you to manage and nothing to pay each month for hosting."
+        },
+        {
+          "q": "What is GitHub and why is my site there?",
+          "a": "GitHub holds the code for your site in what's called a repository. Think of it as the master copy. When something needs to change, the update happens there and Netlify automatically publishes it. The repository is yours, so you always have the original."
+        },
+        {
+          "q": "How do I edit my own site?",
+          "a": "If your site includes Decap CMS, you get a simple admin login in your browser. It's set up for the sections you'll update most often, usually a blog and a portfolio, so you can add and edit those yourself with no code. Save your changes and the site updates on its own."
+        }
+      ]
+    },
+    {
+      "title": "Money",
+      "items": [
+        {
+          "q": "How does pricing work?",
+          "a": "You pay once to build the site and then it's yours. A static site is $500, and a static site with Decap CMS so you can edit it yourself is $750. Extra work later is billed by the hour."
+        },
+        {
+          "q": "Are there any monthly costs?",
+          "a": "No. Once the build is paid for, your hosting and CMS run on free tiers, so there's nothing to pay each month. The only optional ongoing cost is a domain name if you want one, which is covered below."
+        },
+        {
+          "q": "Do you offer payment plans?",
+          "a": "Yes. If you'd rather spread the cost, you can pay 10% of the total each month for a year. That works out to 120% of the price overall, so you're paying a little more for the convenience of splitting it across twelve months instead of all at once."
+        },
+        {
+          "q": "What if I want changes down the road?",
+          "a": "Updates and changes are billed hourly: $50 for the first hour, $75 for each additional hour, with a one-hour minimum per request. Most small changes are quick."
+        }
+      ]
+    },
+    {
+      "title": "Your domain name",
+      "items": [
+        {
+          "q": "Can I have my own domain name, like mybusiness.com?",
+          "a": "Absolutely. You buy the domain from a registrar, which usually costs around $10 to $15 a year, and I connect it to your site for you. There's no extra hosting cost for using your own domain."
+        }
+      ]
+    },
+    {
+      "title": "Editing and ownership",
+      "items": [
+        {
+          "q": "What can I change myself?",
+          "a": "The editor is set up for the sections you'll change most, usually your blog and portfolio, and sometimes something like a pricing page. It's built around the everyday edits a business actually makes, so the things you touch most are a few clicks away. It isn't wired up to edit every part of the site, which keeps it simple and keeps your costs down."
+        },
+        {
+          "q": "What if I need something the CMS can't do?",
+          "a": "Just send me a message. Anything outside those editable sections, like design tweaks, new pages, or other content, I take care of. That work is billed hourly and is usually quick."
+        },
+        {
+          "q": "Do I really own everything?",
+          "a": "Yes. The code, the content, the GitHub repository, the Netlify account, and your domain all belong to you. There's no lock-in, and you could hand the whole thing to any other developer if you ever wanted to."
+        }
+      ]
+    },
+    {
+      "title": "Is this right for me?",
+      "items": [
+        {
+          "q": "What kinds of businesses is this great for?",
+          "a": "It works well for local service businesses like trades, salons, cafes, and fitness studios, for freelancers and creatives like photographers, designers, and writers, and for consultants, small shops, and nonprofits. In short, anyone who wants a clean, professional site that's fast, cheap to run, and easy to keep up to date."
+        },
+        {
+          "q": "How do we get started?",
+          "a": "Head to the contact page and tell me a little about your business and what you have in mind. I'll get back to you, and we'll take it from there."
+        }
+      ]
+    }
+  ]
+}
