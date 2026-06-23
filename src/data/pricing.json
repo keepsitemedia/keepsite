@@ -1,10 +1,10 @@
 {
-  "intro": "Simple, honest pricing. You pay once to build it, then you own it outright — no subscriptions, no surprises.",
+  "intro": "Straightforward pricing. You pay once to build the site, and then it is yours to own outright, with no subscription attached.",
   "tiers": [
     {
       "name": "Static site",
       "price": "$400",
-      "blurb": "A fast, polished website that's done right and handed over to you.",
+      "blurb": "A fast, well-built website, ready to launch and yours to own.",
       "features": [
         "Custom responsive design",
         "Deployed to your Netlify account",
@@ -15,12 +15,12 @@
     {
       "name": "Static site + DecapCMS",
       "price": "$750",
-      "blurb": "Everything in the static site, plus a simple visual editor so you can update content yourself.",
+      "blurb": "Everything in the static site, plus a visual editor so you can update the content yourself.",
       "features": [
         "Everything in the static site",
         "Edit text and images in your browser",
         "No code required for content changes",
-        "Still $0/month — you own and run it"
+        "Still $0 a month to run"
       ]
     }
   ],
@@ -32,5 +32,5 @@
       "1-hour minimum per request"
     ]
   },
-  "ownership": "Every project comes with full ownership: the git repository and the Netlify account are yours. There are no monthly fees and no ongoing costs from me — once it's built, you're free."
+  "ownership": "Every project comes with full ownership. The Git repository and the Netlify account are yours, there are no monthly fees, and once the site is built you owe me nothing further."
 }

@@ -6,12 +6,12 @@ import { getCollection } from 'astro:content';
 const projects = (await getCollection('portfolio'))
   .sort((a, b) => a.data.order - b.data.order);
 ---
-<BaseLayout title="Portfolio — Keepsite Media">
+<BaseLayout title="Portfolio | Keepsite Media">
   <main>
     <section class="section">
       <div class="container">
         <h1>Portfolio</h1>
-        <p class="muted" style="max-width:56ch">A few sites I've built. Each one was handed over in full — the client owns it outright.</p>
+        <p class="muted" style="max-width:56ch">A few of the sites I've built. Each one now belongs entirely to the client it was made for.</p>
         <div class="grid grid-3" style="margin-top: var(--space-4)">
           {projects.map((p) => (
             <ProjectCard title={p.data.title} blurb={p.data.blurb} url={p.data.url} thumbnail={p.data.thumbnail} />

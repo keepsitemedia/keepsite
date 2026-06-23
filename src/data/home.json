@@ -1,22 +1,22 @@
 {
-  "heroHeadline": "I build websites you actually keep.",
-  "heroSub": "When the work is done, the site is yours — the git repo, the Netlify account, all of it. No lock-in, no monthly fees, no platform holding your business hostage.",
-  "hourlyLine": "Need a change later? Pay by the hour: $50 for the first hour, $75 each hour after, 1-hour minimum. That's it.",
+  "heroHeadline": "I build websites you keep.",
+  "heroSub": "When the work is done, the whole site belongs to you: the code, the GitHub repo, and the Netlify account. There is no lock-in, and nothing to pay every month.",
+  "hourlyLine": "Need changes later on? You pay by the hour. The first hour is $50 and every hour after that is $75, with a 1-hour minimum.",
   "valueProps": [
-    { "title": "You own it", "body": "The code lives in your GitHub and deploys from your Netlify. I hand over the keys — you're never locked in." },
-    { "title": "No ongoing costs", "body": "Static sites on Netlify's free tier mean $0/month hosting. You pay me to build it, then it's yours to run for free." },
-    { "title": "Effortless updates", "body": "Want to make edits yourself? I can add a simple visual editor so you change text and images without touching code." },
-    { "title": "Personal & direct", "body": "You work with me directly — no account managers, no tickets. Just clear pricing and honest work." }
+    { "title": "You own it", "body": "The code sits in your own GitHub and deploys from your own Netlify. Once the site is built, all of it transfers to you." },
+    { "title": "No ongoing costs", "body": "Static sites run on Netlify's free tier, so hosting costs $0 a month. You pay me to build the site, and after that it costs nothing to keep online." },
+    { "title": "Edit it yourself", "body": "Want to make your own changes? I can add a simple visual editor so you can update text and images without going near the code." },
+    { "title": "Work with me directly", "body": "You deal with me, not a sales team or a support queue. Clear pricing, and a real person answering your email." }
   ],
   "runningCosts": {
-    "heading": "What does it cost to keep running? $0 a month.",
-    "intro": "Most web shops put you on a subscription — hosting fees, “platform” fees, maintenance retainers that bill every month whether you need anything or not. I don't work that way. Here's why your site costs nothing to keep online:",
+    "heading": "What it costs to keep the site running: $0 a month.",
+    "intro": "Most web shops put you on a subscription, with hosting fees, platform fees, and maintenance retainers that bill every month whether you need anything or not. I work differently. A few reasons your site stays free to run:",
     "points": [
-      { "label": "Free hosting, for good", "detail": "Your site is static — fast HTML, CSS, and images that Netlify's free tier serves at no cost. No usage meter, no surprise bills." },
-      { "label": "Nothing to maintain", "detail": "No database and no server means nothing to patch, renew, or pay for behind the scenes. It just keeps running." },
-      { "label": "The accounts are yours", "detail": "The GitHub repo and Netlify project are in your name. There's no middleman subscription sitting between you and your own website." },
-      { "label": "Pay only to change it", "detail": "When you want updates, you pay by the hour for the time it takes — and nothing in between. Never a monthly fee." }
+      { "label": "Free hosting that stays free", "detail": "Your site is plain HTML, CSS, and images, which Netlify's free tier serves at no cost. There is no usage meter and no bill waiting at the end of the month." },
+      { "label": "Nothing to maintain", "detail": "With no database or server running behind it, there is nothing to patch, renew, or pay for, and nothing that can quietly run up a charge." },
+      { "label": "The accounts are yours", "detail": "The GitHub repo and the Netlify project are both in your name, so no middleman sits between you and your own site." },
+      { "label": "Pay only when you change it", "detail": "When you want an update, you pay for the hour or two it takes and nothing else. There is never a recurring fee." }
     ]
   },
-  "closingHeadline": "Ready for a site that's truly yours?"
+  "closingHeadline": "Want a site that's yours to keep?"
 }

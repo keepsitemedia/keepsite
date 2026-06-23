@@ -2,14 +2,14 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import site from '../data/site.json';
 ---
-<BaseLayout title="Get in touch — Keepsite Media">
+<BaseLayout title="Get in touch | Keepsite Media">
   <main>
     <section class="section">
       <div class="container narrow">
-        <h1>Let's build something you'll own</h1>
+        <h1>Start your project</h1>
 
         <div id="inquiry-form-block">
-          <p class="muted" style="max-width:54ch">Tell me a bit about your project. I'll reply personally — no bots, no sales funnel.</p>
+          <p class="muted" style="max-width:54ch">Tell me what you have in mind and I'll reply to you myself. Your message comes straight to me, not to a bot or a sales queue.</p>
           <form
             name="inquiry"
             method="POST"
@@ -54,8 +54,8 @@ import site from '../data/site.json';
         </div>
 
         <div id="inquiry-success" class="card success" hidden>
-          <h2>Thanks — message received.</h2>
-          <p class="muted">I'll get back to you soon at the email you provided. If it's urgent, reach me directly at <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+          <h2>Thanks, I got your message.</h2>
+          <p class="muted">I'll get back to you at the email you gave me. If it's urgent, you can reach me directly at <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
         </div>
 
       </div>

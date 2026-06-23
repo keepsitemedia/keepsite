@@ -7,5 +7,5 @@
     { "label": "Pricing", "href": "/pricing" },
     { "label": "Get in touch", "href": "/contact" }
   ],
-  "footerNote": "You keep everything — the git repo, the Netlify account, the whole site. No lock-in, no monthly fees."
+  "footerNote": "You keep everything: the code, the GitHub repo, and the Netlify account. No lock-in, and nothing to pay each month."
 }
