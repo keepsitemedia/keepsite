@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "title": "Packages | Keepsite Media",
+    "description": "Three website packages, each a one-time build plus a monthly subscription. Prices, what's included, and what the monthly covers."
+  },
+  "intro": "Three packages. Each one is a one-time build plus a monthly subscription that keeps the site working. Everything the monthly covers is spelled out below.",
+  "tiers": [
+    {
+      "id": "presence",
+      "name": "Presence",
+      "line": "Be there when people look.",
+      "bestFor": "Businesses that get most of their work through Instagram, referrals, and word of mouth, and need a professional place to send people.",
+      "buildPrice": "$1,100",
+      "buildPriceNote": "one-time build",
+      "monthlyPrice": "$55",
+      "monthlyPriceNote": "per month",
+      "cardIncludes": [
+        "A custom website, built mobile-first",
+        "Basic technical SEO and analytics setup",
+        "Google Business Profile and social links connected",
+        "An inquiry page that sends straight to your email",
+        "Hosting, maintenance, and monitoring every month"
+      ],
+      "monthlySummary": [
+        "Hosting and routine maintenance",
+        "Monitoring, so problems get caught before you notice them",
+        "Minor content updates",
+        "A plain-English recap once a year"
+      ],
+      "ctaLabel": "Start with Presence"
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "line": "Keep showing up.",
+      "bestFor": "Businesses that want the site built around how customers actually search, without it turning into an SEO project.",
+      "buildPrice": "$1,750",
+      "buildPriceNote": "one-time build",
+      "monthlyPrice": "$150",
+      "monthlyPriceNote": "per month",
+      "cardIncludes": [
+        "Everything in Presence",
+        "Keyword research and a search-informed site structure",
+        "SEO copy written for your core pages",
+        "24 SEO blog posts a year, written and published for you",
+        "Search Console monitoring and an annual keyword refresh"
+      ],
+      "monthlySummary": [
+        "Everything in the Presence subscription",
+        "24 SEO blog posts a year, written and published for you",
+        "Search Console and analytics monitoring",
+        "An annual keyword refresh and a Google Business Profile check"
+      ],
+      "ctaLabel": "Start with Search"
+    },
+    {
+      "id": "search-plus",
+      "name": "Search Plus",
+      "line": "Keep growing.",
+      "bestFor": "Businesses that want us watching what is working and improving the site through the year, not just at launch.",
+      "buildPrice": "$2,000",
+      "buildPriceNote": "one-time build",
+      "monthlyPrice": "$275",
+      "monthlyPriceNote": "per month",
+      "cardIncludes": [
+        "Everything in Search",
+        "Competitor and search-market analysis",
+        "Deeper keyword research based on competitor gaps",
+        "Positioning and copy shaped by what competitors miss",
+        "Active optimization through the year"
+      ],
+      "monthlySummary": [
+        "Everything in the Search subscription",
+        "Active review of search performance through the year",
+        "Updates to existing pages when the data points somewhere useful",
+        "Strategic supporting pages when they will help"
+      ],
+      "ctaLabel": "Start with Search Plus"
+    }
+  ],
+  "monthly": {
+    "heading": "Keep your site working.",
+    "lead": "Every Keepsite site includes hosting, maintenance, and monitoring. On Search and Search Plus, the monthly is mostly content and search work.",
+    "closing": "Every Keepsite site also includes an inquiry page, set up to send straight to your email or your existing CRM.",
+    "subscriptionTerms": "Presence is month to month — cancel any time with 30 days' notice. Search and Search Plus run on an annual content plan, so the first year is a 12-month commitment; after that, month to month. Either way, your domain and your content are yours — if you ever leave, we'll help you move them."
+  },
+  "comparison": [
+    {
+      "group": "Build",
+      "feature": "Custom website design and build",
+      "presence": true,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Build",
+      "feature": "Mobile optimization",
+      "presence": true,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Build",
+      "feature": "Technical SEO setup",
+      "presence": "Basic",
+      "search": "Full on-page setup",
+      "searchPlus": "Full on-page setup"
+    },
+    {
+      "group": "Build",
+      "feature": "Google Business Profile and social links connected",
+      "presence": true,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Build",
+      "feature": "Keyword research and page mapping",
+      "presence": false,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Build",
+      "feature": "Copy for your core pages",
+      "presence": "We edit and place yours",
+      "search": "We write it around your keywords",
+      "searchPlus": "We write it around your keywords and your competitors"
+    },
+    {
+      "group": "Build",
+      "feature": "Competitor and search-market analysis",
+      "presence": false,
+      "search": false,
+      "searchPlus": true
+    },
+    {
+      "group": "Monthly",
+      "feature": "Hosting, maintenance, and monitoring",
+      "presence": true,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Monthly",
+      "feature": "Minor content updates",
+      "presence": true,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Monthly",
+      "feature": "SEO blog posts written and published",
+      "presence": false,
+      "search": "24 a year",
+      "searchPlus": "24 a year"
+    },
+    {
+      "group": "Monthly",
+      "feature": "Search Console and analytics monitoring",
+      "presence": false,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Monthly",
+      "feature": "Annual keyword refresh",
+      "presence": false,
+      "search": true,
+      "searchPlus": true
+    },
+    {
+      "group": "Monthly",
+      "feature": "Active optimization through the year",
+      "presence": false,
+      "search": false,
+      "searchPlus": true
+    },
+    {
+      "group": "Monthly",
+      "feature": "Annual recap in plain English",
+      "presence": true,
+      "search": true,
+      "searchPlus": true
+    }
+  ],
+  "addOns": {
+    "heading": "If you need something extra.",
+    "items": [
+      {
+        "name": "Additional standard page",
+        "price": "$180 per page",
+        "note": "Uses your existing site style and your copy. No new keyword research."
+      },
+      {
+        "name": "Additional SEO page",
+        "price": "$270 per page",
+        "note": "Search and Search Plus only. A new search-informed service or location page."
+      },
+      {
+        "name": "Full copy development",
+        "price": "$90 an hour",
+        "note": "For when there isn't source material to work from and the messaging has to be written from scratch."
+      },
+      {
+        "name": "Advanced integration",
+        "price": "$90 an hour, quoted first",
+        "note": "Booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed."
+      },
+      {
+        "name": "Major website expansion",
+        "price": "Custom quote",
+        "note": "New service lines, large content migrations, or anything that really changes the original scope."
+      }
+    ],
+    "upgradeRule": "If what you need is more strategy rather than more pages, we'll move you to the package that covers it instead of selling it piece by piece."
+  },
+  "scopeFaq": {
+    "heading": "Questions about scope",
+    "topics": [
+      "which-package",
+      "search-vs-search-plus",
+      "what-monthly-covers",
+      "who-writes-copy",
+      "change-tiers"
+    ],
+    "moreLabel": "More questions",
+    "moreHref": "/faq/"
+  },
+  "closing": {
+    "heading": "Keep your business moving.",
+    "sub": "We'll take care of the website.",
+    "ctaLabel": "Start your site",
+    "ctaHref": "/start/"
+  }
+}
