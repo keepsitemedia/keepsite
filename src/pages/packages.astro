@@ -37,7 +37,14 @@ const packagesUrl = new URL('/packages/', siteUrl).href;
 
 // Derived from the same strings the page renders, so the structured
 // data can never drift from the visible price.
-const amount = (display: string) => Number(display.replace(/[^0-9.]/g, '')).toFixed(2);
+const amount = (display: string) => {
+  const digits = display.replace(/[^0-9.]/g, '');
+  const n = Number(digits);
+  if (!digits || !Number.isFinite(n) || n <= 0) {
+    throw new Error(`packages.json price is not a single parseable amount: ${JSON.stringify(display)}`);
+  }
+  return n.toFixed(2);
+};
 
 const packagesJsonLd = {
   '@context': 'https://schema.org',
