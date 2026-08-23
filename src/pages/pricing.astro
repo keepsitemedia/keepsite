@@ -2,39 +2,40 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import pricing from '../data/pricing.json';
 ---
-<BaseLayout title="Pricing | Keepsite Media">
-  <main>
-    <section class="section">
-      <div class="container">
-        <h1>Pricing</h1>
-        <p class="intro muted">{pricing.intro}</p>
+<BaseLayout
+  title="Pricing | Keepsite Media"
+  description="What a Keepsite Media website costs, and what is included."
+>
+  <section class="section">
+    <div class="container">
+      <h1>Pricing</h1>
+      <p class="intro muted">{pricing.intro}</p>
 
-        <div class="grid grid-2" style="margin-top: var(--space-4)">
-          {pricing.tiers.map((t) => (
-            <div class="card tier">
-              <h2>{t.name}</h2>
-              <p class="price">{t.price}</p>
-              <p class="muted">{t.blurb}</p>
-              <ul>
-                {t.features.map((f) => <li>{f}</li>)}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div class="card hourly" style="margin-top: var(--space-4)">
-          <h2>{pricing.hourly.title}</h2>
-          <ul>
-            {pricing.hourly.lines.map((l) => <li>{l}</li>)}
-          </ul>
-        </div>
-
-        <p class="ownership" style="margin-top: var(--space-4)">{pricing.ownership}</p>
-
-        <p style="margin-top: var(--space-3)"><a class="btn" href="/contact">Start a project</a></p>
+      <div class="grid grid-2" style="margin-top: var(--space-4)">
+        {pricing.tiers.map((t) => (
+          <div class="card tier">
+            <h2>{t.name}</h2>
+            <p class="price">{t.price}</p>
+            <p class="muted">{t.blurb}</p>
+            <ul>
+              {t.features.map((f) => <li>{f}</li>)}
+            </ul>
+          </div>
+        ))}
       </div>
-    </section>
-  </main>
+
+      <div class="card hourly" style="margin-top: var(--space-4)">
+        <h2>{pricing.hourly.title}</h2>
+        <ul>
+          {pricing.hourly.lines.map((l) => <li>{l}</li>)}
+        </ul>
+      </div>
+
+      <p class="ownership" style="margin-top: var(--space-4)">{pricing.ownership}</p>
+
+      <p style="margin-top: var(--space-3)"><a class="btn" href="/contact">Start a project</a></p>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>

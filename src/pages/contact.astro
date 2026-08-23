@@ -2,65 +2,66 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import site from '../data/site.json';
 ---
-<BaseLayout title="Get in touch | Keepsite Media">
-  <main>
-    <section class="section">
-      <div class="container narrow">
-        <h1>Start your project</h1>
+<BaseLayout
+  title="Get in touch | Keepsite Media"
+  description="Tell Keepsite Media about your business and we will get back to you."
+>
+  <section class="section">
+    <div class="container narrow">
+      <h1>Start your project</h1>
 
-        <div id="inquiry-form-block">
-          <p class="muted" style="max-width:54ch">Tell me what you have in mind and I'll reply to you myself. Your message comes straight to me, not to a bot or a sales queue.</p>
-          <form
-            name="inquiry"
-            method="POST"
-            data-netlify="true"
-            data-netlify-honeypot="bot-field"
-            action="/contact?success=1"
-            class="inquiry-form"
-          >
-            <input type="hidden" name="form-name" value="inquiry" />
-            <p class="hidden-field">
-              <label>Don't fill this out: <input name="bot-field" /></label>
-            </p>
+      <div id="inquiry-form-block">
+        <p class="muted" style="max-width:54ch">Tell me what you have in mind and I'll reply to you myself. Your message comes straight to me, not to a bot or a sales queue.</p>
+        <form
+          name="inquiry"
+          method="POST"
+          data-netlify="true"
+          data-netlify-honeypot="bot-field"
+          action="/contact?success=1"
+          class="inquiry-form"
+        >
+          <input type="hidden" name="form-name" value="inquiry" />
+          <p class="hidden-field">
+            <label>Don't fill this out: <input name="bot-field" /></label>
+          </p>
 
-            <label class="field">
-              <span>Your name</span>
-              <input type="text" name="name" required autocomplete="name" />
-            </label>
+          <label class="field">
+            <span>Your name</span>
+            <input type="text" name="name" required autocomplete="name" />
+          </label>
 
-            <label class="field">
-              <span>Email</span>
-              <input type="email" name="email" required autocomplete="email" />
-            </label>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
 
-            <label class="field">
-              <span>What are you after?</span>
-              <select name="project-type">
-                <option value="Static site ($500)">Static site ($500)</option>
-                <option value="Static + DecapCMS ($750)">Static + DecapCMS ($750)</option>
-                <option value="Not sure yet">Not sure yet</option>
-                <option value="Updates to an existing site">Updates to an existing site</option>
-                <option value="Something else">Something else</option>
-              </select>
-            </label>
+          <label class="field">
+            <span>What are you after?</span>
+            <select name="project-type">
+              <option value="Static site ($500)">Static site ($500)</option>
+              <option value="Static + DecapCMS ($750)">Static + DecapCMS ($750)</option>
+              <option value="Not sure yet">Not sure yet</option>
+              <option value="Updates to an existing site">Updates to an existing site</option>
+              <option value="Something else">Something else</option>
+            </select>
+          </label>
 
-            <label class="field">
-              <span>Project details</span>
-              <textarea name="message" rows="5" required></textarea>
-            </label>
+          <label class="field">
+            <span>Project details</span>
+            <textarea name="message" rows="5" required></textarea>
+          </label>
 
-            <button type="submit" class="btn">Send inquiry</button>
-          </form>
-        </div>
-
-        <div id="inquiry-success" class="card success" hidden>
-          <h2>Thanks, I got your message.</h2>
-          <p class="muted">I'll get back to you at the email you gave me. If it's urgent, you can reach me directly at <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
-        </div>
-
+          <button type="submit" class="btn">Send inquiry</button>
+        </form>
       </div>
-    </section>
-  </main>
+
+      <div id="inquiry-success" class="card success" hidden>
+        <h2>Thanks, I got your message.</h2>
+        <p class="muted">I'll get back to you at the email you gave me. If it's urgent, you can reach me directly at <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+      </div>
+
+    </div>
+  </section>
 </BaseLayout>
 
 <script is:inline>

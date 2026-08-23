@@ -2,56 +2,57 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import home from '../data/home.json';
 ---
-<BaseLayout title="Keepsite Media | Websites you own and keep">
-  <main>
-    <section class="section hero">
-      <div class="container">
-        <h1>{home.heroHeadline}</h1>
-        <p class="hero-sub muted">{home.heroSub}</p>
-        <p><a class="btn" href="/contact">Start a project</a>
-        <a class="btn btn-outline" href="/pricing" style="margin-left:0.75rem">See pricing</a></p>
-        <p class="hourly muted">{home.hourlyLine}</p>
-      </div>
-    </section>
+<BaseLayout
+  title="Keepsite Media | Websites for people with other things to do"
+  description="Keepsite Media builds and looks after websites for small businesses in Utah."
+>
+  <section class="section hero">
+    <div class="container">
+      <h1>{home.heroHeadline}</h1>
+      <p class="hero-sub muted">{home.heroSub}</p>
+      <p><a class="btn" href="/contact">Start a project</a>
+      <a class="btn btn-outline" href="/pricing" style="margin-left:0.75rem">See pricing</a></p>
+      <p class="hourly muted">{home.hourlyLine}</p>
+    </div>
+  </section>
 
-    <section class="section">
-      <div class="container">
-        <h2>Why pick Keepsite Media?</h2>
-        <div class="grid grid-2">
-          {home.valueProps.map((v) => (
-            <div class="card">
-              <h3>{v.title}</h3>
-              <p class="muted">{v.body}</p>
+  <section class="section">
+    <div class="container">
+      <h2>Why pick Keepsite Media?</h2>
+      <div class="grid grid-2">
+        {home.valueProps.map((v) => (
+          <div class="card">
+            <h3>{v.title}</h3>
+            <p class="muted">{v.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="costs-panel">
+        <h2>{home.runningCosts.heading}</h2>
+        <p class="costs-intro muted">{home.runningCosts.intro}</p>
+        <div class="grid grid-2 costs-grid">
+          {home.runningCosts.points.map((p) => (
+            <div class="cost-point">
+              <h3>{p.label}</h3>
+              <p class="muted">{p.detail}</p>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="section">
-      <div class="container">
-        <div class="costs-panel">
-          <h2>{home.runningCosts.heading}</h2>
-          <p class="costs-intro muted">{home.runningCosts.intro}</p>
-          <div class="grid grid-2 costs-grid">
-            {home.runningCosts.points.map((p) => (
-              <div class="cost-point">
-                <h3>{p.label}</h3>
-                <p class="muted">{p.detail}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section center">
-      <div class="container">
-        <h2>{home.closingHeadline}</h2>
-        <p><a class="btn" href="/contact">Get in touch</a></p>
-      </div>
-    </section>
-  </main>
+  <section class="section center">
+    <div class="container">
+      <h2>{home.closingHeadline}</h2>
+      <p><a class="btn" href="/contact">Get in touch</a></p>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
@@ -59,8 +60,6 @@ import home from '../data/home.json';
   .hourly { max-width: 56ch; margin-top: var(--space-3); font-size: 0.95rem; }
   .hero h1 { max-width: 18ch; }
 
-  /* "No ongoing costs" panel sits on a solid surface so it reads
-     clearly above the page's network backdrop. */
   .costs-panel {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
