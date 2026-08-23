@@ -3,3 +3,8 @@ dist/
 .astro/
 .DS_Store
 .env
+
+# Never commit: internal business documents, contracts, credentials.
+*.docx
+docs/internal/
+.superpowers/
