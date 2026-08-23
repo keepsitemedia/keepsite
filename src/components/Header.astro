@@ -1,6 +1,11 @@
 ---
 import site from '../data/site.json';
+
 const path = Astro.url.pathname;
+// Match with or without a trailing slash so /packages and /packages/
+// both mark the item current.
+const isCurrent = (href: string) =>
+  path === href || path.replace(/\/$/, '') === href.replace(/\/$/, '');
 ---
 <header class="site-header">
   <div class="container header-inner">
@@ -10,7 +15,7 @@ const path = Astro.url.pathname;
         <a
           href={item.href}
           class={item.cta ? 'nav-cta' : 'nav-link'}
-          aria-current={path === item.href ? 'page' : undefined}
+          aria-current={isCurrent(item.href) ? 'page' : undefined}
         >{item.label}</a>
       ))}
     </nav>
@@ -18,11 +23,59 @@ const path = Astro.url.pathname;
 </header>
 
 <style>
-  .site-header { border-bottom: 1px solid var(--color-border); background: var(--color-bg); position: sticky; top: 0; z-index: 10; }
-  .header-inner { display: flex; align-items: center; justify-content: space-between; padding-top: var(--space-2); padding-bottom: var(--space-2); gap: var(--space-2); flex-wrap: wrap; }
-  .brand { font-weight: 800; font-size: 1.15rem; text-decoration: none; color: var(--color-ink); }
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+  .brand {
+    font-weight: 600;
+    font-size: var(--step-1);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    color: var(--color-ink);
+  }
   nav { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-  .nav-link { text-decoration: none; color: var(--color-ink); font-weight: 500; }
-  .nav-link[aria-current="page"] { color: var(--color-brand); }
-  .nav-cta { text-decoration: none; background: var(--color-brand); color: #FFFFFF; padding: 0.5rem 1rem; border-radius: var(--radius); font-weight: 600; }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-ink);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 120ms ease;
+  }
+  .nav-link:hover { color: var(--color-brand); }
+  /* Clay, use one: the underline on the current nav item. */
+  .nav-link[aria-current="page"] {
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+  }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 1.1rem;
+    border-radius: var(--radius);
+    background: var(--color-brand);
+    color: #FFFFFF;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 120ms ease;
+  }
+  .nav-cta:hover { background: var(--color-brand-deep); color: #FFFFFF; }
 </style>
