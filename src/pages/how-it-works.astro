@@ -17,7 +17,7 @@ const signature = process.signature as { name: string; role: string } | null;
   <section class="section-tight">
     <div class="container">
       <h2 class="visually-hidden">The five steps</h2>
-      <ol class="steps">
+      <ol class="steps" role="list">
         {process.steps.map((step) => (
           <li>
             <h3>{step.title}</h3>
@@ -98,5 +98,6 @@ const signature = process.signature as { name: string; role: string } | null;
   .expectations ul { padding-left: 1.1rem; margin: 0; }
   .expectations li { margin-bottom: var(--space-2); color: var(--color-muted); }
 
+  /* Kept unreachable: signature is null in process.json; activating founder presence must stay a data edit. */
   .signature { margin-top: var(--space-4); font-size: var(--step-1); font-weight: 600; }
 </style>
