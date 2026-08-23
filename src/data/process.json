@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "title": "How it works | Keepsite Media",
+    "description": "One form, one call, one round of revisions. Here's exactly what building a site with Keepsite looks like, and what we need from you."
+  },
+  "heading": "How it works",
+  "lead": "You've already made the decision to hand this off. From here it's five steps, and most of them are ours.",
+  "steps": [
+    {
+      "title": "Tell us about your business.",
+      "body": "One questionnaire covers it. We ask for everything we need in one pass, so you're not answering questions in dribs and drabs for three weeks."
+    },
+    {
+      "title": "We plan the site.",
+      "body": "Which pages you need, how they connect, and what each one is there to do. On Search and Search Plus, keyword research comes first and shapes the plan."
+    },
+    {
+      "title": "We build it.",
+      "body": "Design, copy, setup, and testing all happen on our side. You don't have to watch."
+    },
+    {
+      "title": "One round of changes, then we launch.",
+      "body": "You look at the finished site and send your feedback in one go. We make the changes, run the final checks, and put it live."
+    },
+    {
+      "title": "We keep it working.",
+      "body": "Hosting, maintenance, monitoring, and the annual recap. On Search and Search Plus, the articles keep going out too."
+    }
+  ],
+  "pullLine": "Keep it simple.",
+  "needFromYou": {
+    "heading": "What we need from you",
+    "items": [
+      "Accurate information about your business: what you do, where, for whom, your hours, and anything a customer would ask.",
+      "Your photos and logo, if you have them.",
+      "One call, on Search and Search Plus, so we get your tone right.",
+      "A reply when a scheduled article needs a correction, or when something about the business changes."
+    ]
+  },
+  "wontHaveTo": {
+    "heading": "What you won't have to do",
+    "items": [
+      "No website homework.",
+      "No standing meetings.",
+      "No logging into anything.",
+      "No decisions about hosting, plugins, or platforms."
+    ]
+  },
+  "signature": null,
+  "closing": {
+    "heading": "Keep your business moving.",
+    "sub": "We'll take care of the website.",
+    "ctaLabel": "Start your site",
+    "ctaHref": "/start/"
+  }
+}
