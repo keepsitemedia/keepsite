@@ -10,11 +10,16 @@
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
 
+  # The string "true", not a boolean: the plugin compares
+  # `inputs?.fail_deploy_on_score_thresholds === 'true'` to decide whether it
+  # runs at onPostBuild (a real gate) or onSuccess (an alarm after the deploy
+  # is already live). onSuccess also never writes output_path.
   [plugins.inputs]
-    output_path = "reports/lighthouse.html"
+    fail_deploy_on_score_thresholds = "true"
 
   [[plugins.inputs.audits]]
     path = "index.html"
+    output_path = "reports/lighthouse-home.html"
     [plugins.inputs.audits.thresholds]
       performance = 1.0
       accessibility = 1.0
@@ -23,6 +28,7 @@
 
   [[plugins.inputs.audits]]
     path = "faq/index.html"
+    output_path = "reports/lighthouse-faq.html"
     [plugins.inputs.audits.thresholds]
       performance = 1.0
       accessibility = 1.0
@@ -47,6 +53,18 @@
 # DecapCMS loads from unpkg and talks to Netlify Identity, so /admin
 # needs its own looser policy. The widening is scoped here only; the
 # marketing pages stay locked down.
+#
+# Two blocks, identical values. The 200 rewrite above serves /admin from
+# /admin/index.html, but header matching uses the path as requested, and
+# "/admin" does not match the "/admin/*" glob. Without the exact-path block
+# the bare URL falls through to the strict "/*" CSP and Decap's unpkg script
+# is blocked at exactly the address people type.
+[[headers]]
+  for = "/admin"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; font-src 'self' data: https://unpkg.com; connect-src 'self' https://unpkg.com https://identity.netlify.com https://api.netlify.com https://api.github.com; frame-src https://identity.netlify.com; form-action 'self'; base-uri 'self'"
+    X-Frame-Options = "SAMEORIGIN"
+
 [[headers]]
   for = "/admin/*"
   [headers.values]
