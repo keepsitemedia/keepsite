@@ -1,3 +1,5 @@
+> **Superseded (2026-08-23)** by [docs/superpowers/specs/2026-08-23-keepsite-brand-transition.md](../specs/2026-08-23-keepsite-brand-transition.md) — the business moved from one-time ownership builds to productized subscription tiers. Kept as a historical record.
+
 # Keepsite Media Marketing Site Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
