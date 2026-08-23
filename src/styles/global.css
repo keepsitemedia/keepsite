@@ -1,81 +1,330 @@
+/* ---------------------------------------------------------------
+   Metric-matched fallback for Instrument Sans.
+
+   Declared before the real face so it is in place on first paint.
+   Derived from Instrument Sans (upem 1000, hhea ascent 970,
+   descent -250, lineGap 0) against Arial (upem 2048, ascent 1854,
+   descent -434). size-adjust matches frequency-weighted lowercase
+   advance widths: Instrument Sans 508.5/1000em vs Arial 477.4/1000em,
+   so 508.5 / 477.4 = 1.065. The ascent and descent overrides are
+   expressed against the already-scaled em, so they are the target
+   ratios divided by size-adjust: 0.970 / 1.065 = 0.911 and
+   0.250 / 1.065 = 0.235.
+
+   Liberation Sans is metrically identical to Arial; Helvetica Neue
+   is close enough that the same numbers hold.
+
+   Task 9.2 validates these with a CLS check. If CLS is not 0,
+   adjust size-adjust first, then re-derive the two overrides.
+   --------------------------------------------------------------- */
+@font-face {
+  font-family: 'Instrument Sans Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 106.5%;
+  ascent-override: 91.1%;
+  descent-override: 23.5%;
+  line-gap-override: 0%;
+  font-display: swap;
+}
+
 :root {
-  --color-bg: #fbf9f4;          /* warm off-white */
-  --color-surface: #ffffff;
-  --color-text: #1f2421;        /* near-black, warm */
-  --color-muted: #5c6661;
-  --color-accent: #2f7d5b;      /* calm green */
-  --color-accent-ink: #ffffff;
-  --color-border: #e7e2d6;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Color */
+  --color-bg: #FBF9F4;           /* warm off-white */
+  --color-surface: #FFFFFF;      /* cards, form fields */
+  --color-surface-alt: #F2EEE4;  /* warm sand, alternating bands */
+  --color-ink: #1F2421;          /* body text */
+  --color-muted: #55605B;        /* secondary text */
+  --color-brand: #1F5C43;        /* Keep Green: links, buttons, active nav */
+  --color-brand-deep: #16302A;   /* closing CTA band, footer */
+  --color-brand-tint: #E6EFE9;   /* tier badges, subtle fills */
+  --color-accent: #A24A26;       /* Clay. At most twice per page. */
+  --color-border: #E4DFD2;
+
+  /* Type */
+  --font-sans: 'Instrument Sans Variable', 'Instrument Sans Fallback', Arial, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --step--1: 0.9375rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.125rem;
+  --step-2: clamp(1.25rem, 2vw, 1.4rem);
+  --step-3: clamp(1.6rem, 3vw, 2.1rem);
+  --step-4: clamp(2rem, 4vw, 2.75rem);
+  --step-5: clamp(2.6rem, 5.5vw, 4rem);
+
+  /* Space */
+  --space-0: 0.25rem;
   --space-1: 0.5rem;
   --space-2: 1rem;
   --space-3: 1.5rem;
   --space-4: 2.5rem;
   --space-5: 4rem;
   --space-6: 6rem;
-  --radius: 14px;
-  --maxw: 1080px;
+  --section-y: clamp(4rem, 9vw, 7rem);
+
+  /* Shape and width */
+  --radius: 10px;
+  --maxw: 1120px;
+  --maxw-prose: 68ch;
+  --maxw-lead: 56ch;
+  --maxw-narrow: 640px;
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 html {
-  scroll-behavior: smooth;
-  background: var(--color-bg);   /* base layer; the node-network canvas sits above this and below content */
+  background: var(--color-bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* WCAG 2.3.3: smooth scroll is opt-in, never unconditional. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  color: var(--color-text);
-  background: transparent;
-  line-height: 1.6;
+  font-size: var(--step-0);
+  line-height: 1.65;
+  color: var(--color-ink);
+  background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 var(--space-2); }
-h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
-h2 { font-size: clamp(1.6rem, 3.5vw, 2.3rem); }
-h3 { font-size: clamp(1.15rem, 2.5vw, 1.4rem); }
-p { margin: 0 0 var(--space-2); }
-a { color: var(--color-accent); }
+h1, h2, h3 {
+  margin: 0 0 var(--space-2);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+p { margin: 0 0 var(--space-2); max-width: var(--maxw-prose); }
+ul, ol { max-width: var(--maxw-prose); }
+strong { font-weight: 600; }
+
+a {
+  color: var(--color-brand);
+  text-underline-offset: 0.2em;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+a:hover { color: var(--color-brand-deep); }
+
+img { max-width: 100%; height: auto; }
+
+/* Layout ------------------------------------------------------- */
 
 .container { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--space-3); }
-.section { padding: var(--space-6) 0; }
-.muted { color: var(--color-muted); }
+.section { padding: var(--section-y) 0; }
+.section-tight { padding: var(--space-5) 0; }
+.section-alt { background: var(--color-surface-alt); }
+.section-deep { background: var(--color-brand-deep); color: var(--color-bg); }
+.section-deep h1,
+.section-deep h2,
+.section-deep h3,
+.section-deep p { color: var(--color-bg); }
+
+.prose { max-width: var(--maxw-prose); }
+.narrow { max-width: var(--maxw-narrow); }
 .center { text-align: center; }
+.muted { color: var(--color-muted); }
+.lead { font-size: var(--step-2); max-width: var(--maxw-lead); color: var(--color-muted); }
+.section-deep .lead { color: var(--color-brand-tint); }
 
-.btn {
-  display: inline-block;
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
-  padding: 0.85rem 1.5rem;
-  border-radius: var(--radius);
-  text-decoration: none;
-  font-weight: 600;
-  border: 0;
-  cursor: pointer;
-  transition: transform 0.05s ease, opacity 0.15s ease;
-}
-.btn:hover { opacity: 0.92; }
-.btn:active { transform: translateY(1px); }
-.btn-outline {
-  background: transparent;
-  color: var(--color-accent);
-  border: 1.5px solid var(--color-accent);
-}
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-3);
-}
+.serif { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
+.price { font-variant-numeric: tabular-nums; }
 
 .grid { display: grid; gap: var(--space-3); }
-@media (min-width: 720px) {
+@media (min-width: 900px) {
   .grid-2 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
 }
 
-:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+/* Rule-separated row. Replaces cards where the items are not
+   discrete comparable objects (spec 3.4). */
+.rule-row { display: grid; gap: var(--space-3); }
+.rule-row > * { border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
+@media (min-width: 900px) {
+  .rule-row { grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+}
+
+/* Components --------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.85rem 1.6rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-brand);
+  color: #FFFFFF;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.btn:hover { background: var(--color-brand-deep); color: #FFFFFF; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-brand);
+  border: 1.5px solid var(--color-brand);
+}
+.btn-outline:hover {
+  background: var(--color-brand-tint);
+  color: var(--color-brand-deep);
+  border-color: var(--color-brand-deep);
+}
+
+.section-deep .btn { background: var(--color-bg); color: var(--color-brand-deep); }
+.section-deep .btn:hover { background: #FFFFFF; color: var(--color-brand-deep); }
+
+/* Secondary action: a text link with a thick underline, not an
+   outline button. Two solid-looking buttons read as two equal
+   choices (spec 3.4). */
+.link-arrow {
+  display: inline-block;
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+
+/* A card is only for a discrete, comparable object: a tier, a work
+   item. Everything else uses whitespace and a hairline rule. */
+.card {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  transition: border-color 120ms ease;
+}
+
+/* Forms -------------------------------------------------------- */
+
+.field { display: grid; gap: 0.4rem; margin-bottom: var(--space-3); }
+.field > span { font-weight: 600; }
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.7rem 0.8rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: max(16px, var(--step-0));  /* >=16px stops iOS zoom-on-focus */
+  transition: border-color 120ms ease;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus { border-color: var(--color-brand); border-width: 2px; }
+.field textarea { resize: vertical; }
+.field-hint { font-size: var(--step--1); color: var(--color-muted); font-weight: 400; }
+
+/* Comparison table --------------------------------------------- */
+
+.table-scroll { overflow-x: auto; }
+.compare {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: var(--step-0);
+}
+.compare caption {
+  margin-bottom: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--step--1);
+  text-align: left;
+}
+.compare th,
+.compare td {
+  padding: 0.75rem var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  text-align: center;
+}
+.compare thead th { border-bottom: 2px solid var(--color-ink); font-weight: 600; }
+.compare th[scope="row"] { text-align: left; font-weight: 400; }
+.compare th[scope="rowgroup"] {
+  text-align: left;
+  font-weight: 600;
+  padding-top: var(--space-3);
+  background: var(--color-surface-alt);
+}
+@media (min-width: 900px) {
+  .compare thead th:first-child,
+  .compare th[scope="row"] { position: sticky; left: 0; background: var(--color-bg); }
+  .compare th[scope="rowgroup"] { position: sticky; left: 0; }
+}
+
+/* Accessibility ------------------------------------------------ */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skip-link:focus {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  overflow: visible;
+  clip-path: none;
+  border-radius: var(--radius);
+  background: var(--color-brand-deep);
+  color: #FFFFFF;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Two-tone focus ring. Ink on bg is 14.98:1 and bg on green is
+   7.47:1, so at least one ring is always visible. The transparent
+   outline keeps an indicator in Windows High Contrast. */
+:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-ink);
+}
+.section-alt :focus-visible { box-shadow: 0 0 0 2px var(--color-surface-alt), 0 0 0 4px var(--color-ink); }
+.section-deep :focus-visible { box-shadow: 0 0 0 2px var(--color-brand-deep), 0 0 0 4px var(--color-bg); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
