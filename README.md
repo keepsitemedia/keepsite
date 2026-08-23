@@ -54,7 +54,7 @@ Netlify Forms is automatic — Netlify detects the `inquiry` form on the contact
 
 1. After the first deploy, confirm the `inquiry` form appears under **Netlify → Forms** (Netlify detects it automatically from the deployed static HTML).
 2. Then set up the notification: **Forms → Form notifications → Add notification → Email notification**.
-3. Send to **snic9004@gmail.com**.
+3. Send to **keepsitemedia@gmail.com**.
 
 ## Enabling the CMS (/admin)
 
@@ -65,6 +65,27 @@ DecapCMS uses Netlify's git-gateway:
 3. **Identity → Registration**: set to *Invite only*, then invite yourself.
 4. Accept the email invite, set a password, and log in at `https://<your-site>/admin`.
 
-## Ownership
+## Repo & access
 
-This site is built to be handed over. The GitHub repo and the Netlify account are the client's. There are no monthly fees and no ongoing costs.
+This is Keepsite Media's own marketing site. The GitHub repo, the Netlify site, and the domain are Keepsite's.
+
+**This repo is private, permanently.** That is a requirement, not an incidental fact. Netlify deploys from private GitHub repos without issue, and git-gateway and DecapCMS work identically. `docs/superpowers/` is a further reason: it holds internal planning material, and the specs and plans there quote Keepsite's own SOP figures. If the repo ever has to go public, audit the history first.
+
+Access to keep current:
+- GitHub: owner account, plus any contributor with push rights.
+- Netlify: site owner, Forms notifications, and Identity invites for `/admin`.
+- Domain registrar: the account holding `keepsitemedia.com`.
+
+## What doesn't belong in this repo
+
+Never commit, and never put in a DecapCMS field, any of the following. If it can be edited in Decap it can be published to a public site.
+
+- **Internal labor budgets** — hour targets per work category or per tier.
+- **Hourly cost basis and margin guidance** — what work costs Keepsite internally, and the gap between that and the package price.
+- **Internal scope-control mechanics** — tier-protection rules, revision-absorption policy, operational metrics.
+- **Client contracts, proposals, and invoices.**
+- **Credentials** — API keys, registrar or Netlify logins, Identity invites, `.env` values.
+
+The operating SOP that contains the first three lives outside this repo entirely, in the owner's Drive or a separate private ops repo. `*.docx` and `docs/internal/` are gitignored so those files cannot be added by accident, but gitignore is a convenience and not a control: do not keep them in this working directory.
+
+Client-facing add-on rates (for example `$180` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.
