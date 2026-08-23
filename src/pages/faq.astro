@@ -1,23 +1,40 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ClosingCta from '../components/ClosingCta.astro';
 import faq from '../data/faq.json';
+
+const siteUrl = Astro.site as URL;
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${new URL('/faq/', siteUrl).href}#faq`,
+  mainEntity: faq.groups.flatMap((group) =>
+    group.items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  ),
+};
 ---
-<BaseLayout
-  title="FAQ | Keepsite Media"
-  description="Answers to the questions people ask most about working with Keepsite Media."
->
-  <section class="section">
+<BaseLayout title={faq.meta.title} description={faq.meta.description} jsonLd={faqJsonLd}>
+
+  <section class="section-tight">
     <div class="container">
       <h1>Frequently asked questions</h1>
-      <p class="intro muted">{faq.intro}</p>
+      <p class="lead">{faq.intro}</p>
+    </div>
+  </section>
 
-      <div class="faq" style="margin-top: var(--space-4)">
+  <section class="section-tight">
+    <div class="container">
+      <div class="faq-groups">
         {faq.groups.map((group) => (
           <div class="faq-group">
             <h2>{group.title}</h2>
             <div class="faq-list">
               {group.items.map((item) => (
-                <details class="faq-item">
+                <details class="faq-item" id={item.topic}>
                   <summary>
                     <span>{item.q}</span>
                     <span class="marker" aria-hidden="true"></span>
@@ -29,60 +46,47 @@ import faq from '../data/faq.json';
           </div>
         ))}
       </div>
-
-      <p class="cta" style="margin-top: var(--space-5)">
-        Still have a question? <a class="btn" href="/start/">Start your site</a>
-      </p>
     </div>
   </section>
+
+  <ClosingCta
+    heading={faq.closing.heading}
+    sub={faq.closing.sub}
+    ctaLabel={faq.closing.ctaLabel}
+    ctaHref={faq.closing.ctaHref}
+  />
+
 </BaseLayout>
 
 <style>
-  .intro { max-width: 60ch; }
+  .faq-groups { display: grid; gap: var(--space-5); max-width: var(--maxw-prose); }
+  .faq-group h2 { margin-bottom: var(--space-2); }
+  .faq-list { display: grid; }
 
-  .faq { display: grid; gap: var(--space-5); }
-  .faq-group h2 { margin-bottom: var(--space-3); }
-  .faq-list { display: grid; gap: var(--space-2); }
-
-  .faq-item {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: 0 var(--space-3);
-    overflow: hidden;
-  }
+  .faq-item { border-bottom: 1px solid var(--color-border); scroll-margin-top: 6rem; }
+  .faq-item:first-child { border-top: 1px solid var(--color-border); }
   .faq-item summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-2);
     padding: var(--space-3) 0;
+    min-height: 44px;
     font-weight: 600;
     cursor: pointer;
     list-style: none;
+    transition: color 120ms ease;
   }
   .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary:hover { color: var(--color-brand); }
   .faq-item[open] summary { color: var(--color-brand); }
 
-  .marker {
-    position: relative;
-    flex: 0 0 auto;
-    width: 14px;
-    height: 14px;
-  }
+  .marker { position: relative; flex: 0 0 auto; width: 14px; height: 14px; }
   .marker::before,
-  .marker::after {
-    content: "";
-    position: absolute;
-    background: currentColor;
-    transition: opacity 0.15s ease;
-  }
+  .marker::after { content: ""; position: absolute; background: currentColor; transition: opacity 120ms ease; }
   .marker::before { top: 6px; left: 0; width: 14px; height: 2px; }
   .marker::after { top: 0; left: 6px; width: 2px; height: 14px; }
   .faq-item[open] .marker::after { opacity: 0; }
 
-  .answer { margin: 0; padding-bottom: var(--space-3); max-width: 66ch; }
-
-  .cta { font-weight: 600; }
-  .cta .btn { margin-left: var(--space-1); }
+  .answer { margin: 0; padding-bottom: var(--space-3); }
 </style>
