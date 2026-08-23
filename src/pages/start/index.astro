@@ -1,6 +1,6 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import site from '../data/site.json';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
 ---
 <BaseLayout
   title="Get in touch | Keepsite Media"
@@ -17,7 +17,7 @@ import site from '../data/site.json';
           method="POST"
           data-netlify="true"
           data-netlify-honeypot="bot-field"
-          action="/contact?success=1"
+          action="/start/?success=1"
           class="inquiry-form"
         >
           <input type="hidden" name="form-name" value="inquiry" />

@@ -9,7 +9,7 @@ const path = Astro.url.pathname;
       {site.nav.map((item) => (
         <a
           href={item.href}
-          class={item.href === '/contact' ? 'nav-cta' : 'nav-link'}
+          class={item.cta ? 'nav-cta' : 'nav-link'}
           aria-current={path === item.href ? 'page' : undefined}
         >{item.label}</a>
       ))}

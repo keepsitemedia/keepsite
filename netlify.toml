@@ -40,6 +40,27 @@
   to = "/admin/index.html"
   status = 200
 
+[[redirects]]
+  from = "/pricing"
+  to = "/packages/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/contact"
+  to = "/start/"
+  status = 301
+  force = true
+
+# /work/ is not generated until the collection has entries, so this
+# points at the homepage for now. Task 7.1 flips the target to
+# "/work/" in the same commit that adds the first real project.
+[[redirects]]
+  from = "/portfolio"
+  to = "/"
+  status = 301
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
