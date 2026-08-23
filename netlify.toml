@@ -1,11 +1,65 @@
 [build]
-  command = "npm run build"
+  command = "npm run check && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
 
+# Lighthouse runs as a build gate, not a one-time manual check: the
+# thing being sold is ongoing competence, not launch-day competence.
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+  [plugins.inputs]
+    output_path = "reports/lighthouse.html"
+
+  [[plugins.inputs.audits]]
+    path = "index.html"
+    [plugins.inputs.audits.thresholds]
+      performance = 1.0
+      accessibility = 1.0
+      best-practices = 1.0
+      seo = 1.0
+
+  [[plugins.inputs.audits]]
+    path = "faq/index.html"
+    [plugins.inputs.audits.thresholds]
+      performance = 1.0
+      accessibility = 1.0
+      best-practices = 1.0
+      seo = 1.0
+
 [[redirects]]
   from = "/admin"
   to = "/admin/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    X-Frame-Options = "DENY"
+
+# DecapCMS loads from unpkg and talks to Netlify Identity, so /admin
+# needs its own looser policy. The widening is scoped here only; the
+# marketing pages stay locked down.
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; font-src 'self' data: https://unpkg.com; connect-src 'self' https://unpkg.com https://identity.netlify.com https://api.netlify.com https://api.github.com; frame-src https://identity.netlify.com; form-action 'self'; base-uri 'self'"
+    X-Frame-Options = "SAMEORIGIN"
+
+# Astro content-hashes everything in /_astro, so it is safe to pin.
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
