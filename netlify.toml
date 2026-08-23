@@ -17,11 +17,10 @@
   [plugins.inputs]
     fail_deploy_on_score_thresholds = "true"
 
-  # One audit per route in the final set. Each writes its report into the
-  # publish directory, which means the reports are served publicly under
-  # /reports/; robots.txt disallows that path so they stay out of search
-  # results. The deploy-log alternative drops output_path entirely, but the
-  # log only prints scores, not the failing-audit tables that say what to fix.
+  # One audit per route in the final set. Reports are written into the publish
+  # dir, so they are public on passing builds (robots.txt disallows /reports/).
+  # On a failed gate the deploy is cancelled and no report ships; read the
+  # failing-audit list in the deploy log.
   [[plugins.inputs.audits]]
     path = "index.html"
     output_path = "reports/lighthouse-home.html"
