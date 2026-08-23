@@ -4,14 +4,69 @@ const year = new Date().getFullYear();
 ---
 <footer class="site-footer">
   <div class="container">
-    <p class="footer-note">{site.tagline}</p>
-    <p class="muted">
-      <a href={`mailto:${site.email}`}>{site.email}</a> · © {year} {site.brand}
-    </p>
+    <div class="footer-grid">
+      <div>
+        <a class="footer-brand" href="/">{site.brand}</a>
+        <p class="footer-tagline">{site.tagline}</p>
+      </div>
+
+      <nav aria-label="Footer">
+        <ul class="footer-nav">
+          {site.nav.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <address class="footer-contact">
+        <a href={`mailto:${site.email}`}>{site.email}</a>
+        <a href={`tel:${site.phoneE164}`}>{site.phone}</a>
+        <span class="muted">Serving {site.areaServed}</span>
+      </address>
+    </div>
+
+    <p class="footer-bottom muted">&copy; {year} {site.brand}</p>
   </div>
 </footer>
 
 <style>
-  .site-footer { border-top: 1px solid var(--color-border); padding: var(--space-4) 0; margin-top: var(--space-5); }
-  .footer-note { max-width: 46ch; font-weight: 600; }
+  .site-footer {
+    margin-top: 0;
+    padding: var(--space-5) 0 var(--space-4);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+  .footer-grid { display: grid; gap: var(--space-4); }
+  @media (min-width: 720px) {
+    .footer-grid { grid-template-columns: 2fr 1fr 1fr; gap: var(--space-5); }
+  }
+
+  .footer-brand {
+    font-weight: 600;
+    font-size: var(--step-1);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+  .footer-tagline { margin: var(--space-1) 0 0; max-width: 30ch; color: var(--color-muted); }
+
+  .footer-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+  .footer-nav a,
+  .footer-contact a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+  }
+  .footer-nav a:hover,
+  .footer-contact a:hover { text-decoration: underline; }
+
+  .footer-contact { display: grid; font-style: normal; }
+
+  .footer-bottom {
+    margin: var(--space-4) 0 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--step--1);
+  }
 </style>
