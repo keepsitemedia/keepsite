@@ -1,80 +1,103 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import site from '../../data/site.json';
+import packages from '../../data/packages.json';
 ---
 <BaseLayout
-  title="Get in touch | Keepsite Media"
-  description="Tell Keepsite Media about your business and we will get back to you."
+  title="Start your site | Keepsite Media"
+  description="Tell us about your business and we'll get back to you with a recommendation. No sales call required."
 >
   <section class="section">
     <div class="container narrow">
-      <h1>Start your project</h1>
+      <h1>Start your site</h1>
+      <p class="lead">
+        Tell us a bit about your business. We'll reply with a recommendation and what it would cost.
+        No sales call required.
+      </p>
+      <p class="required-note muted">Fields marked Required have to be filled in.</p>
 
-      <div id="inquiry-form-block">
-        <p class="muted" style="max-width:54ch">Tell me what you have in mind and I'll reply to you myself. Your message comes straight to me, not to a bot or a sales queue.</p>
-        <form
-          name="inquiry"
-          method="POST"
-          data-netlify="true"
-          data-netlify-honeypot="bot-field"
-          action="/start/?success=1"
-          class="inquiry-form"
-        >
-          <input type="hidden" name="form-name" value="inquiry" />
-          <p class="hidden-field">
-            <label>Don't fill this out: <input name="bot-field" /></label>
-          </p>
+      <form
+        name="inquiry"
+        method="POST"
+        data-netlify="true"
+        data-netlify-honeypot="bot-field"
+        action="/start/thanks/"
+        class="inquiry-form"
+      >
+        <input type="hidden" name="form-name" value="inquiry" />
+        <p class="hidden-field">
+          <label>Don't fill this out: <input name="bot-field" /></label>
+        </p>
 
-          <label class="field">
-            <span>Your name</span>
-            <input type="text" name="name" required autocomplete="name" />
-          </label>
+        <label class="field">
+          <span>Your name <span class="field-hint">Required</span></span>
+          <input type="text" name="name" required autocomplete="name" />
+        </label>
 
-          <label class="field">
-            <span>Email</span>
-            <input type="email" name="email" required autocomplete="email" />
-          </label>
+        <label class="field">
+          <span>Email <span class="field-hint">Required</span></span>
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
 
-          <label class="field">
-            <span>What are you after?</span>
-            <select name="project-type">
-              <option value="Static site ($500)">Static site ($500)</option>
-              <option value="Static + DecapCMS ($750)">Static + DecapCMS ($750)</option>
-              <option value="Not sure yet">Not sure yet</option>
-              <option value="Updates to an existing site">Updates to an existing site</option>
-              <option value="Something else">Something else</option>
-            </select>
-          </label>
+        <label class="field">
+          <span>Business name <span class="field-hint">Required</span></span>
+          <input type="text" name="business" required autocomplete="organization" />
+        </label>
 
-          <label class="field">
-            <span>Project details</span>
-            <textarea name="message" rows="5" required></textarea>
-          </label>
+        <label class="field">
+          <span>Website, if you have one</span>
+          <input type="url" name="website" autocomplete="url" placeholder="https://" />
+        </label>
 
-          <button type="submit" class="btn">Send inquiry</button>
-        </form>
-      </div>
+        <label class="field">
+          <span>Which package are you thinking about?</span>
+          <select name="package">
+            <option value="Not sure yet" selected>Not sure yet</option>
+            {packages.tiers.map((tier) => <option value={tier.name}>{tier.name}</option>)}
+          </select>
+        </label>
 
-      <div id="inquiry-success" class="card success" hidden>
-        <h2>Thanks, I got your message.</h2>
-        <p class="muted">I'll get back to you at the email you gave me. If it's urgent, you can reach me directly at <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
-      </div>
+        <label class="field">
+          <span>What does your business do? <span class="field-hint">Required</span></span>
+          <textarea name="about" rows="4" required aria-describedby="about-hint"></textarea>
+          <span class="field-hint" id="about-hint">What you do, who you do it for, and roughly where.</span>
+        </label>
 
+        <label class="field">
+          <span>Anything else?</span>
+          <textarea name="notes" rows="3"></textarea>
+        </label>
+
+        <p class="reply-time muted">We usually reply within one business day.</p>
+        <button type="submit" class="btn">Send</button>
+      </form>
+
+      <p class="fallback muted">
+        Would rather email? <a href={`mailto:${site.email}`}>{site.email}</a>
+      </p>
     </div>
   </section>
 </BaseLayout>
 
 <script is:inline>
-  if (new URLSearchParams(window.location.search).get('success') === '1') {
-    document.getElementById('inquiry-form-block')?.setAttribute('hidden', '');
-    document.getElementById('inquiry-success')?.removeAttribute('hidden');
-    document.getElementById('inquiry-success')?.scrollIntoView();
-  }
+  // Preselects the tier when a package card links here with ?tier=.
+  // Without JS the select simply stays on "Not sure yet".
+  (function () {
+    var wanted = new URLSearchParams(window.location.search).get('tier');
+    if (!wanted) return;
+    var select = document.querySelector('select[name="package"]');
+    if (!select) return;
+    for (var i = 0; i < select.options.length; i++) {
+      var slug = select.options[i].value.toLowerCase().replace(/\s+/g, '-');
+      if (slug === wanted.toLowerCase()) { select.selectedIndex = i; return; }
+    }
+  })();
 </script>
 
 <style>
-  .narrow { max-width: 640px; }
-  .inquiry-form { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+  .required-note { font-size: var(--step--1); }
+  .inquiry-form { margin-top: var(--space-4); }
   .hidden-field { display: none; }
-  .success { border-color: var(--color-brand); }
+  .reply-time { margin-bottom: var(--space-2); font-size: var(--step--1); }
+  .fallback { margin-top: var(--space-4); font-size: var(--step--1); }
 </style>

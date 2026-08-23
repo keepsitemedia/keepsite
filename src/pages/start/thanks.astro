@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
+---
+<BaseLayout
+  title="Thanks | Keepsite Media"
+  description="We got your message and we'll reply within one business day."
+  noindex={true}
+>
+  <section class="section">
+    <div class="container narrow">
+      <h1>Thanks, we've got it.</h1>
+      <p class="lead">
+        We'll reply within one business day, usually sooner. If it's easier, you can also reach us at
+        <a href={`mailto:${site.email}`}>{site.email}</a>.
+      </p>
+      <p class="serif pull-line">Keep your business moving.</p>
+      <p><a class="link-arrow" href="/">Back to the homepage &rarr;</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .pull-line { margin: var(--space-5) 0 var(--space-4); font-size: var(--step-3); color: var(--color-brand); }
+</style>
