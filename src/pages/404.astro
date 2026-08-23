@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Page not found | Keepsite Media"
+  description="That page isn't here. Here's where everything is."
+  noindex={true}
+>
+  <section class="section">
+    <div class="container">
+      <h1>That page isn't here.</h1>
+      <p class="lead">It may have moved. Here's where everything is:</p>
+      <ul class="not-found-links">
+        <li><a href="/packages/">Packages</a></li>
+        <li><a href="/how-it-works/">How it works</a></li>
+        <li><a href="/faq/">FAQ</a></li>
+        <li><a href="/start/">Start your site</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found-links { list-style: none; padding: 0; margin-top: var(--space-3); }
+  .not-found-links li { margin-bottom: var(--space-1); font-size: var(--step-1); font-weight: 600; }
+</style>
