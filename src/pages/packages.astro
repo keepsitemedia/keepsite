@@ -2,6 +2,24 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import packages from '../data/packages.json';
+
+type Cell = boolean | string;
+type Row = { group: string; feature: string; presence: Cell; search: Cell; searchPlus: Cell };
+
+const rows = packages.comparison as Row[];
+const groups = ['Build', 'Monthly'].map((name) => ({
+  name,
+  rows: rows.filter((r) => r.group === name),
+}));
+
+// DecapCMS writes every list field as a string, so a row edited in
+// the CMS arrives as "true"/"false" rather than a JSON boolean.
+// Normalize both forms to one shape.
+const normalize = (cell: Cell): boolean | string => {
+  if (cell === true || cell === 'true') return true;
+  if (cell === false || cell === 'false') return false;
+  return String(cell);
+};
 ---
 <BaseLayout title={packages.meta.title} description={packages.meta.description}>
 
@@ -67,7 +85,56 @@ import packages from '../data/packages.json';
     </div>
   </section>
 
-  <!-- Band 4: comparison table. Task 5.3. -->
+  <section class="section">
+    <div class="container">
+      <h2>Full comparison</h2>
+
+      <div class="table-scroll" role="region" aria-label="Package comparison" tabindex="0">
+        <table class="compare">
+          <caption>Everything included in each package, by build and by monthly subscription.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              {packages.tiers.map((tier) => <th scope="col">{tier.name}</th>)}
+            </tr>
+          </thead>
+          {groups.map((group) => (
+            <tbody>
+              <tr>
+                <th scope="rowgroup" colspan="4">{group.name}</th>
+              </tr>
+              {group.rows.map((row) => (
+                <tr>
+                  <th scope="row">{row.feature}</th>
+                  {([row.presence, row.search, row.searchPlus] as Cell[]).map((raw) => {
+                    const cell = normalize(raw);
+                    return (
+                      <td>
+                        {cell === true && (
+                          <>
+                            <span aria-hidden="true">&#10003;</span>
+                            <span class="visually-hidden">Included</span>
+                          </>
+                        )}
+                        {cell === false && (
+                          <>
+                            <span aria-hidden="true">&#8212;</span>
+                            <span class="visually-hidden">Not included</span>
+                          </>
+                        )}
+                        {typeof cell === 'string' && cell}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- Bands 5 and 6: add-ons and scope FAQ. Task 5.4. -->
 
   <ClosingCta
