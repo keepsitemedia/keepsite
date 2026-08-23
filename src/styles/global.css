@@ -129,6 +129,9 @@ img { max-width: 100%; height: auto; }
 .prose { max-width: var(--maxw-prose); }
 .narrow { max-width: var(--maxw-narrow); }
 .center { text-align: center; }
+/* p carries a 68ch measure cap, which without auto margins anchors the
+   box left and pulls centered content off the section's axis. */
+.center p { margin-inline: auto; }
 .muted { color: var(--color-muted); }
 .lead { font-size: var(--step-2); max-width: var(--maxw-lead); color: var(--color-muted); }
 .section-deep .lead { color: var(--color-brand-tint); }
