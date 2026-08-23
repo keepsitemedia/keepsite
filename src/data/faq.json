@@ -1,82 +1,140 @@
 {
-  "intro": "Honest answers to the questions people ask most. If yours isn't here, just get in touch and I'll happily walk you through it.",
+  "meta": {
+    "title": "FAQ | Keepsite Media",
+    "description": "What's included, what the monthly covers, how long it takes, and what we need from you."
+  },
+  "intro": "The questions people ask most, answered straight. If yours isn't here, ask us on the Start page and we'll answer it.",
   "groups": [
     {
-      "title": "The tech, in plain English",
+      "title": "Getting started",
       "items": [
         {
-          "q": "Where does my website actually live?",
-          "a": "Your site is hosted on Netlify, a service that serves your pages quickly to visitors anywhere in the world. It runs on Netlify's free tier, so there's no server for you to manage and nothing to pay each month for hosting."
+          "topic": "how-to-start",
+          "q": "How do we start?",
+          "a": "Fill out the form on the Start page. Tell us what your business does and which package you're leaning toward, or say you're not sure. We'll reply within one business day with a recommendation and what it would cost."
         },
         {
-          "q": "What is GitHub and why is my site there?",
-          "a": "GitHub holds the code for your site in what's called a repository. Think of it as the master copy. When something needs to change, the update happens there and Netlify automatically publishes it. The repository is yours, so you always have the original."
+          "topic": "how-long",
+          "q": "How long does a site take?",
+          "a": "Most Presence sites launch two to three weeks after we have your questionnaire and your content. Search and Search Plus take a little longer, usually three to five weeks, because the keyword research and the copy come first. The biggest variable is how quickly we get your information back."
         },
         {
-          "q": "How do I edit my own site?",
-          "a": "If your site includes Decap CMS, you get a simple admin login in your browser. It's set up for the sections you'll update most often, usually a blog and a portfolio, so you can add and edit those yourself with no code. Save your changes and the site updates on its own."
+          "topic": "what-we-need",
+          "q": "What do you need from me?",
+          "a": "Accurate information about your business, your photos and logo if you have them, and one round of feedback before launch. On Search and Search Plus there's also one call so we get your tone right. That's the whole list."
+        },
+        {
+          "topic": "do-we-meet",
+          "q": "Do we have to meet?",
+          "a": "Only on Search and Search Plus, and only once. Everything else runs on one questionnaire and email. If you'd rather talk something through at any point we're happy to, but we won't put a standing meeting on your calendar."
         }
       ]
     },
     {
-      "title": "Money",
+      "title": "Packages and pricing",
       "items": [
         {
-          "q": "How does pricing work?",
-          "a": "You pay once to build the site and then it's yours. A static site is $500, and a static site with Decap CMS so you can edit it yourself is $750. Extra work later is billed by the hour."
+          "topic": "which-package",
+          "q": "Which package is right for me?",
+          "a": "If people already know about you and just need somewhere to land, Presence is the one. If you want customers to find you through Google, start at Search. Search Plus is for businesses that want us working the site through the year. If you're not sure, tell us what your business does and we'll tell you which one we'd pick."
         },
         {
-          "q": "Are there any monthly costs?",
-          "a": "No. Once the build is paid for, your hosting and CMS run on free tiers, so there's nothing to pay each month. The only optional ongoing cost is a domain name if you want one, which is covered below."
+          "topic": "search-vs-search-plus",
+          "q": "What's the difference between Search and Search Plus?",
+          "a": "Search builds your site around keyword research and keeps 24 articles a year going out. Search Plus adds competitor analysis up front, and through the year we keep watching the search data and updating pages when there's an opening. Search sets the strategy once. Search Plus keeps adjusting it."
         },
         {
-          "q": "Do you offer payment plans?",
-          "a": "Yes. If you'd rather spread the cost, you can pay 10% of the total each month for a year. That works out to 120% of the price overall, so you're paying a little more for the convenience of splitting it across twelve months instead of all at once."
+          "topic": "change-tiers",
+          "q": "Can I change tiers later?",
+          "a": "Yes. Moving up is common and easy: we quote the difference in build work and your monthly moves to the new tier. Moving down is fine too, at the end of your current term."
         },
         {
-          "q": "What if I want changes down the road?",
-          "a": "Updates and changes are billed hourly: $50 for the first hour, $75 for each additional hour, with a one-hour minimum per request. Most small changes are quick."
+          "topic": "no-monthly-plan",
+          "q": "Do you build sites without a monthly plan?",
+          "a": "No. A site nobody maintains slowly stops being useful, and keeping it useful is the thing we actually sell. Every Keepsite build comes with a subscription that keeps it hosted, monitored, and current."
         }
       ]
     },
     {
-      "title": "Your domain name",
+      "title": "The monthly subscription",
       "items": [
         {
-          "q": "Can I have my own domain name, like mybusiness.com?",
-          "a": "Absolutely. You buy the domain from a registrar, which usually costs around $10 to $15 a year, and I connect it to your site for you. There's no extra hosting cost for using your own domain."
+          "topic": "what-monthly-covers",
+          "q": "What does the monthly cover?",
+          "a": "On every package: hosting, routine maintenance, monitoring, minor content updates, and a plain-English recap once a year. On Search and Search Plus it also covers the content and search work, including 24 SEO blog posts a year that we plan, write, edit, and publish for you."
+        },
+        {
+          "topic": "monthly-just-hosting",
+          "q": "Is the monthly just hosting?",
+          "a": "No. Hosting is one small line item inside it. The rest is maintenance, monitoring, and the updates that keep the site current, plus the ongoing content and search work on Search and Search Plus. On those two, most of the monthly is 24 articles a year and the search work behind them."
+        },
+        {
+          "topic": "locked-in",
+          "q": "Am I locked into a contract?",
+          "a": "Presence is month to month, cancel any time with 30 days' notice. Search and Search Plus run on an annual content plan, so the first year is a 12-month commitment, and after that they're month to month too. The 12 months exist because the content is planned as a year, not because we want to hold on to you."
+        },
+        {
+          "topic": "if-i-stop",
+          "q": "What happens if I stop?",
+          "a": "Your domain is yours and your content is yours, including every blog post we published. We'll help you move them wherever you're going. The site itself comes offline when the subscription ends, so if you're planning a move, tell us and we'll time it so nothing goes dark."
         }
       ]
     },
     {
-      "title": "Editing and ownership",
+      "title": "Content and SEO",
       "items": [
         {
-          "q": "What can I change myself?",
-          "a": "The editor is set up for the sections you'll change most, usually your blog and portfolio, and sometimes something like a pricing page. It's built around the everyday edits a business actually makes, so the things you touch most are a few clicks away. It isn't wired up to edit every part of the site, which keeps it simple and keeps your costs down."
+          "topic": "who-writes-copy",
+          "q": "Who writes the copy?",
+          "a": "On Presence, you provide the words and we edit and place them. On Search and Search Plus, we write the copy for your core pages around the keywords we find. Either way you supply the facts: what you do, where, for whom, and what's true about the business."
         },
         {
-          "q": "What if I need something the CMS can't do?",
-          "a": "Just send me a message. Anything outside those editable sections, like design tweaks, new pages, or other content, I take care of. That work is billed hourly and is usually quick."
+          "topic": "no-copy",
+          "q": "What if I don't have copy?",
+          "a": "On Search and Search Plus that's already covered, because writing the core pages is part of the build. On Presence, if there's nothing to work from, we can develop the copy as an add-on at $90 an hour, or you can move up to Search where it's included."
         },
         {
-          "q": "Do I really own everything?",
-          "a": "Yes. The code, the content, the GitHub repository, the Netlify account, and your domain all belong to you. There's no lock-in, and you could hand the whole thing to any other developer if you ever wanted to."
+          "topic": "blog-posts",
+          "q": "What are the 24 blog posts, exactly?",
+          "a": "Two articles a month on topics we plan against your keywords, which means the questions your customers are already searching. We draft, edit, and publish them. About a week before each one goes out you get an email with the article in it."
+        },
+        {
+          "topic": "approve-posts",
+          "q": "Do I have to approve every post?",
+          "a": "No. You get each article about a week ahead so you can catch anything inaccurate. If we don't hear back, it publishes on schedule. Reading them is optional. Correcting them is the part that matters."
         }
       ]
     },
     {
-      "title": "Is this right for me?",
+      "title": "Working with us",
       "items": [
         {
-          "q": "What kinds of businesses is this great for?",
-          "a": "It works well for local service businesses like trades, salons, cafes, and fitness studios, for freelancers and creatives like photographers, designers, and writers, and for consultants, small shops, and nonprofits. In short, anyone who wants a clean, professional site that's fast, cheap to run, and easy to keep up to date."
+          "topic": "changes-myself",
+          "q": "Can I make changes myself?",
+          "a": "You can, but you don't have to, and most people don't. Send us what you want changed and it's handled as part of your monthly. If you'd rather edit some sections yourself, we can set that up."
         },
         {
-          "q": "How do we get started?",
-          "a": "Head to the contact page and tell me a little about your business and what you have in mind. I'll get back to you, and we'll take it from there."
+          "topic": "new-page",
+          "q": "What if I need a new page?",
+          "a": "A standard page is $180. A search-informed page, on Search or Search Plus, is $270. If what you need is more strategy rather than more pages, we'll move you to the package that covers it instead of selling it piece by piece."
+        },
+        {
+          "topic": "domain-owner",
+          "q": "Who owns my domain?",
+          "a": "You do. It's registered in your name, on your account, and it stays yours no matter what happens with us. If you don't have one yet, we'll walk you through buying it."
+        },
+        {
+          "topic": "business-types",
+          "q": "What kinds of businesses do you work with?",
+          "a": "Local service businesses, trades, salons, studios, clinics, shops, and independent professionals, mostly around Utah. If your customers find you through Google, Instagram, or a referral, this is built for you."
         }
       ]
     }
-  ]
+  ],
+  "closing": {
+    "heading": "Keep your business moving.",
+    "sub": "We'll take care of the website.",
+    "ctaLabel": "Start your site",
+    "ctaHref": "/start/"
+  }
 }
