@@ -1,22 +1,71 @@
 {
-  "heroHeadline": "I build websites you keep.",
-  "heroSub": "When the work is done, the whole site belongs to you: the code, the GitHub repo, and the Netlify account. There is no lock-in, and nothing to pay every month.",
-  "hourlyLine": "Need changes later on? You pay by the hour. The first hour is $50 and every hour after that is $75, with a 1-hour minimum.",
-  "valueProps": [
-    { "title": "You own it", "body": "The code sits in your own GitHub and deploys from your own Netlify. Once the site is built, all of it transfers to you." },
-    { "title": "No ongoing costs", "body": "Static sites run on Netlify's free tier, so hosting costs $0 a month. You pay me to build the site, and after that it costs nothing to keep online." },
-    { "title": "Edit it yourself", "body": "I can set up a simple visual editor for the parts you'll update most, like a blog or portfolio, so you can post and tweak those yourself without going near the code. Bigger changes, I handle." },
-    { "title": "Work with me directly", "body": "You deal with me, not a sales team or a support queue. Clear pricing, and a real person answering your email." }
-  ],
-  "runningCosts": {
-    "heading": "What it costs to keep the site running: $0 a month.",
-    "intro": "Most web shops put you on a subscription, with hosting fees, platform fees, and maintenance retainers that bill every month whether you need anything or not. I work differently. A few reasons your site stays free to run:",
-    "points": [
-      { "label": "Free hosting that stays free", "detail": "Your site is plain HTML, CSS, and images, which Netlify's free tier serves at no cost. There is no usage meter and no bill waiting at the end of the month." },
-      { "label": "Nothing to maintain", "detail": "With no database or server running behind it, there is nothing to patch, renew, or pay for, and nothing that can quietly run up a charge." },
-      { "label": "The accounts are yours", "detail": "The GitHub repo and the Netlify project are both in your name, so no middleman sits between you and your own site." },
-      { "label": "Pay only when you change it", "detail": "When you want an update, you pay for the hour or two it takes and nothing else. There is never a recurring fee." }
+  "meta": {
+    "title": "Keepsite Media | Websites for people with other things to do",
+    "description": "Professional websites for busy business owners. We build it, keep it working, and stay off your to-do list. Packages from $1,100."
+  },
+  "hero": {
+    "headline": "Websites for people with other things to do.",
+    "sub": "Professional websites built to look good, work hard, and stay off your to-do list.",
+    "primaryCta": { "label": "View Packages", "href": "/packages/" },
+    "secondaryCta": { "label": "Start Your Site", "href": "/start/" }
+  },
+  "problem": {
+    "heading": "You don't need another business task.",
+    "body": "You already have a full list. A website shouldn't be the thing you keep meaning to get to."
+  },
+  "solution": {
+    "heading": "We build it. We keep it useful.",
+    "beats": [
+      {
+        "title": "We build it.",
+        "body": "A custom site put together around what your business actually does, and who you want walking in the door."
+      },
+      {
+        "title": "We keep it working.",
+        "body": "Hosting, maintenance, monitoring, and the small updates that pile up. All handled, none of it yours."
+      },
+      {
+        "title": "We tell you what's working.",
+        "body": "Once a year you get a recap in plain English: what people searched, what they clicked, what we'd do next."
+      }
+    ],
+    "pullLine": "A website that earns its keep."
+  },
+  "packages": {
+    "heading": "Three ways to work with us.",
+    "linkLabel": "See what's included",
+    "linkHref": "/packages/"
+  },
+  "why": {
+    "heading": "Why Keepsite",
+    "pillars": [
+      {
+        "title": "Make it useful.",
+        "body": "Every site has a job. We build for that job and leave out the rest."
+      },
+      {
+        "title": "Keep it simple.",
+        "body": "One questionnaire, one round of changes, no website homework."
+      },
+      {
+        "title": "Show your work.",
+        "body": "Clear pricing, clear scope, and a yearly recap you can actually read."
+      },
+      {
+        "title": "Build for real life.",
+        "body": "You have customers, staff, and a schedule. The site fits around all of it."
+      }
     ]
   },
-  "closingHeadline": "Want a site that's yours to keep?"
+  "work": {
+    "heading": "Recent work",
+    "linkLabel": "See all work",
+    "linkHref": "/work/"
+  },
+  "closing": {
+    "heading": "Keep your business moving.",
+    "sub": "We'll take care of the website.",
+    "ctaLabel": "Start your site",
+    "ctaHref": "/start/"
+  }
 }
