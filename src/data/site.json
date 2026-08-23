@@ -1,12 +1,18 @@
 {
   "brand": "Keepsite Media",
-  "email": "snic9004@gmail.com",
+  "legalName": "Keepsite Media",
+  "tagline": "Websites for people with other things to do.",
+  "email": "keepsitemedia@gmail.com",
+  "phone": "(385) 307-8190",
+  "phoneE164": "+13853078190",
+  "areaServed": "Utah",
+  "priceRange": "$$",
+  "googleBusinessProfileUrl": "",
+  "social": [],
   "nav": [
-    { "label": "Home", "href": "/" },
-    { "label": "Portfolio", "href": "/portfolio" },
-    { "label": "Pricing", "href": "/pricing" },
-    { "label": "FAQ", "href": "/faq" },
-    { "label": "Get in touch", "href": "/contact" }
-  ],
-  "footerNote": "You keep everything: the code, the GitHub repo, and the Netlify account. No lock-in, and nothing to pay each month."
+    { "label": "Packages", "href": "/packages/", "cta": false },
+    { "label": "How it works", "href": "/how-it-works/", "cta": false },
+    { "label": "FAQ", "href": "/faq/", "cta": false },
+    { "label": "Start your site", "href": "/start/", "cta": true }
+  ]
 }

@@ -19,6 +19,38 @@ const { title, description, ogImage = '/og-default.png', noindex = false } = Ast
 const siteUrl = Astro.site as URL;
 const canonical = new URL(Astro.url.pathname, siteUrl).href;
 const ogImageUrl = new URL(ogImage, siteUrl).href;
+
+// site.social is an empty array in JSON, which TypeScript infers as
+// never[]. Type it so .map() over it compiles once entries exist.
+const social = site.social as { name: string; url: string }[];
+const sameAs = [site.googleBusinessProfileUrl, ...social.map((s) => s.url)].filter(Boolean);
+
+const siteJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}#website`,
+      url: siteUrl.href,
+      name: site.brand,
+      inLanguage: 'en-US',
+      publisher: { '@id': `${siteUrl}#business` },
+    },
+    {
+      '@type': 'ProfessionalService',
+      '@id': `${siteUrl}#business`,
+      name: site.brand,
+      legalName: site.legalName,
+      description: site.tagline,
+      url: siteUrl.href,
+      email: site.email,
+      telephone: site.phoneE164,
+      areaServed: { '@type': 'State', name: site.areaServed },
+      priceRange: site.priceRange,
+      ...(sameAs.length ? { sameAs } : {}),
+    },
+  ],
+};
 ---
 <!doctype html>
 <html lang="en">
@@ -43,6 +75,8 @@ const ogImageUrl = new URL(ogImage, siteUrl).href;
     <meta name="twitter:card" content="summary_large_image" />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(siteJsonLd)} is:inline />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
