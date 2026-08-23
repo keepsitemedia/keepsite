@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /reports/
 
 Sitemap: https://www.keepsitemedia.com/sitemap-index.xml
