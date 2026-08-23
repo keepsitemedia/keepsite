@@ -1,0 +1,21 @@
+---
+interface Props {
+  heading: string;
+  sub: string;
+  ctaLabel: string;
+  ctaHref: string;
+}
+const { heading, sub, ctaLabel, ctaHref } = Astro.props;
+---
+<section class="section section-deep center">
+  <div class="container">
+    <h2 class="serif closing-heading">{heading}</h2>
+    <p class="closing-sub">{sub}</p>
+    <p><a class="btn" href={ctaHref}>{ctaLabel}</a></p>
+  </div>
+</section>
+
+<style>
+  .closing-heading { font-size: var(--step-4); margin-bottom: var(--space-1); }
+  .closing-sub { max-width: none; font-size: var(--step-2); margin-bottom: var(--space-3); }
+</style>

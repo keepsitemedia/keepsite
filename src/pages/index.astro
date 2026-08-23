@@ -1,12 +1,118 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ClosingCta from '../components/ClosingCta.astro';
 import home from '../data/home.json';
+import packages from '../data/packages.json';
 ---
 <BaseLayout title={home.meta.title} description={home.meta.description}>
-  <section class="section">
+
+  <!-- 1 + 2: hero and problem run continuously, no hard break -->
+  <section class="section hero">
     <div class="container">
       <h1>{home.hero.headline}</h1>
-      <p class="lead">{home.hero.sub}</p>
+      <p class="hero-sub">{home.hero.sub}</p>
+      <p class="hero-ctas">
+        <a class="btn" href={home.hero.primaryCta.href}>{home.hero.primaryCta.label}</a>
+        <a class="btn btn-outline" href={home.hero.secondaryCta.href}>{home.hero.secondaryCta.label}</a>
+      </p>
+
+      <div class="problem">
+        <h2>{home.problem.heading}</h2>
+        <p class="lead">{home.problem.body}</p>
+      </div>
     </div>
   </section>
+
+  <!-- 3: solution -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>{home.solution.heading}</h2>
+      <div class="grid grid-3 beats">
+        {home.solution.beats.map((beat) => (
+          <div class="beat">
+            <h3>{beat.title}</h3>
+            <p class="muted">{beat.body}</p>
+          </div>
+        ))}
+      </div>
+      <p class="serif pull-line">{home.solution.pullLine}</p>
+    </div>
+  </section>
+
+  <!-- 4: packages -->
+  <section class="section">
+    <div class="container">
+      <h2>{home.packages.heading}</h2>
+      <div class="grid grid-3 tier-strip">
+        {packages.tiers.map((tier) => (
+          <a class="card tier-mini" href={`/packages/#${tier.id}`}>
+            <h3>{tier.name}</h3>
+            <p class="serif tier-line">{tier.line}</p>
+            <p class="tier-price price">
+              {tier.buildPrice}
+              <span class="tier-monthly muted">+ {tier.monthlyPrice}/month</span>
+            </p>
+          </a>
+        ))}
+      </div>
+      <p><a class="link-arrow" href={home.packages.linkHref}>{home.packages.linkLabel} &rarr;</a></p>
+    </div>
+  </section>
+
+  <!-- 5: why keepsite -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2>{home.why.heading}</h2>
+      <div class="rule-row pillars">
+        {home.why.pillars.map((pillar) => (
+          <div>
+            <h3>{pillar.title}</h3>
+            <p class="muted">{pillar.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 6: work. Added in Task 7.2, once there is work to show. -->
+
+  <!-- 7: closing -->
+  <ClosingCta
+    heading={home.closing.heading}
+    sub={home.closing.sub}
+    ctaLabel={home.closing.ctaLabel}
+    ctaHref={home.closing.ctaHref}
+  />
+
 </BaseLayout>
+
+<style>
+  .hero h1 { font-size: var(--step-5); max-width: 16ch; }
+  .hero-sub { max-width: var(--maxw-lead); font-size: var(--step-2); color: var(--color-muted); }
+  .hero-ctas { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+
+  .problem { margin-top: var(--space-6); }
+  .problem h2 { max-width: 20ch; }
+
+  .beats { margin-top: var(--space-4); }
+  .beat h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
+
+  .pull-line {
+    margin-top: var(--space-5);
+    margin-bottom: 0;
+    font-size: var(--step-3);
+    color: var(--color-brand);
+    max-width: none;
+  }
+
+  .tier-strip { margin-top: var(--space-4); }
+  .tier-mini { display: block; text-decoration: none; color: var(--color-ink); }
+  .tier-mini:hover { border-color: var(--color-ink); color: var(--color-ink); }
+  .tier-mini h3 { margin-bottom: var(--space-0); }
+  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
+  .tier-price { font-size: var(--step-3); font-weight: 600; margin: 0; }
+  .tier-monthly { display: block; font-size: var(--step-0); font-weight: 400; }
+
+  .pillars { margin-top: var(--space-4); }
+  .pillars h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
+</style>
