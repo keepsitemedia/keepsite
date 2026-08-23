@@ -1,47 +1,96 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import pricing from '../data/pricing.json';
+import ClosingCta from '../components/ClosingCta.astro';
+import packages from '../data/packages.json';
 ---
-<BaseLayout
-  title="Pricing | Keepsite Media"
-  description="What a Keepsite Media website costs, and what is included."
->
-  <section class="section">
-    <div class="container">
-      <h1>Pricing</h1>
-      <p class="intro muted">{pricing.intro}</p>
+<BaseLayout title={packages.meta.title} description={packages.meta.description}>
 
-      <div class="grid grid-2" style="margin-top: var(--space-4)">
-        {pricing.tiers.map((t) => (
-          <div class="card tier">
-            <h2>{t.name}</h2>
-            <p class="price">{t.price}</p>
-            <p class="muted">{t.blurb}</p>
-            <ul>
-              {t.features.map((f) => <li>{f}</li>)}
+  <section class="section-tight">
+    <div class="container">
+      <h1>Packages</h1>
+      <p class="lead">{packages.intro}</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <h2 class="visually-hidden">The three packages</h2>
+      <div class="grid grid-3">
+        {packages.tiers.map((tier) => (
+          <div class="card tier" id={tier.id}>
+            <h3 class="tier-name">{tier.name}</h3>
+            <p class="serif tier-line">{tier.line}</p>
+
+            <p class="tier-price price">
+              {tier.buildPrice}
+              <span class="tier-price-note muted">{tier.buildPriceNote}</span>
+            </p>
+            <p class="tier-monthly price muted">
+              + {tier.monthlyPrice}/month
+              <span class="visually-hidden">{tier.monthlyPriceNote}</span>
+            </p>
+
+            <p class="tier-bestfor"><strong>Best for:</strong> {tier.bestFor}</p>
+
+            <ul class="tier-includes">
+              {tier.cardIncludes.map((line) => <li>{line}</li>)}
             </ul>
+
+            <a class="btn tier-cta" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel} &rarr;</a>
           </div>
         ))}
       </div>
-
-      <div class="card hourly" style="margin-top: var(--space-4)">
-        <h2>{pricing.hourly.title}</h2>
-        <ul>
-          {pricing.hourly.lines.map((l) => <li>{l}</li>)}
-        </ul>
-      </div>
-
-      <p class="ownership" style="margin-top: var(--space-4)">{pricing.ownership}</p>
-
-      <p style="margin-top: var(--space-3)"><a class="btn" href="/start/">Start a project</a></p>
     </div>
   </section>
+
+  <!-- Band 3: what the monthly covers. Task 5.2. -->
+  <!-- Band 4: comparison table. Task 5.3. -->
+  <!-- Bands 5 and 6: add-ons and scope FAQ. Task 5.4. -->
+
+  <ClosingCta
+    heading={packages.closing.heading}
+    sub={packages.closing.sub}
+    ctaLabel={packages.closing.ctaLabel}
+    ctaHref={packages.closing.ctaHref}
+  />
+
 </BaseLayout>
 
 <style>
-  .intro { max-width: 56ch; }
-  .price { font-size: 2.4rem; font-weight: 800; color: var(--color-brand); margin: 0 0 var(--space-1); }
-  .tier ul, .hourly ul { padding-left: 1.1rem; }
-  .tier li, .hourly li { margin-bottom: 0.4rem; }
-  .ownership { max-width: 60ch; font-weight: 600; }
+  .tier { display: flex; flex-direction: column; scroll-margin-top: 6rem; }
+  .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); }
+  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-3); }
+
+  .tier-price {
+    font-size: var(--step-4);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .tier-price-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
+  .tier-monthly { font-size: var(--step-1); margin: var(--space-0) 0 var(--space-3); }
+
+  .tier-bestfor { font-size: var(--step--1); margin-bottom: var(--space-3); }
+
+  .tier-includes {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--space-3);
+    display: grid;
+    gap: var(--space-1);
+  }
+  .tier-includes li { padding-left: 1.5rem; position: relative; }
+  .tier-includes li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+
+  .tier-cta { margin-top: auto; align-self: flex-start; }
 </style>
