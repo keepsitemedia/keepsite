@@ -1,0 +1,55 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'work'>;
+}
+const { entry } = Astro.props;
+const { title, url, tier, job, screenshot } = entry.data;
+---
+<a class="work-card card" href={url} target="_blank" rel="noopener noreferrer">
+  <img
+    class="work-shot"
+    src={screenshot}
+    alt={`The ${title} website`}
+    width="1200"
+    height="750"
+    loading="lazy"
+    decoding="async"
+  />
+  <p class="work-tier">{tier}</p>
+  <h3 class="work-title">{title}</h3>
+  <p class="work-job muted">{job}</p>
+  <span class="work-visit">Visit site &rarr;</span>
+</a>
+
+<style>
+  .work-card { display: block; text-decoration: none; color: var(--color-ink); }
+  .work-card:hover { border-color: var(--color-ink); color: var(--color-ink); }
+  .work-card:hover .work-title { text-decoration: underline; text-underline-offset: 0.2em; }
+
+  .work-shot {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1200 / 750;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) - 3px);
+    margin-bottom: var(--space-2);
+    background: var(--color-surface-alt);
+  }
+
+  .work-tier {
+    display: inline-block;
+    margin: 0 0 var(--space-1);
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: var(--color-brand-tint);
+    color: var(--color-brand);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  .work-title { font-size: var(--step-1); margin-bottom: var(--space-0); }
+  .work-job { margin-bottom: var(--space-2); }
+  .work-visit { color: var(--color-brand); font-weight: 600; }
+</style>

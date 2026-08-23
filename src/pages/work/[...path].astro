@@ -1,0 +1,46 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ClosingCta from '../../components/ClosingCta.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import home from '../../data/home.json';
+
+// Returning an empty array emits no page at all, so /work/ does not
+// exist until the collection has entries. Adding the first project
+// in the CMS makes the page, the nav item, the homepage strip, and
+// the sitemap entry appear with no code change.
+export const getStaticPaths: GetStaticPaths = async () => {
+  const entries = await getCollection('work');
+  return entries.length ? [{ params: { path: undefined } }] : [];
+};
+
+const entries = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+---
+<BaseLayout
+  title="Work | Keepsite Media"
+  description="A few of the sites we've built, and what each one is there to do."
+>
+  <section class="section-tight">
+    <div class="container">
+      <h1>Work</h1>
+      <p class="lead">A few of the sites we've built, and what each one is there to do.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <h2 class="visually-hidden">Built sites</h2>
+      <div class="grid grid-3">
+        {entries.map((entry) => <WorkCard entry={entry} />)}
+      </div>
+    </div>
+  </section>
+
+  <ClosingCta
+    heading={home.closing.heading}
+    sub={home.closing.sub}
+    ctaLabel={home.closing.ctaLabel}
+    ctaHref={home.closing.ctaHref}
+  />
+</BaseLayout>
