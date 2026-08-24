@@ -26,7 +26,14 @@ npm run dev    # terminal 2: starts Astro on :4321
 
 Then open `http://localhost:4321/admin/`. `local_backend: true` in `public/admin/config.yml` makes the CMS read and write your working tree instead of the repo, so you can try an edit, see it in `npm run dev`, and throw it away with `git checkout src/`.
 
-**Prices live in one place.** `src/data/packages.json` is the only source for every price on the site, including the structured data search engines read. Editing a price there updates the package cards, the homepage tier strip, the monthly section, and the JSON-LD `Offer` together, and nothing else.
+**Tier prices live in one place.** `src/data/packages.json` is the only source for the three tier prices. Editing one there updates the package cards, the homepage tier strip, the monthly section (for monthly prices), and the JSON-LD `Offer` search engines read, all together.
+
+Two other files quote prices as plain copy, and neither updates on its own:
+
+- `src/data/home.json` — the meta description mentions the starting price ("Packages from $1,100"), which renders into the homepage `<meta name="description">` and `og:description`.
+- `src/data/faq.json` — two answers quote the add-on prices ($90, $180, $270).
+
+Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too.
 
 ## Turning on the Work page
 

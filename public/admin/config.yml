@@ -55,7 +55,7 @@ collections:
             widget: "object"
             fields:
               - { name: "title", label: "Page title", widget: "string", required: true }
-              - { name: "description", label: "Meta description", widget: "text", required: true, hint: "Aim for 150 to 160 characters." }
+              - { name: "description", label: "Meta description", widget: "text", required: true, hint: "Aim for 150 to 160 characters. This mentions the starting price, so update it whenever a tier price changes on the Packages Page." }
           - name: "hero"
             label: "Hero"
             widget: "object"
@@ -240,8 +240,9 @@ collections:
             required: false
             hint: "Leave empty to hide it. Filling it in adds a signed line under the process. Both fields together, or neither."
             fields:
-              - { name: "name", label: "Name", widget: "string", required: true }
-              - { name: "role", label: "Role", widget: "string", required: true }
+              # Decap validates required children even when the parent object is untouched/null, which would make this entry unsavable; the template only renders a signature when BOTH fields are filled.
+              - { name: "name", label: "Name", widget: "string", required: false }
+              - { name: "role", label: "Role", widget: "string", required: false }
           - name: "closing"
             label: "Closing CTA"
             widget: "object"
