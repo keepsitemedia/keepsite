@@ -77,13 +77,13 @@ const siteJsonLd = {
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    <script type="application/ld+json" set:html={JSON.stringify(siteJsonLd)} is:inline />
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />}
+    <script type="application/ld+json" set:html={JSON.stringify(siteJsonLd).replace(/</g, '\\u003c')} is:inline />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} is:inline />}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <Header />
-    <main id="main">
+    <main id="main" tabindex="-1">
       <slot />
     </main>
     <Footer />

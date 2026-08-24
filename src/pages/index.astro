@@ -8,7 +8,7 @@ import packages from '../data/packages.json';
 
 const featuredWork = (await getCollection('work'))
   .filter((entry) => entry.data.featured)
-  .sort((a, b) => a.data.order - b.data.order)
+  .sort((a, b) => a.data.order - b.data.order || +b.data.launched - +a.data.launched)
   .slice(0, 3);
 ---
 <BaseLayout title={home.meta.title} description={home.meta.description}>

@@ -15,7 +15,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return entries.length ? [{ params: { path: undefined } }] : [];
 };
 
-const entries = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const entries = (await getCollection('work')).sort(
+  (a, b) => a.data.order - b.data.order || +b.data.launched - +a.data.launched,
+);
 ---
 <BaseLayout
   title="Work | Keepsite Media"

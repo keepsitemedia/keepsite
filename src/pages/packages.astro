@@ -17,6 +17,7 @@ const groups = ['Build', 'Monthly'].map((name) => ({
 // the CMS arrives as "true"/"false" rather than a JSON boolean.
 // Normalize both forms to one shape.
 const normalize = (cell: Cell): boolean | string => {
+  if (cell == null) return '';
   if (cell === true || cell === 'true') return true;
   if (cell === false || cell === 'false') return false;
   return String(cell);
@@ -111,7 +112,6 @@ const packagesJsonLd = {
             </p>
             <p class="tier-monthly price muted">
               + {tier.monthlyPrice}/month
-              <span class="visually-hidden">{tier.monthlyPriceNote}</span>
             </p>
 
             <p class="tier-bestfor"><strong>Best for:</strong> {tier.bestFor}</p>

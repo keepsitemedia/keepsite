@@ -1,6 +1,14 @@
 ---
+import { getCollection } from 'astro:content';
 import site from '../data/site.json';
 const year = new Date().getFullYear();
+
+// Mirrors the header's nav derivation (spec §3.6): the Work item
+// appears the moment the collection has an entry, in both navs.
+const hasWork = (await getCollection('work')).length > 0;
+const navItems = hasWork
+  ? [site.nav[0], { label: 'Work', href: '/work/', cta: false }, ...site.nav.slice(1)]
+  : site.nav;
 ---
 <footer class="site-footer">
   <div class="container">
@@ -12,7 +20,7 @@ const year = new Date().getFullYear();
 
       <nav aria-label="Footer">
         <ul class="footer-nav">
-          {site.nav.map((item) => (
+          {navItems.map((item) => (
             <li><a href={item.href}>{item.label}</a></li>
           ))}
         </ul>
