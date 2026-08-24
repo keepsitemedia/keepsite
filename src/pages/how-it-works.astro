@@ -99,5 +99,6 @@ const signature = process.signature as { name: string; role: string } | null;
   .expectations li { margin-bottom: var(--space-2); color: var(--color-muted); }
 
   /* Kept unreachable: signature is null in process.json; activating founder presence must stay a data edit. */
+  /* Setting it also means retiring the no-persona-name assertion in scripts/verify.mjs. */
   .signature { margin-top: var(--space-4); font-size: var(--step-1); font-weight: 600; }
 </style>

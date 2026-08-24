@@ -1,8 +1,8 @@
-// Structural acceptance checks against dist/. Run: npm run verify
+// Structural acceptance checks against dist/. Run: npm run gate
 //
-// `npm run verify` type-checks, builds a fresh dist/, then runs this file, so
-// one command re-runs every structural assertion the brand transition made.
-// Running this file directly checks whatever dist/ is already on disk.
+// `npm run gate` type-checks, builds a fresh dist/, then runs `npm run verify`,
+// so one command re-runs every structural assertion the brand transition made.
+// `npm run verify` alone checks whatever dist/ is already on disk.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -25,7 +25,7 @@ const read = (p) => fs.readFileSync(path.join('dist', p), 'utf8');
 const data = (name) => JSON.parse(fs.readFileSync(path.join('src', 'data', name), 'utf8'));
 
 if (!fs.existsSync('dist')) {
-  console.error('dist/ is missing. Run `npm run verify`, which builds first.');
+  console.error('dist/ is missing. Run `npm run gate`, which builds first.');
   process.exit(1);
 }
 
@@ -71,6 +71,8 @@ check('no old-model residue', () => {
   }
 });
 // Unanchored "Sam" matches inside "same" and "sameAs"; the boundary is the check.
+// Retire this assertion in the same commit that sets process.json's `signature`
+// — founder presence is a deliberate data edit, not residue.
 check('no persona-name residue', () => {
   for (const p of PAGES) {
     if (/\bSam\b/.test(read(p))) throw new Error('persona name in ' + p);
@@ -118,12 +120,16 @@ check('the home description quotes the lowest build price', () => {
   const desc = data('home.json').meta.description;
   if (!desc.includes(lowest)) throw new Error(`description omits ${lowest}: "${desc}"`);
 });
-check('every price in the FAQ answers is an add-on price', () => {
-  const addOns = new Set(data('packages.json').addOns.items.flatMap((i) => money(i.price)));
+check('every price in the FAQ answers comes from packages.json', () => {
+  const pkg = data('packages.json');
+  const quotable = new Set([
+    ...pkg.addOns.items.flatMap((i) => money(i.price)),
+    ...pkg.tiers.flatMap((t) => [t.buildPrice, t.monthlyPrice]),
+  ]);
   for (const g of data('faq.json').groups) {
     for (const item of g.items) {
       for (const fig of money(item.a)) {
-        if (!addOns.has(fig)) throw new Error(`${fig} in answer ${item.topic} is not an add-on price`);
+        if (!quotable.has(fig)) throw new Error(`${fig} in answer ${item.topic} is in no packages.json price`);
       }
     }
   }
@@ -156,7 +162,9 @@ check('noindex only on 404 and thanks', () => {
 check('no broken internal links', () => {
   const bad = [];
   for (const p of PAGES) {
-    for (const m of read(p).matchAll(/href="(\/[^"#?]*)/g)) {
+    // action= too: the Start form posts to /start/thanks/, the site's only
+    // internal reference that is not an href.
+    for (const m of read(p).matchAll(/(?:href|action)="(\/[^"#?]*)/g)) {
       const href = m[1];
       if (href.startsWith('/_astro/')) continue;
       const tries = [
@@ -206,6 +214,7 @@ check('Service prices match the rendered prices', () => {
   if (services.length !== 3) throw new Error('services: ' + services.length);
   for (const s of services) {
     const id = s['@id'].split('#')[1];
+    if (!expect[id]) throw new Error('unknown service id ' + id);
     const [b, m] = expect[id];
     if (s.offers[0].price !== b) throw new Error(id + ' build ' + s.offers[0].price);
     if (s.offers[1].priceSpecification.price !== m) throw new Error(id + ' monthly ' + s.offers[1].priceSpecification.price);
