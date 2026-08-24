@@ -15,6 +15,20 @@ npm run preview  # serve the production build
 
 Page copy and settings live in `src/data/*.json`. Portfolio entries are markdown files in `src/content/portfolio/`. All of these are editable in the browser at `/admin` (DecapCMS) once the CMS is enabled (below).
 
+## Turning on the Work page
+
+`/work/`, its nav item, the homepage strip, and the sitemap entry are all generated from the `work` content collection, which is empty at launch. They appear on the next deploy after the first entry exists. Nothing needs a code change.
+
+Adding the first real project:
+
+1. In `/admin` → **Work** → **New Work**, fill in every field. `Screenshot` wants a 1200×750 image; anything else is cropped to that ratio.
+2. Set **Featured** on the first two or three, so the homepage strip has enough cards to look deliberate. The strip renders only at two or more.
+3. In `netlify.toml`, change the `/portfolio` redirect target from `to = "/"` to `to = "/work/"` in the same commit. Until `/work/` exists, that redirect has to point at the homepage.
+4. Deploy, then confirm `/work/` resolves, the nav shows **Work** second, and `/portfolio` lands on `/work/`.
+5. Removing the **last** project needs a clean rebuild, because Astro's glob loader skips its delete sweep when a collection drops to zero files and leaves the stale page behind. The Netlify build command already clears the store on every build, so a deploy is enough; a local `npm run build` after deleting the last entry may need `rm -rf node_modules/.astro` first.
+
+Never add a project you have not actually built, and never add traffic or ranking numbers to an entry. The schema has no field for them on purpose.
+
 ## Deploying to Netlify
 
 1. Push this repo to GitHub.

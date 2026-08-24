@@ -1,5 +1,7 @@
 [build]
-  command = "npm run check && npm run build"
+  # Clear Astro's content-layer store before building: the glob loader skips its
+  # delete sweep when a collection goes to zero files, leaving stale pages on Netlify's cached node_modules.
+  command = "rm -rf node_modules/.astro && npm run check && npm run build"
   publish = "dist"
 
 [build.environment]

@@ -1,8 +1,15 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ClosingCta from '../components/ClosingCta.astro';
+import WorkCard from '../components/WorkCard.astro';
 import home from '../data/home.json';
 import packages from '../data/packages.json';
+
+const featuredWork = (await getCollection('work'))
+  .filter((entry) => entry.data.featured)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
 ---
 <BaseLayout title={home.meta.title} description={home.meta.description}>
 
@@ -74,7 +81,18 @@ import packages from '../data/packages.json';
     </div>
   </section>
 
-  <!-- 6: work. Added in Task 7.2, once there is work to show. -->
+  <!-- 6: work. Renders only once the collection has two featured entries. -->
+  {featuredWork.length >= 2 && (
+    <section class="section">
+      <div class="container">
+        <h2>{home.work.heading}</h2>
+        <div class="grid grid-3 work-strip">
+          {featuredWork.map((entry) => <WorkCard entry={entry} />)}
+        </div>
+        <p><a class="link-arrow" href={home.work.linkHref}>{home.work.linkLabel} &rarr;</a></p>
+      </div>
+    </section>
+  )}
 
   <!-- 7: closing -->
   <ClosingCta
@@ -112,6 +130,8 @@ import packages from '../data/packages.json';
   .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
   .tier-price { font-size: var(--step-3); font-weight: 600; margin: 0; }
   .tier-monthly { display: block; font-size: var(--step-0); font-weight: 400; }
+
+  .work-strip { margin-top: var(--space-4); }
 
   .pillars { margin-top: var(--space-4); }
   .pillars h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }

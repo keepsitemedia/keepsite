@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import site from '../data/site.json';
 
 const path = Astro.url.pathname;
@@ -6,12 +7,20 @@ const path = Astro.url.pathname;
 // both mark the item current.
 const isCurrent = (href: string) =>
   path === href || path.replace(/\/$/, '') === href.replace(/\/$/, '');
+
+// The nav item appears the moment the collection has an entry, which
+// is the same guard that generates the route. No code change needed
+// to turn it on.
+const hasWork = (await getCollection('work')).length > 0;
+const navItems = hasWork
+  ? [site.nav[0], { label: 'Work', href: '/work/', cta: false }, ...site.nav.slice(1)]
+  : site.nav;
 ---
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="/">{site.brand}</a>
     <nav aria-label="Primary">
-      {site.nav.map((item) => (
+      {navItems.map((item) => (
         <a
           href={item.href}
           class={item.cta ? 'nav-cta' : 'nav-link'}
