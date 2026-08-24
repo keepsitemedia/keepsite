@@ -9,11 +9,13 @@ The go/no-go on the brand transition. Three parts, by what can prove them:
   wait for the preview URL, then work through it.
 - **Part C** needs production. Do it after merge and after the domain flip in C1.
 
-Anything that fails goes back to the task that owns it. The task numbers are in
-`.superpowers/sdd/2026-08-23-keepsite-brand-transition/`.
+Anything that fails is described with enough detail below to act on directly.
+Where an item traces back to a numbered task, that numbering lives in the
+transition plan's task ledger — local-only working material, not checked into
+this repo.
 
-Two findings block launch: **C1**, at the top of Part C, and **D1**, in Part D.
-Read those two first.
+One finding blocks launch (**C1**, at the top of Part C); one blocks the CMS
+only (**D1**, in Part D). Read both first.
 
 ---
 
@@ -182,7 +184,8 @@ inline JSON-LD and the single prefill script survive `script-src 'self'
 'unsafe-inline'`.
 
 This proves the policy is compatible with the pages. It does **not** prove
-Netlify delivers the header. That is **B1**.
+Netlify delivers the header. That is **B1** on the preview, **C3a** in
+production.
 
 ### A9. Residue sweep against served HTML
 
@@ -248,7 +251,10 @@ merges the nine items Task 6.4 left open.
 
 - [ ] **B3. Cache headers.** `curl -sI "$P/"` gives
   `cache-control: public, max-age=0, must-revalidate`. Any `/_astro/*` asset
-  gives `max-age=31536000, immutable`.
+  gives `max-age=31536000, immutable`. If the value is present, note whether a
+  request for `/index.html` also carries it: the `netlify.toml` rule is
+  `for = "/*.html"`, which does not match the pretty URL `/`, so Netlify's
+  default may be supplying this rather than the config.
 
 - [ ] **B4. The Lighthouse plugin's own gate.** Read the deploy log's plugin
   summary table. Five audits, four categories, all at 1.0. A1 says this should
@@ -270,9 +276,13 @@ merges the nine items Task 6.4 left open.
   Instrument Sans swaps in.
 
   If text jumps: block `/_astro/*.woff2` in the Network tab, screenshot the
-  hero, unblock, reload, screenshot again, compare line widths. Widen or narrow
-  `size-adjust` until they match, then re-derive the overrides as
-  `0.970 / size-adjust` and `0.250 / size-adjust`. Owner: Task 1.3.
+  hero, unblock, reload, screenshot again, compare line widths. The current
+  values in `src/styles/global.css` are `size-adjust: 106.5%`,
+  `ascent-override: 91.1%`, `descent-override: 23.5%`. Widen or narrow
+  `size-adjust` until the screenshots match, then re-derive the other two
+  overrides as `0.970 / size-adjust` and `0.250 / size-adjust`. Owner
+  follow-up: edit those three values in `src/styles/global.css`, using the
+  re-derivation method above.
 
 - [ ] **B8. Netlify Forms re-detection.** The `inquiry` form appears under the
   site's **Forms** tab after this build. Detection is build-time. If it is
@@ -287,8 +297,9 @@ merges the nine items Task 6.4 left open.
   1400 (h 553), band 4 "Why Keepsite" at **1953**, band 5 at 2407. Bands 1 to 3
   are inside two screens at both sizes; **band 4 starts below two screens at
   both** (1800 px and 1440 px respectively). Task 6.4 expected bands 1 to 4
-  within two screens. Owner call: accept the measurement, or tighten bands 1 to
-  3. Owner: Task 3.1.
+  within two screens. Owner call: accept the measurement, or tighten homepage
+  band spacing in `src/styles/global.css` / `src/pages/index.astro`. Cheapest
+  lever: `.problem`'s `margin-top` from `--space-6` to `--space-5`.
 
 - [ ] **B11. No-JS walk.** Disable JavaScript and walk all seven routes plus the
   form. Everything except the `?tier=` prefill must behave identically. A7 proves
@@ -322,6 +333,19 @@ merges the nine items Task 6.4 left open.
   `/start/thanks/` and `/404`. Expect zero violations, and the same three
   cleared "needs review" items listed in A3.
 
+- [ ] **C3a. Security headers on production.**
+
+  ```bash
+  curl -sI https://www.keepsitemedia.com/ | grep -iE 'content-security-policy|strict-transport|x-content-type|referrer-policy|permissions-policy|x-frame'
+  curl -sI https://www.keepsitemedia.com/admin/ | grep -i 'content-security-policy'
+  ```
+
+  Expect all six headers on `/`, and the `/admin/` policy visibly wider —
+  naming `unpkg.com` and `identity.netlify.com`. Then open `/admin/` in a
+  browser and confirm zero CSP violations in the console. Preview
+  counterpart: **B1** (six headers on `/`), **B2** (the `/admin` exact-path
+  block), **B6** (Decap booting with the console open).
+
 - [ ] **C4. Redirects.**
 
   ```bash
@@ -338,7 +362,8 @@ merges the nine items Task 6.4 left open.
   trailing slashes. Netlify normalises the trailing slash when matching, so the
   `/pricing/` and `/contact/` variants should hit the same rules. That is an
   assumption about Netlify's matcher, not something the config states. If either
-  variant 404s, add the explicit rules. Owner: Task 4.1.
+  variant 404s, add explicit trailing-slash redirect rules for them in
+  `netlify.toml`.
 
 - [ ] **C5. Rich Results and Schema.org.** A6 proved the vocabulary is valid;
   this proves Google's parsers agree.
@@ -426,18 +451,17 @@ the browser's URL stays `/admin` and the relative fetch misses. `README.md`
 tells the owner to log in at `https://<your-site>/admin`, which is the broken
 form.
 
-Two fixes, either one:
+The fix: add
+`<link href="/admin/config.yml" type="text/yaml" rel="cms-config-url">` to
+`public/admin/index.html`. Keeps the 200 rewrite and the exact-path CSP block
+meaningful. (Rejected alternative: change the redirect to
+`status = 301, to = "/admin/"` — simpler, but then the `for = "/admin"` header
+block only ever decorates a redirect.)
 
-1. Add `<link href="/admin/config.yml" type="text/yaml" rel="cms-config-url">`
-   to `public/admin/index.html`. Keeps the 200 rewrite and the exact-path CSP
-   block meaningful.
-2. Change the redirect to `status = 301, to = "/admin/"`. Simpler, but then the
-   `for = "/admin"` header block only ever decorates a redirect.
-
-Not fixed here: Task 9.2 produces a checklist, not a diff. Owner: Task 8.1,
-which already owns `public/admin/`. **Confirm the repro on the preview (B6)
-before changing anything**, because it turns on Netlify's redirect-rule
-precedence, which cannot be tested locally.
+Not fixed here: Task 9.2 produces a checklist, not a diff. Owner: the final
+review fix wave, before merge. **Confirm the repro on the preview (B6) before
+changing anything**, because it turns on Netlify's redirect-rule precedence,
+which cannot be tested locally.
 
 Related, benign: on localhost, `/admin/` logs two CSP violations from Decap
 probing `http://localhost:8081/api/v1`, because `config.yml` sets
@@ -460,8 +484,9 @@ virtual cursor may not follow the hash either, which is the case the skip link
 exists for. The one-line fix is `tabindex="-1"` on `<main id="main">`.
 
 Advisory, not a gate failure: axe finds no violation, Lighthouse accessibility
-is 100, and the Chrome behaviour is correct. Owner: Task 1.2, which owns
-`BaseLayout.astro`. Worth confirming against a real screen reader in C6 first.
+is 100, and the Chrome behaviour is correct. Owner: the final review fix wave,
+in `src/layouts/BaseLayout.astro`. C6 confirms how the skip link is announced
+by a real screen reader; it does not decide whether to apply this fix.
 
 ### D3. Advisories, no owner assigned
 
@@ -474,17 +499,19 @@ is 100, and the Chrome behaviour is correct. Owner: Task 1.2, which owns
 
 ## Verdict
 
-**Proven, no further action:** Lighthouse 100/100/100/100 on all five gated
-routes; CLS 0 including under throttling; zero axe violations on seven routes at
-two viewports with the current axe-core; skip link first in tab order on every
-route; focus rings visible and correctly inverted on all three surfaces;
-accordions keyboard-operable with Enter and Space; comparison table scrollable
-by keyboard with an accessible name; full form fill and submit by keyboard;
+**Proven against the local build:** Lighthouse 100/100/100/100 on all five
+gated routes (local 9.6.8; confirm in B4 and C2); CLS 0 including under
+throttling; zero axe violations on seven routes at two viewports with the
+current axe-core; skip link first in tab order on every route; focus rings
+visible and correctly inverted on all three surfaces; accordions
+keyboard-operable with Enter and Space; comparison table scrollable by
+keyboard with an accessible name; full form fill and submit by keyboard;
 every table cell announcing "Included" or "Not included"; correct landmarks on
 all seven routes; JSON-LD valid against the schema.org vocabulary with zero
 findings and the exact shapes the spec calls for; no-JS form is a plain POST
-defaulting to "Not sure yet"; zero CSP violations on every marketing route;
-residue sweep clean; `npm run gate` 20/20.
+defaulting to "Not sure yet"; zero CSP violations on every marketing route
+(delivery unproven — B1, C3a); residue sweep clean on the served build (C8
+re-runs it against production); `npm run gate` 20/20.
 
 **Pending the preview:** header delivery, the `/admin` exact-path CSP block,
 cache headers, the Lighthouse plugin's own gate, Decap booting, Netlify Forms
@@ -492,9 +519,10 @@ re-detection, live submission, the two-screen band question, and the
 `size-adjust` validation.
 
 **Pending production:** the domain flip, DevTools Lighthouse, axe DevTools,
-redirects, Rich Results, a real screen reader, share-card scraping, the
-production residue sweep, and the two live form submissions.
+redirects, security headers, Rich Results, a real screen reader, share-card
+scraping, the production residue sweep, and the two live form submissions.
 
-**Blocking now:** D1 (bare `/admin` cannot load its config) and C1 (production
-canonicalises to the apex while the entire site claims `www`). C1 is a settings
-change, not a code change, and it must happen before the rest of Part C.
+**Blocking now:** C1 (production canonicalises to the apex while the entire
+site claims `www`) blocks launch. D1 (bare `/admin` cannot load its config)
+blocks the CMS, not the marketing site. C1 is a settings change, not a code
+change, and it must happen before the rest of Part C.
