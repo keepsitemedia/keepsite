@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "cms": "npx decap-server",
+    "verify": "astro check && astro build && node scripts/verify.mjs",
     "og": "node scripts/make-og-image.mjs"
   },
   "dependencies": {
