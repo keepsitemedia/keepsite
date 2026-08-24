@@ -2,6 +2,14 @@ backend:
   name: git-gateway
   branch: main
 
+# Lets `npx decap-server` drive the CMS against the working tree, so
+# config changes can be tested without committing to main.
+local_backend: true
+
+site_url: https://www.keepsitemedia.com
+display_url: https://www.keepsitemedia.com
+logo_url: https://www.keepsitemedia.com/og-default.png
+
 media_folder: "public/images"
 public_folder: "/images"
 
@@ -10,66 +18,288 @@ collections:
     label: "Site Settings"
     files:
       - name: "site"
-        label: "Site & Footer"
+        label: "Site & Navigation"
         file: "src/data/site.json"
         fields:
-          - { name: "brand", label: "Brand name", widget: "string" }
-          - { name: "email", label: "Contact email", widget: "string" }
+          - { name: "brand", label: "Brand name", widget: "string", required: true }
+          - { name: "legalName", label: "Legal name", widget: "string", required: true }
+          - { name: "tagline", label: "Tagline", widget: "string", required: true, hint: "Shown in the footer. Currently: Websites for people with other things to do." }
+          - { name: "email", label: "Contact email", widget: "string", required: true }
+          - { name: "phone", label: "Phone, as displayed", widget: "string", required: true, hint: "Format: (385) 307-8190" }
+          - { name: "phoneE164", label: "Phone, for links and search engines", widget: "string", required: true, pattern: ['^\+1[0-9]{10}$', "Must look like +13853078190"] }
+          - { name: "areaServed", label: "Service area", widget: "string", required: true }
+          - { name: "priceRange", label: "Price range", widget: "string", required: true, hint: "Search engines only. Dollar signs, e.g. $$" }
+          - { name: "googleBusinessProfileUrl", label: "Google Business Profile URL", widget: "string", required: false, hint: "Paste it once the profile is live. It may stay empty. Adding it here puts it in the site's structured data." }
+          - name: "social"
+            label: "Social profiles"
+            widget: "list"
+            required: false
+            fields:
+              - { name: "name", label: "Network", widget: "string" }
+              - { name: "url", label: "Profile URL", widget: "string" }
           - name: "nav"
             label: "Navigation"
             widget: "list"
+            required: true
             fields:
               - { name: "label", label: "Label", widget: "string" }
-              - { name: "href", label: "Link", widget: "string" }
-          - { name: "footerNote", label: "Footer note", widget: "text" }
+              - { name: "href", label: "Link", widget: "string", hint: "Include both slashes, e.g. /packages/" }
+              - { name: "cta", label: "Show as a button", widget: "boolean", default: false }
 
       - name: "home"
         label: "Home Page"
         file: "src/data/home.json"
         fields:
-          - { name: "heroHeadline", label: "Hero headline", widget: "string" }
-          - { name: "heroSub", label: "Hero subtext", widget: "text" }
-          - { name: "hourlyLine", label: "Hourly billing line", widget: "text" }
-          - name: "valueProps"
-            label: "Value props"
-            widget: "list"
+          - name: "meta"
+            label: "Search listing"
+            widget: "object"
             fields:
-              - { name: "title", label: "Title", widget: "string" }
-              - { name: "body", label: "Body", widget: "text" }
-          - { name: "closingHeadline", label: "Closing headline", widget: "string" }
+              - { name: "title", label: "Page title", widget: "string", required: true }
+              - { name: "description", label: "Meta description", widget: "text", required: true, hint: "Aim for 150 to 160 characters." }
+          - name: "hero"
+            label: "Hero"
+            widget: "object"
+            fields:
+              - { name: "headline", label: "Headline", widget: "string", required: true }
+              - { name: "sub", label: "Subhead", widget: "text", required: true }
+              - name: "primaryCta"
+                label: "Primary button"
+                widget: "object"
+                fields:
+                  - { name: "label", label: "Label", widget: "string" }
+                  - { name: "href", label: "Link", widget: "string" }
+              - name: "secondaryCta"
+                label: "Secondary button"
+                widget: "object"
+                fields:
+                  - { name: "label", label: "Label", widget: "string" }
+                  - { name: "href", label: "Link", widget: "string" }
+          - name: "problem"
+            label: "Problem"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "body", label: "Body", widget: "text", required: true }
+          - name: "solution"
+            label: "Solution"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - name: "beats"
+                label: "Three beats"
+                widget: "list"
+                fields:
+                  - { name: "title", label: "Title", widget: "string" }
+                  - { name: "body", label: "Body", widget: "text" }
+              - { name: "pullLine", label: "Serif pull-line", widget: "string", required: true }
+          - name: "packages"
+            label: "Packages band"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "linkLabel", label: "Link label", widget: "string", required: true }
+              - { name: "linkHref", label: "Link", widget: "string", required: true }
+          - name: "why"
+            label: "Why Keepsite"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - name: "pillars"
+                label: "Pillars"
+                widget: "list"
+                fields:
+                  - { name: "title", label: "Title", widget: "string" }
+                  - { name: "body", label: "Body", widget: "text" }
+          - name: "work"
+            label: "Work band"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "linkLabel", label: "Link label", widget: "string", required: true }
+              - { name: "linkHref", label: "Link", widget: "string", required: true }
+          - name: "closing"
+            label: "Closing CTA"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "sub", label: "Subhead", widget: "string", required: true }
+              - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+              - { name: "ctaHref", label: "Button link", widget: "string", required: true }
 
-      - name: "pricing"
-        label: "Pricing Page"
-        file: "src/data/pricing.json"
+      - name: "packages"
+        label: "Packages Page"
+        file: "src/data/packages.json"
         fields:
-          - { name: "intro", label: "Intro", widget: "text" }
+          - name: "meta"
+            label: "Search listing"
+            widget: "object"
+            fields:
+              - { name: "title", label: "Page title", widget: "string", required: true }
+              - { name: "description", label: "Meta description", widget: "text", required: true }
+          - { name: "intro", label: "Intro", widget: "text", required: true }
           - name: "tiers"
             label: "Tiers"
             widget: "list"
+            required: true
             fields:
-              - { name: "name", label: "Name", widget: "string" }
-              - { name: "price", label: "Price", widget: "string" }
-              - { name: "blurb", label: "Blurb", widget: "text" }
-              - { name: "features", label: "Features", widget: "list", field: { name: "feature", label: "Feature", widget: "string" } }
-          - name: "hourly"
-            label: "Hourly section"
+              - { name: "id", label: "ID", widget: "string", required: true, pattern: ['^[a-z0-9-]+$', "Lowercase letters, numbers, and hyphens only"], hint: "Used in links like /start/?tier=search. Changing it breaks existing links." }
+              - { name: "name", label: "Name", widget: "string", required: true }
+              - { name: "line", label: "One-liner", widget: "string", required: true }
+              - { name: "bestFor", label: "Best for", widget: "text", required: true }
+              - { name: "buildPrice", label: "Build price", widget: "string", required: true, pattern: ['^\$[0-9][0-9,]*$', "A single dollar amount like $1,100. No ranges, no words."] }
+              - { name: "buildPriceNote", label: "Build price note", widget: "string", required: true }
+              - { name: "monthlyPrice", label: "Monthly price", widget: "string", required: true, pattern: ['^\$[0-9][0-9,]*$', "A single dollar amount like $55. No ranges, no words."] }
+              - { name: "monthlyPriceNote", label: "Monthly price note", widget: "string", required: true }
+              - { name: "cardIncludes", label: "Card bullets (exactly 5)", widget: "list", required: true, field: { name: "line", label: "Bullet", widget: "string" }, hint: "Five, no more. The table below the cards carries the full detail." }
+              - { name: "monthlySummary", label: "What this monthly covers", widget: "list", required: true, field: { name: "line", label: "Line", widget: "string" } }
+              - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+          - name: "monthly"
+            label: "What the monthly covers"
             widget: "object"
             fields:
-              - { name: "title", label: "Title", widget: "string" }
-              - { name: "lines", label: "Lines", widget: "list", field: { name: "line", label: "Line", widget: "string" } }
-          - { name: "ownership", label: "Ownership note", widget: "text" }
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "lead", label: "Lead", widget: "text", required: true }
+              - { name: "headline", label: "Big line", widget: "string", required: true, hint: "The one large line under the lead. Currently: 24 SEO blog posts a year, written and published for you." }
+              - { name: "closing", label: "Closing line", widget: "text", required: true }
+              - { name: "subscriptionTerms", label: "Subscription terms", widget: "text", required: true, hint: "Approved copy. Do not reword without checking the terms actually offered." }
+          - name: "comparison"
+            label: "Comparison rows"
+            widget: "list"
+            required: true
+            fields:
+              - { name: "group", label: "Group", widget: "select", options: ["Build", "Monthly"] }
+              - { name: "feature", label: "Feature", widget: "string" }
+              - { name: "presence", label: "Presence", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
+              - { name: "search", label: "Search", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
+              - { name: "searchPlus", label: "Search Plus", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
+          - name: "addOns"
+            label: "Add-ons"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - name: "items"
+                label: "Add-ons"
+                widget: "list"
+                fields:
+                  - { name: "name", label: "Name", widget: "string" }
+                  - { name: "price", label: "Price", widget: "string", hint: "Free text, e.g. $180 per page, $90 an hour, or Custom quote." }
+                  - { name: "note", label: "What it covers", widget: "text" }
+              - { name: "upgradeRule", label: "Upgrade rule", widget: "text", required: true }
+          - name: "scopeFaq"
+            label: "Scope FAQ"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "topics", label: "FAQ topic slugs", widget: "list", required: true, field: { name: "topic", label: "Topic", widget: "string" }, hint: "Must match a topic on the FAQ page. A slug that doesn't match fails the build." }
+              - { name: "moreLabel", label: "Link label", widget: "string", required: true }
+              - { name: "moreHref", label: "Link", widget: "string", required: true }
+          - name: "closing"
+            label: "Closing CTA"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "sub", label: "Subhead", widget: "string", required: true }
+              - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+              - { name: "ctaHref", label: "Button link", widget: "string", required: true }
 
-  - name: "portfolio"
-    label: "Portfolio"
-    folder: "src/content/portfolio"
+      - name: "process"
+        label: "How It Works"
+        file: "src/data/process.json"
+        fields:
+          - name: "meta"
+            label: "Search listing"
+            widget: "object"
+            fields:
+              - { name: "title", label: "Page title", widget: "string", required: true }
+              - { name: "description", label: "Meta description", widget: "text", required: true }
+          - { name: "heading", label: "Heading", widget: "string", required: true }
+          - { name: "lead", label: "Lead", widget: "text", required: true }
+          - name: "steps"
+            label: "Steps"
+            widget: "list"
+            required: true
+            fields:
+              - { name: "title", label: "Title", widget: "string" }
+              - { name: "body", label: "Body", widget: "text" }
+          - { name: "pullLine", label: "Serif pull-line", widget: "string", required: true }
+          - name: "needFromYou"
+            label: "What we need from you"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string" }
+              - { name: "items", label: "Items", widget: "list", field: { name: "item", label: "Item", widget: "text" } }
+          - name: "wontHaveTo"
+            label: "What you won't have to do"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string" }
+              - { name: "items", label: "Items", widget: "list", field: { name: "item", label: "Item", widget: "text" } }
+          - name: "signature"
+            label: "Signed block"
+            widget: "object"
+            required: false
+            hint: "Leave empty to hide it. Filling it in adds a signed line under the process."
+            fields:
+              - { name: "name", label: "Name", widget: "string", required: false }
+              - { name: "role", label: "Role", widget: "string", required: false }
+          - name: "closing"
+            label: "Closing CTA"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "sub", label: "Subhead", widget: "string", required: true }
+              - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+              - { name: "ctaHref", label: "Button link", widget: "string", required: true }
+
+      - name: "faq"
+        label: "FAQ"
+        file: "src/data/faq.json"
+        fields:
+          - name: "meta"
+            label: "Search listing"
+            widget: "object"
+            fields:
+              - { name: "title", label: "Page title", widget: "string", required: true }
+              - { name: "description", label: "Meta description", widget: "text", required: true }
+          - { name: "intro", label: "Intro", widget: "text", required: true }
+          - name: "groups"
+            label: "Groups"
+            widget: "list"
+            required: true
+            fields:
+              - { name: "title", label: "Group title", widget: "string" }
+              - name: "items"
+                label: "Questions"
+                widget: "list"
+                fields:
+                  - { name: "topic", label: "Topic slug", widget: "string", pattern: ['^[a-z0-9-]+$', "Lowercase letters, numbers, and hyphens only"], hint: "Unique. The packages page pulls five answers by slug." }
+                  - { name: "q", label: "Question", widget: "string" }
+                  - { name: "a", label: "Answer", widget: "text" }
+          - name: "closing"
+            label: "Closing CTA"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "sub", label: "Subhead", widget: "string", required: true }
+              - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+              - { name: "ctaHref", label: "Button link", widget: "string", required: true }
+
+  - name: "work"
+    label: "Work"
+    folder: "src/content/work"
     create: true
     extension: "md"
     format: "frontmatter"
     slug: "{{slug}}"
+    summary: "{{title}} ({{tier}})"
     fields:
-      - { name: "title", label: "Title", widget: "string" }
-      - { name: "blurb", label: "Blurb", widget: "text" }
-      - { name: "url", label: "Live URL", widget: "string" }
-      - { name: "thumbnail", label: "Thumbnail", widget: "image", required: false }
-      - { name: "order", label: "Sort order", widget: "number", default: 0 }
-      - { name: "body", label: "Body (optional)", widget: "markdown", required: false }
+      - { name: "title", label: "Business name", widget: "string", required: true }
+      - { name: "url", label: "Live site URL", widget: "string", required: true, hint: "Must start with https://" }
+      - { name: "tier", label: "Package", widget: "select", options: ["Presence", "Search", "Search Plus"], required: true }
+      - { name: "job", label: "What this site is for", widget: "string", required: true, hint: "One line. What job does this site do for the business?" }
+      - { name: "scope", label: "Scope (2 to 4 items)", widget: "list", required: true, min: 2, max: 4, field: { name: "item", label: "Item", widget: "string" }, hint: "Two to four items. Fewer or more fails the build." }
+      - { name: "screenshot", label: "Screenshot", widget: "string", required: true, hint: "Public URL or /images/ path. Size it 1200 x 750; anything else is cropped to that ratio." }
+      - { name: "launched", label: "Launched", widget: "date", format: "YYYY-MM-DD", required: true }
+      - { name: "featured", label: "Show on the homepage", widget: "boolean", default: false, required: false }
+      - { name: "order", label: "Sort order", widget: "number", default: 0, required: true, value_type: "int" }
+      - { name: "body", label: "Notes (optional)", widget: "markdown", required: false }
