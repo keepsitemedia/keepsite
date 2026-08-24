@@ -89,16 +89,16 @@
     {
       "group": "Build",
       "feature": "Custom website design and build",
-      "presence": true,
-      "search": true,
-      "searchPlus": true
+      "presence": "true",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Build",
       "feature": "Mobile optimization",
-      "presence": true,
-      "search": true,
-      "searchPlus": true
+      "presence": "true",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Build",
@@ -110,16 +110,16 @@
     {
       "group": "Build",
       "feature": "Google Business Profile and social links connected",
-      "presence": true,
-      "search": true,
-      "searchPlus": true
+      "presence": "true",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Build",
       "feature": "Keyword research and page mapping",
-      "presence": false,
-      "search": true,
-      "searchPlus": true
+      "presence": "false",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Build",
@@ -131,58 +131,58 @@
     {
       "group": "Build",
       "feature": "Competitor and search-market analysis",
-      "presence": false,
-      "search": false,
-      "searchPlus": true
+      "presence": "false",
+      "search": "false",
+      "searchPlus": "true"
     },
     {
       "group": "Monthly",
       "feature": "Hosting, maintenance, and monitoring",
-      "presence": true,
-      "search": true,
-      "searchPlus": true
+      "presence": "true",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Monthly",
       "feature": "Minor content updates",
-      "presence": true,
-      "search": true,
-      "searchPlus": true
+      "presence": "true",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Monthly",
       "feature": "SEO blog posts written and published",
-      "presence": false,
+      "presence": "false",
       "search": "24 a year",
       "searchPlus": "24 a year"
     },
     {
       "group": "Monthly",
       "feature": "Search Console and analytics monitoring",
-      "presence": false,
-      "search": true,
-      "searchPlus": true
+      "presence": "false",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Monthly",
       "feature": "Annual keyword refresh",
-      "presence": false,
-      "search": true,
-      "searchPlus": true
+      "presence": "false",
+      "search": "true",
+      "searchPlus": "true"
     },
     {
       "group": "Monthly",
       "feature": "Active optimization through the year",
-      "presence": false,
-      "search": false,
-      "searchPlus": true
+      "presence": "false",
+      "search": "false",
+      "searchPlus": "true"
     },
     {
       "group": "Monthly",
       "feature": "Annual recap in plain English",
-      "presence": true,
-      "search": true,
-      "searchPlus": true
+      "presence": "true",
+      "search": "true",
+      "searchPlus": "true"
     }
   ],
   "addOns": {

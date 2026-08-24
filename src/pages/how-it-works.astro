@@ -46,7 +46,7 @@ const signature = process.signature as { name: string; role: string } | null;
         </div>
       </div>
 
-      {signature && (
+      {signature?.name && signature?.role && (
         <p class="signature">&mdash; {signature.name}, {signature.role}</p>
       )}
     </div>

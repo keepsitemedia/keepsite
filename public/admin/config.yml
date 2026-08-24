@@ -44,7 +44,7 @@ collections:
             fields:
               - { name: "label", label: "Label", widget: "string" }
               - { name: "href", label: "Link", widget: "string", hint: "Include both slashes, e.g. /packages/" }
-              - { name: "cta", label: "Show as a button", widget: "boolean", default: false }
+              - { name: "cta", label: "Show as a button", widget: "boolean", default: false, required: false }
 
       - name: "home"
         label: "Home Page"
@@ -146,9 +146,9 @@ collections:
               - { name: "name", label: "Name", widget: "string", required: true }
               - { name: "line", label: "One-liner", widget: "string", required: true }
               - { name: "bestFor", label: "Best for", widget: "text", required: true }
-              - { name: "buildPrice", label: "Build price", widget: "string", required: true, pattern: ['^\$[0-9][0-9,]*$', "A single dollar amount like $1,100. No ranges, no words."] }
+              - { name: "buildPrice", label: "Build price", widget: "string", required: true, pattern: ['^\$[1-9][0-9]{0,2}(,[0-9]{3})*$', "A single dollar amount like $1,100. No ranges, no words."] }
               - { name: "buildPriceNote", label: "Build price note", widget: "string", required: true }
-              - { name: "monthlyPrice", label: "Monthly price", widget: "string", required: true, pattern: ['^\$[0-9][0-9,]*$', "A single dollar amount like $55. No ranges, no words."] }
+              - { name: "monthlyPrice", label: "Monthly price", widget: "string", required: true, pattern: ['^\$[1-9][0-9]{0,2}(,[0-9]{3})*$', "A single dollar amount like $55. No ranges, no words."] }
               - { name: "monthlyPriceNote", label: "Monthly price note", widget: "string", required: true }
               - { name: "cardIncludes", label: "Card bullets (exactly 5)", widget: "list", required: true, field: { name: "line", label: "Bullet", widget: "string" }, hint: "Five, no more. The table below the cards carries the full detail." }
               - { name: "monthlySummary", label: "What this monthly covers", widget: "list", required: true, field: { name: "line", label: "Line", widget: "string" } }
@@ -161,7 +161,7 @@ collections:
               - { name: "lead", label: "Lead", widget: "text", required: true }
               - { name: "headline", label: "Big line", widget: "string", required: true, hint: "The one large line under the lead. Currently: 24 SEO blog posts a year, written and published for you." }
               - { name: "closing", label: "Closing line", widget: "text", required: true }
-              - { name: "subscriptionTerms", label: "Subscription terms", widget: "text", required: true, hint: "Approved copy. Do not reword without checking the terms actually offered." }
+              - { name: "subscriptionTerms", label: "Subscription terms", widget: "text", required: true, pattern: ['—[\s\S]*—', "Keep both em dashes; this is approved copy."], hint: "Approved copy. Do not reword without checking the terms actually offered. The two em dashes are deliberate and must survive any edit." }
           - name: "comparison"
             label: "Comparison rows"
             widget: "list"
@@ -190,7 +190,7 @@ collections:
             widget: "object"
             fields:
               - { name: "heading", label: "Heading", widget: "string", required: true }
-              - { name: "topics", label: "FAQ topic slugs", widget: "list", required: true, field: { name: "topic", label: "Topic", widget: "string" }, hint: "Must match a topic on the FAQ page. A slug that doesn't match fails the build." }
+              - { name: "topics", label: "FAQ topic slugs", widget: "list", required: true, field: { name: "topic", label: "Topic", widget: "string", pattern: ['^[a-z0-9-]+$', "Lowercase letters, numbers, and hyphens only"] }, hint: "Must match a topic on the FAQ page. A slug that doesn't match fails the build." }
               - { name: "moreLabel", label: "Link label", widget: "string", required: true }
               - { name: "moreHref", label: "Link", widget: "string", required: true }
           - name: "closing"
@@ -238,10 +238,10 @@ collections:
             label: "Signed block"
             widget: "object"
             required: false
-            hint: "Leave empty to hide it. Filling it in adds a signed line under the process."
+            hint: "Leave empty to hide it. Filling it in adds a signed line under the process. Both fields together, or neither."
             fields:
-              - { name: "name", label: "Name", widget: "string", required: false }
-              - { name: "role", label: "Role", widget: "string", required: false }
+              - { name: "name", label: "Name", widget: "string", required: true }
+              - { name: "role", label: "Role", widget: "string", required: true }
           - name: "closing"
             label: "Closing CTA"
             widget: "object"
@@ -294,12 +294,12 @@ collections:
     summary: "{{title}} ({{tier}})"
     fields:
       - { name: "title", label: "Business name", widget: "string", required: true }
-      - { name: "url", label: "Live site URL", widget: "string", required: true, hint: "Must start with https://" }
+      - { name: "url", label: "Live site URL", widget: "string", required: true, pattern: ['^https://', "Must start with https://"], hint: "Must start with https://" }
       - { name: "tier", label: "Package", widget: "select", options: ["Presence", "Search", "Search Plus"], required: true }
       - { name: "job", label: "What this site is for", widget: "string", required: true, hint: "One line. What job does this site do for the business?" }
       - { name: "scope", label: "Scope (2 to 4 items)", widget: "list", required: true, min: 2, max: 4, field: { name: "item", label: "Item", widget: "string" }, hint: "Two to four items. Fewer or more fails the build." }
       - { name: "screenshot", label: "Screenshot", widget: "string", required: true, hint: "Public URL or /images/ path. Size it 1200 x 750; anything else is cropped to that ratio." }
       - { name: "launched", label: "Launched", widget: "date", format: "YYYY-MM-DD", required: true }
       - { name: "featured", label: "Show on the homepage", widget: "boolean", default: false, required: false }
-      - { name: "order", label: "Sort order", widget: "number", default: 0, required: true, value_type: "int" }
+      - { name: "order", label: "Sort order", widget: "number", default: 0, required: false, value_type: "int" }
       - { name: "body", label: "Notes (optional)", widget: "markdown", required: false }
