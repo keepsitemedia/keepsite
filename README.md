@@ -1,6 +1,6 @@
 # Keepsite Media
 
-Marketing and portfolio site for Keepsite Media. Astro static site, deployed to Netlify, content editable via DecapCMS.
+Marketing site for Keepsite Media. Astro static site, deployed to Netlify, content editable via DecapCMS.
 
 ## Local development
 
@@ -13,7 +13,20 @@ npm run preview  # serve the production build
 
 ## Editing content
 
-Page copy and settings live in `src/data/*.json`. Portfolio entries are markdown files in `src/content/portfolio/`. All of these are editable in the browser at `/admin` (DecapCMS) once the CMS is enabled (below).
+Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
+
+The `/admin` sidebar has two collections. **Site Settings** holds the five page files (Site & Navigation, Home Page, Packages Page, How It Works, FAQ). **Work** is the folder collection you add projects to.
+
+**Testing CMS changes locally**, without committing to `main`. Both commands run from the repo root:
+
+```bash
+npm run cms    # terminal 1: starts decap-server on :8081
+npm run dev    # terminal 2: starts Astro on :4321
+```
+
+Then open `http://localhost:4321/admin/`. `local_backend: true` in `public/admin/config.yml` makes the CMS read and write your working tree instead of the repo, so you can try an edit, see it in `npm run dev`, and throw it away with `git checkout src/`.
+
+**Prices live in one place.** `src/data/packages.json` is the only source for every price on the site, including the structured data search engines read. Editing a price there updates the package cards, the homepage tier strip, the monthly section, and the JSON-LD `Offer` together, and nothing else.
 
 ## Turning on the Work page
 
