@@ -299,7 +299,7 @@ collections:
       - { name: "tier", label: "Package", widget: "select", options: ["Presence", "Search", "Search Plus"], required: true }
       - { name: "job", label: "What this site is for", widget: "string", required: true, hint: "One line. What job does this site do for the business?" }
       - { name: "scope", label: "Scope (2 to 4 items)", widget: "list", required: true, min: 2, max: 4, field: { name: "item", label: "Item", widget: "string" }, hint: "Two to four items. Fewer or more fails the build." }
-      - { name: "screenshot", label: "Screenshot", widget: "string", required: true, hint: "Public URL or /images/ path. Size it 1200 x 750; anything else is cropped to that ratio." }
+      - { name: "screenshot", label: "Screenshot", widget: "string", required: true, hint: "Upload via the media library, so the value is an /images/ path. A public URL will be blocked by the site's CSP. Size it 1200 x 750; anything else is cropped to that ratio." }
       - { name: "launched", label: "Launched", widget: "date", format: "YYYY-MM-DD", required: true }
       - { name: "featured", label: "Show on the homepage", widget: "boolean", default: false, required: false }
       - { name: "order", label: "Sort order", widget: "number", default: 0, required: false, value_type: "int" }

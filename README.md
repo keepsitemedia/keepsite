@@ -44,8 +44,9 @@ Adding the first real project:
 1. In `/admin` → **Work** → **New Work**, fill in every field. `Screenshot` wants a 1200×750 image; anything else is cropped to that ratio.
 2. Set **Featured** on the first two or three, so the homepage strip has enough cards to look deliberate. The strip renders only at two or more.
 3. In `netlify.toml`, change the `/portfolio` redirect target from `to = "/"` to `to = "/work/"` in the same commit. Until `/work/` exists, that redirect has to point at the homepage.
-4. Deploy, then confirm `/work/` resolves, the nav shows **Work** second, and `/portfolio` lands on `/work/`.
-5. Removing the **last** project needs a clean rebuild, because Astro's glob loader skips its delete sweep when a collection drops to zero files and leaves the stale page behind. The Netlify build command already clears the store on every build, so a deploy is enough; a local `npm run build` after deleting the last entry may need `rm -rf node_modules/.astro` first.
+4. In `netlify.toml`, add a `work/index.html` audit block to the Lighthouse plugin's `[[plugins.inputs.audits]]` list (copy one of the existing blocks) in the same commit, so `/work/` ships gated like every other route.
+5. Deploy, then confirm `/work/` resolves, the nav shows **Work** second, and `/portfolio` lands on `/work/`.
+6. Removing the **last** project needs a clean rebuild, because Astro's glob loader skips its delete sweep when a collection drops to zero files and leaves the stale page behind. The Netlify build command already clears the store on every build, so a deploy is enough; a local `npm run build` after deleting the last entry may need `rm -rf node_modules/.astro` first.
 
 Never add a project you have not actually built, and never add traffic or ranking numbers to an entry. The schema has no field for them on purpose.
 
@@ -84,7 +85,7 @@ After the first Netlify deploy, point the Namecheap domain at Netlify. **Netlify
 
 ## Enabling the inquiry form
 
-Netlify Forms is automatic — Netlify detects the `inquiry` form on the contact page at deploy time. To get emailed on each submission:
+Netlify Forms is automatic — Netlify detects the `inquiry` form on the `/start/` page at deploy time. To get emailed on each submission:
 
 1. After the first deploy, confirm the `inquiry` form appears under **Netlify → Forms** (Netlify detects it automatically from the deployed static HTML).
 2. Then set up the notification: **Forms → Form notifications → Add notification → Email notification**.
