@@ -125,6 +125,20 @@
     Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; font-src 'self' data: https://unpkg.com; connect-src 'self' https://unpkg.com https://identity.netlify.com https://api.netlify.com https://api.github.com; frame-src https://identity.netlify.com; form-action 'self'; base-uri 'self'"
     X-Frame-Options = "SAMEORIGIN"
 
+# The design-direction demos under /demo are self-contained pages that
+# hotlink Google Fonts and Unsplash photography, all of which the strict
+# "/*" policy blocks. Without this widening they deploy looking unstyled
+# and imageless. Scoped to /demo only; the marketing pages stay locked down.
+#
+# Unlike /admin, the bare "/demo" needs no second block: it has no 200
+# rewrite, so Netlify 301s it to "/demo/" and the header matches the
+# redirected path.
+[[headers]]
+  for = "/demo/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: https://images.unsplash.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+    X-Robots-Tag = "noindex, nofollow"
+
 # Astro content-hashes everything in /_astro, so it is safe to pin.
 [[headers]]
   for = "/_astro/*"
