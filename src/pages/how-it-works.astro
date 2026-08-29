@@ -31,6 +31,34 @@ const signature = process.signature as { name: string; role: string } | null;
 
   <section class="section section-alt">
     <div class="container">
+      <h2>{process.stages.heading}</h2>
+      <p class="lead">{process.stages.lead}</p>
+
+      <ol class="stages" role="list">
+        {process.stages.items.map((stage) => (
+          <li>
+            <p class="stage-label">{stage.label}</p>
+            <h3>{stage.title}</h3>
+            <dl>
+              <dt>What you see</dt>
+              <dd>{stage.see}</dd>
+              <dt>What you decide</dt>
+              <dd>{stage.decide}</dd>
+            </dl>
+            <p class="stage-note muted">{stage.note}</p>
+          </li>
+        ))}
+      </ol>
+
+      <div class="changes">
+        <h3>{process.changes.heading}</h3>
+        <p class="muted">{process.changes.body}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
       <div class="grid grid-2 expectations">
         <div>
           <h2>{process.needFromYou.heading}</h2>
@@ -94,6 +122,47 @@ const signature = process.signature as { name: string; role: string } | null;
     color: var(--color-brand);
     max-width: none;
   }
+
+  .stages {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-4) 0 0;
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+  .stages li {
+    border-top: 2px solid var(--color-brand);
+    padding-top: var(--space-2);
+  }
+  .stage-label {
+    margin: 0;
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-brand);
+    font-weight: 600;
+  }
+  .stages h3 { font-size: var(--step-2); margin: var(--space-0) 0 var(--space-2); }
+  .stages dl { margin: 0 0 var(--space-2); }
+  .stages dt {
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-muted);
+    margin-bottom: 0.15rem;
+  }
+  .stages dd { margin: 0 0 var(--space-2); }
+  .stage-note { margin: 0; font-size: var(--step--1); }
+
+  .changes {
+    margin-top: var(--space-5);
+    max-width: var(--maxw-prose);
+    border-left: 2px solid var(--color-border);
+    padding-left: var(--space-3);
+  }
+  .changes h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
+  .changes p { margin: 0; }
 
   .expectations ul { padding-left: 1.1rem; margin: 0; }
   .expectations li { margin-bottom: var(--space-2); color: var(--color-muted); }

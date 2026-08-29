@@ -224,7 +224,9 @@ check('Service prices match the rendered prices', () => {
 check('FAQPage lives only on /faq/', () => {
   const f = ld('faq/index.html')[1];
   if (f['@type'] !== 'FAQPage') throw new Error('faq page type');
-  if (f.mainEntity.length !== 20) throw new Error('questions: ' + f.mainEntity.length);
+  const asked = data('faq.json').groups.reduce((n, g) => n + g.items.length, 0);
+  if (f.mainEntity.length !== asked)
+    throw new Error(`questions: ${f.mainEntity.length}, faq.json has ${asked}`);
   if (read('packages/index.html').includes('FAQPage')) throw new Error('duplicate FAQPage on /packages/');
 });
 

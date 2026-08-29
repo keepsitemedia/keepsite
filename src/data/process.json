@@ -1,26 +1,26 @@
 {
   "meta": {
     "title": "How it works | Keepsite Media",
-    "description": "One form, one call, one round of revisions. Here's exactly what building a site with Keepsite looks like, and what we need from you."
+    "description": "Three stages, three decisions, one round of changes at each. Here's exactly what building a site with Keepsite looks like, and what we need from you."
   },
   "heading": "How it works",
-  "lead": "You've already made the decision to hand this off. From here it's five steps, and most of them are ours.",
+  "lead": "You've already made the decision to hand this off. What's left is three decisions, and we bring you each one when it's ready.",
   "steps": [
     {
       "title": "Tell us about your business.",
       "body": "One questionnaire covers it. We ask for everything we need in one pass, so you're not answering questions in dribs and drabs for three weeks."
     },
     {
-      "title": "We plan the site.",
-      "body": "Which pages you need, how they connect, and what each one is there to do. On Search and Search Plus, keyword research comes first and shapes the plan."
+      "title": "Pick a direction.",
+      "body": "We show you four finished site styles. You pick the one that looks like your business. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
     },
     {
-      "title": "We build it.",
-      "body": "Design, copy, setup, and testing all happen on our side. You don't have to watch."
+      "title": "We lay out every page.",
+      "body": "You see every page the site will have, and how each one is put together. The words and photos come later."
     },
     {
-      "title": "One round of changes, then we launch.",
-      "body": "You look at the finished site and send your feedback in one go. We make the changes, run the final checks, and put it live."
+      "title": "We add your words and photos.",
+      "body": "Your copy and photos go into the layouts you approved. You look it over, send your changes in one go, and we launch."
     },
     {
       "title": "We keep it working.",
@@ -28,19 +28,52 @@
     }
   ],
   "pullLine": "Keep it simple.",
+  "stages": {
+    "heading": "The three stages",
+    "lead": "Each stage settles one question before the next one starts.",
+    "items": [
+      {
+        "label": "Stage one",
+        "title": "Style",
+        "see": "Four finished site styles, already built and working.",
+        "decide": "Which one looks like your business.",
+        "note": "You're picking a starting point. From there we fit it to your business, your colors, your photos."
+      },
+      {
+        "label": "Stage two",
+        "title": "Function",
+        "see": "Every page the site will have, laid out in full, with image areas outlined and the text left blank.",
+        "decide": "Whether the site has every page you need.",
+        "note": "The blank text is on purpose. If we filled it in, you'd read the words instead of looking at the page, and the words aren't written yet."
+      },
+      {
+        "label": "Stage three",
+        "title": "Copy and photos",
+        "see": "The finished site, with your words and images in place.",
+        "decide": "That it's ready to go live.",
+        "note": "Your photos, and your copy if you're on Presence, are due before this stage starts. After that it's one last look, then we launch."
+      }
+    ]
+  },
+  "changes": {
+    "heading": "One round of changes at every stage.",
+    "body": "Changes cost the least while the site is still rough, so that's where we put them. If none of the four styles works, we show you more. If a page is laid out wrong, we redo it while it's still empty. The last round is for the finished site, once your words and photos are in."
+  },
   "needFromYou": {
     "heading": "What we need from you",
     "items": [
       "Accurate information about your business: what you do, where, for whom, your hours, and anything a customer would ask.",
-      "Your photos and logo, if you have them.",
+      "A pick from the four styles we show you at stage one.",
+      "Your photos and logo, and your copy if you're on Presence, by the start of stage three.",
       "One call, on Search and Search Plus, so we get your tone right.",
-      "A reply when a scheduled article needs a correction, or when something about the business changes."
+      "A reply at each stage, and when a scheduled article needs a correction or something about the business changes."
     ]
   },
   "wontHaveTo": {
     "heading": "What you won't have to do",
     "items": [
       "No website homework.",
+      "No blank page to stare at.",
       "No standing meetings.",
       "No logging into anything.",
       "No decisions about hosting, plugins, or platforms."

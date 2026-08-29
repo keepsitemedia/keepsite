@@ -16,17 +16,32 @@
         {
           "topic": "how-long",
           "q": "How long does a site take?",
-          "a": "Most Presence sites launch two to three weeks after we have your questionnaire and your content. Search and Search Plus take a little longer, usually three to five weeks, because the keyword research and the copy come first. The biggest variable is how quickly we get your information back."
+          "a": "Most Presence sites launch two to three weeks after we have your questionnaire and your content. Search and Search Plus take a little longer, usually three to five weeks, because the keyword research and the copy come first. The biggest variable is how quickly you reply at each stage."
         },
         {
           "topic": "what-we-need",
           "q": "What do you need from me?",
-          "a": "Accurate information about your business, your photos and logo if you have them, and one round of feedback before launch. On Search and Search Plus there's also one call so we get your tone right. That's the whole list."
+          "a": "Accurate information about your business, a pick from the four styles we show you, and your photos and logo. On Presence you also supply the copy. On Search and Search Plus there's one call so we get your tone right. Then a reply at each of the three stages. That's the whole list."
         },
         {
           "topic": "do-we-meet",
           "q": "Do we have to meet?",
           "a": "Only on Search and Search Plus, and only once. Everything else runs on one questionnaire and email. If you'd rather talk something through at any point we're happy to, but we won't put a standing meeting on your calendar."
+        },
+        {
+          "topic": "the-stages",
+          "q": "How does the build actually work?",
+          "a": "Three stages. First you pick one of four finished site styles. Then we lay out every page so you can see what the site has before there's any copy in it. Then your words and photos go in and you take a final look. Each stage gets signed off before the next one starts."
+        },
+        {
+          "topic": "why-placeholder",
+          "q": "Why is the text nonsense in the design stage?",
+          "a": "Because stage two is about the shape of the site, not the wording. If we dropped in stand-in headlines and stock photos, you'd spend the review reacting to words nobody has written yet. Blank text keeps you looking at the page. Your words and photos go in at stage three."
+        },
+        {
+          "topic": "how-many-changes",
+          "q": "How many rounds of changes do I get?",
+          "a": "One at each stage, three in total. That covers a style you don't like, a page we laid out wrong, and anything off in the finished site. Going back to reopen a stage you already approved is billed separately. Closing them one at a time is what keeps the build at a fixed price."
         }
       ]
     },
