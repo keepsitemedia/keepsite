@@ -3472,3 +3472,72 @@ Confirm the build passes `npm run gate` and that `git status` in
 - The three spec refinements at the top of this plan should be folded back into
   `keepsite/docs/superpowers/specs/2026-09-01-stage-two-build-skill-design.md`
   once the plan is approved.
+
+---
+
+## Amendments from execution
+
+Recorded after the plan was executed. The spec has been amended to match;
+these notes exist so the plan's task text is not read as current where
+execution proved it wrong. The tasks themselves are left as they were
+dispatched.
+
+1. **Task 4's test destructured the wrong element.** `const [second] =
+   readDirections(sample)` binds element 0 to a variable named `second`, so a
+   test named for direction 2 asserted against direction 1 and could not pass
+   against a correct parser. Corrected to `const [, second]`.
+
+2. **Task 7's step order was unfollowable on two of three tiers.** Page-set
+   derivation was Step 4 and the keyword pass Step 5, but two of the five
+   page-set sources consume the keyword pass's output. The keyword pass is now
+   Step 4 and derivation Step 5, in the skill and in the spec.
+
+3. **Task 7's field-path prefixing was inconsistent.** `build.pages` and
+   `build.features` were prefixed while fifteen other build-nested fields were
+   bare. Now uniformly bare.
+
+4. **Task 8's `FONT_PACKAGES` fixtures lacked their trailing comma**, which
+   would have produced invalid JSON in the generated `package.json`. Fixed
+   before dispatch, with a test that JSON-parses both the empty and non-empty
+   cases.
+
+5. **Task 10's remote-image check scanned only HTML.** Astro extracts a
+   component's scoped `<style>` into a bundled stylesheet above its
+   `inlineStylesheets` threshold, so a `background-image: url(https://…)`
+   written inside a component shipped past the check that exists to enforce
+   clause (b) of the agreements. It now scans `dist/**/*.css` as well.
+
+6. **Task 10's exemption test covered only `404.html`** despite a title
+   claiming it covered the thanks page too. Split into two tests, each
+   exercising what its title names.
+
+7. **Task 9's `EmbedArea` border contradicted its own test.** The CSS block
+   used the `1px dashed` shorthand while the test asserted the literal string
+   `border-style: dashed`. The component now uses the shorthand and the test
+   asserts the property (`/border:[^;]*dashed/` present on `EmbedArea`, absent
+   on `ImageArea`) rather than a spelling of it.
+
+8. **Task 10's Files list named `fixtures/dist-pass/`, which is not needed.**
+   Step 1 of the same task deliberately builds every fixture in a temp
+   directory and says why. The Files line was stale.
+
+9. **Task 11's `EmbedArea` example failed type checking.** `height="720"`
+   against a `number`-typed prop produces `TS2322`, so a build agent copying
+   the canonical example would break the skill's own `astro check` gate.
+   Corrected to `height={720}`.
+
+10. **Task 11's Forms guidance would have failed the page-set gate.** It cited
+    `keepsite/src/pages/start/index.astro`, which posts to `/start/thanks/`,
+    while `verify.mjs` exempts exactly one literal path, `thanks/index.html`.
+    The thanks page is now specified explicitly at the site root, one per site.
+
+11. **The plan's Global Constraints overstated the Decap rule.** "No Decap CMS
+    in generated client repos" is absolute here, but the spec carves an
+    exception: `public/admin` is omitted *unless the brief records that this
+    client will edit their own content*. The spec governs.
+
+12. **Task 12 never ran `astro check`.** Its code ran `npm run build` and the
+    verifier separately, while its own prose claimed to cover `astro check` —
+    the first command of both `npm run gate` and the generated `netlify.toml`
+    build command. The heavy test now runs `npm run gate`, and cleans its temp
+    scaffold on success while leaving it in place on failure.
