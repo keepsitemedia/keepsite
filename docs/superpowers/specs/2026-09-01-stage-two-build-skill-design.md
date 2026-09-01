@@ -64,6 +64,13 @@ and the one thing the site should do well.
 Every question on the build questionnaire is optional. Skipped answers
 are normal and must not fail the skill.
 
+A Sheets export holds every client's responses, not one client's, so
+picking a row is a two-step job: filter to this client by a match string
+tested against every field — an email address or a business name — and
+only then take the latest by `Timestamp`. A file with a single row needs
+no match. An ambiguous match throws, listing the candidates, rather than
+guessing which client is meant.
+
 ## Directory layout
 
 One directory per brand, named for the slug, sibling to `keepsite/` and
@@ -140,15 +147,7 @@ Invoked as "sitemap for makeup-by-brynlie". Reads intake, writes
 4. **Determine tier.** Presence, Search, or Search Plus, from the signed
    agreement or by asking. Tier decides whether keyword work runs and
    whether copywriting at Stage Three is Keepsite's or the client's.
-5. **Derive the page set.** The union of:
-   - pages the client checked under "Which pages or areas do you know
-     you want";
-   - pages implied by checked features (appointment scheduling implies a
-     booking page unless booking is a homepage section);
-   - services named under "may deserve their own page";
-   - locations from the service-area and target-geography answers;
-   - for Search and Search Plus, keyword-derived pages.
-6. **Keyword pass, Search and Search Plus only.** Seed terms come from
+5. **Keyword pass, Search and Search Plus only.** Seed terms come from
    the questionnaire's search-vocabulary answers — what someone would
    type into Google, the words customers use, industry words customers
    would not use, and what they want to be findable for. Web search
@@ -156,6 +155,18 @@ Invoked as "sitemap for makeup-by-brynlie". Reads intake, writes
    where they are thin. If `intake/keywords.md` exists, it is read and
    takes precedence over derived terms. Presence gets no keyword pass;
    its page set comes from the questionnaire alone.
+
+   This runs before derivation, not after: two of the five page-set
+   sources below consume its output, so on Search and Search Plus the
+   next step cannot finish without it.
+6. **Derive the page set.** The union of:
+   - pages the client checked under "Which pages or areas do you know
+     you want";
+   - pages implied by checked features (appointment scheduling implies a
+     booking page unless booking is a homepage section);
+   - services named under "may deserve their own page";
+   - locations from the service-area and target-geography answers;
+   - for Search and Search Plus, keyword-derived pages.
 7. **Order sections per page.** The homepage order comes from the
    homepage-sections checkbox, sequenced so the primary call to action
    is reachable without scrolling and repeated at the foot. Other pages
@@ -230,9 +241,18 @@ Then rewrite the port to production quality:
   matching `keepsite`'s dependency style.
 - Per-page content lives in `src/data/*.json`, so Stage Three replaces
   copy without touching components.
+- The approved page set is written to `src/data/pages.json` and
+  committed. `verify.mjs` checks `dist/` against that file, not against
+  `intake/sitemap.md`: `intake/` is gitignored and absent from a Netlify
+  build, so the locked page set has to travel in the repo.
+- Netlify Forms post to one thanks page at the site root, `/thanks/`. It
+  emits `thanks/index.html`, which is the single path `verify.mjs`
+  exempts from the page-set check, and it stays out of `sitemap.md`. One
+  thanks page serves every form on the site.
 
 Re-running the build after a change round re-reads the edited
-`sitemap.md` and rebuilds against the existing port reference.
+`sitemap.md`, updates `src/data/pages.json`, and rebuilds against the
+existing port reference.
 
 ## Placeholder system
 
@@ -310,12 +330,16 @@ tool doesn't do what you need" a testable claim at Stage Two.
 
 `scripts/verify.mjs`, extended from keepsite's, fails the build on:
 
-- any `http` or `https` image source in `dist/`, in `<img>` or in a CSS
-  `background-image`
+- any `http` or `https` image source in `dist/` — in an `<img>` tag, in a
+  `background-image` inside an HTML file, or in a `background-image`
+  inside a bundled `.css` file. The CSS half matters: Astro extracts a
+  component's scoped `<style>` into a stylesheet above its
+  `inlineStylesheets` threshold, so an HTML-only scan would let a remote
+  image written inside a component ship past the check.
 - lorem text appearing in navigation, `<title>`, button text, or form
   labels
-- a page listed in `sitemap.md` that is missing from `dist/`
-- a page in `dist/` that is not listed in `sitemap.md`
+- a page listed in `src/data/pages.json` that is missing from `dist/`
+- a page in `dist/` that is not listed in `src/data/pages.json`
 - any internal link that does not resolve
 - a missing `<meta name="robots" content="noindex,nofollow">`
 
@@ -327,8 +351,17 @@ problem.
 Stage Three and is removed only at launch. An indexed lorem site is a
 live search liability for a client buying search work.
 
+`noindex` is enforced in three layers, all removed at launch: the meta
+tag above, an `X-Robots-Tag: noindex, nofollow` header on `/*` in
+`netlify.toml` covering the responses a meta tag cannot reach, and a
+`Disallow: /` in `public/robots.txt`.
+
 The full gate is `npm run check && npm run build && npm run verify`,
 plus the Lighthouse thresholds in `netlify.toml`, matching keepsite's.
+`astro check` is the first of those three for a reason: it is also the
+first command in the generated `netlify.toml` build command, so a
+template that fails type checking fails the deploy before anything else
+runs.
 
 ## Handoff
 
