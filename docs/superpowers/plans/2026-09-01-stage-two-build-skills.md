@@ -1953,7 +1953,9 @@ const VARS = {
   DESCRIPTION: 'Bridal and event makeup.',
   DOMAIN: 'https://makeupbybrynlie.com',
   FONT_IMPORTS: "import '@fontsource-variable/gloock';",
-  FONT_PACKAGES: '"@fontsource-variable/gloock": "5.3.0"',
+  // Carries its own trailing comma: the template places it ahead of the fixed
+  // dependencies so that an empty value is also valid JSON.
+  FONT_PACKAGES: '"@fontsource-variable/gloock": "5.3.0",',
   TOKENS: '  --bg: #f6f1ea;\n  --ink: #241c17;\n  --rule: rgba(36,28,23,0.14);\n  --surface: rgba(36,28,23,0.03);',
 };
 
@@ -2003,6 +2005,13 @@ test('leaves no unreplaced token behind', () => {
     const body = fs.readFileSync(path.join(dir, p), 'utf8');
     assert.doesNotMatch(body, /\{\{[A-Z_]+\}\}/, `${p} has an unreplaced token`);
   }
+});
+
+test('a font package list yields valid package.json', () => {
+  const { read } = build();
+  const pkg = JSON.parse(read('package.json'));
+  assert.equal(pkg.dependencies['@fontsource-variable/gloock'], '5.3.0');
+  assert.ok(pkg.dependencies.astro);
 });
 
 test('an empty font package list still yields valid package.json', () => {
@@ -2369,7 +2378,7 @@ export function scaffoldRepo({ dest, vars, pages, templates = DEFAULT_TEMPLATES 
 - [ ] **Step 11: Run the test and verify it passes**
 
 Run: `node --test lib/scaffold.test.mjs`
-Expected: PASS, 15 tests.
+Expected: PASS, 16 tests.
 
 - [ ] **Step 12: Commit**
 
@@ -2988,6 +2997,10 @@ scaffoldRepo({
 });
 ```
 
+`FONT_PACKAGES` must end with a trailing comma when it is not empty; the
+template places it ahead of the fixed dependencies so both cases stay valid
+JSON.
+
 `pages` is the locked page set. It is written to `src/data/pages.json`, which
 the verifier checks `dist/` against in both directions. Getting it wrong is a
 billing problem, not a cosmetic one.
@@ -3336,7 +3349,7 @@ const VARS = {
   DESCRIPTION: 'Wedding and event florals.',
   DOMAIN: 'https://example-florals.test',
   FONT_IMPORTS: '',
-  FONT_PACKAGES: '"@fontsource-variable/instrument-sans": "5.3.0"',
+  FONT_PACKAGES: '"@fontsource-variable/instrument-sans": "5.3.0",',
   TOKENS: [
     '  --bg: #faf7f2;',
     '  --ink: #221c16;',
