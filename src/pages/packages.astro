@@ -106,19 +106,21 @@ const packagesJsonLd = {
             <h3 class="tier-name">{tier.name}</h3>
             <p class="serif tier-line">{tier.line}</p>
 
-            <p class="tier-price price">
-              {tier.buildPrice}
-              <span class="tier-price-note muted">{tier.buildPriceNote}</span>
-            </p>
-            <p class="tier-monthly price muted">
-              + {tier.monthlyPrice}/month
-            </p>
-
             <p class="tier-bestfor"><strong>Best for:</strong> {tier.bestFor}</p>
 
             <ul class="tier-includes">
               {tier.cardIncludes.map((line) => <li>{line}</li>)}
             </ul>
+
+            <div class="tier-cost">
+              <p class="tier-price price">
+                {tier.buildPrice}
+                <span class="tier-price-note muted">{tier.buildPriceNote}</span>
+              </p>
+              <p class="tier-monthly price muted">
+                + {tier.monthlyPrice}/month
+              </p>
+            </div>
 
             <a class="btn tier-cta" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel} &rarr;</a>
           </div>
@@ -255,6 +257,13 @@ const packagesJsonLd = {
   .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); }
   .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-3); }
 
+  /* Price sits under the list, on the auto margin, so the three cards
+     line their prices and buttons up whatever the list length. */
+  .tier-cost {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+  }
   .tier-price {
     font-size: var(--step-4);
     font-weight: 600;
@@ -263,7 +272,7 @@ const packagesJsonLd = {
     margin: 0;
   }
   .tier-price-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
-  .tier-monthly { font-size: var(--step-1); margin: var(--space-0) 0 var(--space-3); }
+  .tier-monthly { font-size: var(--step-1); margin: var(--space-0) 0 0; }
 
   .tier-bestfor { font-size: var(--step--1); margin-bottom: var(--space-3); }
 
@@ -286,7 +295,7 @@ const packagesJsonLd = {
     background: var(--color-brand);
   }
 
-  .tier-cta { margin-top: auto; align-self: flex-start; }
+  .tier-cta { margin-top: var(--space-3); align-self: flex-start; }
 
   .monthly-heading { font-size: var(--step-3); color: var(--color-brand); }
   .monthly-lead { max-width: var(--maxw-prose); }

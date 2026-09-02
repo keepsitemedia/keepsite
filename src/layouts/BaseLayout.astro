@@ -1,7 +1,10 @@
 ---
 import '../styles/global.css';
 import '@fontsource-variable/instrument-sans/wght.css';
-import '@fontsource/instrument-serif/latin-400-italic.css';
+// The opsz axis, not wght: the serif only ever runs at 400, and letting
+// the optical size track the font size keeps it from going thin at the
+// 18px package promise lines and heavy at the 44px closing heading.
+import '@fontsource-variable/newsreader/opsz.css';
 import sansWoff2 from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';

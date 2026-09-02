@@ -50,15 +50,11 @@ const featuredWork = (await getCollection('work'))
   <section class="section">
     <div class="container">
       <h2>{home.packages.heading}</h2>
-      <div class="grid grid-3 tier-strip">
+      <div class="rule-row tier-lines">
         {packages.tiers.map((tier) => (
-          <a class="card tier-mini" href={`/packages/#${tier.id}`}>
+          <a class="tier-link" href={`/packages/#${tier.id}`}>
             <h3>{tier.name}</h3>
             <p class="serif tier-line">{tier.line}</p>
-            <p class="tier-price price">
-              {tier.buildPrice}
-              <span class="tier-monthly muted">+ {tier.monthlyPrice}/month</span>
-            </p>
           </a>
         ))}
       </div>
@@ -123,13 +119,16 @@ const featuredWork = (await getCollection('work'))
     max-width: none;
   }
 
-  .tier-strip { margin-top: var(--space-4); }
-  .tier-mini { display: block; text-decoration: none; color: var(--color-ink); }
-  .tier-mini:hover { border-color: var(--color-ink); color: var(--color-ink); }
-  .tier-mini h3 { margin-bottom: var(--space-0); }
-  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
-  .tier-price { font-size: var(--step-3); font-weight: 600; margin: 0; }
-  .tier-monthly { display: block; font-size: var(--step-0); font-weight: 400; }
+  /* Rule-separated rows, not cards: the homepage names the three
+     packages and their promise, and /packages/ does the comparing. */
+  .tier-lines { margin-top: var(--space-4); }
+  @media (min-width: 900px) {
+    .tier-lines { grid-template-columns: repeat(3, 1fr); }
+  }
+  .tier-link { display: block; text-decoration: none; color: var(--color-ink); }
+  .tier-link h3 { font-size: var(--step-2); margin-bottom: var(--space-0); transition: color 120ms ease; }
+  .tier-link:hover h3 { color: var(--color-brand); }
+  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin: 0; }
 
   .work-strip { margin-top: var(--space-4); }
 

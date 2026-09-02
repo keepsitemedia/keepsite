@@ -12,7 +12,7 @@
     },
     {
       "title": "Pick a direction.",
-      "body": "We show you four finished site styles. You pick the one that looks like your business. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
+      "body": "We send you one page with four different home page designs on it. You pick the direction that looks like your business. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
     },
     {
       "title": "We lay out every page.",
@@ -33,37 +33,132 @@
     "lead": "Each stage settles one question before the next one starts.",
     "items": [
       {
-        "label": "Stage one",
+        "label": "Stage 1",
         "title": "Style",
-        "see": "Four finished site styles, already built and working.",
+        "see": "One page you scroll through, with four different home page designs on it. It is there to show you a look, not a finished site: nothing on it is wired up, and none of it is about your business yet.",
         "decide": "Which one looks like your business.",
-        "note": "You're picking a starting point. From there we fit it to your business, your colors, your photos."
+        "note": "You're picking a direction, not a final design. From there we fit it to your business, your colors, your photos. On Search and Search Plus, keyword research is already running in the background.",
+        "tiers": [
+          {
+            "name": "Presence",
+            "body": "Pick a direction and this stage is done."
+          },
+          {
+            "name": "Search",
+            "body": "The research is already under way, so by stage two we know which pages you need."
+          },
+          {
+            "name": "Search Plus",
+            "body": "The same research, plus a look at what your competitors rank for and where they are thin."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Keyword research",
+            "body": "Finding the words your customers actually type into Google, so the site gets built around them. Search and Search Plus only."
+          }
+        ]
       },
       {
-        "label": "Stage two",
+        "label": "Stage 2",
         "title": "Function",
-        "see": "Every page the site will have, laid out in full, with image areas outlined and the text left blank.",
+        "see": "A layout for every page the site will have. Image areas are outlined boxes and the text is left blank.",
         "decide": "Whether the site has every page you need.",
-        "note": "The blank text is on purpose. If we filled it in, you'd read the words instead of looking at the page, and the words aren't written yet."
+        "note": "The blank text is on purpose. If we filled it in, you'd read the words instead of looking at the page, and the words aren't written yet.",
+        "tiers": [
+          {
+            "name": "Presence",
+            "body": "The pages you asked for, in the order that makes sense for them."
+          },
+          {
+            "name": "Search",
+            "body": "The page list comes out of the keyword research, so there are usually service or location pages you had not thought to ask for."
+          },
+          {
+            "name": "Search Plus",
+            "body": "The same, plus pages aimed at the gaps your competitors leave open."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Layout",
+            "body": "The shape of a page: what goes where, and in what order. The floor plan before the furniture."
+          }
+        ]
       },
       {
-        "label": "Stage three",
+        "label": "Stage 3",
         "title": "Copy and photos",
         "see": "The finished site, with your words and images in place.",
         "decide": "That it's ready to go live.",
-        "note": "Your photos, and your copy if you're on Presence, are due before this stage starts. After that it's one last look, then we launch."
+        "note": "Your photos, and your copy if you're on Presence, are due before this stage starts. After that it's one last look, then we launch.",
+        "tiers": [
+          {
+            "name": "Presence",
+            "body": "You send us your words. We edit them and put them in place."
+          },
+          {
+            "name": "Search",
+            "body": "We write your core pages around your keywords. There is one call first, so we get your tone right."
+          },
+          {
+            "name": "Search Plus",
+            "body": "The same call and the same writing, shaped by what your competitors leave out."
+          }
+        ],
+        "terms": [
+          {
+            "term": "Copy",
+            "body": "The words on your website. Headlines, page text, button labels, all of it. Nothing to do with copying anything."
+          },
+          {
+            "term": "Go live",
+            "body": "Your site moves off our preview link and onto your real web address, where customers can find it."
+          }
+        ]
       }
-    ]
+    ],
+    "end": {
+      "cue": "And then it's live",
+      "label": "Launch",
+      "title": "Your site goes live.",
+      "body": "That was the last decision. From here the site is ours to keep running, with hosting, maintenance, and monitoring on every package.",
+      "tiers": [
+        {
+          "name": "Presence",
+          "body": "Hosting, maintenance, monitoring, minor content updates, and a plain-English recap once a year."
+        },
+        {
+          "name": "Search",
+          "body": "All of that, plus 24 SEO blog posts a year and Search Console monitoring."
+        },
+        {
+          "name": "Search Plus",
+          "body": "All of that, plus active work on the site through the year as the numbers come in."
+        }
+      ],
+      "terms": [
+        {
+          "term": "Monitoring",
+          "body": "We watch the site for outages, broken pages, and errors, so problems get caught before you notice them."
+        },
+        {
+          "term": "SEO",
+          "body": "Search engine optimization: the work that helps your pages turn up when someone searches for what you do."
+        }
+      ]
+    },
+    "tiersLabel": "What changes by package"
   },
   "changes": {
     "heading": "One round of changes at every stage.",
-    "body": "Changes cost the least while the site is still rough, so that's where we put them. If none of the four styles works, we show you more. If a page is laid out wrong, we redo it while it's still empty. The last round is for the finished site, once your words and photos are in."
+    "body": "Changes cost the least while the site is still rough, so that's where we put them. If none of the four directions works, we show you more. If a page is laid out wrong, we redo it while it's still empty. The last round is for the finished site, once your words and photos are in."
   },
   "needFromYou": {
     "heading": "What we need from you",
     "items": [
       "Accurate information about your business: what you do, where, for whom, your hours, and anything a customer would ask.",
-      "A pick from the four styles we show you at stage one.",
+      "A pick from the four directions we show you at stage one.",
       "Your photos and logo, and your copy if you're on Presence, by the start of stage three.",
       "One call, on Search and Search Plus, so we get your tone right.",
       "A reply at each stage, and when a scheduled article needs a correction or something about the business changes."

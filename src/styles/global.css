@@ -42,7 +42,7 @@
 
   /* Type */
   --font-sans: 'Instrument Sans Variable', 'Instrument Sans Fallback', Arial, sans-serif;
-  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
   --step--1: 0.9375rem;
   --step-0: 1.0625rem;
   --step-1: 1.125rem;
@@ -136,7 +136,15 @@ img { max-width: 100%; height: auto; }
 .lead { font-size: var(--step-2); max-width: var(--maxw-lead); color: var(--color-muted); }
 .section-deep .lead { color: var(--color-brand-tint); }
 
-.serif { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
+/* Two families sitewide, no italics. font-optical-sizing is the browser
+   default; it is written out because Newsreader's opsz axis is the
+   reason the serif holds up from 18px to 44px. */
+.serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: 0;
+  font-optical-sizing: auto;
+}
 .price { font-variant-numeric: tabular-nums; }
 
 .grid { display: grid; gap: var(--space-3); }

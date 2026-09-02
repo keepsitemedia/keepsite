@@ -4,6 +4,77 @@ import ClosingCta from '../components/ClosingCta.astro';
 import process from '../data/process.json';
 
 const signature = process.signature as { name: string; role: string } | null;
+const stages = process.stages.items;
+const end = process.stages.end;
+const tiersLabel = process.stages.tiersLabel;
+
+type Term = { term: string; body: string };
+
+const ENTITIES: Record<string, string> = {
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+};
+const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ENTITIES[c]);
+const escRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// A glossary term is highlighted at the first place it appears in a
+// station's copy, and its definition rides along in a tooltip. A term
+// that never turns up fails the build rather than shipping a
+// definition nobody can reach.
+const markTerms = (fields: string[], terms: Term[], key: string) => {
+  const used = new Set<string>();
+  const html = fields.map((text) => {
+    let out = esc(text);
+    terms.forEach((t, ti) => {
+      if (used.has(t.term)) return;
+      const re = new RegExp(`\\b${escRe(t.term)}\\b`, 'i');
+      if (!re.test(out)) return;
+      used.add(t.term);
+      const id = `${key}-def-${ti}`;
+      out = out.replace(re, (hit) =>
+        `<span class="term" tabindex="0" aria-describedby="${id}">${hit}` +
+        `<span class="term-def" role="tooltip" id="${id}">${esc(t.body)}</span></span>`);
+    });
+    return out;
+  });
+  const missing = terms.filter((t) => !used.has(t.term)).map((t) => t.term);
+  if (missing.length) {
+    throw new Error(`process.json: no copy at ${key} contains ${missing.join(', ')}`);
+  }
+  return html;
+};
+
+const stations = stages.map((stage, i) => {
+  const key = `stage-${i + 1}`;
+  const [see, decide, note, ...tiers] = markTerms(
+    [stage.see, stage.decide, stage.note, ...stage.tiers.map((t) => t.body)],
+    stage.terms as Term[],
+    key,
+  );
+  return {
+    key,
+    label: stage.label,
+    title: stage.title,
+    see,
+    decide,
+    note,
+    tiers: stage.tiers.map((t, n) => ({ name: t.name, body: tiers[n] })),
+    next: i < stages.length - 1 ? `On to ${stages[i + 1].label.toLowerCase()}` : end.cue,
+  };
+});
+
+const endKey = `stage-${stages.length + 1}`;
+const [endBody, ...endTiers] = markTerms(
+  [end.body, ...end.tiers.map((t) => t.body)],
+  end.terms as Term[],
+  endKey,
+);
+const endStation = {
+  key: endKey,
+  label: end.label,
+  title: end.title,
+  body: endBody,
+  tiers: end.tiers.map((t, n) => ({ name: t.name, body: endTiers[n] })),
+};
 ---
 <BaseLayout title={process.meta.title} description={process.meta.description}>
 
@@ -34,21 +105,120 @@ const signature = process.signature as { name: string; role: string } | null;
       <h2>{process.stages.heading}</h2>
       <p class="lead">{process.stages.lead}</p>
 
-      <ol class="stages" role="list">
-        {process.stages.items.map((stage) => (
-          <li>
-            <p class="stage-label">{stage.label}</p>
-            <h3>{stage.title}</h3>
-            <dl>
-              <dt>What you see</dt>
-              <dd>{stage.see}</dd>
-              <dt>What you decide</dt>
-              <dd>{stage.decide}</dd>
-            </dl>
-            <p class="stage-note muted">{stage.note}</p>
-          </li>
-        ))}
-      </ol>
+      <div class="flow">
+        <ol class="stage-list" role="list">
+          {stations.map((station, i) => (
+            <li class="stage">
+              <input
+                class="stage-input visually-hidden"
+                type="radio"
+                name="stage"
+                id={station.key}
+                checked={i === 0}
+                aria-label={`${station.label}: ${station.title}`}
+              />
+              <span class="stage-dot" aria-hidden="true"></span>
+              <div class="stage-box">
+                <label class="stage-head" for={station.key}>
+                  <span class="stage-heading"><span class="stage-num">{station.label}</span> <span class="stage-title">{station.title}</span></span>
+                  <span class="head-caret" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 8l5 5 5-5" />
+                    </svg>
+                  </span>
+                </label>
+
+                <div class="stage-panel">
+                  <div class="stage-panel-in">
+                    <dl class="stage-facts">
+                      <dt>What you see</dt>
+                      <dd set:html={station.see} />
+                      <dt class="dt-decide">What you decide</dt>
+                      <dd class="stage-decide" set:html={station.decide} />
+                    </dl>
+                    <p class="stage-note muted" set:html={station.note} />
+
+                    <details class="tier-drop">
+                      <summary>
+                        <span>{tiersLabel}</span>
+                        <span class="drop-caret" aria-hidden="true">
+                          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 8l5 5 5-5" />
+                          </svg>
+                        </span>
+                      </summary>
+                      <dl class="tier-list">
+                        {station.tiers.map((tier) => (
+                          <>
+                            <dt>{tier.name}</dt>
+                            <dd set:html={tier.body} />
+                          </>
+                        ))}
+                      </dl>
+                    </details>
+
+                    <label class="btn stage-next" for={`stage-${i + 2}`}>
+                      <span class="stage-chevron" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M10 4.5v8.5" />
+                          <path d="M5.5 9.5 10 14.5 14.5 9.5" />
+                        </svg>
+                      </span>
+                      {station.next}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <div class="stage stage-end">
+          <input
+            class="stage-input visually-hidden"
+            type="radio"
+            name="stage"
+            id={endStation.key}
+            aria-label={`${endStation.label}: ${endStation.title}`}
+          />
+          <span class="stage-dot" aria-hidden="true"></span>
+          <div class="stage-box">
+            <label class="stage-head" for={endStation.key}>
+              <span class="stage-heading"><span class="stage-num">{endStation.label}</span> <span class="stage-title">{endStation.title}</span></span>
+              <span class="head-caret" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 8l5 5 5-5" />
+                </svg>
+              </span>
+            </label>
+
+            <div class="stage-panel">
+              <div class="stage-panel-in">
+                <p class="stage-lede" set:html={endStation.body} />
+
+                <details class="tier-drop">
+                  <summary>
+                    <span>{tiersLabel}</span>
+                    <span class="drop-caret" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 8l5 5 5-5" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <dl class="tier-list">
+                    {endStation.tiers.map((tier) => (
+                      <>
+                        <dt>{tier.name}</dt>
+                        <dd set:html={tier.body} />
+                      </>
+                    ))}
+                  </dl>
+                </details>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="changes">
         <h3>{process.changes.heading}</h3>
@@ -123,37 +293,305 @@ const signature = process.signature as { name: string; role: string } | null;
     max-width: none;
   }
 
-  .stages {
-    list-style: none;
-    padding: 0;
+  /* Stage flow ------------------------------------------------------
+     One rail, four stations, one open at a time. The radios are the
+     state: a label on the head opens a station, a label on the button
+     steps to the next one, and arrow keys walk the rail. No JS, which
+     is what keeps this page inside its one-script budget. */
+
+  .flow {
+    --rail: 1.1rem;           /* rail centre, from the flow's left edge */
+    --rail-gutter: 2.2rem;    /* flow's left edge to the card */
+    --card-pad: clamp(0.9rem, 3vw, 1.2rem);
+    --dot-y: 1.7rem;          /* dot centre, from the top of its station */
     margin: var(--space-4) 0 0;
+    max-width: var(--maxw-prose);
+  }
+  @media (min-width: 40em) {
+    .flow { --rail: 1.4rem; --rail-gutter: 2.6rem; }
+  }
+
+  .stage-list { list-style: none; padding: 0; margin: 0; }
+
+  .stage {
+    position: relative;
+    padding: 0 0 var(--space-2) var(--rail-gutter);
+  }
+  .stage-end { padding-bottom: 0; }
+
+  /* The track, and the green that fills it as you advance. */
+  .stage::before,
+  .stage::after {
+    content: "";
+    position: absolute;
+    left: var(--rail);
+    top: 0;
+    width: 2px;
+    margin-left: -1px;
+  }
+  .stage::before { bottom: 0; background: var(--color-border); }
+  .stage-end::before { bottom: auto; height: var(--dot-y); }
+
+  .stage::after {
+    height: 0;
+    background: var(--color-brand);
+    transition: height 340ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Open station: the fill stops at its own dot, never mid-panel. */
+  .stage:has(> .stage-input:checked)::after { height: var(--dot-y); }
+  /* Passed station: filled the whole way through. */
+  .stage:has(~ .stage > .stage-input:checked)::after { height: 100%; }
+  .flow:has(.stage-end .stage-input:checked) .stage-list .stage::after { height: 100%; }
+
+  .stage-dot {
+    position: absolute;
+    z-index: 1;                /* above the rail's fill */
+    left: var(--rail);
+    top: var(--dot-y);
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    background: var(--color-surface-alt);
+    transition: border-color 240ms ease, background-color 240ms ease,
+                transform 240ms ease, box-shadow 240ms ease;
+  }
+  .stage:has(> .stage-input:checked) .stage-dot,
+  .stage:has(~ .stage > .stage-input:checked) .stage-dot {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+  }
+  .flow:has(.stage-end .stage-input:checked) .stage-list .stage-dot {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+  }
+  /* Open station: bigger, haloed. This is the "you are here". */
+  .stage:has(> .stage-input:checked) .stage-dot {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 5px var(--color-brand-tint);
+  }
+  .stage-end .stage-dot { border-color: var(--color-accent); background: var(--color-accent); }
+  .stage-end:has(> .stage-input:checked) .stage-dot { box-shadow: 0 0 0 5px rgba(162, 74, 38, 0.16); }
+
+  /* Open station also lifts onto a white card, off the sand band. */
+  .stage-box {
+    border-radius: var(--radius);
+    transition: background-color 240ms ease, box-shadow 240ms ease;
+  }
+  .stage:has(> .stage-input:checked) > .stage-box {
+    background: var(--color-surface);
+    box-shadow: 0 14px 34px -26px rgba(31, 36, 33, 0.6);
+  }
+
+  /* The whole head is the target, padding included: click anywhere. */
+  .stage-head {
     display: grid;
-    gap: var(--space-3);
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.85rem var(--card-pad);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 160ms ease;
   }
-  .stages li {
-    border-top: 2px solid var(--color-brand);
-    padding-top: var(--space-2);
+  .stage-head:hover { background: rgba(31, 36, 33, 0.04); }
+  .stage:has(> .stage-input:checked) .stage-head:hover { background: transparent; }
+  .stage-input:focus-visible ~ .stage-box .stage-head {
+    box-shadow: 0 0 0 2px var(--color-surface-alt), 0 0 0 4px var(--color-ink);
   }
-  .stage-label {
-    margin: 0;
-    font-size: var(--step--1);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-brand);
-    font-weight: 600;
+  .stage:has(> .stage-input:checked) .stage-input:focus-visible ~ .stage-box .stage-head {
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-ink);
   }
-  .stages h3 { font-size: var(--step-2); margin: var(--space-0) 0 var(--space-2); }
-  .stages dl { margin: 0 0 var(--space-2); }
-  .stages dt {
+
+  /* One line: "Stage 1 — Style". The whole head is serif at a fixed
+     size, which is also what keeps --dot-y a single predictable number. */
+  .stage-heading {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-size: 1.5rem;
+    line-height: 1.15;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+  .stage-num {
+    white-space: nowrap;
+    color: var(--color-muted);
+    transition: color 240ms ease;
+  }
+  .stage-num::after { content: " \2014"; }
+
+  .head-caret {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-muted);
+    transition: transform 240ms ease, color 240ms ease;
+  }
+  .head-caret svg { width: 20px; height: 20px; }
+  .stage:has(> .stage-input:checked) .head-caret { transform: rotate(180deg); color: var(--color-brand); }
+  .stage-end:has(> .stage-input:checked) .head-caret { color: var(--color-accent); }
+
+  .stage:has(> .stage-input:checked) .stage-num { color: var(--color-brand); }
+  .stage-end:has(> .stage-input:checked) .stage-num { color: var(--color-accent); }
+
+  .stage-title {
+    color: var(--color-muted);
+    transition: color 240ms ease;
+  }
+  .stage:has(> .stage-input:checked) .stage-title,
+  .stage:has(~ .stage > .stage-input:checked) .stage-title { color: var(--color-ink); }
+  .flow:has(.stage-end .stage-input:checked) .stage-list .stage-title { color: var(--color-ink); }
+  .stage-head:hover .stage-title { color: var(--color-brand); }
+
+  /* Collapsed panels are display:none, not a clipped grid row, so the
+     definition tooltips inside them are free to overflow the card. */
+  .stage-panel { display: none; }
+  .stage:has(> .stage-input:checked) > .stage-box > .stage-panel {
+    display: block;
+    animation: panel-in 200ms ease both;
+  }
+  @keyframes panel-in {
+    from { opacity: 0; transform: translateY(-4px); }
+  }
+  .stage-panel-in { padding: 0 var(--card-pad) var(--card-pad); }
+
+  .stage-facts { margin: 0 0 var(--space-2); }
+  .stage-facts dt {
     font-size: var(--step--1);
     text-transform: uppercase;
     letter-spacing: 0.06em;
+    font-weight: 600;
     color: var(--color-muted);
-    margin-bottom: 0.15rem;
+    margin: 0 0 0.1rem;
   }
-  .stages dd { margin: 0 0 var(--space-2); }
-  .stage-note { margin: 0; font-size: var(--step--1); }
+  .stage-facts dt.dt-decide { color: var(--color-brand); margin-top: var(--space-2); }
+  .stage-facts dd { margin: 0; }
+  /* Weight, not a third typeface: the page runs on two families. */
+  .stage-decide { font-size: var(--step-1); font-weight: 600; color: var(--color-ink); }
+  .stage-note,
+  .stage-lede { margin: 0; font-size: var(--step--1); }
+  .stage-lede { color: var(--color-ink); }
+
+  /* Package differences sit in their own drawer: the stage reads the
+     same for everyone until you ask what your package changes. */
+  .tier-drop {
+    margin-top: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-alt);
+  }
+  .tier-drop summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0.5rem var(--space-2);
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--color-brand);
+    cursor: pointer;
+    list-style: none;
+  }
+  .tier-drop summary::-webkit-details-marker { display: none; }
+  .drop-caret {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform 200ms ease;
+  }
+  .drop-caret svg { width: 16px; height: 16px; }
+  .tier-drop[open] .drop-caret { transform: rotate(180deg); }
+
+  .tier-list {
+    margin: 0;
+    padding: 0 var(--space-2) var(--space-2);
+    font-size: var(--step--1);
+  }
+  .tier-list dt { color: var(--color-brand); font-weight: 600; }
+  .tier-list dd { margin: 0 0 var(--space-2); color: var(--color-muted); }
+  .tier-list dd:last-of-type { margin-bottom: 0; }
+  @media (min-width: 34em) {
+    .tier-list { display: grid; grid-template-columns: 7rem 1fr; column-gap: var(--space-2); }
+    .tier-list dd { margin-bottom: var(--space-1); }
+  }
+
+  /* Jargon, defined where it is used. Tab reaches it, so the
+     definition is not hover-only. */
+  .term {
+    position: relative;
+    border-radius: 4px;
+    padding: 0 0.2em;
+    background: var(--color-brand-tint);
+    color: var(--color-brand-deep);
+    font-weight: 600;
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+    cursor: help;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .term-def {
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    bottom: calc(100% + 0.5rem);
+    width: max-content;
+    max-width: min(19rem, 62vw);
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius);
+    background: var(--color-brand-deep);
+    color: var(--color-bg);
+    font-size: var(--step--1);
+    font-weight: 400;
+    line-height: 1.45;
+    text-decoration: none;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(3px);
+    transition: opacity 140ms ease, transform 140ms ease, visibility 140ms;
+    pointer-events: none;
+  }
+  .term:hover .term-def,
+  .term:focus .term-def {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /* The step-forward button sits in the card, clear of the rail. */
+  .stage-next {
+    margin-top: var(--space-3);
+    padding: 0.5rem 1.3rem 0.5rem 0.5rem;
+    gap: 0.65rem;
+  }
+  .stage-chevron {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .stage-chevron svg { width: 18px; height: 18px; }
+  /* Only the live button moves, and only enough to read as pressable. */
+  .stage:has(> .stage-input:checked) .stage-chevron svg {
+    animation: rail-nudge 2.4s ease-in-out infinite;
+  }
+  @keyframes rail-nudge {
+    0%, 72%, 100% { transform: translateY(0); }
+    86% { transform: translateY(3px); }
+  }
+  .stage-next:hover .stage-chevron svg { animation: none; transform: translateY(2px); }
 
   .changes {
     margin-top: var(--space-5);

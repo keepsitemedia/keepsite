@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lova Content Creation — Four Design Directions</title>
+<meta name="description" content="Four design directions for Lova Content Creation." />
+<meta name="robots" content="noindex,nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=JetBrains+Mono:wght@300..700&family=Syne:wght@400..800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:opsz,wght@9..40,300..700&family=Gloock&family=Public+Sans:ital,wght@0,300..700;1,300..700&family=Baloo+2:wght@400..800&family=Work+Sans:ital,wght@0,300..700;1,300..600&family=Shantell+Sans:ital,wght@0,300..700;1,300..700&family=Antonio:wght@300..700&family=Karla:ital,wght@0,300..700;1,300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  /* ============ GLOBAL RESET ============ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a1a; background: #ffffff; line-height: 1.5; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; }
+
+  /* ============ IMAGE AREAS ============
+     No photographs anywhere in this file. Every picture is an outlined region
+     holding the aspect ratio the real photo will occupy, captioned with what
+     goes there. Each direction sets the four tokens below to its own palette,
+     so the regions read as part of the design rather than holes in it. */
+  .area { display: flex; align-items: center; justify-content: center; width: 100%; border: 1px solid var(--pb); background: var(--pf); }
+  .area span {
+    font-family: var(--pfont, 'JetBrains Mono', monospace);
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--pi); padding: 12px 16px; text-align: center; line-height: 1.6;
+  }
+
+  /* ============ PROPOSAL NAV (sticky) ============ */
+  .proposal-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: #12080a; color: #f4ede1;
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .proposal-nav .brand { font-weight: 600; }
+  .proposal-nav .nav-links { display: flex; gap: 22px; flex-wrap: wrap; }
+  .proposal-nav .nav-links a { opacity: 0.6; transition: opacity 0.2s; }
+  .proposal-nav .nav-links a:hover { opacity: 1; }
+  .proposal-nav .nav-links a span.num { color: #d8a87a; margin-right: 4px; }
+
+  /* ============ INTRO ============ */
+  .intro {
+    background: #f5f2eb;
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px 32px;
+    position: relative; overflow: hidden;
+  }
+  .intro::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 15% 30%, rgba(201, 111, 74, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 70%, rgba(45, 59, 45, 0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .intro-inner { max-width: 1100px; position: relative; z-index: 1; width: 100%; }
+  .intro .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: #6b5a42; margin-bottom: 24px;
+  }
+  .intro h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 400; line-height: 1.02;
+    letter-spacing: -0.015em;
+    color: #1a1a1a; margin-bottom: 28px;
+  }
+  .intro h1 em { font-style: italic; font-weight: 400; color: #c96f4a; }
+  .intro p.lead {
+    font-family: 'EB Garamond', serif;
+    font-size: 22px; line-height: 1.55;
+    color: #2a2a24; font-weight: 400;
+    max-width: 820px; margin-bottom: 36px;
+  }
+  .intro .placeholder-note {
+    max-width: 820px; margin: 0 0 20px;
+    padding: 18px 22px;
+    background: rgba(201,111,74,0.07);
+    border-left: 2px solid #c96f4a;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; line-height: 1.7;
+    color: #6b5a42;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .intro .placeholder-note .note-label {
+    font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #c96f4a; flex-shrink: 0; padding-top: 1px;
+  }
+  .intro .placeholder-note .note-body { color: #4a4a42; }
+  .option-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 40px; }
+  @media (max-width: 1100px) { .option-cards { grid-template-columns: repeat(2, 1fr); } }
+  .option-card {
+    background: #fff; border: 1px solid #e8e2d5;
+    padding: 30px 26px; color: inherit;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+  }
+  .option-card:hover { transform: translateY(-4px); box-shadow: 0 18px 42px -24px rgba(40,30,20,0.22); border-color: #c4b092; }
+  .option-card .card-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b5a42;
+  }
+  .option-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; line-height: 1.1; color: #1a1a1a; }
+  .option-card .swatch-row { display: flex; height: 28px; margin: 6px 0 4px; }
+  .option-card .swatch { flex: 1; }
+  .option-card p { font-family: 'EB Garamond', serif; font-size: 16px; line-height: 1.55; color: #3a4035; }
+  .option-card .view-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #c96f4a; margin-top: auto; padding-top: 12px;
+  }
+
+  /* ============ DIRECTION DIVIDER ============ */
+  .direction-divider {
+    background: #12080a; color: #f4ede1;
+    padding: 70px 40px;
+    font-family: 'JetBrains Mono', monospace;
+    position: relative;
+    border-top: 1px solid #d8a87a;
+    border-bottom: 4px solid #d8a87a;
+  }
+  .direction-divider::before { content: ''; position: absolute; top: 14px; left: 40px; right: 40px; height: 1px; background: rgba(216, 168, 122, 0.25); }
+  .dd-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: end; }
+  .dd-progress { font-size: 11px; letter-spacing: 0.42em; color: #d8a87a; font-weight: 600; margin-bottom: 18px; text-transform: uppercase; }
+  .dd-name { font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: clamp(44px, 7vw, 92px); line-height: 0.95; letter-spacing: -0.015em; color: #f4ede1; }
+  .dd-name em { font-style: italic; color: #d8a87a; font-weight: 300; }
+  .dd-sub { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: clamp(15px, 1.6vw, 19px); color: rgba(244, 237, 225, 0.62); max-width: 400px; text-align: right; line-height: 1.45; font-weight: 300; padding-bottom: 12px; }
+
+  @media (max-width: 900px) {
+    .proposal-nav { flex-direction: column; gap: 10px; padding: 14px 20px; }
+    .proposal-nav .nav-links { gap: 14px; font-size: 10.5px; }
+    .intro { padding: 60px 20px; }
+    .option-cards { grid-template-columns: 1fr; }
+    .direction-divider { padding: 44px 20px; border-bottom-width: 3px; }
+    .direction-divider::before { left: 20px; right: 20px; }
+    .dd-inner { grid-template-columns: 1fr; gap: 20px; align-items: start; }
+    .dd-sub { text-align: left; max-width: none; padding-bottom: 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="proposal-nav">
+  <div class="brand">Lova Content Creation // Design Directions</div>
+  <div class="nav-links">
+    <a href="#intro"><span class="num">00</span>Intro</a>
+    <a href="#vertical"><span class="num">01</span>Vertical</a>
+    <a href="#theday"><span class="num">02</span>The Day</a>
+    <a href="#joyride"><span class="num">03</span>Joyride</a>
+    <a href="#alpenglow"><span class="num">04</span>Alpenglow</a>
+  </div>
+</nav>
+
+<section id="intro" class="intro">
+  <div class="intro-inner">
+    <p class="eyebrow">Four directions — one brand</p>
+    <h1>Lova Content Creation, <em>four ways.</em></h1>
+    <p class="lead">Four different feels for the same home page. Same words, same sections &mdash; each one carries a completely different mood. Scroll through all four, then tell me which one feels most like you. Taking the type from one and the colour from another is allowed and encouraged.</p>
+    <div class="placeholder-note">
+      <span class="note-label">Heads up</span>
+      <span class="note-body">There are no photographs in here on purpose. Every picture is drawn as an outlined box, sized to the shape the real photo will fill and labelled with what belongs there &mdash; a vertical clip, a detail shot, a portrait. That keeps this round about the design instead of about which photo you like. Your photos go in once a direction is picked. Copy is real, pulled from your questionnaire.</span>
+    </div>
+    <div class="option-cards">
+      <a href="#vertical" class="option-card">
+        <div class="card-num">01 — Vertical</div>
+        <h3>Built the shape of the thing you make</h3>
+        <div class="swatch-row">
+          <div class="swatch" style="background:#101014"></div>
+          <div class="swatch" style="background:#1b1b22"></div>
+          <div class="swatch" style="background:#ff5c4d"></div>
+          <div class="swatch" style="background:#c9b6f2"></div>
+          <div class="swatch" style="background:#f3f1ec"></div>
+        </div>
+        <p>Dark, phone-native, unmistakably 2026. The page is made of 9:16 frames because that is what you deliver. Coral and lavender on near-black.</p>
+        <span class="view-link">View direction →</span>
+      </a>
+      <a href="#theday" class="option-card">
+        <div class="card-num">02 — The Day</div>
+        <h3>The whole home page is one wedding day</h3>
+        <div class="swatch-row">
+          <div class="swatch" style="background:#f6f1e8"></div>
+          <div class="swatch" style="background:#e6dccc"></div>
+          <div class="swatch" style="background:#b8674a"></div>
+          <div class="swatch" style="background:#8b9174"></div>
+          <div class="swatch" style="background:#221e1b"></div>
+        </div>
+        <p>Warm and editorial, structured as a timeline from 6:12 AM to the last song. Shows what you actually sell: the whole day, not a highlight.</p>
+        <span class="view-link">View direction →</span>
+      </a>
+      <a href="#joyride" class="option-card">
+        <div class="card-num">03 — Joyride</div>
+        <h3>Loud, round, and having a very good time</h3>
+        <div class="swatch-row">
+          <div class="swatch" style="background:#fff8ec"></div>
+          <div class="swatch" style="background:#ffd76e"></div>
+          <div class="swatch" style="background:#ef4b3a"></div>
+          <div class="swatch" style="background:#7ec8e3"></div>
+          <div class="swatch" style="background:#1f1a17"></div>
+        </div>
+        <p>Colour bands, arched frames, rotated stickers, fat rounded type. The furthest possible thing from a wedding template. Fun in the loudest sense.</p>
+        <span class="view-link">View direction →</span>
+      </a>
+      <a href="#alpenglow" class="option-card">
+        <div class="card-num">04 — Alpenglow</div>
+        <h3>Elopement as expedition</h3>
+        <div class="swatch-row">
+          <div class="swatch" style="background:#f2f5f6"></div>
+          <div class="swatch" style="background:#cfd9de"></div>
+          <div class="swatch" style="background:#9fb1ba"></div>
+          <div class="swatch" style="background:#e2683c"></div>
+          <div class="swatch" style="background:#262b30"></div>
+        </div>
+        <p>Cold, clean, technical. Condensed capitals, hairline rules, coordinates and elevations in the margins. For the bride skiing to her ceremony.</p>
+        <span class="view-link">View direction →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="direction-divider">
+  <div class="dd-inner">
+    <div>
+      <div class="dd-progress">Direction 01 — of 04</div>
+      <h2 class="dd-name">Vertical<em>.</em></h2>
+    </div>
+    <p class="dd-sub">Near-black, coral, lavender. Syne and DM Mono. The page is assembled from 9:16 frames and a delivery clock &mdash; the site looks like the thing it sells.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     DIRECTION 01 — VERTICAL
+     ============================================================ -->
+<style>
+.vt {
+  --bg: #101014;
+  --panel: #1b1b22;
+  --ink: #f3f1ec;
+  --soft: rgba(243,241,236,0.62);
+  --mute: rgba(243,241,236,0.38);
+  --rule: rgba(243,241,236,0.12);
+  --coral: #ff5c4d;
+  --lilac: #c9b6f2;
+  --pb: rgba(201,182,242,0.34);
+  --pf: rgba(201,182,242,0.06);
+  --pi: rgba(201,182,242,0.82);
+  --pfont: 'DM Mono', monospace;
+  background: var(--bg); color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+}
+.vt .wrap { max-width: 1320px; margin: 0 auto; padding: 0 40px; }
+.vt .label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--mute); }
+
+/* nav */
+.vt-nav { border-bottom: 1px solid var(--rule); }
+.vt-nav .bar { display: flex; align-items: center; justify-content: space-between; padding: 26px 0; gap: 30px; }
+.vt-mark { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+.vt-mark span { color: var(--coral); }
+.vt-links { display: flex; gap: 30px; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); }
+.vt-links a:hover { color: var(--lilac); }
+.vt-btn { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; background: var(--coral); color: #16090a; padding: 11px 20px; border-radius: 999px; font-weight: 500; }
+/* story-progress bar, the one piece of borrowed social UI */
+.vt-progress { display: flex; gap: 5px; padding-bottom: 14px; }
+.vt-progress i { height: 2px; flex: 1; background: var(--rule); border-radius: 2px; }
+.vt-progress i:first-child { background: var(--lilac); }
+
+/* hero */
+.vt-hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 60px; align-items: center; padding: 84px 0 90px; }
+.vt-hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(44px, 5.4vw, 80px); line-height: 0.96; letter-spacing: -0.035em; margin: 18px 0 26px; }
+.vt-hero h1 em { font-style: normal; color: var(--coral); }
+.vt-hero p { font-size: 18px; line-height: 1.65; color: var(--soft); max-width: 46ch; }
+.vt-cta { display: flex; gap: 16px; align-items: center; margin-top: 34px; flex-wrap: wrap; }
+.vt-cta .ghost { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lilac); border-bottom: 1px solid rgba(201,182,242,0.4); padding-bottom: 3px; }
+/* three 9:16 frames, staggered like a story tray */
+.vt-tray { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
+.vt-tray > div:nth-child(2) { margin-top: 42px; }
+.vt-tray > div:nth-child(3) { margin-top: 84px; }
+
+/* delivery clock strip */
+.vt-clock { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--panel); }
+.vt-clock .inner { display: grid; grid-template-columns: auto 1fr; gap: 56px; align-items: center; padding: 46px 0; }
+.vt-big { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(52px, 8vw, 108px); line-height: 0.86; letter-spacing: -0.045em; color: var(--lilac); }
+.vt-big small { display: block; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400; letter-spacing: 0.28em; text-transform: uppercase; color: var(--mute); margin-top: 16px; }
+.vt-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.vt-steps h4 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 10px 0 7px; }
+.vt-steps p { font-size: 14.5px; line-height: 1.6; color: var(--soft); }
+.vt-steps .n { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--coral); }
+
+/* services rows */
+.vt-svc { padding: 90px 0 30px; }
+.vt-svc header { display: flex; align-items: baseline; justify-content: space-between; gap: 30px; padding-bottom: 34px; }
+.vt-svc h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(30px, 3.4vw, 46px); letter-spacing: -0.03em; }
+.vt-row { display: grid; grid-template-columns: 60px 1.1fr 1.4fr 200px; gap: 30px; align-items: center; padding: 30px 0; border-top: 1px solid var(--rule); transition: background .25s; }
+.vt-row:last-of-type { border-bottom: 1px solid var(--rule); }
+.vt-row:hover { background: rgba(201,182,242,0.05); }
+.vt-row .n { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--coral); }
+.vt-row h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: -0.02em; }
+.vt-row p { font-size: 15px; line-height: 1.6; color: var(--soft); }
+
+/* about */
+.vt-about { display: grid; grid-template-columns: 340px 1fr; gap: 64px; align-items: center; padding: 96px 0; }
+.vt-about h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(28px, 3.2vw, 42px); letter-spacing: -0.03em; line-height: 1.08; margin-bottom: 20px; }
+.vt-about h2 em { font-style: normal; color: var(--lilac); }
+.vt-about p { font-size: 17px; line-height: 1.7; color: var(--soft); max-width: 58ch; }
+.vt-about p + p { margin-top: 16px; }
+
+/* footer */
+.vt-foot { border-top: 1px solid var(--rule); padding: 54px 0 60px; }
+.vt-foot .inner { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; align-items: flex-end; }
+.vt-foot .mail { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(22px, 3vw, 36px); letter-spacing: -0.03em; color: var(--ink); }
+.vt-foot .mail:hover { color: var(--coral); }
+
+@media (max-width: 980px) {
+  .vt .wrap { padding: 0 22px; }
+  .vt-hero, .vt-about { grid-template-columns: 1fr; gap: 40px; padding: 56px 0; }
+  .vt-clock .inner { grid-template-columns: 1fr; gap: 30px; }
+  .vt-steps { grid-template-columns: 1fr; gap: 20px; }
+  .vt-row { grid-template-columns: 1fr; gap: 12px; }
+  .vt-links { display: none; }
+  .vt-tray > div:nth-child(2), .vt-tray > div:nth-child(3) { margin-top: 0; }
+}
+</style>
+
+<section id="vertical" class="vt">
+  <div class="vt-nav">
+    <div class="wrap">
+      <div class="bar">
+        <div class="vt-mark">lova<span>.</span></div>
+        <nav class="vt-links">
+          <a href="#vertical">Work</a>
+          <a href="#vertical">Services</a>
+          <a href="#vertical">About</a>
+        </nav>
+        <a href="#vertical" class="vt-btn">Check my date</a>
+      </div>
+      <div class="vt-progress"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="vt-hero">
+      <div>
+        <p class="label">Wedding content creation · Utah &amp; the Wasatch</p>
+        <h1>Be all the way in it. <em>I'll catch the rest.</em></h1>
+        <p>You are going to be too busy having the best day of your life to see half of it. That is the job &mdash; the candid moments, the behind-the-scenes chaos, and every detail you spent months choosing. In your hands in 24 to 48 hours.</p>
+        <div class="vt-cta">
+          <a href="#vertical" class="vt-btn">Check my date</a>
+          <a href="#vertical" class="ghost">See recent work →</a>
+        </div>
+      </div>
+      <div class="vt-tray">
+        <div class="area" style="aspect-ratio:9/16"><span>Vertical clip<br>First look, hands over his eyes</span></div>
+        <div class="area" style="aspect-ratio:9/16"><span>Vertical clip<br>Getting ready, veil at the window</span></div>
+        <div class="area" style="aspect-ratio:9/16"><span>Vertical clip<br>Last dance, phone flash</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vt-clock">
+    <div class="wrap">
+      <div class="inner">
+        <div class="vt-big">24&ndash;48<small>Hours to delivery</small></div>
+        <div class="vt-steps">
+          <div>
+            <div class="n">01</div>
+            <h4>I shoot it all day</h4>
+            <p>Phone in hand from getting ready through the last song, staying out of the photographer's frame.</p>
+          </div>
+          <div>
+            <div class="n">02</div>
+            <h4>I cut it that night</h4>
+            <p>Colour, sound, and trims, sorted into the clips you will actually post and the ones you will keep.</p>
+          </div>
+          <div>
+            <div class="n">03</div>
+            <h4>You have it by Monday</h4>
+            <p>A full gallery of vertical video and stills, ready to share while everyone is still talking about it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="vt-svc">
+      <header>
+        <h2>What I do</h2>
+        <p class="label">Three ways to book</p>
+      </header>
+      <div class="vt-row">
+        <div class="n">01</div>
+        <h3>Full day</h3>
+        <p>Getting ready through the last song. I am there for all of it, including the parts nobody planned.</p>
+        <div class="area" style="aspect-ratio:4/5"><span>Zipping the dress<br>three sets of hands</span></div>
+      </div>
+      <div class="vt-row">
+        <div class="n">02</div>
+        <h3>Elopement &amp; micro wedding</h3>
+        <p>Short guest list, big day. Ceremony, portraits, and wherever the two of you go afterwards.</p>
+        <div class="area" style="aspect-ratio:4/5"><span>Ski boots under the dress<br>at the lift</span></div>
+      </div>
+      <div class="vt-row">
+        <div class="n">03</div>
+        <h3>Alongside your videographer</h3>
+        <p>They make the film. I catch everything happening around it &mdash; and you have mine before the honeymoon.</p>
+        <div class="area" style="aspect-ratio:4/5"><span>Behind the scenes<br>the crew setting up</span></div>
+      </div>
+    </div>
+
+    <div class="vt-about">
+      <div class="area" style="aspect-ratio:1/1"><span>Sierra, portrait<br>phone in hand, mid-laugh</span></div>
+      <div>
+        <h2>Hi, I'm Sierra. <em>I notice things.</em></h2>
+        <p>I came to this from flowers, which means I look at your day the way a florist does &mdash; at the ribbon you had hand-dyed, the way the light hits the table at four o'clock, the stem your grandmother pinned on him. The details you chose on purpose deserve to be in the story.</p>
+        <p>I specialise in micro weddings and elopements because that is where I can see everything. Small enough that nothing gets missed, loose enough that we can chase the good light.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="vt-foot">
+    <div class="wrap">
+      <div class="inner">
+        <div>
+          <p class="label">Now booking 2026 &amp; 2027</p>
+          <a href="#vertical" class="mail">lovacontentcreation@gmail.com</a>
+        </div>
+        <p class="label">Lova Content Creation · Utah &amp; the Wasatch · Travel welcome</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="direction-divider">
+  <div class="dd-inner">
+    <div>
+      <div class="dd-progress">Direction 02 — of 04</div>
+      <h2 class="dd-name">The <em>Day.</em></h2>
+    </div>
+    <p class="dd-sub">Cream, clay and sage. Gloock and Public Sans. The home page is built as one wedding day on a rail, 6:12 AM to the last song &mdash; because start-to-finish is the thing being sold.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     DIRECTION 02 — THE DAY
+     ============================================================ -->
+<style>
+.dy {
+  --bg: #f6f1e8;
+  --panel: #efe7da;
+  --ink: #221e1b;
+  --soft: #55504a;
+  --clay: #b8674a;
+  --sage: #8b9174;
+  --rule: #ddd2c0;
+  --pb: #cbbda6;
+  --pf: #efe7da;
+  --pi: #7b6f5d;
+  --pfont: 'JetBrains Mono', monospace;
+  background: var(--bg); color: var(--ink);
+  font-family: 'Public Sans', sans-serif;
+}
+.dy .wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+.dy .narrow { max-width: 780px; margin: 0 auto; }
+.dy .label { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--clay); }
+
+/* nav — centred wordmark over a rule, links beneath */
+.dy-nav { text-align: center; padding: 40px 0 26px; border-bottom: 1px solid var(--rule); }
+.dy-mark { font-family: 'Gloock', serif; font-size: clamp(28px, 4vw, 44px); letter-spacing: 0.02em; line-height: 1; }
+.dy-nav .tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.42em; text-transform: uppercase; color: var(--soft); margin-top: 12px; }
+.dy-links { display: flex; justify-content: center; gap: 34px; margin-top: 24px; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--soft); }
+.dy-links a:hover { color: var(--clay); }
+
+/* hero — type above, wide frame, caption beneath rather than over */
+.dy-hero { padding: 76px 0 60px; text-align: center; }
+.dy-hero h1 { font-family: 'Gloock', serif; font-size: clamp(38px, 5vw, 68px); line-height: 1.06; letter-spacing: -0.01em; margin: 20px auto 22px; max-width: 16ch; }
+.dy-hero h1 em { font-style: italic; color: var(--clay); font-family: 'Public Sans', sans-serif; font-weight: 300; }
+.dy-hero p { font-size: 18px; line-height: 1.7; color: var(--soft); max-width: 62ch; margin: 0 auto; }
+.dy-plate { margin-top: 52px; }
+.dy-cap { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--soft); margin-top: 12px; display: flex; justify-content: space-between; gap: 20px; }
+
+/* the rail */
+.dy-rail { padding: 84px 0 30px; }
+.dy-rail > header { text-align: center; margin-bottom: 56px; }
+.dy-rail > header h2 { font-family: 'Gloock', serif; font-size: clamp(28px, 3.6vw, 44px); margin: 14px 0 12px; }
+.dy-rail > header p { color: var(--soft); font-size: 16.5px; line-height: 1.7; max-width: 56ch; margin: 0 auto; }
+.dy-line { position: relative; padding-left: 132px; }
+.dy-line::before { content: ''; position: absolute; left: 92px; top: 6px; bottom: 6px; width: 1px; background: var(--rule); }
+.dy-stop { position: relative; padding: 0 0 56px; }
+.dy-stop .time { position: absolute; left: -132px; top: 0; width: 84px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: var(--clay); font-weight: 500; }
+.dy-stop::before { content: ''; position: absolute; left: -44px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg); border: 1px solid var(--clay); }
+.dy-stop h3 { font-family: 'Gloock', serif; font-size: 27px; line-height: 1.2; margin-bottom: 8px; }
+.dy-stop p { color: var(--soft); font-size: 16px; line-height: 1.7; max-width: 54ch; }
+.dy-stop .shot { margin-top: 20px; }
+.dy-stop:nth-child(odd) .shot { max-width: 420px; }
+.dy-stop:nth-child(even) .shot { max-width: 640px; }
+
+/* services — three plain columns, clay rules */
+.dy-svc { border-top: 1px solid var(--rule); padding: 72px 0 84px; }
+.dy-svc .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; margin-top: 40px; }
+.dy-svc .col { border-top: 2px solid var(--clay); padding-top: 20px; }
+.dy-svc h3 { font-family: 'Gloock', serif; font-size: 23px; margin-bottom: 10px; }
+.dy-svc p { color: var(--soft); font-size: 15.5px; line-height: 1.7; }
+.dy-svc .head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.dy-svc .head h2 { font-family: 'Gloock', serif; font-size: clamp(28px, 3.4vw, 40px); }
+
+/* sage band */
+.dy-band { background: var(--sage); color: #f8f6ef; padding: 70px 0; text-align: center; }
+.dy-band p { font-family: 'Gloock', serif; font-size: clamp(22px, 2.8vw, 34px); line-height: 1.35; max-width: 22ch; margin: 0 auto; }
+.dy-band .sub { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.32em; text-transform: uppercase; margin-top: 24px; color: rgba(248,246,239,0.75); }
+
+/* footer */
+.dy-foot { padding: 62px 0; text-align: center; }
+.dy-foot .mail { font-family: 'Gloock', serif; font-size: clamp(22px, 3vw, 34px); border-bottom: 1px solid var(--clay); padding-bottom: 5px; }
+.dy-foot .meta { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--soft); margin-top: 26px; }
+
+@media (max-width: 900px) {
+  .dy .wrap { padding: 0 22px; }
+  .dy-links { gap: 18px; font-size: 11.5px; flex-wrap: wrap; }
+  .dy-line { padding-left: 0; }
+  .dy-line::before { left: 4px; }
+  .dy-stop { padding-left: 30px; }
+  .dy-stop .time { position: static; width: auto; text-align: left; display: block; margin-bottom: 6px; }
+  .dy-stop::before { left: 0; top: 5px; }
+  .dy-stop:nth-child(odd) .shot, .dy-stop:nth-child(even) .shot { max-width: none; }
+  .dy-svc .cols { grid-template-columns: 1fr; gap: 30px; }
+  .dy-cap { flex-direction: column; gap: 6px; }
+}
+</style>
+
+<section id="theday" class="dy">
+  <div class="wrap">
+    <div class="dy-nav">
+      <div class="dy-mark">Lova Content Creation</div>
+      <div class="tag">Utah &amp; the Wasatch</div>
+      <nav class="dy-links">
+        <a href="#theday">Work</a>
+        <a href="#theday">Services</a>
+        <a href="#theday">About</a>
+        <a href="#theday">Inquire</a>
+      </nav>
+    </div>
+
+    <div class="dy-hero">
+      <p class="label">Wedding content creation</p>
+      <h1>Live it all the way. <em>Then live it again.</em></h1>
+      <p>Candid moments, behind-the-scenes chaos, and the details you chose on purpose &mdash; documented from the first coffee to the last song, and back in your hands within 24 to 48 hours.</p>
+      <div class="dy-plate">
+        <div class="area" style="aspect-ratio:21/9"><span>Ceremony, aspen grove &mdash; wide</span></div>
+        <div class="dy-cap"><span>The whole day, start to finish</span><span>Now booking 2026 &amp; 2027</span></div>
+      </div>
+    </div>
+
+    <div class="dy-rail">
+      <header>
+        <p class="label">A day, as documented</p>
+        <h2>Here is what I'm doing while you're busy.</h2>
+        <p>Not a highlight reel of the big moments. The whole shape of the day, including the hour nobody photographs.</p>
+      </header>
+
+      <div class="dy-line">
+        <div class="dy-stop">
+          <div class="time">6:12 AM</div>
+          <h3>Before anyone is ready</h3>
+          <p>Dress on the door, rings on the windowsill, the ribbon you had hand-dyed still in its tissue. The quiet hour, shot the way a florist looks at a table.</p>
+          <div class="shot"><div class="area" style="aspect-ratio:4/5"><span>Dress hanging in early light<br>rings on the sill</span></div></div>
+        </div>
+        <div class="dy-stop">
+          <div class="time">11:40 AM</div>
+          <h3>Everyone talking at once</h3>
+          <p>Three sets of hands on one zipper, someone's mother crying, the bouquet handed off twice. This is the part you will not remember and will most want back.</p>
+          <div class="shot"><div class="area" style="aspect-ratio:3/2"><span>Getting ready chaos<br>zipping the dress, everyone helping</span></div></div>
+        </div>
+        <div class="dy-stop">
+          <div class="time">4:07 PM</div>
+          <h3>The moment itself</h3>
+          <p>I stay well out of your photographer's frame and get the angle they cannot: your face from where your people are standing.</p>
+          <div class="shot"><div class="area" style="aspect-ratio:4/5"><span>First look<br>her face, reverse angle</span></div></div>
+        </div>
+        <div class="dy-stop">
+          <div class="time">9:53 PM</div>
+          <h3>Completely caught up in it</h3>
+          <p>Shoes off, sparklers out, someone's uncle on the table. By the time you wake up, it is already edited and waiting.</p>
+          <div class="shot"><div class="area" style="aspect-ratio:3/2"><span>Last dance<br>sparklers and phone flash</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dy-band">
+    <div class="wrap">
+      <p>&ldquo;I noticed it so you didn't have to.&rdquo;</p>
+      <div class="sub">Delivered in 24&ndash;48 hours</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="dy-svc">
+      <div class="head">
+        <h2>Three ways to book</h2>
+        <p class="label">Micro weddings &amp; elopements</p>
+      </div>
+      <div class="cols">
+        <div class="col">
+          <h3>Full day</h3>
+          <p>Getting ready through the last song. Everything above, all of it, yours by the end of the weekend.</p>
+        </div>
+        <div class="col">
+          <h3>Elopement &amp; micro wedding</h3>
+          <p>Short guest list, big day. Ceremony, portraits, and wherever the two of you go afterwards &mdash; including up the mountain.</p>
+        </div>
+        <div class="col">
+          <h3>Alongside your videographer</h3>
+          <p>They make the film you will watch on your anniversary. I catch everything happening around it, fast.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dy-foot">
+    <div class="wrap">
+      <p class="label">Tell me about your day</p>
+      <div style="margin-top:16px"><a href="#theday" class="mail">lovacontentcreation@gmail.com</a></div>
+      <div class="meta">Lova Content Creation · Utah &amp; the Wasatch · Travel welcome</div>
+    </div>
+  </div>
+</section>
+
+<section class="direction-divider">
+  <div class="dd-inner">
+    <div>
+      <div class="dd-progress">Direction 03 — of 04</div>
+      <h2 class="dd-name">Joy<em>ride.</em></h2>
+    </div>
+    <p class="dd-sub">Cream, tomato, sky and butter. Baloo&nbsp;2, Work Sans and Shantell Sans. Colour bands, arch-topped frames and rotated stickers &mdash; the loudest possible answer to &ldquo;nothing that feels like a template.&rdquo;</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     DIRECTION 03 — JOYRIDE
+     ============================================================ -->
+<style>
+.jr {
+  --cream: #fff8ec;
+  --butter: #ffd76e;
+  --tomato: #ef4b3a;
+  --sky: #7ec8e3;
+  --ink: #1f1a17;
+  --soft: #4d423b;
+  --pb: rgba(31,26,23,0.3);
+  --pf: rgba(255,255,255,0.42);
+  --pi: #695c52;
+  --pfont: 'Work Sans', sans-serif;
+  background: var(--cream); color: var(--ink);
+  font-family: 'Work Sans', sans-serif;
+}
+.jr .wrap { max-width: 1220px; margin: 0 auto; padding: 0 40px; }
+.jr h1, .jr h2, .jr h3 { font-family: 'Baloo 2', cursive; font-weight: 800; line-height: 1.02; letter-spacing: -0.015em; }
+.jr .hand { font-family: 'Shantell Sans', cursive; font-weight: 500; }
+.jr .area span { text-transform: none; letter-spacing: 0.02em; font-size: 11.5px; font-weight: 500; }
+
+/* nav */
+.jr-nav { background: var(--tomato); color: var(--cream); }
+.jr-nav .bar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 0; flex-wrap: wrap; }
+.jr-mark { font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 26px; letter-spacing: -0.02em; }
+.jr-links { display: flex; gap: 10px; flex-wrap: wrap; }
+.jr-links a { background: rgba(255,248,236,0.16); border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 600; }
+.jr-links a:hover { background: var(--butter); color: var(--ink); }
+.jr-pill { background: var(--butter); color: var(--ink); border-radius: 999px; padding: 11px 24px; font-weight: 700; font-size: 15px; display: inline-block; }
+.jr-pill:hover { background: var(--cream); }
+
+/* hero */
+.jr-hero { background: var(--butter); position: relative; overflow: hidden; }
+.jr-hero .inner { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; padding: 76px 0 84px; }
+.jr-hero h1 { font-size: clamp(46px, 6.6vw, 96px); }
+.jr-hero h1 em { font-style: normal; color: var(--tomato); }
+.jr-hero p { font-size: 19px; line-height: 1.62; color: var(--soft); max-width: 44ch; margin: 22px 0 30px; font-weight: 400; }
+.jr-hero .eyebrow { font-family: 'Shantell Sans', cursive; font-weight: 600; font-size: 18px; color: var(--tomato); margin-bottom: 8px; }
+/* arch-topped frame */
+.jr-arch { border-radius: 999px 999px 18px 18px; overflow: hidden; }
+.jr-arch .area { border-radius: inherit; }
+/* rotated sticker */
+.jr-sticker {
+  position: absolute; right: 3%; top: 40px;
+  background: var(--sky); color: var(--ink);
+  border: 3px solid var(--ink); border-radius: 999px;
+  padding: 16px 22px; text-align: center;
+  transform: rotate(-11deg);
+  font-family: 'Baloo 2', cursive; font-weight: 800; line-height: 1;
+  font-size: 22px; z-index: 2;
+}
+.jr-sticker small { display: block; font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 6px; }
+
+/* offering blocks on sky */
+.jr-offer { background: var(--sky); padding: 74px 0 80px; }
+.jr-offer h2 { font-size: clamp(32px, 4.4vw, 54px); margin-bottom: 8px; }
+.jr-offer > .wrap > .lead { font-size: 17px; max-width: 52ch; color: #22343a; margin-bottom: 40px; }
+.jr-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.jr-card { background: var(--cream); border: 3px solid var(--ink); border-radius: 26px; padding: 28px 26px 30px; display: flex; flex-direction: column; gap: 12px; }
+.jr-card:nth-child(2) { transform: rotate(1.4deg); }
+.jr-card:nth-child(3) { transform: rotate(-1.2deg); }
+.jr-card .n { font-family: 'Shantell Sans', cursive; font-weight: 700; font-size: 16px; color: var(--tomato); }
+.jr-card h3 { font-size: 26px; }
+.jr-card p { font-size: 15.5px; line-height: 1.62; color: var(--soft); }
+.jr-card .go { margin-top: auto; padding-top: 14px; font-weight: 700; font-size: 14px; color: var(--tomato); }
+
+/* about on cream, circular frames */
+.jr-about { padding: 86px 0; }
+.jr-about .inner { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: center; }
+.jr-about h2 { font-size: clamp(32px, 4.2vw, 52px); margin-bottom: 18px; }
+.jr-about h2 em { font-style: normal; color: var(--tomato); }
+.jr-about p { font-size: 17.5px; line-height: 1.72; color: var(--soft); max-width: 52ch; }
+.jr-about p + p { margin-top: 14px; }
+.jr-about .note { font-family: 'Shantell Sans', cursive; font-weight: 600; font-size: 19px; color: var(--tomato); margin-top: 22px; transform: rotate(-1.5deg); }
+.jr-circles { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; }
+.jr-circles > div:first-child { border-radius: 50%; overflow: hidden; }
+.jr-circles > div:first-child .area { border-radius: 50%; }
+.jr-circles > div:last-child { border-radius: 22px; overflow: hidden; margin-top: 44px; }
+.jr-circles > div:last-child .area { border-radius: 22px; }
+
+/* cta band */
+.jr-cta { background: var(--tomato); color: var(--cream); padding: 78px 0; text-align: center; }
+.jr-cta h2 { font-size: clamp(34px, 5.2vw, 66px); margin-bottom: 16px; }
+.jr-cta p { font-size: 18px; max-width: 46ch; margin: 0 auto 30px; color: rgba(255,248,236,0.88); }
+
+/* footer */
+.jr-foot { background: var(--ink); color: var(--cream); padding: 40px 0; }
+.jr-foot .inner { display: flex; justify-content: space-between; gap: 22px; flex-wrap: wrap; font-size: 14px; }
+.jr-foot a { color: var(--butter); font-weight: 600; }
+
+@media (max-width: 950px) {
+  .jr .wrap { padding: 0 22px; }
+  .jr-hero .inner, .jr-about .inner { grid-template-columns: 1fr; gap: 36px; padding: 54px 0; }
+  .jr-cards { grid-template-columns: 1fr; }
+  .jr-card:nth-child(2), .jr-card:nth-child(3) { transform: none; }
+  .jr-sticker { position: static; display: inline-block; margin-bottom: 18px; }
+  .jr-circles > div:last-child { margin-top: 0; }
+}
+</style>
+
+<section id="joyride" class="jr">
+  <div class="jr-nav">
+    <div class="wrap">
+      <div class="bar">
+        <div class="jr-mark">Lova</div>
+        <nav class="jr-links">
+          <a href="#joyride">Work</a>
+          <a href="#joyride">Services</a>
+          <a href="#joyride">About</a>
+        </nav>
+        <a href="#joyride" class="jr-pill">Check my date</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="jr-hero">
+    <div class="wrap">
+      <div class="jr-sticker">24&ndash;48<small>hour delivery</small></div>
+      <div class="inner">
+        <div>
+          <p class="eyebrow">Wedding content creation &mdash; Utah &amp; the Wasatch</p>
+          <h1>Have the best day. <em>I'll keep all of it.</em></h1>
+          <p>You are going to be completely caught up in it, and you should be. I'm the one noticing the stolen kisses, the behind-the-scenes chaos and every detail you chose on purpose &mdash; and handing it all back before the weekend is over.</p>
+          <a href="#joyride" class="jr-pill">Tell me about your day</a>
+        </div>
+        <div class="jr-arch">
+          <div class="area" style="aspect-ratio:4/5"><span>Hero photo &mdash; couple laughing, confetti mid-air</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="jr-offer">
+    <div class="wrap">
+      <h2>Pick your kind of day</h2>
+      <p class="lead">Whether you're skiing to your ceremony or spending it all on the details and cutting the guest list in half &mdash; whatever makes it the best day for you.</p>
+      <div class="jr-cards">
+        <div class="jr-card">
+          <div class="n">one</div>
+          <h3>Full day</h3>
+          <p>Getting ready through the last song. I'm there for all of it, especially the parts nobody planned.</p>
+          <span class="go">See what's included →</span>
+        </div>
+        <div class="jr-card">
+          <div class="n">two</div>
+          <h3>Elopement &amp; micro wedding</h3>
+          <p>Short guest list, big day. Ceremony, portraits and wherever the two of you go afterwards &mdash; including up the mountain.</p>
+          <span class="go">See what's included →</span>
+        </div>
+        <div class="jr-card">
+          <div class="n">three</div>
+          <h3>With your videographer</h3>
+          <p>They make the film. I catch everything happening around it, and yours lands before the honeymoon.</p>
+          <span class="go">See what's included →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="jr-about">
+    <div class="wrap">
+      <div class="inner">
+        <div class="jr-circles">
+          <div><div class="area" style="aspect-ratio:1/1"><span>Sierra, portrait</span></div></div>
+          <div><div class="area" style="aspect-ratio:4/5"><span>Bouquet on a snowbank at the trailhead</span></div></div>
+        </div>
+        <div>
+          <h2>Hi, I'm Sierra. <em>I came here from flowers.</em></h2>
+          <p>Which means I look at your day the way a florist does. The hand-dyed ribbon, the stem your grandmother pinned on him, the way the light hits the table at four o'clock. You spent months choosing those things &mdash; they belong in the story.</p>
+          <p>I specialise in micro weddings and elopements because small is where I can see everything: the stolen kisses, the joy, the wonder, the genuinely unhinged fun.</p>
+          <p class="note">You were busy living it. That's the whole point.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="jr-cta">
+    <div class="wrap">
+      <h2>So &mdash; when is it?</h2>
+      <p>Tell me the date, the place and what you're most excited about. I'll tell you if I'm free.</p>
+      <a href="#joyride" class="jr-pill">lovacontentcreation@gmail.com</a>
+    </div>
+  </div>
+
+  <div class="jr-foot">
+    <div class="wrap">
+      <div class="inner">
+        <span>Lova Content Creation · Utah &amp; the Wasatch · Travel welcome</span>
+        <span><a href="#joyride">lovacontentcreation@gmail.com</a></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="direction-divider">
+  <div class="dd-inner">
+    <div>
+      <div class="dd-progress">Direction 04 — of 04</div>
+      <h2 class="dd-name">Alpen<em>glow.</em></h2>
+    </div>
+    <p class="dd-sub">Snow, granite and one alpenglow orange. Antonio, Karla and Space Mono. Condensed capitals, hairline rules, coordinates and elevation in the margins &mdash; the elopement read as an expedition.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     DIRECTION 04 — ALPENGLOW
+     ============================================================ -->
+<style>
+.ag {
+  --snow: #f2f5f6;
+  --panel: #e6ebed;
+  --granite: #262b30;
+  --glacier: #9fb1ba;
+  --stone: #cfd9de;
+  --soft: #4f5a61;
+  --glow: #e2683c;
+  --pb: #b6c4cb;
+  --pf: #e6ebed;
+  --pi: #5c6a72;
+  --pfont: 'Space Mono', monospace;
+  background: var(--snow); color: var(--granite);
+  font-family: 'Karla', sans-serif;
+}
+.ag .wrap { max-width: 1340px; margin: 0 auto; padding: 0 44px; }
+.ag .mono { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft); }
+.ag h1, .ag h2, .ag h3 { font-family: 'Antonio', sans-serif; font-weight: 600; text-transform: uppercase; line-height: 0.94; letter-spacing: 0.005em; }
+
+/* nav */
+.ag-nav { border-bottom: 1px solid var(--stone); }
+.ag-nav .bar { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 22px 0; flex-wrap: wrap; }
+.ag-mark { font-family: 'Antonio', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ag-mark i { font-style: normal; color: var(--glow); }
+.ag-links { display: flex; gap: 30px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ag-links a:hover { color: var(--glow); }
+.ag-coords { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--soft); }
+
+/* hero */
+.ag-hero { padding: 44px 0 0; }
+.ag-hero .plate { position: relative; }
+.ag-hero .plate .tick { position: absolute; left: 0; right: 0; bottom: -1px; display: flex; justify-content: space-between; padding: 0 16px 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft); }
+.ag-hero .type { display: grid; grid-template-columns: 1.25fr 1fr; gap: 60px; align-items: end; padding: 44px 0 60px; border-bottom: 1px solid var(--stone); }
+.ag-hero h1 { font-size: clamp(46px, 8.2vw, 126px); }
+.ag-hero h1 i { font-style: normal; color: var(--glow); }
+.ag-hero .type p { font-size: 17px; line-height: 1.7; color: var(--soft); }
+.ag-hero .type p.first { margin-bottom: 18px; }
+
+/* spec strip */
+.ag-spec { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--stone); }
+.ag-spec div { padding: 26px 0 30px; border-right: 1px solid var(--stone); padding-right: 24px; }
+.ag-spec div:last-child { border-right: none; }
+.ag-spec .k { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--glacier); margin-bottom: 10px; }
+.ag-spec .v { font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 30px; text-transform: uppercase; letter-spacing: 0.01em; }
+.ag-spec .v em { font-style: normal; color: var(--glow); }
+
+/* services — numbered rows with a frame in each */
+.ag-svc { padding: 76px 0 20px; }
+.ag-svc > header { display: grid; grid-template-columns: 1.25fr 1fr; gap: 60px; align-items: end; margin-bottom: 44px; }
+.ag-svc h2 { font-size: clamp(34px, 4.6vw, 62px); }
+.ag-svc > header p { font-size: 16.5px; line-height: 1.7; color: var(--soft); }
+.ag-item { display: grid; grid-template-columns: 68px 1fr 1.1fr 300px; gap: 34px; align-items: start; padding: 30px 0 34px; border-top: 1px solid var(--stone); }
+.ag-item:last-of-type { border-bottom: 1px solid var(--stone); }
+.ag-item .n { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: var(--glow); padding-top: 6px; }
+.ag-item h3 { font-size: 30px; }
+.ag-item p { font-size: 15.5px; line-height: 1.7; color: var(--soft); }
+
+/* about — granite block */
+.ag-about { background: var(--granite); color: var(--snow); margin-top: 76px; }
+.ag-about .inner { display: grid; grid-template-columns: 1fr 1.2fr; gap: 64px; align-items: center; padding: 80px 0; }
+.ag-about h2 { font-size: clamp(30px, 3.8vw, 52px); margin-bottom: 20px; }
+.ag-about h2 i { font-style: normal; color: var(--glow); }
+.ag-about p { font-size: 17px; line-height: 1.75; color: rgba(242,245,246,0.76); max-width: 56ch; }
+.ag-about p + p { margin-top: 15px; }
+.ag-about .mono { color: var(--glacier); margin-bottom: 14px; }
+.ag-about .area { --pb: rgba(159,177,186,0.4); --pf: rgba(159,177,186,0.08); --pi: rgba(207,217,222,0.85); }
+
+/* cta */
+.ag-cta { padding: 78px 0; border-bottom: 1px solid var(--stone); }
+.ag-cta .inner { display: grid; grid-template-columns: 1fr auto; gap: 50px; align-items: end; }
+.ag-cta h2 { font-size: clamp(32px, 4.4vw, 60px); }
+.ag-cta h2 i { font-style: normal; color: var(--glow); }
+.ag-btn { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; background: var(--glow); color: #fff; padding: 16px 30px; display: inline-block; }
+.ag-btn:hover { background: var(--granite); }
+
+/* footer */
+.ag-foot { padding: 34px 0 46px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+
+@media (max-width: 980px) {
+  .ag .wrap { padding: 0 22px; }
+  .ag-links { display: none; }
+  .ag-hero .type, .ag-svc > header, .ag-about .inner, .ag-cta .inner { grid-template-columns: 1fr; gap: 28px; }
+  .ag-spec { grid-template-columns: 1fr 1fr; }
+  .ag-spec div:nth-child(2) { border-right: none; }
+  .ag-item { grid-template-columns: 1fr; gap: 14px; }
+  .ag-about .inner { padding: 54px 0; }
+}
+</style>
+
+<section id="alpenglow" class="ag">
+  <div class="ag-nav">
+    <div class="wrap">
+      <div class="bar">
+        <div class="ag-mark">Lova <i>/</i> Content Creation</div>
+        <nav class="ag-links">
+          <a href="#alpenglow">Work</a>
+          <a href="#alpenglow">Services</a>
+          <a href="#alpenglow">About</a>
+          <a href="#alpenglow">Inquire</a>
+        </nav>
+        <div class="ag-coords">40.5853&deg; N · 111.6533&deg; W</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="ag-hero">
+      <div class="plate">
+        <div class="area" style="aspect-ratio:21/9"><span>Hero &mdash; couple on a ridgeline, ceremony at altitude</span></div>
+        <div class="tick"><span>Plate 01</span><span>Wasatch Range, Utah</span></div>
+      </div>
+      <div class="type">
+        <h1>Go get married <i>somewhere good.</i></h1>
+        <div>
+          <p class="first">Wedding content creation for micro weddings and elopements &mdash; the candid moments, the behind-the-scenes chaos and the details you chose on purpose.</p>
+          <p>Shot all day, edited overnight, back in your hands in 24 to 48 hours. If the plan involves a chairlift, a trailhead or a two-hour drive, that is the plan I want.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ag-spec">
+      <div><div class="k">Delivery</div><div class="v">24&ndash;48 <em>hrs</em></div></div>
+      <div><div class="k">Specialty</div><div class="v">Micro &amp; <em>elopement</em></div></div>
+      <div><div class="k">Based</div><div class="v">Utah <em>·</em> Wasatch</div></div>
+      <div><div class="k">Booking</div><div class="v">2026 <em>&amp;</em> 2027</div></div>
+    </div>
+
+    <div class="ag-svc">
+      <header>
+        <h2>Three ways to run it</h2>
+        <p>Whatever makes it the best day for you &mdash; whether that means skiing to the ceremony or spending the whole budget on the table and cutting the guest list to twelve.</p>
+      </header>
+      <div class="ag-item">
+        <div class="n">01</div>
+        <h3>Full day</h3>
+        <p>Getting ready through the last song. Everything, including the hour nobody photographs and the parts nobody planned.</p>
+        <div class="area" style="aspect-ratio:3/2"><span>Getting ready &mdash; three sets of hands on one zipper</span></div>
+      </div>
+      <div class="ag-item">
+        <div class="n">02</div>
+        <h3>Elopement</h3>
+        <p>Short guest list, big day. Ceremony, portraits and wherever the two of you go afterwards. Altitude and weather negotiable.</p>
+        <div class="area" style="aspect-ratio:3/2"><span>Ski boots under the dress at the lift</span></div>
+      </div>
+      <div class="ag-item">
+        <div class="n">03</div>
+        <h3>Alongside your videographer</h3>
+        <p>They make the film you watch on your anniversary. I catch everything happening around it, and mine arrives before the honeymoon.</p>
+        <div class="area" style="aspect-ratio:3/2"><span>Behind the scenes &mdash; the crew setting up at dusk</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ag-about">
+    <div class="wrap">
+      <div class="inner">
+        <div class="area" style="aspect-ratio:4/5"><span>Sierra, portrait &mdash; on location, phone in hand</span></div>
+        <div>
+          <div class="mono">About &mdash; Sierra Nichols</div>
+          <h2>I came here from flowers, <i>so I notice things.</i></h2>
+          <p>I look at your day the way a florist does: at the ribbon you had hand-dyed, the stem your grandmother pinned on him, the way the light lands on the table at four o'clock. You spent months choosing those details. They belong in the story.</p>
+          <p>Micro weddings and elopements are where I can see everything &mdash; the stolen kisses, the joy, the wonder, the fun &mdash; while you are busy getting completely caught up in it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="ag-cta">
+      <div class="inner">
+        <h2>Tell me the date <i>and the plan.</i></h2>
+        <a href="#alpenglow" class="ag-btn">Check my date</a>
+      </div>
+    </div>
+    <div class="ag-foot">
+      <span class="mono">Lova Content Creation · Utah &amp; the Wasatch · Travel welcome</span>
+      <span class="mono">lovacontentcreation@gmail.com</span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
