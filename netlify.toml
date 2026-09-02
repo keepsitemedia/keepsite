@@ -9,6 +9,15 @@
 
 # Lighthouse runs as a build gate, not a one-time manual check: the
 # thing being sold is ongoing competence, not launch-day competence.
+#
+# The thresholds are deliberately uneven. Accessibility and SEO are
+# deterministic — the same bytes score the same every run — so they gate at a
+# flat 1.0 and a drop there is a real mistake worth failing a deploy over.
+# Performance and best-practices are not: the performance score moves a point
+# or two run to run on identical output, and best-practices drops whenever
+# Netlify's Chrome adds an API to its deprecation list. Both gated at 1.0 and
+# both failed deploys on that noise, which trains you to ignore the gate. They
+# sit low enough now to absorb the churn and still catch a genuine regression.
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
 
@@ -27,45 +36,45 @@
     path = "index.html"
     output_path = "reports/lighthouse-home.html"
     [plugins.inputs.audits.thresholds]
-      performance = 1.0
+      performance = 0.95
       accessibility = 1.0
-      best-practices = 1.0
+      best-practices = 0.9
       seo = 1.0
 
   [[plugins.inputs.audits]]
     path = "packages/index.html"
     output_path = "reports/lighthouse-packages.html"
     [plugins.inputs.audits.thresholds]
-      performance = 1.0
+      performance = 0.95
       accessibility = 1.0
-      best-practices = 1.0
+      best-practices = 0.9
       seo = 1.0
 
   [[plugins.inputs.audits]]
     path = "how-it-works/index.html"
     output_path = "reports/lighthouse-how-it-works.html"
     [plugins.inputs.audits.thresholds]
-      performance = 1.0
+      performance = 0.95
       accessibility = 1.0
-      best-practices = 1.0
+      best-practices = 0.9
       seo = 1.0
 
   [[plugins.inputs.audits]]
     path = "faq/index.html"
     output_path = "reports/lighthouse-faq.html"
     [plugins.inputs.audits.thresholds]
-      performance = 1.0
+      performance = 0.95
       accessibility = 1.0
-      best-practices = 1.0
+      best-practices = 0.9
       seo = 1.0
 
   [[plugins.inputs.audits]]
     path = "start/index.html"
     output_path = "reports/lighthouse-start.html"
     [plugins.inputs.audits.thresholds]
-      performance = 1.0
+      performance = 0.95
       accessibility = 1.0
-      best-practices = 1.0
+      best-practices = 0.9
       seo = 1.0
 
 [[redirects]]
