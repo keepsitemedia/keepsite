@@ -1,0 +1,134 @@
+---
+// Decorative geometry behind the page: squiggles, rings, zigzags, a
+// halftone dot grid — the Memphis vocabulary of a mid-90s print job,
+// held at brand-token opacities so it reads as paper texture rather than
+// as a second design.
+//
+// Three rules keep it off the critical path:
+//   1. Inline SVG only. No image request, nothing remote, no new bytes
+//      over the wire beyond this markup, so it cannot move LCP.
+//   2. transform and opacity only. Both are compositor-driven, so the
+//      drift never triggers layout or paint and never lands in
+//      Lighthouse's non-composited-animation audit.
+//   3. The whole layer sits at z-index -1 behind transparent sections.
+//      `.section-alt` and `.section-deep` paint over it, which is what
+//      gives the shapes their rhythm down the page.
+//
+// It sits behind `body`, which is why global.css no longer sets a body
+// background: an opaque body paints over negative-z children.
+---
+<div class="shapes" aria-hidden="true">
+  <svg class="sh sh-squiggle" viewBox="0 0 260 60" fill="none">
+    <path d="M4 30C24 4 44 4 64 30 84 56 104 56 124 30 144 4 164 4 184 30 204 56 224 56 244 30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </svg>
+
+  <svg class="sh sh-rings" viewBox="0 0 170 170" fill="none">
+    <circle cx="85" cy="85" r="80" stroke="currentColor" stroke-width="2"/>
+    <circle cx="85" cy="85" r="56" stroke="currentColor" stroke-width="2"/>
+    <circle cx="85" cy="85" r="32" stroke="currentColor" stroke-width="2"/>
+  </svg>
+
+  <svg class="sh sh-triangle" viewBox="0 0 130 116" fill="none">
+    <path d="M65 6 124 110 6 110Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+  </svg>
+
+  <svg class="sh sh-zigzag" viewBox="0 0 200 60" fill="none">
+    <path d="M4 46 36 14 68 46 100 14 132 46 164 14 196 46" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+
+  <svg class="sh sh-dots" viewBox="0 0 120 120" fill="currentColor">
+    <circle cx="12" cy="12" r="6"/><circle cx="44" cy="12" r="6"/><circle cx="76" cy="12" r="6"/><circle cx="108" cy="12" r="6"/>
+    <circle cx="12" cy="44" r="6"/><circle cx="44" cy="44" r="6"/><circle cx="76" cy="44" r="6"/><circle cx="108" cy="44" r="6"/>
+    <circle cx="12" cy="76" r="6"/><circle cx="44" cy="76" r="6"/><circle cx="76" cy="76" r="6"/><circle cx="108" cy="76" r="6"/>
+    <circle cx="12" cy="108" r="6"/><circle cx="44" cy="108" r="6"/><circle cx="76" cy="108" r="6"/><circle cx="108" cy="108" r="6"/>
+  </svg>
+
+  <svg class="sh sh-star" viewBox="0 0 90 90" fill="none">
+    <path d="M45 4 45 86M4 45 86 45M16 16 74 74M74 16 16 74" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+
+  <svg class="sh sh-arch" viewBox="0 0 140 72" fill="currentColor">
+    <path d="M2 70A68 68 0 0 1 138 70Z"/>
+  </svg>
+
+  <svg class="sh sh-check" viewBox="0 0 80 80" fill="currentColor">
+    <path d="M0 0h40v40H0zM40 40h40v40H40z"/>
+  </svg>
+</div>
+
+<style>
+  .shapes {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .sh { position: absolute; display: block; }
+
+  /* Two brand colours only, at paper-texture strength. The clay token is
+     capped at twice per page in copy; these are ornament, not accent. */
+  .sh-squiggle { color: rgba(31, 92, 67, 0.13); }
+  .sh-rings    { color: rgba(162, 74, 38, 0.10); }
+  .sh-triangle { color: rgba(31, 92, 67, 0.12); }
+  .sh-zigzag   { color: rgba(162, 74, 38, 0.11); }
+  .sh-dots     { color: rgba(31, 92, 67, 0.09); }
+  .sh-star     { color: rgba(162, 74, 38, 0.12); }
+  .sh-arch     { color: rgba(31, 92, 67, 0.07); }
+  .sh-check    { color: rgba(31, 92, 67, 0.06); }
+
+  .sh-squiggle { top: 11%;  left: -3%;   width: 260px; }
+  .sh-rings    { top: 17%;  right: 3%;   width: 170px; }
+  .sh-triangle { bottom: 20%; left: 5%;  width: 130px; }
+  .sh-zigzag   { bottom: 11%; right: 8%; width: 200px; }
+  .sh-dots     { top: 54%;  left: 10%;   width: 120px; }
+  .sh-star     { top: 61%;  right: 14%;  width: 90px; }
+  .sh-arch     { top: 33%;  left: 1%;    width: 140px; }
+  .sh-check    { bottom: 37%; right: 2%; width: 80px; }
+
+  /* WCAG 2.3.3. global.css clamps every animation under `reduce`, but the
+     shapes opt in explicitly rather than relying on being clamped: a
+     clamped animation still snaps to its end frame. */
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes sh-drift-a {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      50%      { transform: translate3d(18px, -14px, 0) rotate(3deg); }
+    }
+    @keyframes sh-drift-b {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      50%      { transform: translate3d(-15px, 17px, 0) rotate(-4deg); }
+    }
+    @keyframes sh-drift-c {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      50%      { transform: translate3d(0, -22px, 0); }
+    }
+    @keyframes sh-turn {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes sh-breathe {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.07); opacity: 0.55; }
+    }
+
+    /* Durations are mutually prime-ish so the set never resynchronises
+       into a visible pulse. */
+    .sh-squiggle { animation: sh-drift-a 29s ease-in-out infinite; }
+    .sh-rings    { animation: sh-breathe 23s ease-in-out infinite; }
+    .sh-triangle { animation: sh-turn 71s linear infinite; }
+    .sh-zigzag   { animation: sh-drift-b 37s ease-in-out infinite; }
+    .sh-dots     { animation: sh-breathe 19s ease-in-out infinite; }
+    .sh-star     { animation: sh-turn 53s linear infinite reverse; }
+    .sh-arch     { animation: sh-drift-c 41s ease-in-out infinite; }
+    .sh-check    { animation: sh-drift-a 31s ease-in-out infinite reverse; }
+  }
+
+  /* Narrow screens keep three. Eight shapes in a phone viewport stops
+     being texture and starts being a pattern the copy has to fight. */
+  @media (max-width: 800px) {
+    .sh-rings, .sh-zigzag, .sh-star, .sh-check, .sh-arch { display: none; }
+    .sh-squiggle { width: 180px; }
+    .sh-triangle { width: 92px; }
+    .sh-dots { width: 84px; }
+  }
+</style>

@@ -6,6 +6,7 @@ import '@fontsource-variable/instrument-sans/wght.css';
 // 18px package promise lines and heavy at the 44px closing heading.
 import '@fontsource-variable/newsreader/opsz.css';
 import sansWoff2 from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+import BackgroundShapes from '../components/BackgroundShapes.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import site from '../data/site.json';
@@ -85,6 +86,7 @@ const siteJsonLd = {
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <BackgroundShapes />
     <Header />
     <main id="main" tabindex="-1">
       <slot />

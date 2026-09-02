@@ -81,13 +81,15 @@ html {
   html { scroll-behavior: smooth; }
 }
 
+/* No background here on purpose: html carries it, and it propagates to the
+   canvas. An opaque body would paint over BackgroundShapes, which sits at
+   z-index -1 and therefore behind every in-flow block background. */
 body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--step-0);
   line-height: 1.65;
   color: var(--color-ink);
-  background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
 }
 
