@@ -1,17 +1,30 @@
 ---
-// The demo index that resolves `directions` from a client's actual demo
-// build is Task 9's job. Built plainly here: no directions, so the
-// component's demoPick question falls back to its "A mix of several" option.
+import fs from 'node:fs';
+import path from 'node:path';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Questionnaire from '../../components/Questionnaire.astro';
 import definition from '../../data/questionnaires/brand.json';
+
+// Every published demo, so one static page can serve any client: the page
+// reads ?c= at runtime and shows that client's four directions.
+const demos = Object.fromEntries(
+  fs.readdirSync('public/demo', { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => {
+      const html = fs.readFileSync(path.join('public/demo', e.name, 'index.html'), 'utf8');
+      const ids = [...html.matchAll(/<section class="direction-divider">[\s\S]*?<section\b[^>]*\bid="([^"]+)"/g)]
+        .map((m, i) => ({ number: i + 1, id: m[1] }));
+      return [e.name, ids];
+    }),
+);
 ---
-<BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex={true}>
+<BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex>
   <section class="section">
     <div class="container narrow">
       <h1>{definition.title}</h1>
       <p class="lead">{definition.lead}</p>
-      <Questionnaire definition={definition} slug="" token="" />
+      <script type="application/json" id="demos" set:html={JSON.stringify(demos)} />
+      <Questionnaire definition={definition} slug="" token="" directions={[]} />
     </div>
   </section>
 </BaseLayout>

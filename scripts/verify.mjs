@@ -188,9 +188,9 @@ check('no broken internal links', () => {
 });
 
 section('JavaScript budget');
-// The three questionnaire routes carry only the layout's JSON-LD at this
-// task: Task 11 adds the token-capture/save-and-resume script and raises
-// their counts to 2.
+// intro and build carry only the layout's JSON-LD at this task: Task 11 adds
+// the token-capture/save-and-resume script and raises their counts to 2.
+// brand is already 2 here — its demo index is a second script tag.
 check('only JSON-LD, plus one tier-prefill script on /start/', () => {
   const expect = {
     'index.html': 1,
@@ -200,7 +200,7 @@ check('only JSON-LD, plus one tier-prefill script on /start/', () => {
     'start/index.html': 2,
     'start/thanks/index.html': 1,
     'questionnaire/intro/index.html': 1,
-    'questionnaire/brand/index.html': 1,
+    'questionnaire/brand/index.html': 2,
     'questionnaire/build/index.html': 1,
     'questionnaire/thanks/index.html': 1,
     '404.html': 1,
@@ -299,6 +299,17 @@ check('no question label is an input placeholder', () => {
     if (/placeholder="[^"]{40,}/.test(read(`questionnaire/${form}/index.html`))) {
       throw new Error(`${form} uses a placeholder as a label`);
     }
+  }
+});
+check('the brand form ships a demo index for every published demo', () => {
+  const html = read('questionnaire/brand/index.html');
+  const m = html.match(/<script type="application\/json" id="demos">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error('no demo index');
+  const demos = JSON.parse(m[1]);
+  for (const dir of fs.readdirSync(path.join('public', 'demo'), { withFileTypes: true })) {
+    if (!dir.isDirectory()) continue;
+    if (!demos[dir.name]) throw new Error(`demo index omits ${dir.name}`);
+    if (demos[dir.name].length !== 4) throw new Error(`${dir.name} parsed ${demos[dir.name].length} directions`);
   }
 });
 
