@@ -5,6 +5,15 @@
   var form = document.querySelector('.questionnaire');
   if (!form) return;
 
+  // The same transport fields the server excludes from validation
+  // (netlify/functions/lib/validate.mjs). The token is supplied per visit by
+  // the link, not by the client, so a stored copy could only ever be staler
+  // than the one in the URL — rotating KEEPSITE_TOKEN_SECRET to revoke a link
+  // would otherwise be silently undone by the restore loop reinstating the
+  // old token. Excluded from both save and restore so a stale token never
+  // even reaches storage.
+  var TRANSPORT = { 'bot-field': 1, form: 1, formVersion: 1, c: 1, t: 1 };
+
   var params = new URLSearchParams(window.location.search);
   var slug = params.get('c') || '';
   var token = params.get('t') || '';
@@ -40,6 +49,7 @@
   try {
     var saved = JSON.parse(window.localStorage.getItem(key) || '{}');
     Object.keys(saved).forEach(function (name) {
+      if (TRANSPORT[name]) return;
       form.querySelectorAll('[name="' + name + '"]').forEach(function (el) {
         if (el.type === 'checkbox' || el.type === 'radio') {
           el.checked = saved[name].indexOf(el.value) !== -1;
@@ -59,7 +69,7 @@
     pending = window.setTimeout(function () {
       var out = {};
       new FormData(form).forEach(function (value, name) {
-        if (typeof value !== 'string') return;
+        if (typeof value !== 'string' || TRANSPORT[name]) return;
         (out[name] = out[name] || []).push(value);
       });
       try { window.localStorage.setItem(key, JSON.stringify(out)); } catch (e) { /* full or blocked */ }
