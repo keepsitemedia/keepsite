@@ -54,7 +54,7 @@ check('the three forms carry the expected question counts', () => {
   const count = (f) =>
     JSON.parse(fs.readFileSync(path.join(DIR, `${f}.json`), 'utf8'))
       .sections.reduce((n, s) => n + s.questions.length, 0);
-  const expect = { intro: 7, brand: 14, build: 39 };
+  const expect = { intro: 8, brand: 14, build: 39 };
   for (const [f, n] of Object.entries(expect)) {
     if (count(f) !== n) throw new Error(`${f} has ${count(f)}, expected ${n}`);
   }

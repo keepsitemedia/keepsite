@@ -3,6 +3,9 @@
 // Sections become real fieldset/legend and help text becomes aria-describedby
 // because that structure is what a screen reader needs on a 39-question form —
 // see src/data/questionnaires/build.json for the hardest case.
+import site from '../data/site.json';
+import shared from '../data/questionnaires/shared.json';
+
 interface Question {
   key: string;
   label: string;
@@ -54,6 +57,17 @@ const demoOptions = [
   <input type="hidden" name="formVersion" value={definition.formVersion} />
   <input type="hidden" name="c" value={slug} />
   <input type="hidden" name="t" value={token} />
+
+  <noscript>
+    {/* The pages are static and one page serves every client, so ?c= and ?t=
+        are read by the inline script; with it off the hidden fields ship empty
+        and every submission is a 403. Better one sentence read up front than
+        an hour of answers that cannot be sent. */}
+    <p class="noscript-note">
+      {shared.noscript} <a href={`mailto:${site.email}`}>{site.email}</a>.
+    </p>
+  </noscript>
+
   <p class="hidden-field">
     <label>Don't fill this out: <input name="bot-field" /></label>
   </p>

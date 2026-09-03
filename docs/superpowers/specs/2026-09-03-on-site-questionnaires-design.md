@@ -178,15 +178,30 @@ Consequences worth stating plainly:
 `public/robots.txt`, matching how `/demo/` is already handled.
 
 A honeypot field mirrors the `bot-field` pattern already in
-`src/pages/start/index.astro`.
+`src/pages/start/index.astro`. The rule that hides it lives in
+`src/styles/global.css`, not in a page's scoped `<style>`: a value in
+`bot-field` makes the function discard the submission silently, so a
+visible honeypot destroys a completed form and still shows the client a
+thanks page. `scripts/verify.mjs` gates it.
 
 ## Submission
 
 Native form POST with `enctype="multipart/form-data"` to
-`/api/questionnaire`, no JavaScript required, matching `/start/`'s
-existing progressive-enhancement posture. `form-action 'self'` in the
-current CSP already permits it. The function 302s to
-`/questionnaire/thanks/` on success.
+`/api/questionnaire`. `form-action 'self'` in the current CSP already
+permits it. The function 302s to `/questionnaire/thanks/?f={form}&c={slug}`
+on success.
+
+**JavaScript is required**, unlike `/start/`. One static page serves
+every client, so the `c` and `t` values ship empty in the HTML and are
+filled from the query string at runtime; on the brand form the demo
+radios are built at runtime too. Without JavaScript the token never
+reaches the form and every submission is a 403. That is inherent to a
+static host and one page per form, not a gap to close: the alternative
+is a page per client and a deploy per client, which is exactly what
+deriving the token instead of registering it was meant to avoid. The
+three pages therefore carry a `<noscript>` line saying so, above the
+first question — one sentence read up front beats an hour of answers
+that cannot be sent.
 
 The function:
 
@@ -206,8 +221,12 @@ is losing forty answers at the submit button.
 
 The build questionnaire is thirty-nine questions and nobody finishes it
 in one sitting. Answers persist to `localStorage`, keyed by slug and
-form, written on `input` with a short debounce, cleared on successful
-submit. Losing an hour of work to a closed tab is the failure that
+form, written on `input` with a short debounce, and cleared on
+`/questionnaire/thanks/` — the function names the key in its redirect
+(`?f={form}&c={slug}`). That redirect is the only evidence the answers
+were stored, so a 403, a 400 or a 500 leaves the draft where it is;
+clearing on the `submit` event would fire before any response and lose
+the work on every refusal. Losing an hour of work to a closed tab is the failure that
 loses a client's patience, and this is the cheapest possible guard
 against it.
 

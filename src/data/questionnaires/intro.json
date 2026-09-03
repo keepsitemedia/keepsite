@@ -2,7 +2,7 @@
   "formVersion": "2026-09-03",
   "form": "intro",
   "title": "Tell us about your business",
-  "lead": "Seven questions, and we already have some of the answers. Correct anything that has changed.",
+  "lead": "Eight questions. That is everything we need to put four designs in front of you.",
   "sections": [
     {
       "legend": "Your business",
@@ -52,6 +52,12 @@
           "key": "existingBrand",
           "label": "Do you already have a website or branding?",
           "help": "A link is enough. If you have a logo or brand guide, there is a place to upload them after you have seen your designs.",
+          "type": "paragraph"
+        },
+        {
+          "key": "visualLikes",
+          "label": "Anything you love or hate visually?",
+          "help": "Colors, other websites, anything you have seen that you liked or could not stand. Optional, and a rough answer is more use than none.",
           "type": "paragraph"
         }
       ]

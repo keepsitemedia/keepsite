@@ -265,6 +265,12 @@ img { max-width: 100%; height: auto; }
 }
 .questionnaire .group-legend { font-size: var(--step-0); font-weight: 600; padding: 0 var(--space-1); }
 .questionnaire .section-help { color: var(--color-muted); margin-bottom: var(--space-3); }
+.questionnaire .noscript-note {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-brand);
+  border-radius: var(--radius);
+}
 .questionnaire .option { display: flex; gap: var(--space-1); align-items: baseline; font-weight: 400; }
 .questionnaire .option.own { margin-top: var(--space-2); }
 .questionnaire .question { margin-bottom: var(--space-4); }
