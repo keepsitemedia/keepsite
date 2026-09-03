@@ -91,6 +91,63 @@ Netlify Forms is automatic — Netlify detects the `inquiry` form on the `/start
 2. Then set up the notification: **Forms → Form notifications → Add notification → Email notification**.
 3. Send to **keepsitemedia@gmail.com**.
 
+## Running the client questionnaires
+
+Three token-gated forms live at `/questionnaire/intro/`, `/questionnaire/brand/`
+and `/questionnaire/build/`. They post to a Netlify Function
+(`netlify/functions/questionnaire.mjs`), which writes the answers to Netlify
+Blobs and emails them as a JSON attachment through [Resend](https://resend.com).
+
+### Environment variables
+
+Set all four in **Netlify → Site configuration → Environment variables**. They
+fail quietly in opposite directions, which is why they are worth checking after
+every secret rotation.
+
+| Variable | What it does | What happens without it |
+|---|---|---|
+| `KEEPSITE_TOKEN_SECRET` | The HMAC secret every questionnaire link is derived from. | Every submission is refused with a 403. The function never fails open. |
+| `RESEND_API_KEY` | Authenticates the notification email. | **The blob is written and nobody is told a submission arrived.** The client sees the thanks page and everything looks fine. |
+| `KEEPSITE_NOTIFY_FROM` | The `from` address on that email. Must be on a domain verified in Resend. | Resend rejects the send, and the same silence as above. |
+| `KEEPSITE_NOTIFY_TO` | Where the JSON attachment is delivered — `keepsitemedia@gmail.com`. | Same. |
+
+`KEEPSITE_TOKEN_SECRET` is also needed locally to mint links. Any long random
+string works; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
+
+Rotating it invalidates every link ever issued, for every client, at once.
+That is the only revocation there is, by design — see the design doc under
+`docs/superpowers/specs/`. Reissue links to anyone mid-questionnaire.
+
+### Minting a client's links
+
+```bash
+KEEPSITE_TOKEN_SECRET=... node scripts/mint-token.mjs lova-content-creation
+```
+
+It prints one URL per form. The slug must be lowercase letters, digits and
+hyphens — it is the client's directory name everywhere else, and the function
+rejects anything else. Send the `intro` link when the agreement is signed, and
+the `brand` and `build` links once their demo is up. The same command is where
+the client's Google Drive photo folder gets created by hand.
+
+### Saving a submission for the build skills
+
+**This step is manual and nothing does it for you.** The email arrives with a
+`{form}.json` attachment. Save it into the client's workspace as:
+
+```
+{slug}/intake/intro.json
+{slug}/intake/brand.json
+{slug}/intake/build.json
+```
+
+`keepsite-sitemap` reads `brand.json` and `build.json` from that directory and
+refuses to run without them; `intro.json` feeds `client-design-proposals` at
+stage one. The filename matters — the skill looks for exactly those names.
+Netlify Blobs holds the durable copy under the same slug if an email is ever
+lost: **Netlify → Blobs → `questionnaires` → `{slug}/{form}.json`**, with any
+uploaded logo or brand guide beside it.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:
