@@ -3,38 +3,28 @@
 // Blobs before email, deliberately: Blobs is the durable record and the email
 // is the notification. A send that fails after the client has hit submit must
 // not lose forty answers.
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { getStore } from '@netlify/blobs';
 import { verify } from './lib/token.mjs';
 import { validate } from './lib/validate.mjs';
+import { fileKey, safeName } from './lib/blob-key.mjs';
 
-// A plain `import x from './y.json'` needs an import-attribute keyword
-// (`with { type: 'json' }`) to satisfy Node's ESM loader, and Node 20 (the
-// version netlify.toml pins) does not reliably support that syntax — it
-// throws at module load under a plain `node --test` run. Reading the files
-// at module scope sidesteps the loader entirely and behaves identically
-// whether esbuild bundles this function or `node --test` imports it directly.
-const definitionsDir = path.join(
-  fileURLToPath(new URL('.', import.meta.url)),
-  '../../src/data/questionnaires',
-);
-const loadDefinition = (name) =>
-  JSON.parse(fs.readFileSync(path.join(definitionsDir, `${name}.json`), 'utf8'));
+// `with { type: 'json' }` is required, not optional: this module is imported
+// under raw Node by lib/questionnaire.test.mjs, where a bare JSON import
+// throws. The attribute parses and loads on Node 20 (verified on 20.20.2, the
+// version netlify.toml pins), and esbuild resolves and inlines these at bundle
+// time so the deployed function carries no filesystem read. netlify.toml's
+// [functions] included_files ships the files as a backstop if that changes.
+import intro from '../../src/data/questionnaires/intro.json' with { type: 'json' };
+import brand from '../../src/data/questionnaires/brand.json' with { type: 'json' };
+import build from '../../src/data/questionnaires/build.json' with { type: 'json' };
 
 // `__proto__: null` so a form value like "constructor" or "toString" can't
 // resolve to an inherited Object property instead of `undefined`. Harmless
 // today — a forged form name still can't produce a token that verifies,
 // since the token binds (slug, form) together — but it costs nothing to keep
 // the lookup honest.
-const DEFINITIONS = {
-  __proto__: null,
-  intro: loadDefinition('intro'),
-  brand: loadDefinition('brand'),
-  build: loadDefinition('build'),
-};
+const DEFINITIONS = { __proto__: null, intro, brand, build };
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const FILE_KEYS = new Set(['logo', 'brandGuide']);
@@ -68,7 +58,16 @@ async function notify(envelope) {
 export default async (request) => {
   if (request.method !== 'POST') return problem(405, 'POST only');
 
-  const data = await request.formData();
+  // Anonymous callers reach this endpoint, so a body that is not multipart —
+  // or is truncated mid-upload — must be a clean 400 rather than an uncaught
+  // throw surfacing as a generic 500.
+  let data;
+  try {
+    data = await request.formData();
+  } catch {
+    return problem(400, 'expected a form submission');
+  }
+
   if (data.get('bot-field')) return redirect('/questionnaire/thanks/');
 
   const slug = String(data.get('c') ?? '');
@@ -91,9 +90,12 @@ export default async (request) => {
     const file = data.get(key);
     if (!file || typeof file === 'string' || file.size === 0) continue;
     store ??= getStore('questionnaires');
-    const at = `${slug}/${key}-${file.name}`;
+    // The recorded name is the sanitised one, so `name` and `at` never
+    // disagree about what is actually in the store.
+    const name = safeName(file.name);
+    const at = fileKey(slug, key, file.name);
     await store.set(at, await file.arrayBuffer());
-    files.push({ key, name: file.name, size: file.size, at });
+    files.push({ key, name, size: file.size, at });
   }
 
   const entries = [...data.entries()].filter(([, v]) => typeof v === 'string');
@@ -121,5 +123,9 @@ export default async (request) => {
     // Nothing to do — the client still gets their redirect below.
   }
 
-  return redirect('/questionnaire/thanks/');
+  // The query string is how the thanks page knows which saved draft to clear.
+  // Only a redirect issued from here means the answers are durably stored, so
+  // this is the one signal the client script is allowed to treat as success —
+  // a 403, a 400 or a 500 must leave the draft intact.
+  return redirect(`/questionnaire/thanks/?f=${form}&c=${slug}`);
 };

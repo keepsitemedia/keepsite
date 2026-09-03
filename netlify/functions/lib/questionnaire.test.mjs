@@ -1,11 +1,15 @@
 // Covers every path that returns before touching Netlify Blobs, so this runs
-// under plain `node --test` with no server and no store. The happy path
-// (valid token, successful submission) calls into Blobs and is not covered
-// here — see task-10-report.md for how it was checked instead.
+// under plain `node --test` with no server and no store. It lives in lib/
+// rather than beside questionnaire.mjs because Netlify treats every top-level
+// file in netlify/functions/ as a deployable function, and this one exports no
+// handler; lib/ is safe because it has no entry file matching its own name.
+//
+// The happy path (valid token, successful submission) calls into Blobs and is
+// not covered here — see task-10-report.md for how it was checked instead.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import handler from './questionnaire.mjs';
-import { mint } from './lib/token.mjs';
+import handler from '../questionnaire.mjs';
+import { mint } from './token.mjs';
 
 const SECRET = 'test-secret';
 const SLUG = 'testco';
@@ -101,4 +105,18 @@ test('a validation failure returns 400 and names the failing field', async () =>
     const body = await res.text();
     assert.match(body, /email: required/);
   });
+});
+
+// The endpoint is anonymous, so a body that is not a form arrives routinely
+// from scanners. An uncaught throw out of request.formData() would surface as
+// a 500 and read like a broken function.
+test('a body that is not a form submission returns 400, not 500', async () => {
+  const res = await handler(
+    new Request('http://localhost/api/questionnaire', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"not":"a form"}',
+    }),
+  );
+  assert.equal(res.status, 400);
 });

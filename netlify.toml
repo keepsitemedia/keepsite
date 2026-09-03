@@ -7,6 +7,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# The submission function imports the three question definitions from outside
+# netlify/functions/, so esbuild inlines them into the bundle. This ships them
+# as real files too: if bundling ever stops inlining JSON, an ENOENT at module
+# scope would 500 every request, including the 403s that are meant to be cheap.
+[functions]
+  included_files = ["src/data/questionnaires/*.json"]
+
 # Lighthouse runs as a build gate, not a one-time manual check: the
 # thing being sold is ongoing competence, not launch-day competence.
 #

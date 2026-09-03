@@ -202,7 +202,9 @@ check('only JSON-LD, plus one tier-prefill script on /start/', () => {
     'questionnaire/intro/index.html': 2,
     'questionnaire/brand/index.html': 3,
     'questionnaire/build/index.html': 2,
-    'questionnaire/thanks/index.html': 1,
+    // Plus the draft-clearing script: the redirect here is the only signal
+    // that the server actually stored the answers.
+    'questionnaire/thanks/index.html': 2,
     '404.html': 1,
   };
   for (const [p, n] of Object.entries(expect)) {
@@ -312,12 +314,52 @@ check('the brand form ships a demo index for every published demo', () => {
     if (demos[dir.name].length !== 4) throw new Error(`${dir.name} parsed ${demos[dir.name].length} directions`);
   }
 });
+// A regression here is silent and expensive: the function reads any value in
+// bot-field as a bot and redirects to the thanks page without storing or
+// emailing, so a visible honeypot destroys a completed form and tells the
+// client it arrived. The rule used to live in /start/'s scoped <style>, where
+// the questionnaire component could not reach it.
+check('the honeypot is hidden on every page that renders one', () => {
+  const FORMS = [
+    'start/index.html',
+    'questionnaire/intro/index.html',
+    'questionnaire/brand/index.html',
+    'questionnaire/build/index.html',
+  ];
+  for (const p of FORMS) {
+    const html = read(p);
+    if (!html.includes('name="bot-field"')) throw new Error(p + ' renders no honeypot');
+    const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
+      read(m[1].replace(/^\//, ''))
+    );
+    // Astro may scope the selector (.hidden-field:where(.astro-cid-x)), so
+    // match the class and its declaration rather than an exact rule string.
+    const hides = (s) => /\.hidden-field[^{}]*\{[^{}]*display\s*:\s*none/.test(s);
+    if (!sheets.some(hides) && !hides(html)) {
+      throw new Error(`${p} renders bot-field with no rule hiding .hidden-field`);
+    }
+  }
+});
 check('every questionnaire page carries the resume script', () => {
   for (const form of ['intro', 'brand', 'build']) {
     const html = read(`questionnaire/${form}/index.html`);
     if (!html.includes('keepsite:questionnaire:')) {
       throw new Error(`${form} has no localStorage key`);
     }
+  }
+});
+// The submit event fires before the server has said anything, so clearing
+// there loses the draft on every 403, 400 and 500. Only the redirect to the
+// thanks page proves the answers were stored.
+check('the saved draft is cleared on the thanks page, nowhere else', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    if (read(`questionnaire/${form}/index.html`).includes('removeItem')) {
+      throw new Error(`${form} clears the draft before the server has accepted it`);
+    }
+  }
+  const thanks = read('questionnaire/thanks/index.html');
+  if (!thanks.includes('removeItem') || !thanks.includes('keepsite:questionnaire:')) {
+    throw new Error('the thanks page never clears the saved draft');
   }
 });
 

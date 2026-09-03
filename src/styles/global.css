@@ -222,6 +222,12 @@ img { max-width: 100%; height: auto; }
 
 /* Forms -------------------------------------------------------- */
 
+/* The honeypot. Global, not scoped to one page: /start/ and all three
+   questionnaire routes render it, and a scoped copy that one of them misses
+   ships a visible "Don't fill this out" box whose answers the function
+   discards as a bot. See scripts/verify.mjs, "the honeypot is hidden". */
+.hidden-field { display: none; }
+
 .field { display: grid; gap: 0.4rem; margin-bottom: var(--space-3); }
 .field > span { font-weight: 600; }
 .field input,

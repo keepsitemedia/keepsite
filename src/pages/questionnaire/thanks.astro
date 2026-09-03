@@ -20,6 +20,24 @@ import site from '../../data/site.json';
   </section>
 </BaseLayout>
 
+<script is:inline>
+  // Reaching this page is the only proof the server accepted and stored a
+  // submission, so it is the only place the saved draft may be cleared. The
+  // function appends ?f=<form>&c=<slug>, naming exactly one key: clearing
+  // every keepsite:questionnaire:* key instead would wipe a half-finished
+  // build draft when the client sends their brand answers from the same
+  // browser, which is the ordinary sequence.
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var form = params.get('f');
+    var slug = params.get('c');
+    if (['intro', 'brand', 'build'].indexOf(form) === -1 || !slug) return;
+    try {
+      window.localStorage.removeItem('keepsite:questionnaire:' + form + ':' + slug);
+    } catch (e) { /* a cleared or blocked store is not an error */ }
+  })();
+</script>
+
 <style>
   .pull-line { margin: var(--space-5) 0 var(--space-4); font-size: var(--step-3); color: var(--color-brand); }
 </style>

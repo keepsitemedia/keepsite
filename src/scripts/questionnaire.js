@@ -76,7 +76,10 @@
     }, 400);
   });
 
-  form.addEventListener('submit', function () {
-    try { window.localStorage.removeItem(key); } catch (e) { /* nothing to clear */ }
-  });
+  // The draft is deliberately NOT cleared on submit. `submit` fires before
+  // navigation and long before any response, so clearing here would destroy
+  // an hour of answers on every 403, 400 and 500 — the client lands on a
+  // plain-text refusal and Back restores an empty form. The function's
+  // redirect to /questionnaire/thanks/?f=&c= is the only success signal that
+  // exists, so the clearing lives there (src/pages/questionnaire/thanks.astro).
 })();
