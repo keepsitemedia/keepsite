@@ -1,0 +1,126 @@
+---
+// One component renders any of the three definitions in src/data/questionnaires/.
+// Sections become real fieldset/legend and help text becomes aria-describedby
+// because that structure is what a screen reader needs on a 39-question form —
+// see src/data/questionnaires/build.json for the hardest case.
+interface Question {
+  key: string;
+  label: string;
+  help?: string;
+  type: 'short' | 'paragraph' | 'choice' | 'checkboxes' | 'openChecklist' | 'file' | 'demoPick';
+  options?: string[];
+  required?: boolean;
+}
+
+interface Props {
+  definition: {
+    formVersion: string;
+    form: string;
+    sections: Array<{
+      legend: string;
+      help?: string;
+      questions: Question[];
+    }>;
+  };
+  slug: string;
+  token: string;
+  directions?: Array<{ number: number; id: string }>;
+}
+
+const { definition, slug, token, directions = [] } = Astro.props;
+
+const describedBy = (q: Question) => (q.help ? `${q.key}-help` : undefined);
+
+const isGroup = (type: Question['type']) =>
+  type === 'checkboxes' || type === 'openChecklist' || type === 'choice' || type === 'demoPick';
+
+const demoOptions = [
+  ...directions.map((d) => ({ value: d.id, text: `Demo ${d.number}` })),
+  { value: 'mix', text: 'A mix of several' },
+];
+---
+<form
+  method="POST"
+  action="/api/questionnaire"
+  enctype="multipart/form-data"
+  class="questionnaire"
+  data-form={definition.form}
+  data-slug={slug}
+>
+  <input type="hidden" name="form" value={definition.form} />
+  <input type="hidden" name="formVersion" value={definition.formVersion} />
+  <input type="hidden" name="c" value={slug} />
+  <input type="hidden" name="t" value={token} />
+  <p class="hidden-field">
+    <label>Don't fill this out: <input name="bot-field" /></label>
+  </p>
+
+  {definition.sections.map((s) => (
+    <fieldset>
+      <legend>{s.legend}</legend>
+      {s.help && <p class="section-help">{s.help}</p>}
+
+      {s.questions.map((q) => (
+        <div class="question">
+          {isGroup(q.type) ? (
+            <fieldset class="group" aria-describedby={describedBy(q)}>
+              <legend class="group-legend">
+                {q.label}
+                {q.required && <span class="field-hint">Required</span>}
+              </legend>
+              {q.help && <p class="field-hint" id={`${q.key}-help`}>{q.help}</p>}
+
+              {q.type === 'demoPick'
+                ? demoOptions.map((o) => (
+                    <label class="option">
+                      <input type="radio" name={q.key} value={o.value} required={q.required} />
+                      <span>{o.text}</span>
+                    </label>
+                  ))
+                : (q.options ?? []).map((o) => (
+                    <label class="option">
+                      <input
+                        type={q.type === 'choice' ? 'radio' : 'checkbox'}
+                        name={q.key}
+                        value={o}
+                      />
+                      <span>{o}</span>
+                    </label>
+                  ))}
+
+              {q.type === 'openChecklist' && (
+                <label class="option own">
+                  <span>Something else</span>
+                  <input type="text" name={`${q.key}__own`} autocomplete="off" />
+                </label>
+              )}
+            </fieldset>
+          ) : (
+            // .field is the site-wide single-control label pattern (see
+            // src/pages/start/index.astro); reusing it here keeps text
+            // inputs, textareas and file inputs visually consistent with
+            // the rest of the site without inventing new field styles.
+            <label class="field">
+              <span>
+                {q.label}
+                {q.required && <span class="field-hint">Required</span>}
+              </span>
+              {q.type === 'paragraph' && (
+                <textarea name={q.key} rows={4} required={q.required} aria-describedby={describedBy(q)} />
+              )}
+              {q.type === 'short' && (
+                <input type="text" name={q.key} required={q.required} aria-describedby={describedBy(q)} />
+              )}
+              {q.type === 'file' && (
+                <input type="file" name={q.key} aria-describedby={describedBy(q)} />
+              )}
+              {q.help && <span class="field-hint" id={`${q.key}-help`}>{q.help}</span>}
+            </label>
+          )}
+        </div>
+      ))}
+    </fieldset>
+  ))}
+
+  <button type="submit" class="btn">Send</button>
+</form>
