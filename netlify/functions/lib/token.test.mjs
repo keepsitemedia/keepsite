@@ -40,3 +40,8 @@ test('tokens are url-safe', () => {
   const t = mint(SECRET, 'lova-content-creation', 'build');
   assert.equal(encodeURIComponent(t), t);
 });
+
+test('no collision between (slug, form) pairs', () => {
+  assert.notEqual(mint(SECRET, 'a:b', 'c'), mint(SECRET, 'a', 'b:c'));
+  assert.equal(verify(SECRET, 'a', 'b:c', mint(SECRET, 'a:b', 'c')), false);
+});

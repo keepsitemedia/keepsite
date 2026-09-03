@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Prints a client's three questionnaire links. Run when the agreement is
 // signed, alongside creating their Drive folder.
 //

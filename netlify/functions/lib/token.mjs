@@ -3,13 +3,16 @@
 // cost is that a token cannot be revoked on its own. Rotating
 // KEEPSITE_TOKEN_SECRET invalidates every outstanding link at once, and the
 // blast radius of one leaked token is one client's intake file.
+//
+// The input to the HMAC must be unambiguous: no two (slug, form) pairs can
+// produce the same encoding. JSON.stringify ensures this.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const LENGTH = 16;
 
 export function mint(secret, slug, form) {
   return createHmac('sha256', secret)
-    .update(`${slug}:${form}`)
+    .update(JSON.stringify([slug, form]))
     .digest()
     .subarray(0, LENGTH)
     .toString('base64url');
