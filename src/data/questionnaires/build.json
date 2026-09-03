@@ -1,0 +1,316 @@
+{
+  "formVersion": "2026-09-03",
+  "form": "build",
+  "title": "Keepsite build questionnaire",
+  "lead": "This is the long one, and the only homework in the process. Your answers save as you go, so you can stop and come back.",
+  "sections": [
+    {
+      "legend": "Your business",
+      "questions": [
+        {
+          "key": "whatWeDo",
+          "label": "In a sentence or two, what does your business do?",
+          "type": "paragraph"
+        },
+        {
+          "key": "services",
+          "label": "What are the main services, products, or offers you want represented on your website?",
+          "help": "List your top 3–5 if possible.",
+          "type": "paragraph"
+        },
+        {
+          "key": "grow",
+          "label": "Which of those would you most like to grow?",
+          "type": "paragraph"
+        },
+        {
+          "key": "deprioritise",
+          "label": "Are there any services you offer but don't particularly want to promote or grow?",
+          "type": "paragraph"
+        },
+        {
+          "key": "serviceArea",
+          "label": "Where do you work or serve customers?",
+          "help": "For example: Spanish Fork, Utah County, statewide, nationwide, online, travel-based.",
+          "type": "paragraph"
+        },
+        {
+          "key": "targetAreas",
+          "label": "Are there specific towns, regions, or areas where you'd especially like more business?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Your customers",
+      "questions": [
+        {
+          "key": "idealCustomers",
+          "label": "Tell us a little about the customers you love working with. What are they usually looking for when they come to you?",
+          "type": "paragraph"
+        },
+        {
+          "key": "whatMatters",
+          "label": "What tends to matter most to them when choosing a business like yours?",
+          "help": "For example: trust, experience, style, price, convenience, personality, speed, quality, customization, location, expertise.",
+          "type": "paragraph"
+        },
+        {
+          "key": "repeatQuestions",
+          "label": "What questions do potential customers ask you over and over?",
+          "help": "Think about DMs, emails, calls, consultations, comments, or conversations in person. Even 3–5 questions is incredibly helpful.",
+          "type": "paragraph"
+        },
+        {
+          "key": "wishUnderstood",
+          "label": "What do you wish potential customers understood before contacting you?",
+          "type": "paragraph"
+        },
+        {
+          "key": "whyChosen",
+          "label": "Why do you think your best customers choose you?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "What the site should do",
+      "questions": [
+        {
+          "key": "primaryAction",
+          "label": "What is the #1 thing you want someone to do after visiting your website?",
+          "type": "choice",
+          "options": [
+            "Fill out an inquiry form", "Book an appointment", "Request a quote", "Call",
+            "Email", "Purchase Something", "Visit your location", "Join your email list",
+            "Follow you on social media", "Other"
+          ]
+        },
+        {
+          "key": "secondaryAction",
+          "label": "Is there a second action you'd like visitors to take?",
+          "type": "choice",
+          "options": [
+            "Fill out an inquiry form", "Book an appointment", "Request a quote", "Call",
+            "Email", "Purchase Something", "Visit your location", "Join your email list",
+            "Follow you on social media", "Other"
+          ]
+        },
+        {
+          "key": "firstImpressions",
+          "label": "When someone lands on your website for the first time, what are the most important things you want them to understand about your business?",
+          "help": "Try to choose 3–5.",
+          "type": "paragraph"
+        },
+        {
+          "key": "pages",
+          "label": "Which pages or areas do you know you want?",
+          "type": "checkboxes",
+          "options": [
+            "Home", "About", "Services", "Individual service pages", "Portfolio/Gallery",
+            "Projects/Case Studies", "Testimonials/Reviews", "Pricing",
+            "Frequently Asked Questions", "Process/How it works", "Blog/Resources",
+            "Contact", "Booking", "Shop", "Events", "Team", "Locations/Areas Served",
+            "Press/Features", "Other"
+          ]
+        },
+        {
+          "key": "ownPageCandidates",
+          "label": "Are there any services, locations, audiences, or specialties you think may deserve their own page?",
+          "help": "A rough guess is fine. We'll also make recommendations based on what people are searching for and how the site should be organized.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Homepage content",
+      "help": "Think about the homepage direction you already selected. Now tell us what information feels most important to include as someone scrolls.",
+      "questions": [
+        {
+          "key": "homepageSections",
+          "label": "Which sections would you like your homepage to include?",
+          "type": "checkboxes",
+          "options": [
+            "Intro/quick overview", "Main services", "About/meet the owner",
+            "Featured work or portfolio", "Testimonials", "How it works/process",
+            "Pricing starting point", "Frequently Asked Questions", "Locations/area served",
+            "Featured Products", "Upcoming events", "Blog/resources",
+            "Instagram/social content", "Newsletter signup", "Strong contact/booking section",
+            "Other"
+          ]
+        }
+      ]
+    },
+    {
+      "legend": "What does your website need to do?",
+      "help": "Think less about how the site looks and more about what would make it useful for you and your customers.",
+      "questions": [
+        {
+          "key": "features",
+          "label": "Which features would be helpful for your business?",
+          "type": "checkboxes",
+          "options": [
+            "Contact form", "Detailed inquiry form", "Appointment scheduling",
+            "Online booking", "Calendar", "Online payments", "Online shop", "Quote request",
+            "Client portal", "Email newsletter signup", "Downloadable guide or freebie",
+            "Photo gallery", "Video", "Before-and-after gallery", "Testimonials/review feed",
+            "Instagram feed", "Google reviews", "Map/directions", "Searchable resources",
+            "Blog", "Event registration", "FAQ accordion", "Team profiles",
+            "Membership or login", "Other"
+          ]
+        },
+        {
+          "key": "existingTools",
+          "label": "Are you already using any tools we should connect to the website?",
+          "help": "Examples: HoneyBook, Dubsado, Calendly, Acuity, Square, Shopify, Stripe, Mailchimp, Flodesk, ConvertKit, Google Calendar, Eventbrite, another booking, CRM, email, or payment tool. Please include links if helpful.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Website inspiration",
+      "help": "We already have your overall homepage direction, so this isn't about choosing another design. We're looking for specific ideas you like.",
+      "questions": [
+        {
+          "key": "inspiration",
+          "label": "Are there any websites with a feature, page, section, or interaction you love?",
+          "help": "Paste the link and tell us what you like about it. For example: 'I love how their services are organized.' 'I like how their gallery works.' 'Their booking process feels really easy.'",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Where your material lives",
+      "help": "You do not need to write your website copy yet. For now, we want to know where the best raw material already lives.",
+      "questions": [
+        {
+          "key": "learnMore",
+          "label": "Where can we learn the most about your business?",
+          "help": "Instagram, Facebook, TikTok, Google Business Profile, existing brochures, pricing guides, PDFs, email templates, client guides, proposals, FAQs, a previous website. Please share links where possible.",
+          "type": "paragraph"
+        },
+        {
+          "key": "signatureContent",
+          "label": "Are there specific Instagram posts, Reels, captions, or other pieces of content that feel especially \"you\"?",
+          "help": "Paste links here.",
+          "type": "paragraph"
+        },
+        {
+          "key": "strongResponse",
+          "label": "Are there posts or topics that consistently get a strong response from your audience?",
+          "type": "paragraph"
+        },
+        {
+          "key": "explainedRepeatedly",
+          "label": "Are there things you find yourself explaining to customers again and again?",
+          "type": "paragraph"
+        },
+        {
+          "key": "couldTalkAllDay",
+          "label": "Are there topics you could talk about all day?",
+          "help": "These may become website resources, FAQs, or future blog topics.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "How people find you",
+      "help": "You do not need to know anything about SEO for this section. We're looking for what you already know about your customers.",
+      "questions": [
+        {
+          "key": "searchTerms",
+          "label": "If someone who had never heard of you needed exactly what you offer, what do you think they might type into Google?",
+          "help": "Take a guess. There are no wrong answers.",
+          "type": "paragraph"
+        },
+        {
+          "key": "customerWords",
+          "label": "What words do your customers use to describe what you do?",
+          "type": "paragraph"
+        },
+        {
+          "key": "jargon",
+          "label": "Are there words you use in your industry that your customers probably wouldn't?",
+          "type": "paragraph"
+        },
+        {
+          "key": "competitors",
+          "label": "Who do you consider similar businesses or competitors?",
+          "help": "They do not have to be direct competitors. Try to list at least 3 with a link to their socials, Google profile, or website.",
+          "type": "paragraph"
+        },
+        {
+          "key": "findabilityWishes",
+          "label": "Are there particular services, locations, questions, or topics you'd love to be easier to find online for?",
+          "type": "paragraph"
+        },
+        {
+          "key": "underrepresented",
+          "label": "Is there anything about your personality or business that you feel your current online presence does not show well enough?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Why people feel good hiring you",
+      "questions": [
+        {
+          "key": "confidence",
+          "label": "What helps someone feel confident choosing you?",
+          "type": "checkboxes",
+          "options": [
+            "Testimonials", "Google reviews", "Years of experience", "Certifications",
+            "Awards", "Portfolio", "Before-and-after results", "Client list", "Press",
+            "Community involvement", "Specialized expertise", "Personal story", "Other"
+          ]
+        },
+        {
+          "key": "reviewLocations",
+          "label": "Where can we find your existing reviews or testimonials?",
+          "type": "paragraph"
+        },
+        {
+          "key": "credentials",
+          "label": "Do you have any awards, certifications, press mentions, partnerships, or credentials we should know about?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Timing and busy seasons",
+      "questions": [
+        {
+          "key": "importantSeasons",
+          "label": "Are there certain times of year that are especially important for your business?",
+          "type": "paragraph"
+        },
+        {
+          "key": "seasonalServices",
+          "label": "Are there services you want to promote at particular times of year?",
+          "type": "paragraph"
+        },
+        {
+          "key": "upcomingDates",
+          "label": "Do you have any launches, events, busy seasons, booking windows, or important dates coming up?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Last one",
+      "questions": [
+        {
+          "key": "onethingWell",
+          "label": "If your new website does one thing really well, what do you hope it is?",
+          "type": "paragraph"
+        },
+        {
+          "key": "anythingElse",
+          "label": "Is there anything else you want us to know before we start building?",
+          "help": "You do not need to have everything figured out. Give us what you know now, and we'll keep learning as we build.",
+          "type": "paragraph"
+        }
+      ]
+    }
+  ]
+}

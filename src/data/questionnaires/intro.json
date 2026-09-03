@@ -1,0 +1,60 @@
+{
+  "formVersion": "2026-09-03",
+  "form": "intro",
+  "title": "Tell us about your business",
+  "lead": "Seven questions, and we already have some of the answers. Correct anything that has changed.",
+  "sections": [
+    {
+      "legend": "Your business",
+      "questions": [
+        {
+          "key": "name",
+          "label": "Your name",
+          "type": "short",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "short",
+          "required": true
+        },
+        {
+          "key": "business",
+          "label": "Business name",
+          "type": "short",
+          "required": true
+        },
+        {
+          "key": "whatWeDo",
+          "label": "What does your business do?",
+          "type": "paragraph",
+          "required": true
+        },
+        {
+          "key": "attract",
+          "label": "Who do you want to attract?",
+          "type": "paragraph",
+          "required": true
+        },
+        {
+          "key": "feelWanted",
+          "label": "Pick three words for how your website should feel",
+          "help": "Pick from these or type your own.",
+          "type": "openChecklist",
+          "options": [
+            "Warm", "Calm", "Refined", "Welcoming", "Bold", "Playful", "Professional",
+            "Relaxed", "Editorial", "Natural", "Modern", "Timeless", "Minimal", "Colorful",
+            "Elevated", "Friendly", "Grounded", "Adventurous", "Luxurious", "Approachable"
+          ]
+        },
+        {
+          "key": "existingBrand",
+          "label": "Do you already have a website or branding?",
+          "help": "A link is enough. If you have a logo or brand guide, there is a place to upload them after you have seen your designs.",
+          "type": "paragraph"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "formVersion": "2026-09-03",
+  "form": "brand",
+  "title": "Your designs",
+  "lead": "You have seen four directions. Tell us which one fits and how it should feel.",
+  "sections": [
+    {
+      "legend": "Your demo",
+      "questions": [
+        {
+          "key": "pick",
+          "label": "Which demo feels closest to your business overall?",
+          "type": "demoPick"
+        },
+        {
+          "key": "like1",
+          "label": "Demo 1 — what do you like? What would you change or leave behind?",
+          "type": "paragraph"
+        },
+        {
+          "key": "like2",
+          "label": "Demo 2 — what do you like? What would you change or leave behind?",
+          "type": "paragraph"
+        },
+        {
+          "key": "like3",
+          "label": "Demo 3 — what do you like? What would you change or leave behind?",
+          "type": "paragraph"
+        },
+        {
+          "key": "like4",
+          "label": "Demo 4 — what do you like? What would you change or leave behind?",
+          "type": "paragraph"
+        },
+        {
+          "key": "keeps",
+          "label": "Are there any specific sections you definitely want to keep as is from any of the demos?",
+          "help": "Please indicate the section and demo. A section can be labeled by the content in it. For example: the very first section from Demo 2, services section Demo 4, and Colors from Demo 3",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "How it should feel",
+      "questions": [
+        {
+          "key": "feelWanted",
+          "label": "Which words best describe how you want your website to feel?",
+          "help": "You told us this before your designs — correct it if it has changed.",
+          "type": "openChecklist",
+          "options": [
+            "Warm", "Calm", "Refined", "Welcoming", "Bold", "Playful", "Professional",
+            "Relaxed", "Editorial", "Natural", "Modern", "Timeless", "Minimal", "Colorful",
+            "Elevated", "Friendly", "Grounded", "Adventurous", "Luxurious", "Approachable"
+          ]
+        },
+        {
+          "key": "feelRefused",
+          "label": "Which words do NOT describe how you want your website to feel?",
+          "type": "openChecklist",
+          "options": [
+            "Warm", "Calm", "Refined", "Welcoming", "Bold", "Playful", "Professional",
+            "Relaxed", "Editorial", "Natural", "Modern", "Timeless", "Minimal", "Colorful",
+            "Elevated", "Friendly", "Grounded", "Adventurous", "Luxurious", "Approachable"
+          ]
+        },
+        {
+          "key": "visitorFeeling",
+          "label": "When someone lands on your website, how do you want them to feel?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Logo and brand",
+      "questions": [
+        {
+          "key": "logo",
+          "label": "Do you currently have a logo?",
+          "help": "Upload it here, or give the font name and hex codes in the next box.",
+          "type": "file"
+        },
+        {
+          "key": "logoFontsColors",
+          "label": "Logo font and colors, if applicable",
+          "help": "Where did you get the font (Canva Pro, for example), when do you use it, what hex code is it, and how else do you use your brand colors — background, buttons, and so on.",
+          "type": "paragraph"
+        },
+        {
+          "key": "brandGuide",
+          "label": "Do you have a formal brand guide?",
+          "help": "Upload it here, or name the fonts and colors in the next box. If you'd like one, we can recommend a freelance brand designer. That adds one to five weeks, or we can add new branding after launch.",
+          "type": "file"
+        },
+        {
+          "key": "otherFontsColors",
+          "label": "What other fonts and colors do you use, where and when?",
+          "help": "If you liked something used in one of your demos better than what you use now, say so.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Photos",
+      "questions": [
+        {
+          "key": "photos",
+          "label": "What photos would you like used on your website?",
+          "help": "Your Drive folder is linked in the email with this questionnaire — upload them there and note where you'd like any of them used. If you'd rather see a full demo first, skip this.",
+          "type": "paragraph"
+        }
+      ]
+    }
+  ]
+}

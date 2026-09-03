@@ -8,9 +8,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:forms": "node scripts/check-questionnaires.mjs",
     "cms": "npx decap-server",
     "verify": "node scripts/verify.mjs",
-    "gate": "npm run check && npm run build && npm run verify",
+    "gate": "npm run check && npm run check:forms && npm run build && npm run verify",
     "og": "node scripts/make-og-image.mjs"
   },
   "dependencies": {
