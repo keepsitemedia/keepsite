@@ -12,7 +12,7 @@
     },
     {
       "title": "Pick a direction.",
-      "body": "We send you one page with four different home page designs on it. You pick the direction that looks like your business, and then answer the longer questionnaire in one pass — it is the only homework in the whole process. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
+      "body": "We send you one page with four different home page designs on it. You pick the direction that looks like your business, then answer the two questionnaires that follow — one on your brand and the demo, one to drive the build. Each is one pass, not a back-and-forth. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
     },
     {
       "title": "We lay out every page.",
@@ -167,7 +167,7 @@
   "wontHaveTo": {
     "heading": "What you won't have to do",
     "items": [
-      "No website homework.",
+      "No web-building homework.",
       "No blank page to stare at.",
       "No standing meetings.",
       "No logging into anything.",
