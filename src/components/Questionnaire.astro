@@ -7,7 +7,10 @@ interface Question {
   key: string;
   label: string;
   help?: string;
-  type: 'short' | 'paragraph' | 'choice' | 'checkboxes' | 'openChecklist' | 'file' | 'demoPick';
+  // A JSON import widens any literal union to string, so the three question
+  // definitions this component reads (src/data/questionnaires/*.json) could
+  // never satisfy a narrower type here without a cast at every call site.
+  type: string;
   options?: string[];
   required?: boolean;
 }
