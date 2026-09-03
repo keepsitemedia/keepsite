@@ -6,7 +6,10 @@ export default defineConfig({
   output: 'static',
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/start/thanks') && !page.includes('/404'),
+      filter: (page) =>
+        !page.includes('/start/thanks') &&
+        !page.includes('/404') &&
+        !page.includes('/questionnaire/'),
     }),
   ],
 });

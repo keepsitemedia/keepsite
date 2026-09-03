@@ -36,6 +36,10 @@ const PAGES = [
   'faq/index.html',
   'start/index.html',
   'start/thanks/index.html',
+  'questionnaire/intro/index.html',
+  'questionnaire/brand/index.html',
+  'questionnaire/build/index.html',
+  'questionnaire/thanks/index.html',
   '404.html',
 ];
 
@@ -57,7 +61,8 @@ check('renamed routes are gone', () => {
 });
 check('noindex pages are out of the sitemap', () => {
   const s = read('sitemap-0.xml');
-  if (s.includes('/start/thanks') || s.includes('/404')) throw new Error('noindex page in sitemap');
+  if (s.includes('/start/thanks') || s.includes('/404') || s.includes('/questionnaire/'))
+    throw new Error('noindex page in sitemap');
 });
 
 section('Copy residue');
@@ -152,10 +157,10 @@ check('one h1 per page, no skipped levels, main and canonical present', () => {
     if (!h.includes('og:image')) throw new Error(p + ' has no og:image');
   }
 });
-check('noindex only on 404 and thanks', () => {
+check('noindex on 404, thanks, and every questionnaire route', () => {
   for (const p of PAGES) {
     const has = read(p).includes('noindex,follow');
-    const should = p === '404.html' || p === 'start/thanks/index.html';
+    const should = p === '404.html' || p.endsWith('thanks/index.html') || p.startsWith('questionnaire/');
     if (has !== should) throw new Error(`${p} noindex=${has}, expected ${should}`);
   }
 });
@@ -167,6 +172,10 @@ check('no broken internal links', () => {
     for (const m of read(p).matchAll(/(?:href|action)="(\/[^"#?]*)/g)) {
       const href = m[1];
       if (href.startsWith('/_astro/')) continue;
+      // /api/questionnaire is a Netlify redirect to a serverless function
+      // (see netlify.toml), not a static file — it has no counterpart in
+      // dist/ and never will.
+      if (href.startsWith('/api/')) continue;
       const tries = [
         path.join('dist', href),
         path.join('dist', href, 'index.html'),
@@ -179,6 +188,9 @@ check('no broken internal links', () => {
 });
 
 section('JavaScript budget');
+// The three questionnaire routes carry only the layout's JSON-LD at this
+// task: Task 11 adds the token-capture/save-and-resume script and raises
+// their counts to 2.
 check('only JSON-LD, plus one tier-prefill script on /start/', () => {
   const expect = {
     'index.html': 1,
@@ -187,6 +199,10 @@ check('only JSON-LD, plus one tier-prefill script on /start/', () => {
     'faq/index.html': 2,
     'start/index.html': 2,
     'start/thanks/index.html': 1,
+    'questionnaire/intro/index.html': 1,
+    'questionnaire/brand/index.html': 1,
+    'questionnaire/build/index.html': 1,
+    'questionnaire/thanks/index.html': 1,
     '404.html': 1,
   };
   for (const [p, n] of Object.entries(expect)) {
@@ -250,6 +266,38 @@ check('the preload and the stylesheet request the same file', () => {
     if (preloaded !== declared) throw new Error(`${p} preloads ${preloaded} but loads ${declared}`);
     for (const s of [html, ...sheets]) {
       if (s.includes('fonts.googleapis.com')) throw new Error(p + ' uses a third-party font origin');
+    }
+  }
+});
+
+section('Questionnaires');
+check('every question renders a labelled control inside a fieldset', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    const html = read(`questionnaire/${form}/index.html`);
+    const def = JSON.parse(
+      fs.readFileSync(path.join('src', 'data', 'questionnaires', `${form}.json`), 'utf8'),
+    );
+    // Grouped question types (checkboxes, choice, ...) get their own nested
+    // fieldset/legend for the group label, so a plain <legend> count would
+    // also tally those. Section legends carry no class; only they count here.
+    const legends = (html.match(/<legend>/g) || []).length;
+    if (legends !== def.sections.length) {
+      throw new Error(`${form} has ${legends} legends, expected ${def.sections.length}`);
+    }
+    for (const s of def.sections) {
+      for (const q of s.questions) {
+        if (!html.includes(`name="${q.key}"`)) throw new Error(`${form} omits ${q.key}`);
+        if (q.help && !html.includes(`id="${q.key}-help"`)) {
+          throw new Error(`${form}.${q.key} has help with no described-by target`);
+        }
+      }
+    }
+  }
+});
+check('no question label is an input placeholder', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    if (/placeholder="[^"]{40,}/.test(read(`questionnaire/${form}/index.html`))) {
+      throw new Error(`${form} uses a placeholder as a label`);
     }
   }
 });

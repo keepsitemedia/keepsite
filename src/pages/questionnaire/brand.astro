@@ -1,0 +1,18 @@
+---
+// The demo index that resolves `directions` from a client's actual demo
+// build is Task 9's job. Built plainly here: no directions, so the
+// component's demoPick question falls back to its "A mix of several" option.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Questionnaire from '../../components/Questionnaire.astro';
+import definition from '../../data/questionnaires/brand.json';
+---
+<BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex>
+  <section class="section">
+    <div class="container narrow">
+      <h1>{definition.title}</h1>
+      <p class="lead">{definition.lead}</p>
+      {/* JSON import widens `type` to string; Questionnaire's Props narrows it to a literal union. */}
+      <Questionnaire definition={definition as any} slug="" token="" />
+    </div>
+  </section>
+</BaseLayout>

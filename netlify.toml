@@ -77,6 +77,38 @@
       best-practices = 0.9
       seo = 1.0
 
+  [[plugins.inputs.audits]]
+    path = "questionnaire/intro/index.html"
+    output_path = "reports/lighthouse-questionnaire-intro.html"
+    [plugins.inputs.audits.thresholds]
+      performance = 0.95
+      accessibility = 1.0
+      best-practices = 0.9
+      seo = 1.0
+
+  [[plugins.inputs.audits]]
+    path = "questionnaire/brand/index.html"
+    output_path = "reports/lighthouse-questionnaire-brand.html"
+    [plugins.inputs.audits.thresholds]
+      performance = 0.95
+      accessibility = 1.0
+      best-practices = 0.9
+      seo = 1.0
+
+  [[plugins.inputs.audits]]
+    path = "questionnaire/build/index.html"
+    output_path = "reports/lighthouse-questionnaire-build.html"
+    [plugins.inputs.audits.thresholds]
+      performance = 0.95
+      accessibility = 1.0
+      best-practices = 0.9
+      seo = 1.0
+
+[[redirects]]
+  from = "/api/questionnaire"
+  to = "/.netlify/functions/questionnaire"
+  status = 200
+
 [[redirects]]
   from = "/admin"
   to = "/admin/index.html"
@@ -146,6 +178,14 @@
   for = "/demo/*"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; img-src 'self' data: https://images.unsplash.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+    X-Robots-Tag = "noindex, nofollow"
+
+# Client questionnaires. Reachable only with a signed token, and never
+# indexed: the pages are static, so the host serves the HTML to anyone with
+# the URL and it is the submission that is gated.
+[[headers]]
+  for = "/questionnaire/*"
+  [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
 # Astro content-hashes everything in /_astro, so it is safe to pin.

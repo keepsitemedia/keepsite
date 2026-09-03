@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Questionnaire from '../../components/Questionnaire.astro';
+import definition from '../../data/questionnaires/build.json';
+---
+<BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex>
+  <section class="section">
+    <div class="container narrow">
+      <h1>{definition.title}</h1>
+      <p class="lead">{definition.lead}</p>
+      <p class="muted">Your answers save as you go. You can close this and come back.</p>
+      {/* JSON import widens `type` to string; Questionnaire's Props narrows it to a literal union. */}
+      <Questionnaire definition={definition as any} slug="" token="" />
+    </div>
+  </section>
+</BaseLayout>
