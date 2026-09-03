@@ -188,9 +188,9 @@ check('no broken internal links', () => {
 });
 
 section('JavaScript budget');
-// intro and build carry only the layout's JSON-LD at this task: Task 11 adds
-// the token-capture/save-and-resume script and raises their counts to 2.
-// brand is already 2 here — its demo index is a second script tag.
+// Every questionnaire form page carries the layout's JSON-LD plus the
+// token-capture/save-and-resume module script; brand additionally carries
+// its demo index, a third script tag.
 check('only JSON-LD, plus one tier-prefill script on /start/', () => {
   const expect = {
     'index.html': 1,
@@ -199,9 +199,9 @@ check('only JSON-LD, plus one tier-prefill script on /start/', () => {
     'faq/index.html': 2,
     'start/index.html': 2,
     'start/thanks/index.html': 1,
-    'questionnaire/intro/index.html': 1,
-    'questionnaire/brand/index.html': 2,
-    'questionnaire/build/index.html': 1,
+    'questionnaire/intro/index.html': 2,
+    'questionnaire/brand/index.html': 3,
+    'questionnaire/build/index.html': 2,
     'questionnaire/thanks/index.html': 1,
     '404.html': 1,
   };
@@ -310,6 +310,14 @@ check('the brand form ships a demo index for every published demo', () => {
     if (!dir.isDirectory()) continue;
     if (!demos[dir.name]) throw new Error(`demo index omits ${dir.name}`);
     if (demos[dir.name].length !== 4) throw new Error(`${dir.name} parsed ${demos[dir.name].length} directions`);
+  }
+});
+check('every questionnaire page carries the resume script', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    const html = read(`questionnaire/${form}/index.html`);
+    if (!html.includes('keepsite:questionnaire:')) {
+      throw new Error(`${form} has no localStorage key`);
+    }
   }
 });
 

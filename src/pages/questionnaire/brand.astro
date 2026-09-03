@@ -17,6 +17,11 @@ const demos = Object.fromEntries(
       return [e.name, ids];
     }),
 );
+
+// Read at build time, inlined below, so the one script source
+// (src/scripts/questionnaire.js) ships to all three pages without Astro
+// splitting it into a separately-fetched shared chunk.
+const questionnaireScript = fs.readFileSync('src/scripts/questionnaire.js', 'utf8');
 ---
 <BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex>
   <section class="section">
@@ -28,3 +33,5 @@ const demos = Object.fromEntries(
     </div>
   </section>
 </BaseLayout>
+
+<script set:html={questionnaireScript} />
