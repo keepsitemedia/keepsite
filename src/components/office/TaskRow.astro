@@ -1,0 +1,34 @@
+---
+import { formatYmd, formatTime } from '../../../netlify/functions/lib/office/dates.mjs';
+interface Props { task: any; csrf: string; today: string; back: string; showClient?: boolean; business?: string }
+const { task: t, csrf, today, back, showClient = false, business = '' } = Astro.props;
+const cls = t.done ? 'done' : t.due < today ? 'overdue' : '';
+---
+<tr>
+  <td class={cls}>{formatYmd(t.due)}{t.time && ` · ${formatTime(t.time)}`}</td>
+  {showClient && <td><a href={`/office/clients/${t.slug}/`}>{business || t.slug}</a></td>}
+  <td class={cls}>{t.title}{t.source === 'pipeline' && <span class="muted"> · {t.stage}</span>}</td>
+  <td>
+    <form method="POST" action="/office/api/task" class="inline">
+      <input type="hidden" name="csrf" value={csrf} />
+      <input type="hidden" name="slug" value={t.slug} />
+      <input type="hidden" name="id" value={t.id} />
+      <input type="hidden" name="back" value={back} />
+      <button class="btn-outline btn-small" name="op" value={t.done ? 'reopen' : 'done'}>{t.done ? 'Reopen' : 'Done'}</button>
+    </form>
+    <details class="inline">
+      <summary class="btn-outline btn-small">Move</summary>
+      <form method="POST" action="/office/api/task" class="inline">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={t.slug} />
+        <input type="hidden" name="id" value={t.id} />
+        <input type="hidden" name="back" value={back} />
+        <input type="hidden" name="op" value="reschedule" />
+        <input type="date" name="due" value={t.due} required aria-label="New date" />
+        <input type="time" name="time" value={t.time ?? ''} aria-label="Time" />
+        <button class="btn-small">Save</button>
+        <button class="btn-small" name="op" value="delete" formnovalidate>Delete</button>
+      </form>
+    </details>
+  </td>
+</tr>

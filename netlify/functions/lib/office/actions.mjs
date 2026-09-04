@@ -3,5 +3,7 @@
 import { login } from './actions/login.mjs';
 import { logout } from './actions/logout.mjs';
 import { client } from './actions/client.mjs';
+import { stage } from './actions/stage.mjs';
+import { task } from './actions/task.mjs';
 
-export const actions = { __proto__: null, login, logout, client };
+export const actions = { __proto__: null, login, logout, client, stage, task };

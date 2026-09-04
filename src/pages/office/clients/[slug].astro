@@ -1,0 +1,122 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import ClientFields from '../../../components/office/ClientFields.astro';
+import TaskRow from '../../../components/office/TaskRow.astro';
+import { store, SLUG } from '../../../../netlify/functions/lib/office/store.mjs';
+import { loadPipelines, findPipeline } from '../../../../netlify/functions/lib/office/pipeline.mjs';
+import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
+
+// store.mjs and pipeline.mjs have no type declarations, so astro check sees
+// their returns as any; these narrow to what this page actually reads rather
+// than casting the whole store to any.
+type ClientDoc = {
+  business: string; tier: string; pipeline: string; stage: string;
+  stages: { stage: string; at: string }[];
+  dates: { inquiry: string; signed: string | null; launched: string | null };
+};
+type StageRow = { id: string; name: string };
+type PipelineRow = { stages: StageRow[]; questionnaires?: unknown[] };
+type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null };
+
+const slug = Astro.params.slug ?? '';
+if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
+const s = store();
+const client = (await s.clients.get(slug)) as ClientDoc | null;
+if (!client) return new Response('not found', { status: 404 });
+
+const pipeline = findPipeline(await loadPipelines(s), client.pipeline) as PipelineRow | undefined;
+const stages = pipeline?.stages ?? [];
+const stageIndex = stages.findIndex((st: StageRow) => st.id === client.stage);
+const nextStage = stages[stageIndex + 1];
+const tasks = ((await s.tasks.list(slug)) as TaskDoc[]).sort((a, b) => a.due.localeCompare(b.due) || (a.time ?? '').localeCompare(b.time ?? ''));
+const open = tasks.filter((t) => !t.done);
+const closed = tasks.filter((t) => t.done);
+const today = todayIn();
+const tab = Astro.url.searchParams.get('tab') ?? 'overview';
+const error = Astro.url.searchParams.get('error');
+const csrf = Astro.locals.csrf;
+const here = `/office/clients/${slug}/?tab=${tab}`;
+const tabs = [
+  ['overview', 'Overview'],
+  ['tasks', `Tasks (${open.length})`],
+  ...(pipeline?.questionnaires?.length ? [['questionnaires', 'Questionnaires']] : []),
+];
+---
+<OfficeLayout title={client.business}>
+  <div class="toolbar">
+    <h1>{client.business}</h1>
+    <span class="badge">{stages[stageIndex]?.name ?? client.stage}</span>
+    {client.tier && <span class="muted">{client.tier}</span>}
+  </div>
+  {error && <p class="error">{error}</p>}
+  <nav class="tabs" aria-label="Client sections">
+    {tabs.map(([id, label]) => <a href={`/office/clients/${slug}/?tab=${id}`} aria-current={tab === id ? 'page' : undefined}>{label}</a>)}
+  </nav>
+
+  {tab === 'overview' && (
+    <>
+      <h2>Stage</h2>
+      <form method="POST" action="/office/api/stage" class="toolbar">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={slug} />
+        <select name="stage" aria-label="Stage">
+          {stages.map((st: StageRow) => <option value={st.id} selected={st.id === client.stage}>{st.name}</option>)}
+        </select>
+        <button class="btn btn-small">Set stage</button>
+        {nextStage && <button class="btn-outline btn-small" name="stage" value={nextStage.id}>Advance to {nextStage.name}</button>}
+      </form>
+      <p class="muted">
+        Inquiry {formatYmd(client.dates.inquiry)}
+        {client.dates.signed && ` · Signed ${formatYmd(client.dates.signed)}`}
+        {client.dates.launched && ` · Launched ${formatYmd(client.dates.launched)}`}
+      </p>
+
+      <h2>Details</h2>
+      <form method="POST" action="/office/api/client">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="op" value="update" />
+        <input type="hidden" name="slug" value={slug} />
+        <ClientFields client={client as unknown as Record<string, string>} />
+        <button class="btn btn-small">Save</button>
+      </form>
+
+      <h2>History</h2>
+      <ul>
+        {client.stages.map((h) => <li>{formatYmd(h.at.slice(0, 10))} · {stages.find((st: StageRow) => st.id === h.stage)?.name ?? h.stage}</li>)}
+      </ul>
+    </>
+  )}
+
+  {tab === 'tasks' && (
+    <>
+      <form method="POST" action="/office/api/task" class="toolbar">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="op" value="add" />
+        <input type="hidden" name="back" value={here} />
+        <input name="title" placeholder="New task" required aria-label="Task title" />
+        <input type="date" name="due" value={today} required aria-label="Due date" />
+        <input type="time" name="time" aria-label="Time" />
+        <button class="btn btn-small">Add</button>
+      </form>
+      {open.length === 0 && <p class="empty">Nothing open.</p>}
+      {open.length > 0 && (
+        <div class="table-scroll"><table>
+          <thead><tr><th>Due</th><th>Task</th><th></th></tr></thead>
+          <tbody>{open.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</tbody>
+        </table></div>
+      )}
+      {closed.length > 0 && (
+        <details>
+          <summary>Done ({closed.length})</summary>
+          <div class="table-scroll"><table>
+            <tbody>{closed.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</tbody>
+          </table></div>
+        </details>
+      )}
+    </>
+  )}
+
+  {tab === 'questionnaires' && <p class="empty">Questionnaires arrive in the next task.</p>}
+</OfficeLayout>
