@@ -29,9 +29,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!OFFICE.test(pathname)) return next();
   if (PUBLIC.has(pathname)) return withHeaders(await next());
 
-  // requireAdmin's return type does not narrow across the ok flag from a
-  // plain .mjs import, so annotate the one field TS gets wrong.
-  const auth: any = await requireAdmin(context.request);
+  const auth = await requireAdmin(context.request);
   if (!auth.ok) {
     const res = pathname.startsWith('/office/api/')
       ? new Response('sign in first', { status: 401 })
@@ -39,7 +37,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     for (const c of auth.cookies) res.headers.append('Set-Cookie', c);
     return withHeaders(res);
   }
-  context.locals.admin = auth.user;
+  // requireAdmin's return type doesn't narrow user to non-optional across the
+  // ok check from a plain .mjs import; ok is already true here.
+  context.locals.admin = auth.user ?? null;
   context.locals.csrf = auth.csrf;
   const res = withHeaders(await next());
   for (const c of auth.cookies) res.headers.append('Set-Cookie', c);
