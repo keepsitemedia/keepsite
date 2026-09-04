@@ -2,6 +2,7 @@
 export const prerender = false;
 import OfficeLayout from '../../layouts/OfficeLayout.astro';
 import TaskRow from '../../components/office/TaskRow.astro';
+import MeetingRow from '../../components/office/MeetingRow.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { todayIn, addDays, isYmd, formatYmd } from '../../../netlify/functions/lib/office/dates.mjs';
 import { itemsForDay, monthGrid } from '../../../netlify/functions/lib/office/calendar.mjs';
@@ -11,7 +12,8 @@ import { itemsForDay, monthGrid } from '../../../netlify/functions/lib/office/ca
 // touches rather than casting the whole store to any.
 type ClientRow = { slug: string; business: string };
 type Task = { id: string; slug: string; due: string; time: string | null; done: boolean };
-type Item = { kind: 'task' | 'meeting'; time: string | null; slug: string };
+type Meeting = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
+type Item = { kind: 'task' | 'meeting'; time: string | null; slug: string; id: string };
 type Cell = { ymd: string; day: number; inMonth: boolean; marked: boolean; today: boolean };
 type Grid = { label: string; prev: string; next: string; weeks: Cell[][] };
 
@@ -23,8 +25,10 @@ const day = isYmd(requested) ? requested : today;
 const clients = (await s.clients.list()) as ClientRow[];
 const names = new Map(clients.map((c) => [c.slug, c.business]));
 const tasks = (await s.tasks.listAll()) as Task[];
-const items = itemsForDay(tasks, [], day) as Item[];
+const meetings = (await s.meetings.listAll()) as Meeting[];
+const items = itemsForDay(tasks, meetings, day) as Item[];
 const marked = new Set(tasks.filter((t) => !t.done).map((t) => t.due));
+for (const m of meetings) marked.add(m.ymd);
 const grid = monthGrid(day, marked, today) as Grid;
 const here = `/office/calendar/?d=${day}`;
 const csrf = Astro.locals.csrf;
@@ -48,7 +52,9 @@ const csrf = Astro.locals.csrf;
         <div class="table-scroll"><table>
           <thead><tr><th>When</th><th>Client</th><th>What</th><th></th></tr></thead>
           <tbody>
-            {items.map((i) => <TaskRow task={i} csrf={csrf} today={today} back={here} showClient business={names.get(i.slug)} />)}
+            {items.map((i) => i.kind === 'meeting'
+              ? <MeetingRow meeting={i} csrf={csrf} back={here} showClient business={names.get(i.slug)} />
+              : <TaskRow task={i} csrf={csrf} today={today} back={here} showClient business={names.get(i.slug)} />)}
           </tbody>
         </table></div>
       )}

@@ -1,0 +1,29 @@
+---
+import { formatYmd, formatTime } from '../../../netlify/functions/lib/office/dates.mjs';
+interface Props { meeting: any; csrf: string; back: string; showClient?: boolean; business?: string }
+const { meeting: m, csrf, back, showClient = false, business = '' } = Astro.props;
+---
+<tr>
+  <td>{formatYmd(m.ymd)} · {formatTime(m.time)}</td>
+  {showClient && <td><a href={`/office/clients/${m.slug}/?tab=meetings`}>{business || m.slug}</a></td>}
+  <td>
+    {m.title} <span class="muted">· {m.minutes} min</span>
+    {m.link && <> · <a href={m.link}>join</a></>}
+    {m.notes && <div class="muted">{m.notes}</div>}
+  </td>
+  <td>
+    <details class="inline">
+      <summary class="btn-outline btn-small">Move</summary>
+      <form method="POST" action="/office/api/meeting" class="inline">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={m.slug} />
+        <input type="hidden" name="id" value={m.id} />
+        <input type="hidden" name="back" value={back} />
+        <input type="date" name="date" value={m.ymd} required aria-label="New date" />
+        <input type="time" name="time" value={m.time} required aria-label="New time" />
+        <button class="btn-small" name="op" value="reschedule">Save and re-send</button>
+        <button class="btn-small" name="op" value="delete" formnovalidate>Cancel meeting</button>
+      </form>
+    </details>
+  </td>
+</tr>

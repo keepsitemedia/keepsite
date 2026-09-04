@@ -2,9 +2,10 @@
 export const prerender = false;
 import OfficeLayout from '../../layouts/OfficeLayout.astro';
 import TaskRow from '../../components/office/TaskRow.astro';
+import MeetingRow from '../../components/office/MeetingRow.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
-import { todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
+import { todayIn, addDays } from '../../../netlify/functions/lib/office/dates.mjs';
 import { dueBucket } from '../../../netlify/functions/lib/office/calendar.mjs';
 
 // store.mjs, pipeline.mjs and calendar.mjs have no type declarations, so
@@ -12,12 +13,17 @@ import { dueBucket } from '../../../netlify/functions/lib/office/calendar.mjs';
 // this page actually touches rather than casting the whole store to any.
 type ClientRow = { slug: string; business: string; pipeline: string; stage: string };
 type Task = { id: string; slug: string; due: string; time: string | null; done: boolean };
+type Meeting = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
 type Stage = { id: string; name: string };
 type Pipeline = { id: string; name: string; stages: Stage[] };
 type Bucket = 'overdue' | 'today' | 'soon';
 
 const s = store();
 const today = todayIn();
+const tomorrow = addDays(today, 1);
+const meetings = ((await s.meetings.listAll()) as Meeting[])
+  .filter((m) => m.ymd === today || m.ymd === tomorrow)
+  .sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`));
 const pipelines = (await loadPipelines(s)) as Pipeline[];
 const clients = (await s.clients.list()) as ClientRow[];
 const names = new Map(clients.map((c) => [c.slug, c.business]));
@@ -69,8 +75,12 @@ const groups: [Bucket, string][] = [
     </>
   ))}
 
-  <h2>Meetings</h2>
-  <p class="empty">Meetings arrive with phase 2.</p>
+  <h2>Meetings <span class="muted">today and tomorrow</span></h2>
+  {meetings.length === 0 ? <p class="empty">None.</p> : (
+    <div class="table-scroll"><table>
+      <tbody>{meetings.map((m) => <MeetingRow meeting={m} csrf={csrf} back="/office/" showClient business={names.get(m.slug)} />)}</tbody>
+    </table></div>
+  )}
   <h2>Payments</h2>
   <p class="empty">Payments arrive with phase 3.</p>
 </OfficeLayout>

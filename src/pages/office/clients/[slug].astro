@@ -3,10 +3,11 @@ export const prerender = false;
 import OfficeLayout from '../../../layouts/OfficeLayout.astro';
 import ClientFields from '../../../components/office/ClientFields.astro';
 import TaskRow from '../../../components/office/TaskRow.astro';
+import MeetingRow from '../../../components/office/MeetingRow.astro';
 import { store, SLUG } from '../../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines, findPipeline } from '../../../../netlify/functions/lib/office/pipeline.mjs';
 import { loadTemplates } from '../../../../netlify/functions/lib/office/templates.mjs';
-import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
+import { todayIn, formatYmd, formatTime } from '../../../../netlify/functions/lib/office/dates.mjs';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
 import { mint } from '../../../../netlify/functions/lib/token.mjs';
 import intro from '../../../data/questionnaires/intro.json';
@@ -25,6 +26,7 @@ type StageRow = { id: string; name: string };
 type PipelineRow = { stages: StageRow[]; questionnaires?: string[] };
 type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null; questionnaire: string | null };
 type EmailDoc = { id: string; kind: string; template: string | null; to: string[]; subject: string; text: string; sentAt: string; status: string; error: string | null };
+type MeetingDoc = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
 type TemplateRow = { id: string; name: string };
 
 const slug = Astro.params.slug ?? '';
@@ -65,10 +67,14 @@ const files = (tab === 'questionnaires' ? await s.questionnaires.files(slug) : [
 const sent = Astro.url.searchParams.get('sent');
 const emails = tab === 'emails' ? ((await s.emails.list(slug)) as EmailDoc[]).reverse() : [];
 const sendable = tab === 'emails' ? ((await loadTemplates(s)) as TemplateRow[]).filter((t) => !t.id.startsWith('meeting-')) : [];
+const meetings = tab === 'meetings' ? ((await s.meetings.list(slug)) as MeetingDoc[]).sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`)) : [];
+const upcoming = meetings.filter((m) => m.ymd >= today);
+const past = meetings.filter((m) => m.ymd < today);
 const tabs = [
   ['overview', 'Overview'],
   ['tasks', `Tasks (${open.length})`],
   ...(pipeline?.questionnaires?.length ? [['questionnaires', 'Questionnaires']] : []),
+  ['meetings', 'Meetings'],
   ['emails', 'Emails'],
 ];
 ---
@@ -175,6 +181,39 @@ const tabs = [
           <h2>Uploaded files</h2>
           <ul>{files.map((k) => <li>{k.slice(slug.length + 1)}</li>)}</ul>
         </>
+      )}
+    </>
+  )}
+
+  {tab === 'meetings' && (
+    <>
+      <h2>Book a meeting</h2>
+      <form method="POST" action="/office/api/meeting" class="row">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="op" value="add" />
+        <input type="hidden" name="back" value={here} />
+        <label class="field"><span>Title</span><input name="title" required value="Kickoff call" /></label>
+        <label class="field"><span>Date</span><input type="date" name="date" required value={today} /></label>
+        <label class="field"><span>Time (Mountain)</span><input type="time" name="time" required value="10:00" /></label>
+        <label class="field"><span>Minutes</span><input type="number" name="minutes" min="5" max="480" value="30" /></label>
+        <label class="field"><span>Video link</span><input name="link" placeholder="https://" /></label>
+        <label class="field"><span>Notes for the invite</span><input name="notes" /></label>
+        <p><button class="btn btn-small">Book and send confirmation</button></p>
+      </form>
+      <h2>Upcoming</h2>
+      {upcoming.length === 0 && <p class="empty">Nothing booked.</p>}
+      {upcoming.length > 0 && (
+        <div class="table-scroll"><table>
+          <tbody>{upcoming.map((m) => <MeetingRow meeting={m} csrf={csrf} back={here} />)}</tbody>
+        </table></div>
+      )}
+      {past.length > 0 && (
+        <details><summary>Past ({past.length})</summary>
+          <div class="table-scroll"><table>
+            <tbody>{past.map((m) => <MeetingRow meeting={m} csrf={csrf} back={here} />)}</tbody>
+          </table></div>
+        </details>
       )}
     </>
   )}
