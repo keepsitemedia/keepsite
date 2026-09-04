@@ -1,7 +1,7 @@
 // The only office module that knows what a key looks like. Pages and actions
 // call these accessors and nothing lower, so moving to a database later is a
 // rewrite of this file and no other.
-import { memoryBackend, fileBackend, blobsBackend } from './backends.mjs';
+import { fileBackend, blobsBackend } from './backends.mjs';
 import { ID } from './ids.mjs';
 
 export const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
