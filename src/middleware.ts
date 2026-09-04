@@ -1,47 +1,42 @@
 import { defineMiddleware } from 'astro:middleware';
 import { requireAdmin } from '../netlify/functions/lib/office/session.mjs';
+import { isOffice, isPublic, decide, applyHeaders } from '../netlify/functions/lib/office/guard.mjs';
 
-const OFFICE = /^\/office(\/|$)/;
-const PUBLIC = new Set(['/office/login/', '/office/api/login']);
-
-// netlify.toml headers reach static files only, so every rendered office
-// response carries its own. The CSP is the "/*" policy from netlify.toml,
-// verbatim; keep the two in step.
-const HEADERS: Record<string, string> = {
-  'X-Robots-Tag': 'noindex, nofollow',
-  'Cache-Control': 'private, no-store',
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Content-Security-Policy':
-    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests",
-};
-
-const withHeaders = (res: Response) => {
-  for (const [k, v] of Object.entries(HEADERS)) res.headers.set(k, v);
-  return res;
-};
+// decide() can also return 'skip' and 'public', but the isOffice/isPublic
+// checks below already rule those out before decide() is ever called; this
+// narrower type is what TS's own inference from the .mjs source cannot
+// express at this call site.
+type PrivateDecision =
+  | { kind: 'refuse'; status: 401 }
+  | { kind: 'refuse'; status: 302; location: string }
+  | { kind: 'pass'; admin: { email: string } | null; csrf: string };
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
   context.locals.admin = null;
   context.locals.csrf = '';
-  if (!OFFICE.test(pathname)) return next();
-  if (PUBLIC.has(pathname)) return withHeaders(await next());
 
+  if (!isOffice(pathname)) return next();
+  if (isPublic(pathname)) return applyHeaders(await next());
+
+  // requireAdmin talks to Identity, so it only runs for the office paths
+  // that need it; skip and public both return above without calling it.
   const auth = await requireAdmin(context.request);
-  if (!auth.ok) {
-    const res = pathname.startsWith('/office/api/')
-      ? new Response('sign in first', { status: 401 })
-      : context.redirect(`/office/login/?next=${encodeURIComponent(pathname)}`, 302);
+  const decision = decide(pathname, auth) as PrivateDecision;
+
+  if (decision.kind === 'refuse') {
+    const res =
+      decision.status === 401
+        ? new Response('sign in first', { status: 401 })
+        : context.redirect(decision.location, 302);
     for (const c of auth.cookies) res.headers.append('Set-Cookie', c);
-    return withHeaders(res);
+    return applyHeaders(res);
   }
-  // requireAdmin's return type doesn't narrow user to non-optional across the
-  // ok check from a plain .mjs import; ok is already true here.
-  context.locals.admin = auth.user ?? null;
-  context.locals.csrf = auth.csrf;
-  const res = withHeaders(await next());
+
+  // decision.kind === 'pass'
+  context.locals.admin = decision.admin;
+  context.locals.csrf = decision.csrf;
+  const res = applyHeaders(await next());
   for (const c of auth.cookies) res.headers.append('Set-Cookie', c);
   return res;
 });
