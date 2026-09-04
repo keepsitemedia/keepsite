@@ -69,7 +69,7 @@
   {
     "id": "meeting-reminder",
     "name": "Meeting reminder",
-    "subject": "Reminder: {{meeting.title}} in about {{meeting.hours}}",
-    "body": "Hi {{client.firstName}},\n\n**{{meeting.title}}** is on {{meeting.when}}, about {{meeting.hours}} from now.\n\nJoin here: {{meeting.link}}\n\nThanks,\n{{site.brand}}"
+    "subject": "Reminder: {{meeting.title}} in {{meeting.hours}}",
+    "body": "Hi {{client.firstName}},\n\n**{{meeting.title}}** is on {{meeting.when}}, {{meeting.hours}} from now.\n\nJoin here: {{meeting.link}}\n\nThanks,\n{{site.brand}}"
   }
 ]
