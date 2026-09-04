@@ -1,0 +1,88 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../layouts/OfficeLayout.astro';
+import TaskRow from '../../components/office/TaskRow.astro';
+import { store } from '../../../netlify/functions/lib/office/store.mjs';
+import { todayIn, addDays, isYmd, formatYmd } from '../../../netlify/functions/lib/office/dates.mjs';
+import { itemsForDay, monthGrid } from '../../../netlify/functions/lib/office/calendar.mjs';
+
+// store.mjs and calendar.mjs have no type declarations, so astro check sees
+// their returns as any; these narrow each read to what this page actually
+// touches rather than casting the whole store to any.
+type ClientRow = { slug: string; business: string };
+type Task = { id: string; slug: string; due: string; time: string | null; done: boolean };
+type Item = { kind: 'task' | 'meeting'; time: string | null; slug: string };
+type Cell = { ymd: string; day: number; inMonth: boolean; marked: boolean; today: boolean };
+type Grid = { label: string; prev: string; next: string; weeks: Cell[][] };
+
+const s = store();
+const today = todayIn();
+const requested = Astro.url.searchParams.get('d') ?? '';
+const day = isYmd(requested) ? requested : today;
+
+const clients = (await s.clients.list()) as ClientRow[];
+const names = new Map(clients.map((c) => [c.slug, c.business]));
+const tasks = (await s.tasks.listAll()) as Task[];
+const items = itemsForDay(tasks, [], day) as Item[];
+const marked = new Set(tasks.filter((t) => !t.done).map((t) => t.due));
+const grid = monthGrid(day, marked, today) as Grid;
+const here = `/office/calendar/?d=${day}`;
+const csrf = Astro.locals.csrf;
+---
+<OfficeLayout title="Calendar">
+  <div class="toolbar">
+    <a class="btn-outline btn-small" href={`/office/calendar/?d=${addDays(day, -1)}`} aria-label="Previous day">‹</a>
+    <h1>{formatYmd(day)}{day === today && <span class="badge">Today</span>}</h1>
+    <a class="btn-outline btn-small" href={`/office/calendar/?d=${addDays(day, 1)}`} aria-label="Next day">›</a>
+    <form method="GET" action="/office/calendar/" class="inline">
+      <input type="date" name="d" value={day} aria-label="Go to date" />
+      <button class="btn-outline btn-small">Go</button>
+    </form>
+    {day !== today && <a href="/office/calendar/">Today</a>}
+  </div>
+
+  <div class="row">
+    <div>
+      {items.length === 0 && <p class="empty">Nothing due.</p>}
+      {items.length > 0 && (
+        <div class="table-scroll"><table>
+          <thead><tr><th>When</th><th>Client</th><th>What</th><th></th></tr></thead>
+          <tbody>
+            {items.map((i) => <TaskRow task={i} csrf={csrf} today={today} back={here} showClient business={names.get(i.slug)} />)}
+          </tbody>
+        </table></div>
+      )}
+      <h2>Add a task</h2>
+      <form method="POST" action="/office/api/task" class="toolbar">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="op" value="add" />
+        <input type="hidden" name="back" value={here} />
+        <input type="hidden" name="due" value={day} />
+        <select name="slug" aria-label="Client" required>
+          {clients.map((c) => <option value={c.slug}>{c.business}</option>)}
+        </select>
+        <input name="title" placeholder="Task" required aria-label="Task title" />
+        <input type="time" name="time" aria-label="Time" />
+        <button class="btn btn-small">Add</button>
+      </form>
+    </div>
+    <div>
+      <div class="toolbar">
+        <a href={`/office/calendar/?d=${grid.prev}`} aria-label="Previous month">‹</a>
+        <strong>{grid.label}</strong>
+        <a href={`/office/calendar/?d=${grid.next}`} aria-label="Next month">›</a>
+      </div>
+      <div class="month" role="grid" aria-label={grid.label}>
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => <span class="muted" aria-hidden="true">{d}</span>)}
+        {grid.weeks.flat().map((c) => (
+          <a
+            href={`/office/calendar/?d=${c.ymd}`}
+            class:list={[{ out: !c.inMonth, marked: c.marked }]}
+            aria-current={c.today ? 'date' : undefined}
+            aria-label={c.ymd}
+          >{c.day}</a>
+        ))}
+      </div>
+    </div>
+  </div>
+</OfficeLayout>
