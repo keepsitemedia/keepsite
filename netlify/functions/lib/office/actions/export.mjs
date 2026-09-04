@@ -4,6 +4,7 @@ import { toCsv } from '../csv.mjs';
 import { todayIn } from '../dates.mjs';
 
 const FORMATS = {
+  __proto__: null,
   json: { type: 'application/json', body: (rows) => JSON.stringify(rows, null, 2) },
   csv: { type: 'text/csv; charset=utf-8', body: toCsv },
 };

@@ -33,3 +33,8 @@ test('unknown type or format is 400; POST is 405', async () => {
   assert.equal((await exportData(get('type=clients&format=xml'), ctx, s)).status, 400);
   assert.equal((await exportData(new Request('https://site.test/office/api/export', { method: 'POST' }), ctx, s)).status, 405);
 });
+
+test('an inherited-property format name is 400, not a crash', async () => {
+  const s = await make();
+  assert.equal((await exportData(get('type=clients&format=__proto__'), ctx, s)).status, 400);
+});
