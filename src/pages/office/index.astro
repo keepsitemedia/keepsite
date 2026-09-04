@@ -1,8 +1,76 @@
 ---
 export const prerender = false;
 import OfficeLayout from '../../layouts/OfficeLayout.astro';
+import TaskRow from '../../components/office/TaskRow.astro';
+import { store } from '../../../netlify/functions/lib/office/store.mjs';
+import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
+import { todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
+import { dueBucket } from '../../../netlify/functions/lib/office/calendar.mjs';
+
+// store.mjs, pipeline.mjs and calendar.mjs have no type declarations, so
+// astro check sees their returns as any; these narrow each read to what
+// this page actually touches rather than casting the whole store to any.
+type ClientRow = { slug: string; business: string; pipeline: string; stage: string };
+type Task = { id: string; slug: string; due: string; time: string | null; done: boolean };
+type Stage = { id: string; name: string };
+type Pipeline = { id: string; name: string; stages: Stage[] };
+type Bucket = 'overdue' | 'today' | 'soon';
+
+const s = store();
+const today = todayIn();
+const pipelines = (await loadPipelines(s)) as Pipeline[];
+const clients = (await s.clients.list()) as ClientRow[];
+const names = new Map(clients.map((c) => [c.slug, c.business]));
+const tasks = ((await s.tasks.listAll()) as Task[])
+  .filter((t) => !t.done)
+  .sort((a, b) => a.due.localeCompare(b.due));
+const buckets: Record<Bucket, Task[]> = { overdue: [], today: [], soon: [] };
+for (const t of tasks) {
+  const b = dueBucket(t, today);
+  if (b === 'overdue' || b === 'today' || b === 'soon') buckets[b].push(t);
+}
+const csrf = Astro.locals.csrf;
+const boards = pipelines.map((p) => ({
+  pipeline: p,
+  columns: p.stages.map((st) => ({ stage: st, clients: clients.filter((c) => c.pipeline === p.id && c.stage === st.id) })),
+})).filter((b) => b.columns.some((c) => c.clients.length));
+const groups: [Bucket, string][] = [
+  ['overdue', 'Overdue'],
+  ['today', 'Due today'],
+  ['soon', 'Next three days'],
+];
 ---
 <OfficeLayout title="Dashboard">
   <h1>Dashboard</h1>
-  <p class="empty">Nothing here yet.</p>
+  {clients.length === 0 && <p class="empty">No clients yet. <a href="/office/clients/new/">Add the first one.</a></p>}
+
+  {groups.map(([key, label]) => (
+    <>
+      <h2>{label} <span class="muted">({buckets[key].length})</span></h2>
+      {buckets[key].length === 0 ? <p class="empty">Nothing.</p> : (
+        <div class="table-scroll"><table>
+          <tbody>{buckets[key].map((t) => <TaskRow task={t} csrf={csrf} today={today} back="/office/" showClient business={names.get(t.slug)} />)}</tbody>
+        </table></div>
+      )}
+    </>
+  ))}
+
+  {boards.map((b) => (
+    <>
+      <h2>{b.pipeline.name}</h2>
+      <div class="board">
+        {b.columns.map((col) => (
+          <div class="col">
+            <h3>{col.stage.name} <span class="muted">{col.clients.length || ''}</span></h3>
+            {col.clients.map((c) => <a href={`/office/clients/${c.slug}/`}>{c.business}</a>)}
+          </div>
+        ))}
+      </div>
+    </>
+  ))}
+
+  <h2>Meetings</h2>
+  <p class="empty">Meetings arrive with phase 2.</p>
+  <h2>Payments</h2>
+  <p class="empty">Payments arrive with phase 3.</p>
 </OfficeLayout>
