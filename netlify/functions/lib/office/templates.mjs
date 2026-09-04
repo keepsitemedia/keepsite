@@ -58,6 +58,13 @@ const lookup = (context, path) =>
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+// Substituted values come from clients and must never become Markdown: a
+// business name like "[click me](javascript:...)" would otherwise become a
+// live link once toHtml runs. Backslash first, so the escapes below are not
+// doubled by the ones inserted for backslash itself.
+const escapeMarkdown = (s) =>
+  String(s).replace(/\\/g, '\\\\').replace(/[`*_[\]()#>!|~]/g, (c) => `\\${c}`);
+
 export function fill(source, context, prompted = {}, { escape = false } = {}) {
   const unresolved = [];
   const text = String(source).replace(PLACEHOLDER, (whole, name) => {
@@ -67,7 +74,7 @@ export function fill(source, context, prompted = {}, { escape = false } = {}) {
       return `{{${name}}}`;
     }
     v = String(v);
-    return escape ? escapeHtml(v) : v;
+    return escape ? escapeMarkdown(escapeHtml(v)) : v;
   });
   return { text, unresolved };
 }

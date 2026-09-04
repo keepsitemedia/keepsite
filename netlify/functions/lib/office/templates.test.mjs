@@ -72,3 +72,13 @@ test('toHtml renders paragraphs, bold and links', () => {
   assert.match(html, /<p>Hi<\/p>/);
   assert.match(html, /<strong>bold<\/strong>/);
 });
+
+test('render escapes Markdown syntax in substituted values so they cannot become links', () => {
+  const t = findTemplate(seed, 'agreement');
+  const evil = { ...ctx, client: { ...ctx.client, business: '[click me](javascript:alert(1))' } };
+  const r = render(t, evil, { signLink: 'https://sign/1' });
+  // Only the real signLink autolinks; the injected value stays inert, literal text.
+  assert.ok(!r.html.includes('href="javascript:'));
+  assert.ok(r.html.includes('[click me](javascript:alert(1))'));
+  assert.ok(r.text.includes('[click me](javascript:alert(1))'));
+});
