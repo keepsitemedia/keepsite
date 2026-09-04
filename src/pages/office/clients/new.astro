@@ -1,0 +1,26 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import ClientFields from '../../../components/office/ClientFields.astro';
+import { store } from '../../../../netlify/functions/lib/office/store.mjs';
+import { loadPipelines } from '../../../../netlify/functions/lib/office/pipeline.mjs';
+
+// pipeline.mjs has no type declarations, so astro check sees loadPipelines'
+// return as any; this narrows it to what the select below reads.
+type PipelineRow = { id: string; name: string };
+const pipelines = (await loadPipelines(store())) as PipelineRow[];
+const error = Astro.url.searchParams.get('error');
+---
+<OfficeLayout title="New client">
+  <h1>New client</h1>
+  {error && <p class="error">{error}</p>}
+  <form method="POST" action="/office/api/client">
+    <input type="hidden" name="csrf" value={Astro.locals.csrf} />
+    <input type="hidden" name="op" value="create" />
+    <label class="field"><span>Pipeline</span>
+      <select name="pipeline">{pipelines.map((p) => <option value={p.id}>{p.name}</option>)}</select>
+    </label>
+    <ClientFields />
+    <button type="submit" class="btn">Create client</button>
+  </form>
+</OfficeLayout>

@@ -1,0 +1,55 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import { store } from '../../../../netlify/functions/lib/office/store.mjs';
+import { loadPipelines, findPipeline, findStage } from '../../../../netlify/functions/lib/office/pipeline.mjs';
+import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
+
+// store.mjs and pipeline.mjs have no type declarations, so astro check sees
+// their returns as any; these narrow the two list() reads to what this page
+// actually reads rather than casting the whole store to any.
+type ClientRow = { slug: string; business: string; name: string; tier: string; pipeline: string; stage: string };
+type TaskRow = { due: string; title: string; done: boolean };
+
+const s = store();
+const pipelines = await loadPipelines(s);
+const clients = ((await s.clients.list()) as ClientRow[]).sort((a, b) => a.business.localeCompare(b.business));
+const today = todayIn();
+
+// The next open task per client, one store read per client. Fine at fifty.
+const next = new Map<string, TaskRow | null>();
+for (const c of clients) {
+  const open = ((await s.tasks.list(c.slug)) as TaskRow[]).filter((t) => !t.done).sort((a, b) => a.due.localeCompare(b.due));
+  next.set(c.slug, open[0] ?? null);
+}
+const stageName = (c: ClientRow) => findStage(findPipeline(pipelines, c.pipeline), c.stage)?.name ?? c.stage;
+---
+<OfficeLayout title="Clients">
+  <div class="toolbar">
+    <h1>Clients</h1>
+    <a class="btn btn-small" href="/office/clients/new/">New client</a>
+  </div>
+  {clients.length === 0 ? (
+    <p class="empty">No clients yet.</p>
+  ) : (
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Business</th><th>Contact</th><th>Tier</th><th>Stage</th><th>Next due</th></tr></thead>
+        <tbody>
+          {clients.map((c) => {
+            const t = next.get(c.slug);
+            return (
+              <tr>
+                <td><a href={`/office/clients/${c.slug}/`}>{c.business}</a></td>
+                <td>{c.name}</td>
+                <td>{c.tier || <span class="muted">—</span>}</td>
+                <td><span class="badge">{stageName(c)}</span></td>
+                <td>{t ? <span class={t.due < today ? 'overdue' : ''}>{formatYmd(t.due)} · {t.title}</span> : <span class="muted">—</span>}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  )}
+</OfficeLayout>

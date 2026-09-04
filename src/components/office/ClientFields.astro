@@ -1,0 +1,20 @@
+---
+import { TIERS } from '../../../netlify/functions/lib/office/clients.mjs';
+interface Props { client?: Record<string, string> }
+const c = Astro.props.client ?? {};
+---
+<div class="row">
+  <label class="field"><span>Contact name</span><input name="name" required value={c.name ?? ''} /></label>
+  <label class="field"><span>Business</span><input name="business" required value={c.business ?? ''} /></label>
+  <label class="field"><span>Email</span><input type="email" name="email" required value={c.email ?? ''} /></label>
+  <label class="field"><span>Phone</span><input name="phone" value={c.phone ?? ''} /></label>
+  <label class="field"><span>Website</span><input name="website" value={c.website ?? ''} placeholder="https://" /></label>
+  <label class="field"><span>Tier</span>
+    <select name="tier">
+      <option value="" selected={!c.tier}>Not decided</option>
+      {TIERS.map((t) => <option value={t} selected={c.tier === t}>{t}</option>)}
+    </select>
+  </label>
+</div>
+<label class="field"><span>Address</span><input name="address" value={c.address ?? ''} /></label>
+<label class="field"><span>Notes</span><textarea name="notes" rows="4">{c.notes ?? ''}</textarea></label>
