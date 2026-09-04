@@ -53,7 +53,7 @@ The marketing pages keep building static, the sitemap filter excludes
 
 | Route | Auth | Purpose |
 |---|---|---|
-| `/office/login/` | none | Email and password form. |
+| `/office/login/` | none | Email and password form. Prerendered. |
 | `/office/` | admin | Dashboard: clients by stage, tasks due this week, meetings, overdue and failed payments. |
 | `/office/clients/` | admin | Client list with stage, tier, pipeline, next due task. |
 | `/office/clients/{slug}/` | admin | Client page with tabs: Overview, Tasks, Questionnaires, Documents, Payments, Meetings, Agreements, Emails. |
@@ -61,20 +61,34 @@ The marketing pages keep building static, the sitemap filter excludes
 | `/office/send/{slug}/{emailId}/` | admin | Email send screen: prompted fields, preview, send. |
 | `/office/settings/` | admin | Pipelines and email templates. |
 | `/office/data/` | admin | Every document type with counts; download any type as JSON or CSV. |
+| `/office/api/{action}` | admin (login excepted) | Form actions: login, logout, client, stage, task, settings, export. |
 | `/sign/?t=…` | signer token | Client signing page. |
 | `/questionnaire/*` | questionnaire token | Unchanged. |
 
-Mutations are native form posts to functions under
-`netlify/functions/office-*.mjs`, which validate, write, and redirect
-back, matching the questionnaire pattern. Client-side JavaScript is for
-conveniences (the signature canvas, the calendar date picker, live
-email preview), never the only path.
+Mutations are native form posts to `/office/api/{action}`, one Astro
+endpoint that dispatches to handler modules in
+`netlify/functions/lib/office/`. Each handler takes a `Request` and
+returns a `Response`, validates, writes, and redirects back, matching
+the questionnaire function's shape and testable under `node --test`
+the same way. Endpoints rather than raw functions because Netlify's
+`netlify.toml` redirects and headers do not apply to server-rendered
+routes, and because the middleware guard then covers pages and actions
+in one place. Raw functions remain only where the caller is anonymous:
+the questionnaire endpoint and the inquiry hook. Client-side JavaScript
+is for conveniences (the signature canvas, the calendar date picker,
+live email preview), never the only path.
 
-Hidden from non-admins in three layers: `/office/*` carries
-`X-Robots-Tag: noindex, nofollow` and a `Disallow: /office/` line in
-`public/robots.txt`; the sitemap filter excludes it; and an
+`/office/login/` is prerendered. It has nothing dynamic to render, and
+a static page is one the Lighthouse plugin can audit.
+
+Hidden from non-admins in three layers: every office response carries
+`X-Robots-Tag: noindex, nofollow`, set by Astro middleware because
+`netlify.toml` headers only reach static files, and `public/robots.txt`
+gains `Disallow: /office/`; the sitemap filter excludes it; and an
 unauthenticated request gets a 302 to the login page, never office
-HTML.
+HTML. The same middleware sets the site's strict Content-Security-Policy
+on office responses, since the `/*` block in `netlify.toml` does not
+reach them either.
 
 No third-party script is added anywhere. Login talks to Identity's
 same-origin endpoints, Stripe pages are Stripe-hosted redirects, and
@@ -100,13 +114,13 @@ Netlify Identity, invite only. An admin is a user whose
   `SameSite=Strict`, `Path=/`. On failure it redirects back to the login
   page with a generic error; it never says which of email or password
   was wrong.
-- **Guard.** Every office page and office function calls
-  `requireAdmin(request)`. It sends `ks_access` to
+- **Guard.** Astro middleware calls `requireAdmin(request)` for every
+  request under `/office/` except the login page and login action. It sends `ks_access` to
   `/.netlify/identity/user`. If that returns a user with the `admin`
   role, the request proceeds. If the token is expired, it exchanges
   `ks_refresh` for a new access token and sets the cookie on the
   response. Any other outcome is a 302 to `/office/login/` for pages and
-  a 401 for functions.
+  a 401 for `/office/api/*`.
 - **Logout.** `office-logout.mjs` calls Identity's logout endpoint and
   clears both cookies.
 
@@ -150,8 +164,11 @@ client while a webhook lands never races. The two exceptions, `done`
 on a task and `remindersSent` on a meeting, are single-field flips
 where the last write is always the right one.
 
-`netlify/functions/lib/store.mjs` is the only module that imports
-`@netlify/blobs`. It exposes `getClient`, `putClient`, `listClients`,
+`netlify/functions/lib/office/store.mjs` is the only office module
+that imports `@netlify/blobs` (`questionnaire.mjs` keeps its own
+direct use). It selects a backend: Blobs on Netlify, or a directory of
+JSON files when `OFFICE_STORE_DIR` is set, so `astro dev` works without
+the Netlify CLI, and an in-memory backend for tests. It exposes `getClient`, `putClient`, `listClients`,
 and the equivalent for every type, plus `listByPrefix`. Pages and
 functions call these and nothing lower. Moving to Netlify DB later
 means rewriting this file and no other.
@@ -198,13 +215,14 @@ ACH can take days to settle and the decision stays human.
 Manual tasks can be added to any client at any time with a title, due
 date, optional time and notes.
 
-The `/start/` inquiry form gains a function target,
-`office-inquiry.mjs`, that creates a client record at the Inquiry stage
-from the fields the form already has, then re-posts the same body to
-Netlify Forms so the existing email notification keeps working. The
-slug is derived from the business name and made unique. A duplicate
-email address attaches the inquiry to the existing client as a note
-rather than creating a second record.
+The `/start/` inquiry form does not change. Netlify runs a function
+named `submission-created` after every verified form submission, with
+the submission as its payload; that function creates a client record
+at the Inquiry stage from the fields the form already has. The existing
+email notification keeps working untouched, and spam Netlify rejects
+never reaches the store. The slug is derived from the business name
+and made unique. A duplicate email address attaches the inquiry to the
+existing client as a note rather than creating a second record.
 
 ## Calendar
 
