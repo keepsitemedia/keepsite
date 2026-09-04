@@ -1,0 +1,75 @@
+[
+  {
+    "id": "agreement",
+    "name": "Agreement to sign",
+    "subject": "Your Keepsite agreement",
+    "body": "Hi {{client.firstName}},\n\nHere is the agreement for {{client.business}}. It lays out the build, the monthly fee, and what happens at each stage.\n\n**Sign here:** {{signLink}}\n\nOnce it is signed I will send the first questionnaire, which takes about ten minutes.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [
+      { "key": "signLink", "label": "Signing link", "required": true },
+      { "key": "note", "label": "Personal note", "default": "" }
+    ]
+  },
+  {
+    "id": "intro",
+    "name": "Intro questionnaire",
+    "subject": "Ten minutes about {{client.business}}",
+    "body": "Hi {{client.firstName}},\n\nThank you for signing. The next step is eight quick questions about your business, most of which you can answer off the top of your head:\n\n{{links.intro}}\n\nThat is everything I need to put four designs in front of you.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [{ "key": "note", "label": "Personal note", "default": "" }]
+  },
+  {
+    "id": "post-demo",
+    "name": "Demo and follow-up questionnaires",
+    "subject": "Four directions for {{client.business}}",
+    "body": "Hi {{client.firstName}},\n\nYour four homepage directions are ready:\n\n{{links.demo}}\n\nHave a look, pick the one that feels like your business, then answer the two questionnaires below. They are one pass each, not a back-and-forth.\n\n- Brand and demo feedback: {{links.brand}}\n- Site build: {{links.build}}\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [{ "key": "note", "label": "Personal note", "default": "" }]
+  },
+  {
+    "id": "layouts",
+    "name": "Layouts ready",
+    "subject": "Every page of {{client.business}}, laid out",
+    "body": "Hi {{client.firstName}},\n\nEvery page your site will have is laid out here:\n\n{{previewLink}}\n\nThe text is placeholder and the image areas are outlined boxes on purpose: this round is about whether the site has every page you need and how each one is put together. Send your changes in one go and I will fold them in.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [
+      { "key": "previewLink", "label": "Preview link", "required": true },
+      { "key": "note", "label": "Personal note", "default": "" }
+    ]
+  },
+  {
+    "id": "copy",
+    "name": "Copy and photos in place",
+    "subject": "{{client.business}}, with your words and photos",
+    "body": "Hi {{client.firstName}},\n\nYour copy and photos are in:\n\n{{previewLink}}\n\nRead it through, send your changes in one go, and we launch.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [
+      { "key": "previewLink", "label": "Preview link", "required": true },
+      { "key": "note", "label": "Personal note", "default": "" }
+    ]
+  },
+  {
+    "id": "launch",
+    "name": "Balance and launch",
+    "subject": "Launching {{client.business}}",
+    "body": "Hi {{client.firstName}},\n\nWe are ready to launch. The balance is due now:\n\n{{payLink}}\n\nOnce it clears the site goes live at your domain, and the monthly starts on launch day as the agreement describes.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [
+      { "key": "payLink", "label": "Payment link", "required": true },
+      { "key": "note", "label": "Personal note", "default": "" }
+    ]
+  },
+  {
+    "id": "questionnaire-reminder",
+    "name": "Questionnaire reminder",
+    "subject": "A nudge on the {{questionnaire.title}}",
+    "body": "Hi {{client.firstName}},\n\nA quick nudge: the {{questionnaire.title}} is still open. Your answers save as you go, so it is fine to finish it in more than one sitting.\n\n{{questionnaire.link}}\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [{ "key": "note", "label": "Personal note", "default": "" }]
+  },
+  {
+    "id": "meeting-confirmation",
+    "name": "Meeting confirmation",
+    "subject": "Confirmed: {{meeting.title}} on {{meeting.when}}",
+    "body": "Hi {{client.firstName}},\n\nWe are set for **{{meeting.title}}** on {{meeting.when}} ({{meeting.minutes}} minutes).\n\nJoin here: {{meeting.link}}\n\nA calendar file is attached. Reply to this email if the time stops working.\n\nThanks,\n{{site.brand}}"
+  },
+  {
+    "id": "meeting-reminder",
+    "name": "Meeting reminder",
+    "subject": "Reminder: {{meeting.title}} in about {{meeting.hours}}",
+    "body": "Hi {{client.firstName}},\n\n**{{meeting.title}}** is on {{meeting.when}}, about {{meeting.hours}} from now.\n\nJoin here: {{meeting.link}}\n\nThanks,\n{{site.brand}}"
+  }
+]

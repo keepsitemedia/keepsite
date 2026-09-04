@@ -2,9 +2,29 @@
 // dashboard. A malformed seed fails in three places; catch it here.
 import fs from 'node:fs';
 import { validatePipelines } from '../netlify/functions/lib/office/pipeline.mjs';
+// Templates are the other half of the pipeline seed: a stage that names an
+// email nobody wrote opens a 404 at the moment the admin advances a client.
+import { validateTemplates, placeholdersIn, KNOWN_PLACEHOLDERS } from '../netlify/functions/lib/office/templates.mjs';
 
 const seed = JSON.parse(fs.readFileSync('src/data/office/pipelines.json', 'utf8'));
 const errors = validatePipelines(seed);
+
+const templates = JSON.parse(fs.readFileSync('src/data/office/templates.json', 'utf8'));
+errors.push(...validateTemplates(templates));
+const templateIds = new Set(templates.map((t) => t.id));
+for (const p of seed) {
+  for (const s of p.stages) {
+    if (s.email && !templateIds.has(s.email)) errors.push(`${p.id}/${s.id}: email "${s.email}" has no template`);
+  }
+}
+for (const t of templates) {
+  const prompted = new Set((t.fields ?? []).map((f) => f.key));
+  for (const name of placeholdersIn(`${t.subject}\n${t.body}`)) {
+    if (!KNOWN_PLACEHOLDERS.includes(name) && !prompted.has(name)) {
+      errors.push(`template ${t.id}: {{${name}}} is neither an auto-fill placeholder nor a prompted field`);
+    }
+  }
+}
 const forms = new Set(fs.readdirSync('src/data/questionnaires').map((f) => f.replace(/\.json$/, '')));
 for (const p of seed) {
   for (const q of p.questionnaires ?? []) {
