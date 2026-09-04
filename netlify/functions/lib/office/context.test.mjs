@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildContext, siteUrl } from './context.mjs';
 import { mint } from '../token.mjs';
-import brandQuestionnaire from '../../../../src/data/questionnaires/brand.json' with { type: 'json' };
 
 const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com' };
 
@@ -32,9 +31,7 @@ test('no secret means no questionnaire links, and a form adds the questionnaire 
   const c = buildContext({ client, admin: { email: 'me@x' }, secret: '', form: 'brand' });
   assert.equal(c.links.intro, '');
   assert.equal(c.questionnaire.link, '');
-  // The brand questionnaire's own title (not a synthesized one) — real data,
-  // so this catches a stale TITLES mapping instead of a made-up regex match.
-  assert.equal(c.questionnaire.title, brandQuestionnaire.title);
+  assert.equal(c.questionnaire.title, 'brand and demo questionnaire');
 });
 
 test('a meeting adds when, link, minutes and hours', () => {

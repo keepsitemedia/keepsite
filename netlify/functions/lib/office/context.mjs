@@ -1,13 +1,19 @@
 // Everything a template may auto-fill about one client, built in one place so
 // the send screen, the meeting emails and the digest all say the same thing.
 import site from '../../../../src/data/site.json' with { type: 'json' };
-import intro from '../../../../src/data/questionnaires/intro.json' with { type: 'json' };
-import brand from '../../../../src/data/questionnaires/brand.json' with { type: 'json' };
-import build from '../../../../src/data/questionnaires/build.json' with { type: 'json' };
 import { mint } from '../token.mjs';
 import { toInstant, formatWhen, formatHours } from './dates.mjs';
 
-const TITLES = { __proto__: null, intro: intro.title, brand: brand.title, build: build.title };
+// Labels for prose, not the questionnaire pages' own titles: the reminder
+// template puts an article in front of this ("the {{questionnaire.title}}
+// is still open"), and a page title like "Your designs" doesn't read as a
+// noun phrase there the way "brand and demo questionnaire" does.
+const TITLES = {
+  __proto__: null,
+  intro: 'intro questionnaire',
+  brand: 'brand and demo questionnaire',
+  build: 'site build questionnaire',
+};
 
 export const siteUrl = () => process.env.URL || 'https://www.keepsitemedia.com';
 
