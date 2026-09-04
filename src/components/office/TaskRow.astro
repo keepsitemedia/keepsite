@@ -23,10 +23,9 @@ const cls = t.done ? 'done' : t.due < today ? 'overdue' : '';
         <input type="hidden" name="slug" value={t.slug} />
         <input type="hidden" name="id" value={t.id} />
         <input type="hidden" name="back" value={back} />
-        <input type="hidden" name="op" value="reschedule" />
         <input type="date" name="due" value={t.due} required aria-label="New date" />
         <input type="time" name="time" value={t.time ?? ''} aria-label="Time" />
-        <button class="btn-small">Save</button>
+        <button class="btn-small" name="op" value="reschedule">Save</button>
         <button class="btn-small" name="op" value="delete" formnovalidate>Delete</button>
       </form>
     </details>
