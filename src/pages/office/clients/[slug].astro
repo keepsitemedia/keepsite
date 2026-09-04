@@ -6,6 +6,11 @@ import TaskRow from '../../../components/office/TaskRow.astro';
 import { store, SLUG } from '../../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines, findPipeline } from '../../../../netlify/functions/lib/office/pipeline.mjs';
 import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
+import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
+import { mint } from '../../../../netlify/functions/lib/token.mjs';
+import intro from '../../../data/questionnaires/intro.json';
+import brand from '../../../data/questionnaires/brand.json';
+import build from '../../../data/questionnaires/build.json';
 
 // store.mjs and pipeline.mjs have no type declarations, so astro check sees
 // their returns as any; these narrow to what this page actually reads rather
@@ -16,8 +21,8 @@ type ClientDoc = {
   dates: { inquiry: string; signed: string | null; launched: string | null };
 };
 type StageRow = { id: string; name: string };
-type PipelineRow = { stages: StageRow[]; questionnaires?: unknown[] };
-type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null };
+type PipelineRow = { stages: StageRow[]; questionnaires?: string[] };
+type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null; questionnaire: string | null };
 
 const slug = Astro.params.slug ?? '';
 if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
@@ -37,6 +42,23 @@ const tab = Astro.url.searchParams.get('tab') ?? 'overview';
 const error = Astro.url.searchParams.get('error');
 const csrf = Astro.locals.csrf;
 const here = `/office/clients/${slug}/?tab=${tab}`;
+const DEFINITIONS: Record<string, any> = { intro, brand, build };
+const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
+const site = Astro.site?.origin ?? '';
+const forms = tab === 'questionnaires'
+  ? await Promise.all((pipeline?.questionnaires ?? []).map(async (form: string) => {
+      const submission = await s.questionnaires.get(slug, form);
+      const task = tasks.find((t) => t.questionnaire === form);
+      return {
+        form,
+        definition: DEFINITIONS[form],
+        submission,
+        status: submission ? 'submitted' : task ? 'sent' : 'not sent',
+        link: secret ? `${site}/questionnaire/${form}/?c=${slug}&t=${mint(secret, slug, form)}` : '',
+      };
+    }))
+  : [];
+const files = (tab === 'questionnaires' ? await s.questionnaires.files(slug) : []) as string[];
 const tabs = [
   ['overview', 'Overview'],
   ['tasks', `Tasks (${open.length})`],
@@ -118,5 +140,28 @@ const tabs = [
     </>
   )}
 
-  {tab === 'questionnaires' && <p class="empty">Questionnaires arrive in the next task.</p>}
+  {tab === 'questionnaires' && (
+    <>
+      {!secret && <p class="error">KEEPSITE_TOKEN_SECRET is not set, so links cannot be shown.</p>}
+      {forms.map((f) => (
+        <section>
+          <h2>{f.definition?.title ?? f.form} <span class="badge">{f.status}</span></h2>
+          {f.submission ? (
+            <>
+              <p class="muted">Submitted {f.submission.submittedAt.slice(0, 10)} · form version {f.submission.formVersion}</p>
+              <details><summary>Answers</summary><QuestionnaireAnswers definition={f.definition} submission={f.submission} /></details>
+            </>
+          ) : (
+            f.link && <p>Link: <code>{f.link}</code></p>
+          )}
+        </section>
+      ))}
+      {files.length > 0 && (
+        <>
+          <h2>Uploaded files</h2>
+          <ul>{files.map((k) => <li>{k.slice(slug.length + 1)}</li>)}</ul>
+        </>
+      )}
+    </>
+  )}
 </OfficeLayout>

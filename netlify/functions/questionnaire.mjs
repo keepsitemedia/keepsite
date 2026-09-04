@@ -8,6 +8,7 @@ import { getStore } from '@netlify/blobs';
 import { verify } from './lib/token.mjs';
 import { validate } from './lib/validate.mjs';
 import { fileKey, safeName } from './lib/blob-key.mjs';
+import { markQuestionnaireDone } from './lib/office/hooks.mjs';
 
 // `with { type: 'json' }` is required, not optional: this module is imported
 // under raw Node by lib/questionnaire.test.mjs, where a bare JSON import
@@ -113,6 +114,15 @@ export default async (request) => {
 
   store ??= getStore('questionnaires');
   await store.setJSON(`${slug}/${form}.json`, envelope);
+
+  // Office bookkeeping is best-effort for the same reason the email is: the
+  // answers are already durable, and nothing after this may cost the client
+  // their redirect.
+  try {
+    await markQuestionnaireDone(slug, form);
+  } catch {
+    // Nothing to do.
+  }
 
   // Best-effort from here: the durable record is already written, so a
   // network hiccup reaching Resend must not turn a successful submission
