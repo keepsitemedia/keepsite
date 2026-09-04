@@ -32,6 +32,14 @@ test('toInstant converts a Mountain wall time to the right instant across DST', 
   assert.equal(toInstant('2026-12-08', '14:30').toISOString(), '2026-12-08T21:30:00.000Z');
 });
 
+test('toInstant converges on DST transition days', () => {
+  // Spring forward: MDT starts 2 a.m. on 2026-03-08.
+  assert.equal(toInstant('2026-03-08', '03:00').toISOString(), '2026-03-08T09:00:00.000Z');
+  assert.equal(toInstant('2026-03-08', '10:00').toISOString(), '2026-03-08T16:00:00.000Z');
+  // Fall back: MST resumes on 2026-11-01.
+  assert.equal(toInstant('2026-11-01', '03:00').toISOString(), '2026-11-01T10:00:00.000Z');
+});
+
 test('formatWhen and formatHours read like an email', () => {
   assert.equal(formatWhen('2026-09-08', '14:30'), 'Tue, Sep 8 at 2:30 pm Mountain');
   assert.equal(formatHours(24 * 3600e3), 'about 24 hours');

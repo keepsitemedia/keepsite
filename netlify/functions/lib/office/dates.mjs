@@ -55,14 +55,18 @@ function offsetMs(date, tz) {
   return wall - date.getTime();
 }
 
-// A Mountain wall time to an instant. Guess as if UTC, then correct by the
-// zone's offset at that guess; DST boundaries are the only hour this is
-// approximate, and no meeting is booked at 2 a.m.
+// A Mountain wall time to an instant. The offset at the guessed instant can
+// differ from the offset at the true result (a wall time shortly after a
+// DST transition), so correct twice: the second pass reads the offset at the
+// first pass's result, which converges everywhere except the nonexistent
+// hour on spring-forward day, which lands on the hour before.
 export function toInstant(ymd, hhmm, tz = TZ) {
   const [y, m, d] = parts(ymd);
   const [hh, mm] = hhmm.split(':').map(Number);
   const guess = Date.UTC(y, m - 1, d, hh, mm);
-  return new Date(guess - offsetMs(new Date(guess), tz));
+  let inst = guess - offsetMs(new Date(guess), tz);
+  inst = guess - offsetMs(new Date(inst), tz);
+  return new Date(inst);
 }
 
 export const formatWhen = (ymd, hhmm) => `${formatYmd(ymd)} at ${formatTime(hhmm)} Mountain`;
