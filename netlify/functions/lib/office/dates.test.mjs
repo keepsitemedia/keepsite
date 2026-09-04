@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { todayIn, addDays, isYmd, formatYmd, formatTime } from './dates.mjs';
+import { todayIn, addDays, isYmd, formatYmd, formatTime, toInstant, formatWhen, formatHours } from './dates.mjs';
 
 test('todayIn reports the Mountain date, not the UTC one', () => {
   // 05:30 UTC on the 5th is still 23:30 on the 4th in Denver.
@@ -25,4 +25,16 @@ test('formatYmd and formatTime read like a calendar', () => {
   assert.equal(formatYmd('2026-09-04'), 'Fri, Sep 4');
   assert.equal(formatTime('14:30'), '2:30 pm');
   assert.equal(formatTime('09:05'), '9:05 am');
+});
+
+test('toInstant converts a Mountain wall time to the right instant across DST', () => {
+  assert.equal(toInstant('2026-09-08', '14:30').toISOString(), '2026-09-08T20:30:00.000Z');
+  assert.equal(toInstant('2026-12-08', '14:30').toISOString(), '2026-12-08T21:30:00.000Z');
+});
+
+test('formatWhen and formatHours read like an email', () => {
+  assert.equal(formatWhen('2026-09-08', '14:30'), 'Tue, Sep 8 at 2:30 pm Mountain');
+  assert.equal(formatHours(24 * 3600e3), 'about 24 hours');
+  assert.equal(formatHours(1 * 3600e3), 'about 1 hour');
+  assert.equal(formatHours(45 * 60e3), '45 minutes');
 });
