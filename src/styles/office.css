@@ -53,3 +53,9 @@
 .office .month [aria-current="date"] { background: var(--color-brand-tint); }
 
 .office textarea.json { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 30rem; width: 100%; }
+
+.office .send { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+@media (max-width: 60rem) { .office .send { grid-template-columns: 1fr; } }
+.office .send textarea { width: 100%; min-height: 22rem; font-family: inherit; }
+.office .preview { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-2) var(--space-3); }
+.office .preview p { margin: 0 0 var(--space-2); }

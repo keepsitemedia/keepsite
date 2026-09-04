@@ -1,0 +1,93 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
+import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
+import { loadTemplates, findTemplate, render } from '../../../../../netlify/functions/lib/office/templates.mjs';
+import { buildContext } from '../../../../../netlify/functions/lib/office/context.mjs';
+
+type Field = { key: string; label: string; default?: string; required?: boolean };
+type Template = { id: string; name: string; subject: string; body: string; fields?: Field[] };
+type ClientDoc = { slug: string; name: string; business: string; email: string };
+type Rendered = { subject: string; text: string; html: string; unresolved: string[]; missing: string[] };
+
+const slug = Astro.params.slug ?? '';
+const templateId = Astro.params.template ?? '';
+if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
+const s = store();
+const client = (await s.clients.get(slug)) as ClientDoc | null;
+if (!client) return new Response('not found', { status: 404 });
+const template = findTemplate(await loadTemplates(s), templateId) as Template | undefined;
+if (!template) return new Response('not found', { status: 404 });
+
+const form = Astro.url.searchParams.get('form') ?? '';
+const error = Astro.url.searchParams.get('error');
+const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
+// buildContext's meeting has no default, so TS infers it required even
+// though the function treats a missing key the same as undefined.
+const context = buildContext({ client, admin: Astro.locals.admin, secret, form: /^[a-z]+$/.test(form) ? form : undefined, meeting: undefined });
+// Rendered with defaults only; prompted values are typed on the page and
+// substituted by the inline script, then the action re-checks for leftovers.
+const rendered = render(template, context, {}) as Rendered;
+const fields = template.fields ?? [];
+const csrf = Astro.locals.csrf;
+---
+<OfficeLayout title={`Send: ${template.name}`}>
+  <div class="toolbar">
+    <h1>{template.name}</h1>
+    <span class="muted">to {client.name} &lt;{client.email}&gt;</span>
+    <a href={`/office/clients/${slug}/?tab=emails`}>Back to {client.business}</a>
+  </div>
+  {error && <p class="error">{error}</p>}
+  {!secret && <p class="error">KEEPSITE_TOKEN_SECRET is not set, so questionnaire links are blank.</p>}
+  {rendered.unresolved.filter((u) => !fields.some((f) => f.key === u)).length > 0 && (
+    <p class="error">Could not fill: {rendered.unresolved.filter((u) => !fields.some((f) => f.key === u)).join(', ')}. Edit them by hand below.</p>
+  )}
+  <form method="POST" action="/office/api/send" id="send" class="send">
+    <div>
+      <input type="hidden" name="csrf" value={csrf} />
+      <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="template" value={template.id} />
+      {form && <input type="hidden" name="form" value={form} />}
+      {fields.length > 0 && (
+        <fieldset>
+          <legend>Fill in</legend>
+          {fields.map((f) => (
+            <label class="field">
+              <span>{f.label}{f.required && <span class="field-hint"> Required</span>}</span>
+              <input name={`f_${f.key}`} data-prompt={f.key} value={f.default ?? ''} required={f.required} />
+            </label>
+          ))}
+        </fieldset>
+      )}
+      <label class="field"><span>Subject</span><input name="subject" value={rendered.subject} data-original={rendered.subject} required /></label>
+      <label class="field"><span>Body (Markdown)</span><textarea name="body" data-original={rendered.text}>{rendered.text}</textarea></label>
+      <button class="btn">Send</button>
+    </div>
+    <div>
+      <h2>Preview</h2>
+      <div class="preview" set:html={rendered.html} />
+      <p class="muted">The preview shows the template as loaded; the text on the left is what will be sent.</p>
+    </div>
+  </form>
+  <script is:inline>
+    // Prompted values replace {{key}} in the subject and body as they are
+    // typed, from a pristine copy, so retyping never compounds.
+    (function () {
+      var form = document.getElementById('send');
+      var prompts = form.querySelectorAll('[data-prompt]');
+      var targets = [form.querySelector('[name="subject"]'), form.querySelector('[name="body"]')];
+      function apply() {
+        targets.forEach(function (el) {
+          var out = el.getAttribute('data-original');
+          prompts.forEach(function (p) {
+            var re = new RegExp('\\{\\{\\s*' + p.getAttribute('data-prompt') + '\\s*\\}\\}', 'g');
+            if (p.value) out = out.replace(re, p.value);
+          });
+          el.value = out;
+        });
+      }
+      prompts.forEach(function (p) { p.addEventListener('input', apply); });
+      apply();
+    })();
+  </script>
+</OfficeLayout>
