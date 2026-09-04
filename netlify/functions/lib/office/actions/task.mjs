@@ -1,4 +1,4 @@
-import { readForm, redirect, problem, field, checkCsrf, safeNext } from '../http.mjs';
+import { readForm, redirect, problem, field, checkCsrf, safeNext, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
 import { newId, ID } from '../ids.mjs';
 import { isYmd, isHhmm } from '../dates.mjs';
@@ -15,7 +15,7 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   if (request.method !== 'POST') return problem(405, 'POST only');
   const data = await readForm(request);
   if (!data) return problem(400, 'expected a form');
-  if (!checkCsrf(ctx, data)) return problem(403, 'stale form, reload and try again');
+  if (!checkCsrf(ctx, data)) return problem(403, CSRF_REFUSED);
 
   const slug = field(data, 'slug');
   if (!SLUG.test(slug)) return problem(400, 'bad slug');

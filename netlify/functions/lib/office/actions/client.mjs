@@ -1,4 +1,4 @@
-import { readForm, redirect, problem, field, checkCsrf } from '../http.mjs';
+import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
 import { loadPipelines, findPipeline, advance } from '../pipeline.mjs';
 import { validateClient, newClient, applyEdit, clientFields, slugify, uniqueSlug } from '../clients.mjs';
@@ -12,7 +12,7 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
   if (request.method !== 'POST') return problem(405, 'POST only');
   const data = await readForm(request);
   if (!data) return problem(400, 'expected a form');
-  if (!checkCsrf(ctx, data)) return problem(403, 'stale form, reload and try again');
+  if (!checkCsrf(ctx, data)) return problem(403, CSRF_REFUSED);
 
   const op = field(data, 'op');
   const fields = clientFields(data);

@@ -25,6 +25,12 @@ export const redirect = (to) => new Response(null, { status: 303, headers: { Loc
 export const problem = (status, text) =>
   new Response(text, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 
+// A bad token and an unset secret produce the same false from checkCsrf, and
+// only one of them is fixable by reloading; say so rather than sending the
+// admin in a reload loop that can never succeed.
+export const CSRF_REFUSED =
+  'form token did not match; if reloading does not fix it, KEEPSITE_SESSION_SECRET is not set on the server';
+
 export const checkCsrf = (ctx, data) =>
   verifyCsrf(process.env.KEEPSITE_SESSION_SECRET, ctx?.csrf ?? '', field(data, 'csrf'));
 

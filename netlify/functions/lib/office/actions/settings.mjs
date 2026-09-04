@@ -1,4 +1,4 @@
-import { readForm, redirect, problem, field, checkCsrf } from '../http.mjs';
+import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore } from '../store.mjs';
 import { validatePipelines } from '../pipeline.mjs';
 
@@ -11,7 +11,7 @@ export async function settings(request, ctx, s = defaultStore()) {
   if (request.method !== 'POST') return problem(405, 'POST only');
   const data = await readForm(request);
   if (!data) return problem(400, 'expected a form');
-  if (!checkCsrf(ctx, data)) return problem(403, 'stale form, reload and try again');
+  if (!checkCsrf(ctx, data)) return problem(403, CSRF_REFUSED);
 
   const name = field(data, 'name');
   const validate = VALIDATORS[name];

@@ -43,6 +43,9 @@ const current = (href: string) => (href === '/office/' ? path === href : path.st
     </header>
     <main id="main" tabindex="-1">
       <div class="container">
+        {admin && !process.env.KEEPSITE_SESSION_SECRET && (
+          <p class="error">KEEPSITE_SESSION_SECRET is not set, so every form on this site will be refused.</p>
+        )}
         <slot />
       </div>
     </main>
