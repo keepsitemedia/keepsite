@@ -16,6 +16,13 @@ test('readForm returns null for a body that is not a form', async () => {
   assert.equal(field(d, 'missing'), '');
 });
 
+test('readForm refuses a field posted more than once', async () => {
+  const d = new FormData();
+  d.append('op', 'reschedule');
+  d.append('op', 'delete');
+  assert.equal(await readForm(new Request('http://x/office/api/task', { method: 'POST', body: d })), null);
+});
+
 test('redirect and problem build the expected responses', async () => {
   const r = redirect('/office/');
   assert.equal(r.status, 303);

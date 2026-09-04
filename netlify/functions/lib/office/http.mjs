@@ -4,7 +4,15 @@
 import { verifyCsrf } from './session.mjs';
 
 export async function readForm(request) {
-  try { return await request.formData(); } catch { return null; }
+  let data;
+  try { data = await request.formData(); } catch { return null; }
+  // No office form posts a multi-value field, and a duplicated name is how a
+  // hidden input silently overrides the button the admin clicked: refuse
+  // rather than guess which value was meant.
+  for (const name of new Set(data.keys())) {
+    if (data.getAll(name).length > 1) return null;
+  }
+  return data;
 }
 
 export const field = (data, name) => {
