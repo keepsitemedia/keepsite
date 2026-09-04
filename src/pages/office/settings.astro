@@ -3,10 +3,13 @@ export const prerender = false;
 import OfficeLayout from '../../layouts/OfficeLayout.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
+import { loadTemplates } from '../../../netlify/functions/lib/office/templates.mjs';
 
 const s = store();
 const pipelines = await loadPipelines(s);
 const stored = (await s.settings.get('pipelines')) !== null;
+const templates = await loadTemplates(s);
+const templatesStored = (await s.settings.get('templates')) !== null;
 const error = Astro.url.searchParams.get('error');
 const saved = Astro.url.searchParams.get('saved');
 ---
@@ -24,5 +27,17 @@ const saved = Astro.url.searchParams.get('saved');
     <input type="hidden" name="name" value="pipelines" />
     <textarea name="value" class="json" aria-label="Pipelines as JSON" spellcheck="false">{JSON.stringify(pipelines, null, 2)}</textarea>
     <p><button class="btn btn-small">Save pipelines</button></p>
+  </form>
+
+  <h2>Email templates</h2>
+  <p class="muted">
+    {templatesStored ? 'Edited in the office; the copy in git is the seed.' : 'Showing the seed from src/data/office/templates.json.'}
+    Placeholders like <code>{'{{client.firstName}}'}</code> fill from the client; a template's <code>fields</code> are asked for on the send screen. Bodies are Markdown.
+  </p>
+  <form method="POST" action="/office/api/settings">
+    <input type="hidden" name="csrf" value={Astro.locals.csrf} />
+    <input type="hidden" name="name" value="templates" />
+    <textarea name="value" class="json" aria-label="Templates as JSON" spellcheck="false">{JSON.stringify(templates, null, 2)}</textarea>
+    <p><button class="btn btn-small">Save templates</button></p>
   </form>
 </OfficeLayout>

@@ -1,9 +1,10 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore } from '../store.mjs';
 import { validatePipelines } from '../pipeline.mjs';
+import { validateTemplates } from '../templates.mjs';
 
-// One validator per setting name. Phase 2 adds templates here.
-const VALIDATORS = { __proto__: null, pipelines: validatePipelines };
+// One validator per setting name.
+const VALIDATORS = { __proto__: null, pipelines: validatePipelines, templates: validateTemplates };
 
 const back = (errors) => redirect(`/office/settings/?error=${encodeURIComponent(errors.join('; '))}`);
 

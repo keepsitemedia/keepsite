@@ -38,3 +38,13 @@ test('unknown setting names and bad csrf are refused', async () => {
   assert.equal((await settings(post({ csrf, name: 'other', value: '[]' }), ctx(), s)).status, 400);
   assert.equal((await settings(post({ csrf: 'x', name: 'pipelines', value: valid }), ctx(), s)).status, 403);
 });
+
+test('templates are validated and stored under their own name', async () => {
+  const s = make();
+  const good = JSON.stringify([{ id: 'hello', name: 'Hello', subject: 'Hi {{client.firstName}}', body: 'Body' }]);
+  const res = await settings(post({ csrf, name: 'templates', value: good }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/settings/?saved=1');
+  assert.equal((await s.settings.get('templates'))[0].id, 'hello');
+  const bad = await settings(post({ csrf, name: 'templates', value: '[{"id":"x","name":"X","subject":"","body":"b"}]' }), ctx(), s);
+  assert.match(decodeURIComponent(bad.headers.get('Location')), /subject/);
+});

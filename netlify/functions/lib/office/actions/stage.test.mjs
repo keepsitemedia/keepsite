@@ -23,13 +23,22 @@ async function seeded() {
   return s;
 }
 
-test('advancing writes the stage and its tasks', async () => {
+test('advancing writes the stage and its tasks and opens the stage email', async () => {
   const s = await seeded();
   const res = await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s, new Date('2026-09-04T16:00:00Z'));
-  assert.equal(res.headers.get('Location'), '/office/clients/lova/');
+  assert.equal(res.headers.get('Location'), '/office/send/lova/agreement/');
   assert.equal((await s.clients.get('lova')).stage, 'agreement');
   const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();
   assert.deepEqual(titles, ['Deposit received', 'Reply with recommendation', 'Send agreement']);
+});
+
+test('a stage without an email, or re-setting the same stage, lands on the client page', async () => {
+  const s = await seeded();
+  const demo = await stage(post({ csrf, slug: 'lova', stage: 'demo' }), ctx(), s);
+  assert.equal(demo.headers.get('Location'), '/office/clients/lova/');
+  await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s);
+  const again = await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s);
+  assert.equal(again.headers.get('Location'), '/office/clients/lova/');
 });
 
 test('unknown client or stage is refused, bad csrf is 403', async () => {

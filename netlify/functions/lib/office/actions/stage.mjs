@@ -22,5 +22,10 @@ export async function stage(request, ctx, s = defaultStore(), now = new Date()) 
   // the admin can see, rather than a stage with no tasks, which they cannot.
   for (const t of tasks) await s.tasks.put(slug, t.id, t);
   await s.clients.put(slug, updated);
+  // A stage with an entry email opens the send screen rather than sending:
+  // the admin reads it with the client in mind and clicks Send themselves.
+  const entered = updated.stages.length > client.stages.length;
+  const target = findStage(pipeline, stageId);
+  if (entered && target.email) return redirect(`/office/send/${slug}/${target.email}/`);
   return redirect(`/office/clients/${slug}/`);
 }
