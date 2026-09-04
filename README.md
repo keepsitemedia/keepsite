@@ -148,6 +148,54 @@ Netlify Blobs holds the durable copy under the same slug if an email is ever
 lost: **Netlify → Blobs → `questionnaires` → `{slug}/{form}.json`**, with any
 uploaded logo or brand guide beside it.
 
+## The office (/office)
+
+A private back office for running clients: pipeline stages, tasks, a
+calendar, each client's questionnaire answers, and data export. Design:
+`docs/superpowers/specs/2026-09-04-client-office-design.md`. Later phases
+add email, meetings, payments and e-signed agreements.
+
+### Who can log in
+
+Netlify Identity users with the `admin` role. Netlify → Identity → invite
+the address, then open the user and add `admin` under Roles. Nothing else
+grants access; a logged-in Identity user without the role is refused.
+
+### Environment variables
+
+| Variable | What it does |
+|---|---|
+| `KEEPSITE_SESSION_SECRET` | Signs the CSRF cookie. Any long random string. Without it every office form post is refused. |
+| `KEEPSITE_TOKEN_SECRET` | Already set for the questionnaires; the office uses it to show each client's questionnaire links. |
+
+### Local development
+
+The office renders on the server, and its store and login are Netlify
+services. Two environment variables stand in for them locally:
+
+```bash
+KEEPSITE_SESSION_SECRET=dev KEEPSITE_TOKEN_SECRET=... npm run dev:office
+```
+
+`dev:office` sets `OFFICE_STORE_DIR=.office-data` (a gitignored directory
+of JSON files in place of Netlify Blobs) and `IDENTITY_URL` pointing at the
+production Identity service, so you log in with your real account. Delete
+`.office-data/` to start over.
+
+### Where the data is
+
+Netlify → Blobs → `office`. Keys are `clients/{slug}.json`,
+`tasks/{slug}/{id}.json`, and so on; `/office/data/` lists every type with
+counts and downloads any of them as JSON or CSV. Questionnaire answers stay
+in the `questionnaires` store and are read from there.
+
+### Inquiries
+
+Every verified `/start/` submission also creates a client at the Inquiry
+stage, through `netlify/functions/submission-created.mjs`. The email
+notification is unchanged. A second inquiry from an email already on file is
+added to that client's notes instead.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:

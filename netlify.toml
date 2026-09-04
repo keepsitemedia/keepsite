@@ -111,6 +111,15 @@
       best-practices = 0.9
       seo = 1.0
 
+  [[plugins.inputs.audits]]
+    path = "office/login/index.html"
+    output_path = "reports/lighthouse-office-login.html"
+    [plugins.inputs.audits.thresholds]
+      performance = 0.95
+      accessibility = 1.0
+      best-practices = 0.9
+      seo = 0
+
 [[redirects]]
   from = "/api/questionnaire"
   to = "/.netlify/functions/questionnaire"
