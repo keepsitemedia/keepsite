@@ -190,10 +190,12 @@ the process the site describes:
 | Intro questionnaire | Intro questionnaire back (5d) | Intro questionnaire links |
 | Demo | Build demo (5d), Send demo (5d) | none until sent by hand |
 | Post-demo questionnaires | Brand questionnaire back (7d), Build questionnaire back (7d) | Demo and questionnaire links |
-| Layouts | Layouts to client (10d), Layout changes back (5d) | Layouts ready |
-| Copy and photos | Copy in place (10d), Client review back (5d) | Copy ready |
+| Layouts | Layouts to client (10d), Layout changes back (15d) | Layouts ready |
+| Copy and photos | Copy in place (10d), Client review back (15d) | Copy ready |
 | Launch | Balance received (0d), Launch (3d), Start monthly (3d) | Balance link and launch |
 | Live | none | none |
+
+Offsets are days from the day the stage begins, so a task that follows another inside a stage carries the sum.
 
 Each pipeline also declares which questionnaire forms belong to it and
 its payment plan (see **Payments**). A pipeline with no questionnaires
@@ -459,8 +461,8 @@ Unit tests run under `node --test` beside the existing ones in
 
 - **Session:** valid access token with `admin` role passes; valid
   token without the role is refused; expired token with a good refresh
-  token passes and sets a new cookie; missing cookies redirect;
-  functions get 401 not 302.
+  token passes and sets a new cookie.
+- **Guard:** missing cookies redirect; functions get 401 not 302.
 - **Store:** every accessor round-trips; `listByPrefix` returns
   creation order; slugs outside the regex are rejected before any
   Blobs call. Tests use an in-memory fake behind the same interface.
