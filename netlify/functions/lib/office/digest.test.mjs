@@ -32,7 +32,7 @@ test('every section renders with its items and a nudge link', () => {
   ];
   const submitted = new Set(['acme/intro']);
   const payments = [{ slug: 'acme', kind: 'monthly', amount: 15000, status: 'failed', failureReason: 'card declined' }];
-  const agreements = [{ slug: 'lova', status: 'sent', sentAt: '2026-09-01T00:00:00.000Z' }, { slug: 'acme', status: 'sent', sentAt: '2026-09-06T00:00:00.000Z' }];
+  const agreements = [{ slug: 'lova', status: 'sent', sentAt: '2026-09-02T03:00:00.000Z' }, { slug: 'acme', status: 'sent', sentAt: '2026-09-06T00:00:00.000Z' }];
   const d = buildDigest({ clients, tasks, meetings, submitted, agreements, payments, today, now });
   assert.equal(d.empty, false);
   assert.equal(d.subject, 'Office digest for Tue, Sep 8');

@@ -34,7 +34,9 @@ export function buildDigest({ clients, tasks, meetings, submitted, agreements = 
 
   const unsigned = agreements
     .filter((a) => a.status === 'sent' && now - new Date(a.sentAt) > 5 * DAY)
-    .map((a) => `${who(a.slug)}: sent ${formatYmd(a.sentAt.slice(0, 10))}`);
+    // sentAt is an instant; slicing it would read UTC's calendar day, a day
+    // ahead of Mountain evenings, so go through todayIn for the reader's zone.
+    .map((a) => `${who(a.slug)}: sent ${formatYmd(todayIn(undefined, new Date(a.sentAt)))}`);
 
   const sections = [
     ['Overdue', bucket('overdue')],
