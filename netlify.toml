@@ -14,7 +14,7 @@
 # The office seed and packages are imported the same way, by
 # submission-created.mjs through pipeline.mjs and clients.mjs.
 [functions]
-  included_files = ["src/data/questionnaires/*.json", "src/data/office/*.json", "src/data/packages.json"]
+  included_files = ["src/data/questionnaires/*.json", "src/data/office/*.json", "src/data/packages.json", "src/data/site.json"]
 
 # Lighthouse runs as a build gate, not a one-time manual check: the
 # thing being sold is ongoing competence, not launch-day competence.

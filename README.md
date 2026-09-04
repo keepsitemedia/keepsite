@@ -167,6 +167,8 @@ grants access; a logged-in Identity user without the role is refused.
 |---|---|
 | `KEEPSITE_SESSION_SECRET` | Signs the CSRF cookie. Any long random string. Without it every office form post is refused. |
 | `KEEPSITE_TOKEN_SECRET` | Already set for the questionnaires; the office uses it to show each client's questionnaire links. |
+| `RESEND_API_KEY`, `KEEPSITE_NOTIFY_FROM`, `KEEPSITE_NOTIFY_TO` | Already set for the questionnaires. The office sends every client email from `KEEPSITE_NOTIFY_FROM` and the daily digest and meeting copies to `KEEPSITE_NOTIFY_TO`. |
+| `URL` | Set by Netlify. Used in links inside emails; locally it is unset and links point at `https://www.keepsitemedia.com`. |
 
 ### Local development
 
@@ -195,6 +197,29 @@ Every verified `/start/` submission also creates a client at the Inquiry
 stage, through `netlify/functions/submission-created.mjs`. The email
 notification is unchanged. A second inquiry from an email already on file is
 added to that client's notes instead.
+
+### Email
+
+Templates live in Settings → Email templates (seeded from
+`src/data/office/templates.json`). `{{client.firstName}}`, `{{links.intro}}`
+and the rest fill from the client; a template's `fields` are asked for on the
+send screen. Advancing a client to a stage with an `email` opens that
+template's send screen; nothing goes out until you click Send. Every send,
+sent or failed, appears on the client's Emails tab.
+
+### Meetings
+
+Book from the client's Meetings tab. The client and `KEEPSITE_NOTIFY_TO`
+each get a confirmation with a calendar file. Two scheduled functions run:
+
+| Function | Schedule (UTC) | Does |
+|---|---|---|
+| `office-meetings-cron` | every hour | Reminders about 24 hours and about 1 hour before each meeting, to the client and to you. |
+| `office-digest-cron` | `0 13 * * *` | One morning email: overdue and upcoming tasks, meetings today and tomorrow, questionnaires waiting, failed payments, unsigned agreements. Not sent when empty. |
+
+13:00 UTC is 7 a.m. Mountain in summer and 6 a.m. in winter. Change the hour
+in `netlify/functions/office-digest-cron.mjs` in March and November if that
+matters. Netlify shows both functions under Functions → Scheduled.
 
 ## Enabling the CMS (/admin)
 

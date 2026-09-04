@@ -253,6 +253,8 @@ subject, a body in Markdown, and two kinds of placeholders:
   default, required}]`. The send screen shows one input per prompted
   field above the preview.
 
+Until phases 3 and 4 exist, the agreement and launch templates take `signLink` and `payLink` as prompted fields the admin pastes; those phases replace them with `links.sign` and `links.pay`.
+
 The send screen renders the template with both kinds filled, lets the
 admin edit the result freehand, and sends on confirmation. Missing
 required prompted fields block the send. Stage-entry emails open this
