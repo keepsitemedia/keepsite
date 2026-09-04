@@ -80,7 +80,18 @@ export async function requireAdmin(request, fetchFn = fetch) {
     }
   }
   if (!isAdmin(u)) return { ok: false, cookies: [clear(COOKIES.access), clear(COOKIES.refresh)] };
-  return { ok: true, user: { email: u.email }, cookies, csrf: jar[COOKIES.csrf] ?? '' };
+
+  // Access and refresh roll forward indefinitely, but the csrf cookie is
+  // minted once at login and expires after 30 days; without re-minting here,
+  // a long-lived session goes read-only with a "reload" hint that cannot fix
+  // it, because reloading carries the same expired cookie right back.
+  const secret = process.env.KEEPSITE_SESSION_SECRET;
+  let csrf = jar[COOKIES.csrf] ?? '';
+  if (!csrf || !verifyCsrf(secret, csrf, csrf)) {
+    csrf = mintCsrf(secret);
+    cookies.push(cookie(COOKIES.csrf, csrf, MONTH));
+  }
+  return { ok: true, user: { email: u.email }, cookies, csrf };
 }
 
 export async function logout(request, fetchFn = fetch) {

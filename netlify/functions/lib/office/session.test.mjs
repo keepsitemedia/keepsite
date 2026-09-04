@@ -70,13 +70,32 @@ test('login refuses bad credentials and non-admins', async () => {
   });
 });
 
-test('requireAdmin passes a valid admin token and reports the csrf cookie', async () => {
-  const { fetchFn } = fakeIdentity([['/user', 200, admin]]);
-  const r = await requireAdmin(req('ks_access=A; ks_csrf=c.s'), fetchFn);
-  assert.equal(r.ok, true);
-  assert.equal(r.user.email, admin.email);
-  assert.deepEqual(r.cookies, []);
-  assert.equal(r.csrf, 'c.s');
+test('requireAdmin passes a valid admin token and reuses a valid csrf cookie', async () => {
+  await withSecret(async () => {
+    const t = mintCsrf(SECRET);
+    const { fetchFn } = fakeIdentity([['/user', 200, admin]]);
+    const r = await requireAdmin(req(`ks_access=A; ks_csrf=${t}`), fetchFn);
+    assert.equal(r.ok, true);
+    assert.equal(r.user.email, admin.email);
+    assert.deepEqual(r.cookies, []);
+    assert.equal(r.csrf, t);
+  });
+});
+
+test('requireAdmin re-mints a missing or invalid csrf cookie', async () => {
+  await withSecret(async () => {
+    const { fetchFn } = fakeIdentity([['/user', 200, admin]]);
+    const missing = await requireAdmin(req('ks_access=A'), fetchFn);
+    assert.equal(missing.ok, true);
+    assert.equal(missing.cookies.length, 1);
+    assert.match(missing.cookies[0], /^ks_csrf=[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+; Max-Age=2592000; /);
+    assert.ok(missing.csrf.length > 0);
+
+    const invalid = await requireAdmin(req('ks_access=A; ks_csrf=garbage'), fetchFn);
+    assert.equal(invalid.ok, true);
+    assert.equal(invalid.cookies.length, 1);
+    assert.notEqual(invalid.csrf, 'garbage');
+  });
 });
 
 test('requireAdmin refreshes an expired token and sets new cookies', async () => {
