@@ -18,8 +18,8 @@ export function buildIcs({ uid, start, minutes, summary, description, url, organ
     `SUMMARY:${esc(summary)}`,
     `DESCRIPTION:${esc(description)}`,
     ...(url ? [`URL:${esc(url)}`] : []),
-    `ORGANIZER;CN=${esc(organizer.name)}:mailto:${organizer.email}`,
-    `ATTENDEE;CN=${esc(attendee.name)};RSVP=FALSE:mailto:${attendee.email}`,
+    `ORGANIZER;CN=${esc(organizer.name)}:mailto:${esc(organizer.email)}`,
+    `ATTENDEE;CN=${esc(attendee.name)};RSVP=FALSE:mailto:${esc(attendee.email)}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ];

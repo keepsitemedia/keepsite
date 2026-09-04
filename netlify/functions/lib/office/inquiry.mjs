@@ -3,7 +3,7 @@
 // than a lead with a blank field.
 import { store as defaultStore } from './store.mjs';
 import { loadPipelines, advance } from './pipeline.mjs';
-import { newClient, slugify, uniqueSlug, TIERS } from './clients.mjs';
+import { newClient, slugify, uniqueSlug, TIERS, EMAIL } from './clients.mjs';
 import { todayIn } from './dates.mjs';
 
 const str = (v) => (typeof v === 'string' ? v.trim() : '');
@@ -12,9 +12,14 @@ const note = (data, when) =>
 
 export async function recordInquiry(data, s = defaultStore(), now = new Date()) {
   const today = todayIn(undefined, now);
-  const email = str(data.email).toLowerCase();
+  // The public form is lenient about shape, but the address ends up in
+  // ORGANIZER/ATTENDEE lines and mail headers, so it gets the same check
+  // clients.mjs uses everywhere else; a bad one is dropped, not stored raw.
+  const rawEmail = str(data.email);
+  const email = EMAIL.test(rawEmail) ? rawEmail : '';
+  const lookupKey = email.toLowerCase();
   const clients = await s.clients.list();
-  const existing = email && clients.find((c) => c.email.toLowerCase() === email);
+  const existing = lookupKey && clients.find((c) => c.email && c.email.toLowerCase() === lookupKey);
   if (existing) {
     const notes = [existing.notes, note(data, today)].filter(Boolean).join('\n\n');
     await s.clients.put(existing.slug, { ...existing, notes, updatedAt: now.toISOString() });
@@ -26,7 +31,7 @@ export async function recordInquiry(data, s = defaultStore(), now = new Date()) 
   const slug = uniqueSlug(slugify(data.business), new Set(clients.map((c) => c.slug)));
   const tier = TIERS.includes(str(data.package)) ? str(data.package) : '';
   const base = newClient(
-    { slug, name: str(data.name), business: str(data.business) || slug, email: str(data.email), website: str(data.website), tier, notes: note(data, today) },
+    { slug, name: str(data.name), business: str(data.business) || slug, email, website: str(data.website), tier, notes: note(data, today) },
     { pipeline: pipeline.id, stage: first.id, today, now },
   );
   const { client, tasks } = advance({ client: { ...base, stages: [] }, pipeline, stageId: first.id, today, now });

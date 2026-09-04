@@ -45,3 +45,22 @@ test('a garbage submission still lands rather than throwing', async () => {
   assert.equal(r.created, true);
   assert.equal(r.slug, 'client');
 });
+
+test('an email that fails validation is dropped, not stored raw', async () => {
+  const s = make();
+  const r = await recordInquiry({ email: 'bad\r\nline', business: 'X' }, s, NOW);
+  assert.equal(r.created, true);
+  const c = await s.clients.get(r.slug);
+  assert.equal(c.email, '');
+});
+
+test('clients with an empty email are skipped by the dedupe lookup', async () => {
+  const s = make();
+  await recordInquiry({ email: 'bad\r\nline', business: 'First' }, s, NOW);
+  await recordInquiry({ email: 'bad\r\nline2', business: 'Second' }, s, NOW);
+  // Both prior clients stored email: '' — a real address must not be
+  // treated as a duplicate of either.
+  const r = await recordInquiry({ ...data, business: 'Third' }, s, NOW);
+  assert.equal(r.created, true);
+  assert.equal((await s.clients.list()).length, 3);
+});

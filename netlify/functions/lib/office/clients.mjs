@@ -1,7 +1,7 @@
 import packages from '../../../../src/data/packages.json' with { type: 'json' };
 
 export const TIERS = packages.tiers.map((t) => t.name);
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EDITABLE = ['name', 'business', 'email', 'phone', 'address', 'website', 'tier', 'notes'];
 
 export function slugify(text) {

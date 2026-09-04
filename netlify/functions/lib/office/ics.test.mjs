@@ -35,3 +35,8 @@ test('a calendar file has the required lines in UTC with CRLF endings', () => {
 test('an empty url is omitted', () => {
   assert.ok(!buildIcs({ ...base, url: '' }).includes('URL:'));
 });
+
+test('a CRLF-injecting attendee email cannot add a calendar line', () => {
+  const ics = buildIcs({ ...base, attendee: { name: 'Sierra Lee', email: 's@example.com\r\nX-EVIL:1' } });
+  assert.ok(!ics.split('\r\n').some((line) => line.startsWith('X-EVIL')));
+});
