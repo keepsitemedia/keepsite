@@ -52,13 +52,19 @@ export function advance({ client, pipeline, stageId, today, now = new Date() }) 
   // Tasks are created the first time a client reaches a stage and never
   // again, so moving back and forward does not pile up duplicates.
   const first = !client.stages.some((s) => s.stage === stageId);
+  // Re-entering the just-recorded stage (the admin re-submits the same
+  // value) is not a move; recording it would grow history with entries that
+  // carry no new information. Compared against the last history entry, not
+  // client.stage: client creation pre-sets stage to the first stage id while
+  // resetting stages to [], relying on this call to advance() to record it.
+  const reentering = client.stages.at(-1)?.stage === stageId;
   const at = now.toISOString();
   const dates = { ...client.dates };
   if (stageId === 'live' && !dates.launched) dates.launched = today;
   const updated = {
     ...client,
     stage: stageId,
-    stages: [...client.stages, { stage: stageId, at }],
+    stages: reentering ? client.stages : [...client.stages, { stage: stageId, at }],
     dates,
     updatedAt: at,
   };

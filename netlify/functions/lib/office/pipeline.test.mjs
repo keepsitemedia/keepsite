@@ -64,6 +64,23 @@ test('re-entering a stage creates no tasks; moving back creates none either', ()
   assert.equal(again.client.stages.length, 4);
 });
 
+test('advancing into a client with empty history still records the stage (client creation)', () => {
+  // client.mjs's create action pre-sets stage to the first stage id while
+  // resetting stages to [], so advance() alone builds the first history
+  // entry and the first stage's tasks. reentering must not trip on this.
+  const base = { ...fresh(), stage: 'demo', stages: [] };
+  const { client, tasks } = advance({ client: base, pipeline: website(), stageId: 'demo', today: '2026-09-04', now: NOW });
+  assert.deepEqual(client.stages, [{ stage: 'demo', at: NOW.toISOString() }]);
+  assert.equal(tasks.length, 2);
+});
+
+test('setting the same stage twice leaves history unchanged', () => {
+  const first = advance({ client: fresh(), pipeline: website(), stageId: 'demo', today: '2026-09-04', now: NOW });
+  const again = advance({ client: first.client, pipeline: website(), stageId: 'demo', today: '2026-09-05', now: NOW });
+  assert.deepEqual(again.tasks, []);
+  assert.deepEqual(again.client.stages, first.client.stages);
+});
+
 test('questionnaire tasks carry the form name and live records the launch date', () => {
   const { tasks } = advance({ client: fresh(), pipeline: website(), stageId: 'post-demo', today: '2026-09-04', now: NOW });
   assert.deepEqual(tasks.map((t) => t.questionnaire), ['brand', 'build']);
