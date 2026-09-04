@@ -1,0 +1,31 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../layouts/OfficeLayout.astro';
+import { store } from '../../../netlify/functions/lib/office/store.mjs';
+
+const counts = (await store().counts()) as Record<string, number>;
+const types = Object.entries(counts);
+const local = Boolean(process.env.OFFICE_STORE_DIR);
+---
+<OfficeLayout title="Data">
+  <h1>Data</h1>
+  <p class="muted">
+    {local ? `Reading the local file store at ${process.env.OFFICE_STORE_DIR}.` : 'Reading the Netlify Blobs store named office. The Netlify dashboard shows the same keys as raw JSON.'}
+  </p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Type</th><th class="num">Documents</th><th>Download</th></tr></thead>
+    <tbody>
+      {types.map(([type, n]) => (
+        <tr>
+          <td>{type}</td>
+          <td class="num">{n}</td>
+          <td>
+            <a href={`/office/api/export?type=${type}&format=json`}>JSON</a>
+            {' · '}
+            <a href={`/office/api/export?type=${type}&format=csv`}>CSV</a>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table></div>
+</OfficeLayout>
