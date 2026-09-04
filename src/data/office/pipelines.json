@@ -1,0 +1,27 @@
+[
+  {
+    "id": "website",
+    "name": "Website build",
+    "questionnaires": ["intro", "brand", "build"],
+    "payments": { "plan": "deposit-balance-monthly" },
+    "stages": [
+      { "id": "inquiry", "name": "Inquiry",
+        "tasks": [{ "title": "Reply with recommendation", "due": 1 }] },
+      { "id": "agreement", "name": "Agreement", "email": "agreement",
+        "tasks": [{ "title": "Send agreement", "due": 0 }, { "title": "Deposit received", "due": 7, "payment": "deposit" }] },
+      { "id": "intro", "name": "Intro questionnaire", "email": "intro",
+        "tasks": [{ "title": "Intro questionnaire back", "due": 5, "questionnaire": "intro" }] },
+      { "id": "demo", "name": "Demo",
+        "tasks": [{ "title": "Build demo", "due": 5 }, { "title": "Send demo", "due": 5 }] },
+      { "id": "post-demo", "name": "Post-demo questionnaires", "email": "post-demo",
+        "tasks": [{ "title": "Brand questionnaire back", "due": 7, "questionnaire": "brand" }, { "title": "Build questionnaire back", "due": 7, "questionnaire": "build" }] },
+      { "id": "layouts", "name": "Layouts", "email": "layouts",
+        "tasks": [{ "title": "Layouts to client", "due": 10 }, { "title": "Layout changes back", "due": 15 }] },
+      { "id": "copy", "name": "Copy and photos", "email": "copy",
+        "tasks": [{ "title": "Copy in place", "due": 10 }, { "title": "Client review back", "due": 15 }] },
+      { "id": "launch", "name": "Launch", "email": "launch",
+        "tasks": [{ "title": "Balance received", "due": 0, "payment": "balance" }, { "title": "Launch", "due": 3 }, { "title": "Start monthly", "due": 3 }] },
+      { "id": "live", "name": "Live", "tasks": [] }
+    ]
+  }
+]
