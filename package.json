@@ -13,7 +13,7 @@
     "check:office": "node scripts/check-office.mjs",
     "cms": "npx decap-server",
     "verify": "node scripts/verify.mjs",
-    "gate": "npm run check && npm run check:forms && npm run check:office && npm run build && npm run verify",
+    "gate": "npm test && npm run check && npm run check:forms && npm run check:office && npm run build && npm run verify",
     "og": "node scripts/make-og-image.mjs",
     "test": "node --test"
   },
