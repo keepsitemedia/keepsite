@@ -99,18 +99,47 @@ export function toHtml(markdown) {
   return marked.parse(markdown, { async: false, gfm: true, breaks: true });
 }
 
-export function render(template, context, prompted = {}) {
+// marked does not sanitize, and this body mixes admin-authored Markdown with
+// client-controlled values (a business name, a personal note): escaping &,
+// <, > first turns an attempted raw tag into inert text before marked ever
+// parses it, and stripping any surviving href/src that isn't http(s) or
+// mailto closes the other opening — a markdown [text](javascript:...) link,
+// or (rarer) an autolink marked builds out of what was escaped attribute
+// text. Unwrapping rather than just dropping the attribute matters for that
+// last case: a bare <a> with no href is still "<a" in the output.
+const ATTR_VALUE = /\s(?:href|src)="([^"]*)"/i;
+const SAFE_SCHEME = /^(?:https?:\/\/|mailto:)[^\s<>"']*$/i;
+const decodeEntities = (s) =>
+  s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+const hasSafeAttr = (openTag) => {
+  const m = ATTR_VALUE.exec(openTag);
+  return Boolean(m && SAFE_SCHEME.test(decodeEntities(m[1])));
+};
+
+export function toSafeHtml(markdown) {
+  const escaped = String(markdown).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+  return toHtml(escaped)
+    .replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, (whole, inner) => (hasSafeAttr(whole) ? whole : inner))
+    .replace(/<img\b[^>]*>/gi, (whole) => (hasSafeAttr(whole) ? whole : ''));
+}
+
+export function render(template, context, prompted = {}, { keepPrompted = false } = {}) {
   const fields = template.fields ?? [];
   const values = Object.fromEntries(fields.map((f) => [f.key, prompted[f.key] ?? f.default ?? '']));
   // A field with default '' resolves to nothing rather than staying visible:
-  // an optional note the admin left blank is not a mistake to flag.
+  // an optional note the admin left blank is not a mistake to flag. The
+  // send screen passes keepPrompted so its inline script still has {{key}}
+  // in the subject and body to substitute as the admin fills in the field;
+  // the html preview isn't user-facing text the admin edits, so it keeps
+  // stripping either way.
   const optionalBlank = fields.filter((f) => !f.required && (values[f.key] ?? '') === '').map((f) => f.key);
   const strip = (r) => ({
     text: optionalBlank.reduce((t, k) => t.replace(new RegExp(`\\{\\{\\s*${k}\\s*\\}\\}`, 'g'), ''), r.text),
     unresolved: r.unresolved.filter((n) => !optionalBlank.includes(n)),
   });
-  const subject = strip(fill(template.subject, context, values));
-  const text = strip(fill(template.body, context, values));
+  const stripText = keepPrompted ? (r) => r : strip;
+  const subject = stripText(fill(template.subject, context, values));
+  const text = stripText(fill(template.body, context, values));
   const htmlSource = strip(fill(template.body, context, values, { escape: true }));
   const missing = fields.filter((f) => f.required && (values[f.key] ?? '') === '').map((f) => f.key);
   return {

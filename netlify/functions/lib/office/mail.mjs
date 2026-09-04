@@ -3,7 +3,7 @@
 // exists to answer, and a failure nobody can see is the worst outcome.
 import { store as defaultStore } from './store.mjs';
 import { newId } from './ids.mjs';
-import { toHtml } from './templates.mjs';
+import { toSafeHtml } from './templates.mjs';
 
 const RESEND = 'https://api.resend.com/emails';
 
@@ -30,7 +30,7 @@ export async function sendMail(
       const res = await fetchFn(RESEND, {
         method: 'POST',
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, to: entry.to, subject, text, html: html ?? toHtml(text), attachments }),
+        body: JSON.stringify({ from, to: entry.to, subject, text, html: html ?? toSafeHtml(text), attachments }),
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok) {

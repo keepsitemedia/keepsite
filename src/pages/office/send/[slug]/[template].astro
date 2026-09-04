@@ -2,7 +2,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { loadTemplates, findTemplate, render } from '../../../../../netlify/functions/lib/office/templates.mjs';
+import { loadTemplates, findTemplate, render, toSafeHtml } from '../../../../../netlify/functions/lib/office/templates.mjs';
 import { buildContext } from '../../../../../netlify/functions/lib/office/context.mjs';
 
 type Field = { key: string; label: string; default?: string; required?: boolean };
@@ -27,7 +27,9 @@ const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
 const context = buildContext({ client, admin: Astro.locals.admin, secret, form: /^[a-z]+$/.test(form) ? form : undefined, meeting: undefined });
 // Rendered with defaults only; prompted values are typed on the page and
 // substituted by the inline script, then the action re-checks for leftovers.
-const rendered = render(template, context, {}) as Rendered;
+// keepPrompted keeps an unfilled optional {{key}} visible so the script has
+// something to replace, rather than render() quietly dropping it.
+const rendered = render(template, context, {}, { keepPrompted: true }) as Rendered;
 const fields = template.fields ?? [];
 const csrf = Astro.locals.csrf;
 ---
@@ -61,11 +63,12 @@ const csrf = Astro.locals.csrf;
       )}
       <label class="field"><span>Subject</span><input name="subject" value={rendered.subject} data-original={rendered.subject} required /></label>
       <label class="field"><span>Body (Markdown)</span><textarea name="body" data-original={rendered.text}>{rendered.text}</textarea></label>
+      <p class="field-hint">Fill in the fields above first: changing one rewrites the subject and body from the template.</p>
       <button class="btn">Send</button>
     </div>
     <div>
       <h2>Preview</h2>
-      <div class="preview" set:html={rendered.html} />
+      <div class="preview" set:html={toSafeHtml(rendered.text)} />
       <p class="muted">The preview shows the template as loaded; the text on the left is what will be sent.</p>
     </div>
   </form>

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import seed from '../../../../src/data/office/templates.json' with { type: 'json' };
-import { validateTemplates, loadTemplates, findTemplate, fill, render, toHtml, placeholdersIn, KNOWN_PLACEHOLDERS } from './templates.mjs';
+import { validateTemplates, loadTemplates, findTemplate, fill, render, toHtml, toSafeHtml, placeholdersIn, KNOWN_PLACEHOLDERS } from './templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 
@@ -71,6 +71,21 @@ test('toHtml renders paragraphs, bold and links', () => {
   const html = toHtml('Hi\n\n**bold** https://x/y');
   assert.match(html, /<p>Hi<\/p>/);
   assert.match(html, /<strong>bold<\/strong>/);
+});
+
+test('render with keepPrompted keeps an unfilled optional placeholder visible', () => {
+  const t = findTemplate(seed, 'agreement');
+  const r = render(t, ctx, {}, { keepPrompted: true });
+  assert.ok(r.text.includes('{{note}}'));
+});
+
+test('toSafeHtml neutralizes a raw anchor and keeps Markdown and autolinks working', () => {
+  assert.ok(toSafeHtml('For <a href="https://evil.test">x</a>').includes('&lt;a href'));
+  assert.ok(!toSafeHtml('For <a href="https://evil.test">x</a>').includes('<a'));
+  assert.ok(!toSafeHtml('[x](javascript:alert(1))').includes('javascript:'));
+  const safe = toSafeHtml('**b** https://ok.test/a_b');
+  assert.ok(safe.includes('<strong>b</strong>'));
+  assert.ok(safe.includes('href="https://ok.test/a_b"'));
 });
 
 test('render escapes Markdown syntax in substituted values so they cannot become links', () => {

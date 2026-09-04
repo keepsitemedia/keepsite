@@ -34,6 +34,15 @@ test('a filled email is sent to the client and logged', async () => {
   assert.equal(log.kind, 'template');
 });
 
+test('an unfilled optional field is stripped rather than refused', async () => {
+  const s = await make();
+  let sent;
+  const fetchFn = async (u, i) => { sent = JSON.parse(i.body); return ok(); };
+  const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 'x', body: 'Hi\n\n{{note}}\n\nBye' }), ctx(), s, fetchFn);
+  assert.equal(res.status, 303);
+  assert.equal(sent.text, 'Hi\n\nBye');
+});
+
 test('a leftover placeholder goes back to the send screen and sends nothing', async () => {
   const s = await make();
   let called = false;

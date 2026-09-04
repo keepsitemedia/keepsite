@@ -1,6 +1,6 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
-import { loadTemplates, findTemplate, placeholdersIn, toHtml } from '../templates.mjs';
+import { loadTemplates, findTemplate, placeholdersIn, toSafeHtml } from '../templates.mjs';
 import { sendMail } from '../mail.mjs';
 
 const FORM = /^[a-z]+$/;
@@ -30,10 +30,25 @@ export async function send(request, ctx, s = defaultStore(), fetchFn = fetch, no
   if (!subject) return back('subject is empty');
   if (!body) return back('body is empty');
   const leftover = placeholdersIn(`${subject}\n${body}`);
-  if (leftover.length) return back(`fill in: ${leftover.join(', ')}`);
+  // An optional field left blank renders as {{key}} on the send screen (so
+  // the inline script has something to substitute); the admin isn't asked
+  // to fill it in, so strip it here rather than refuse. Anything else left
+  // over is a field the admin skipped and must go back and fill in.
+  const optional = new Set((template.fields ?? []).filter((f) => !f.required).map((f) => f.key));
+  const stray = leftover.filter((k) => !optional.has(k));
+  if (stray.length) return back(`fill in: ${stray.join(', ')}`);
+  const stripOptional = (v) =>
+    leftover
+      .filter((k) => optional.has(k))
+      .reduce((t, k) => t.replace(new RegExp(`\\{\\{\\s*${k}\\s*\\}\\}`, 'g'), ''), v)
+      // A textarea posted as multipart/form-data comes back CRLF, not LF.
+      .replace(/(?:\r\n|\r|\n){3,}/g, '\n\n')
+      .trim();
+  const cleanSubject = stripOptional(subject);
+  const cleanBody = stripOptional(body);
 
   const result = await sendMail(
-    { slug, to: client.email, subject, text: body, html: toHtml(body), template: templateId, kind: 'template' },
+    { slug, to: client.email, subject: cleanSubject, text: cleanBody, html: toSafeHtml(cleanBody), template: templateId, kind: 'template' },
     s, fetchFn, now,
   );
   return redirect(
