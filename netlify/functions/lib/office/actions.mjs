@@ -5,5 +5,6 @@ import { logout } from './actions/logout.mjs';
 import { client } from './actions/client.mjs';
 import { stage } from './actions/stage.mjs';
 import { task } from './actions/task.mjs';
+import { settings } from './actions/settings.mjs';
 
-export const actions = { __proto__: null, login, logout, client, stage, task };
+export const actions = { __proto__: null, login, logout, client, stage, task, settings };

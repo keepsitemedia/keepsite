@@ -1,0 +1,28 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../layouts/OfficeLayout.astro';
+import { store } from '../../../netlify/functions/lib/office/store.mjs';
+import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
+
+const s = store();
+const pipelines = await loadPipelines(s);
+const stored = (await s.settings.get('pipelines')) !== null;
+const error = Astro.url.searchParams.get('error');
+const saved = Astro.url.searchParams.get('saved');
+---
+<OfficeLayout title="Settings">
+  <h1>Settings</h1>
+  <h2>Pipelines</h2>
+  <p class="muted">
+    {stored ? 'Edited in the office; the copy in git is the seed.' : 'Showing the seed from src/data/office/pipelines.json. Saving stores a copy here that survives deploys.'}
+    A pipeline is a list of stages; each stage lists the tasks it creates, with <code>due</code> as days after the stage starts, and optionally the <code>email</code> it opens and the <code>questionnaire</code> or <code>payment</code> a task waits on.
+  </p>
+  {error && <p class="error">{error}</p>}
+  {saved && <p class="badge">Saved</p>}
+  <form method="POST" action="/office/api/settings">
+    <input type="hidden" name="csrf" value={Astro.locals.csrf} />
+    <input type="hidden" name="name" value="pipelines" />
+    <textarea name="value" class="json" aria-label="Pipelines as JSON" spellcheck="false">{JSON.stringify(pipelines, null, 2)}</textarea>
+    <p><button class="btn btn-small">Save pipelines</button></p>
+  </form>
+</OfficeLayout>
