@@ -82,3 +82,16 @@ test('render escapes Markdown syntax in substituted values so they cannot become
   assert.ok(r.html.includes('[click me](javascript:alert(1))'));
   assert.ok(r.text.includes('[click me](javascript:alert(1))'));
 });
+
+test('render keeps a URL value live, underscore and all', () => {
+  const t = findTemplate(seed, 'agreement');
+  const r = render(t, ctx, { signLink: 'https://app.hellosign.com/sign/abcDEF_123xyz' });
+  assert.ok(r.html.includes('href="https://app.hellosign.com/sign/abcDEF_123xyz"'));
+});
+
+test('a URL-shaped value that fails the strict autolink pattern is not linked', () => {
+  const t = findTemplate(seed, 'agreement');
+  const evil = { ...ctx, client: { ...ctx.client, business: 'https://evil.test/x)' } };
+  const r = render(t, evil, { signLink: 'https://sign/1' });
+  assert.ok(!r.html.includes('href="https://evil.test'));
+});

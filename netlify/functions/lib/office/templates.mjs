@@ -61,9 +61,24 @@ const escapeHtml = (s) =>
 // Substituted values come from clients and must never become Markdown: a
 // business name like "[click me](javascript:...)" would otherwise become a
 // live link once toHtml runs. Backslash first, so the escapes below are not
-// doubled by the ones inserted for backslash itself.
+// doubled by the ones inserted for backslash itself. A bare "http(s)://" is
+// also split with a zero-width space: marked's GFM literal-URL autolinking
+// matches that scheme text on its own, outside of any [](...)  syntax, so
+// backslash-escaping brackets alone does not stop a malformed value like
+// "https://evil.test/x)" from still rendering as a live link.
+const ZERO_WIDTH_SPACE = '\u200B';
 const escapeMarkdown = (s) =>
-  String(s).replace(/\\/g, '\\\\').replace(/[`*_[\]()#>!|~]/g, (c) => `\\${c}`);
+  String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/[`*_[\]()#>!|~]/g, (c) => `\\${c}`)
+    .replace(/(https?:)\/\//gi, `$1${ZERO_WIDTH_SPACE}//`);
+
+// URL values (signing and payment links, mainly) are the one kind that must
+// stay live: escapeMarkdown would corrupt an underscore in the path, which
+// autolink services put there routinely. The strict pattern excludes
+// whitespace, quotes and brackets so nothing in the value can close the
+// autolink early or smuggle a second, attacker-chosen scheme into the href.
+const URL_ONLY = /^https?:\/\/[^\s<>"'()]+$/;
 
 export function fill(source, context, prompted = {}, { escape = false } = {}) {
   const unresolved = [];
@@ -74,7 +89,8 @@ export function fill(source, context, prompted = {}, { escape = false } = {}) {
       return `{{${name}}}`;
     }
     v = String(v);
-    return escape ? escapeMarkdown(escapeHtml(v)) : v;
+    if (!escape) return v;
+    return URL_ONLY.test(v) ? `<${v}>` : escapeMarkdown(escapeHtml(v));
   });
   return { text, unresolved };
 }
