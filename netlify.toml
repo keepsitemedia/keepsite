@@ -11,8 +11,10 @@
 # netlify/functions/, so esbuild inlines them into the bundle. This ships them
 # as real files too: if bundling ever stops inlining JSON, an ENOENT at module
 # scope would 500 every request, including the 403s that are meant to be cheap.
+# The office seed and packages are imported the same way, by
+# submission-created.mjs through pipeline.mjs and clients.mjs.
 [functions]
-  included_files = ["src/data/questionnaires/*.json"]
+  included_files = ["src/data/questionnaires/*.json", "src/data/office/*.json", "src/data/packages.json"]
 
 # Lighthouse runs as a build gate, not a one-time manual check: the
 # thing being sold is ongoing competence, not launch-day competence.

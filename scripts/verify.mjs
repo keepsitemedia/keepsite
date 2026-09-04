@@ -68,10 +68,19 @@ check('office is disallowed and unlisted', () => {
   const robots = read('robots.txt');
   if (!robots.includes('Disallow: /office/')) throw new Error('robots.txt lacks /office/');
   if (read('sitemap-0.xml').includes('/office/')) throw new Error('office in sitemap');
-  // Rendered pages never land in dist/; if one does, it was prerendered by mistake
-  // and would be served to anyone.
-  for (const p of ['office/index.html', 'office/clients/index.html', 'office/calendar/index.html']) {
-    if (fs.existsSync(path.join('dist', p))) throw new Error('prerendered office page: ' + p);
+  // Deny-by-default: every office page is server-rendered except login, so
+  // dist/office/ may hold login/index.html and nothing else. A three-path
+  // denylist misses any new office route added later; this allowlist cannot.
+  const officeDir = path.join('dist', 'office');
+  if (fs.existsSync(officeDir)) {
+    const entries = fs.readdirSync(officeDir, { withFileTypes: true });
+    if (entries.length !== 1 || entries[0].name !== 'login' || !entries[0].isDirectory()) {
+      throw new Error('dist/office/ has more than a login directory: ' + entries.map((e) => e.name).join(', '));
+    }
+    const loginEntries = fs.readdirSync(path.join(officeDir, 'login'));
+    if (loginEntries.length !== 1 || loginEntries[0] !== 'index.html') {
+      throw new Error('dist/office/login/ has more than index.html: ' + loginEntries.join(', '));
+    }
   }
 });
 
