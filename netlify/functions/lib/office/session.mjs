@@ -27,19 +27,29 @@ const cookie = (name, value, maxAge) =>
 const clear = (name) => cookie(name, '', 0);
 
 async function token(base, params, fetchFn) {
-  const res = await fetchFn(`${base}/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(params).toString(),
-  });
-  if (!res.ok) return null;
-  const body = await res.json();
-  return body?.access_token && body?.refresh_token ? body : null;
+  try {
+    const res = await fetchFn(`${base}/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(params).toString(),
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    return body?.access_token && body?.refresh_token ? body : null;
+  } catch {
+    // Transient Identity outage must read as "not logged in", never as a 500.
+    return null;
+  }
 }
 
 async function user(base, access, fetchFn) {
-  const res = await fetchFn(`${base}/user`, { headers: { Authorization: `Bearer ${access}` } });
-  return res.ok ? res.json() : null;
+  try {
+    const res = await fetchFn(`${base}/user`, { headers: { Authorization: `Bearer ${access}` } });
+    return res.ok ? await res.json() : null;
+  } catch {
+    // Transient Identity outage must read as "not logged in", never as a 500.
+    return null;
+  }
 }
 
 const isAdmin = (u) => Array.isArray(u?.app_metadata?.roles) && u.app_metadata.roles.includes('admin');

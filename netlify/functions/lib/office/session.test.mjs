@@ -121,12 +121,28 @@ test('logout clears all three cookies and tells Identity', async () => {
   assert.equal(calls[0].init.headers.Authorization, 'Bearer A');
 });
 
+test('requireAdmin with a throwing fetchFn resolves to ok: false', async () => {
+  const fetchFn = async () => { throw new Error('network error'); };
+  const r = await requireAdmin(req('ks_access=A'), fetchFn);
+  assert.equal(r.ok, false);
+});
+
+test('login with non-JSON token response returns null', async () => {
+  await withSecret(async () => {
+    const fetchFn = async (url) => {
+      if (url.endsWith('/token')) return new Response('not json', { status: 200 });
+      return new Response('', { status: 404 });
+    };
+    assert.equal(await login(BASE, 'a', 'b', fetchFn), null);
+  });
+});
+
 test('csrf tokens verify only with the same secret and an exact match', () => {
   const t = mintCsrf(SECRET);
   assert.ok(verifyCsrf(SECRET, t, t));
   assert.ok(!verifyCsrf(SECRET, t, t + 'x'));
   assert.ok(!verifyCsrf('other', t, t));
-  assert.ok(!verifyCsrf('forged.forged', 'forged.forged'));
+  assert.ok(!verifyCsrf(SECRET, 'forged.forged', 'forged.forged'));
   assert.ok(!verifyCsrf('', t, t));
   assert.ok(!verifyCsrf(SECRET, '', ''));
 });
