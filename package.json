@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "dev:office": "OFFICE_STORE_DIR=.office-data IDENTITY_URL=https://www.keepsitemedia.com/.netlify/identity astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",

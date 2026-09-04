@@ -1,0 +1,50 @@
+---
+import '../styles/global.css';
+import '../styles/office.css';
+import '@fontsource-variable/instrument-sans/wght.css';
+
+interface Props { title: string }
+const { title } = Astro.props;
+const path = Astro.url.pathname;
+const admin = Astro.locals.admin;
+const nav = [
+  { label: 'Dashboard', href: '/office/' },
+  { label: 'Clients', href: '/office/clients/' },
+  { label: 'Calendar', href: '/office/calendar/' },
+  { label: 'Settings', href: '/office/settings/' },
+  { label: 'Data', href: '/office/data/' },
+];
+const current = (href: string) => (href === '/office/' ? path === href : path.startsWith(href));
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{title} | Keepsite office</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body class="office">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="office-header">
+      <div class="container">
+        <a class="brand" href="/office/">Keepsite office</a>
+        <nav aria-label="Office">
+          {nav.map((n) => <a href={n.href} aria-current={current(n.href) ? 'page' : undefined}>{n.label}</a>)}
+        </nav>
+        {admin && (
+          <div class="who">
+            <span>{admin.email}</span>
+            <form method="POST" action="/office/api/logout" class="inline"><button type="submit">Log out</button></form>
+          </div>
+        )}
+      </div>
+    </header>
+    <main id="main" tabindex="-1">
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+  </body>
+</html>

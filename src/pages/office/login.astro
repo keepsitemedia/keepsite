@@ -1,0 +1,30 @@
+---
+import OfficeLayout from '../../layouts/OfficeLayout.astro';
+// Prerendered on purpose: nothing here depends on the request, and a static
+// page is one Lighthouse can audit. The error flag and next path are read
+// from the query string in the browser.
+---
+<OfficeLayout title="Log in">
+  <h1>Log in</h1>
+  <p class="error" id="error" hidden>That email and password did not match an admin account.</p>
+  <form method="POST" action="/office/api/login" class="narrow" id="login">
+    <input type="hidden" name="next" value="/office/" />
+    <label class="field">
+      <span>Email</span>
+      <input type="email" name="email" required autocomplete="username" />
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" required autocomplete="current-password" />
+    </label>
+    <button type="submit" class="btn">Log in</button>
+  </form>
+  <script is:inline>
+    (function () {
+      var p = new URLSearchParams(location.search);
+      if (p.get('error')) document.getElementById('error').hidden = false;
+      var next = p.get('next') || '';
+      if (next.indexOf('/office/') === 0) document.querySelector('#login input[name="next"]').value = next;
+    })();
+  </script>
+</OfficeLayout>
