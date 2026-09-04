@@ -4,5 +4,6 @@ Disallow: /admin/
 Disallow: /reports/
 Disallow: /demo/
 Disallow: /questionnaire/
+Disallow: /office/
 
 Sitemap: https://www.keepsitemedia.com/sitemap-index.xml

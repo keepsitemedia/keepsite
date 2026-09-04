@@ -64,6 +64,16 @@ check('noindex pages are out of the sitemap', () => {
   if (s.includes('/start/thanks') || s.includes('/404') || s.includes('/questionnaire/'))
     throw new Error('noindex page in sitemap');
 });
+check('office is disallowed and unlisted', () => {
+  const robots = read('robots.txt');
+  if (!robots.includes('Disallow: /office/')) throw new Error('robots.txt lacks /office/');
+  if (read('sitemap-0.xml').includes('/office/')) throw new Error('office in sitemap');
+  // Rendered pages never land in dist/; if one does, it was prerendered by mistake
+  // and would be served to anyone.
+  for (const p of ['office/index.html', 'office/clients/index.html', 'office/calendar/index.html']) {
+    if (fs.existsSync(path.join('dist', p))) throw new Error('prerendered office page: ' + p);
+  }
+});
 
 section('Copy residue');
 check('no old-model residue', () => {

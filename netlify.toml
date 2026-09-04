@@ -195,6 +195,15 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# Only the prerendered login page gets these from here. Netlify applies
+# netlify.toml headers to static files alone, so every server-rendered
+# office response sets its own copy in src/middleware.ts.
+[[headers]]
+  for = "/office/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "private, no-store"
+
 # Astro content-hashes everything in /_astro, so it is safe to pin.
 [[headers]]
   for = "/_astro/*"
