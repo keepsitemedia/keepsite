@@ -102,7 +102,9 @@ export async function startSubscription({ client, amount, description, startYmd 
 }
 
 export function slugFor(object, clients) {
-  const meta = object?.metadata?.slug ?? object?.subscription_details?.metadata?.slug;
+  const meta = object?.metadata?.slug
+    ?? object?.subscription_details?.metadata?.slug
+    ?? object?.parent?.subscription_details?.metadata?.slug;
   if (meta) return meta;
   const customerId = typeof object?.customer === 'string' ? object.customer : object?.customer?.id;
   return clients.find((c) => c.stripeCustomerId && c.stripeCustomerId === customerId)?.slug ?? null;
@@ -163,10 +165,14 @@ export async function applyEvent(event, s, now = new Date(), fetchFn = fetch) {
   if (INVOICE_EVENTS.has(type)) {
     let doc = payments.find((p) => p.stripe.invoiceId === object.id);
     if (doc?.eventIds.includes(event.id)) return { handled: true, slug, change: 'duplicate event' };
+    // Newer API versions moved the subscription id and its metadata under
+    // `parent.subscription_details`; read both shapes so a version bump on
+    // the Stripe account does not silently orphan new monthly documents.
+    const subscriptionId = object.subscription ?? object.parent?.subscription_details?.subscription ?? null;
     if (!doc) {
       doc = newPayment({
         slug, kind: 'monthly', amount: object.amount_paid ?? object.amount_due ?? 0, description: 'Monthly',
-        stripe: { customerId: client?.stripeCustomerId ?? object.customer ?? null, invoiceId: object.id, subscriptionId: object.subscription ?? null },
+        stripe: { customerId: client?.stripeCustomerId ?? object.customer ?? null, invoiceId: object.id, subscriptionId },
       }, now);
     }
     if (type === 'invoice.paid') {

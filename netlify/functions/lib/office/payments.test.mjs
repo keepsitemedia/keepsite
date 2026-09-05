@@ -251,6 +251,17 @@ test('a failed invoice falls back to last_finalization_error, then to a generic 
   assert.equal(generic.failureReason, 'payment failed');
 });
 
+test('an invoice event with only parent.subscription_details still resolves the subscription and slug', async () => {
+  const s = await make();
+  const r = await applyEvent(evt('evt_9', 'invoice.paid', {
+    id: 'in_9', customer: 'cus_ghost', amount_paid: 15000,
+    parent: { subscription_details: { subscription: 'sub_9', metadata: { slug: 'lova' } } },
+  }), s, NOW);
+  assert.equal(r.slug, 'lova');
+  const m = (await s.payments.list('lova')).find((p) => p.stripe.invoiceId === 'in_9');
+  assert.equal(m.stripe.subscriptionId, 'sub_9');
+});
+
 test('a deleted subscription cancels the subscription document', async () => {
   const s = await make();
   const sub = newPayment({ slug: 'lova', kind: 'subscription', amount: 15000, status: 'active', stripe: { customerId: 'cus_1', subscriptionId: 'sub_1' } }, NOW);
