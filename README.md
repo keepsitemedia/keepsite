@@ -287,4 +287,6 @@ Never commit, and never put in a DecapCMS field, any of the following. If it can
 
 The operating SOP that contains the first three lives outside this repo entirely, in the owner's Drive or a separate private ops repo. `*.docx` and `docs/internal/` are gitignored so those files cannot be added by accident, but gitignore is a convenience and not a control: do not keep them in this working directory.
 
+The office renders agreements from `src/data/office/agreements/*.json`, which `scripts/agreement-from-docx.py` generates from the docx files in `../legal/` (`python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json`, and the same for `search` and `search-plus`). Never edit the JSON by hand; change the docx and regenerate. It needs `python-docx`.
+
 Client-facing add-on rates (for example `$180` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.

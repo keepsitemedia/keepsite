@@ -5,9 +5,16 @@ import { validatePipelines } from '../netlify/functions/lib/office/pipeline.mjs'
 // Templates are the other half of the pipeline seed: a stage that names an
 // email nobody wrote opens a 404 at the moment the admin advances a client.
 import { validateTemplates, placeholdersIn, KNOWN_PLACEHOLDERS } from '../netlify/functions/lib/office/templates.mjs';
+import { loadAgreementTemplates, validateAgreementTemplate } from '../netlify/functions/lib/office/agreement-templates.mjs';
 
 const seed = JSON.parse(fs.readFileSync('src/data/office/pipelines.json', 'utf8'));
 const errors = validatePipelines(seed);
+
+// The agreement templates are generated, but a stale or hand-edited copy
+// would reach a client as a contract; validate them on every gate.
+for (const t of loadAgreementTemplates()) {
+  errors.push(...validateAgreementTemplate(t).map((e) => `agreement ${t.id}: ${e}`));
+}
 
 const templates = JSON.parse(fs.readFileSync('src/data/office/templates.json', 'utf8'));
 errors.push(...validateTemplates(templates));
