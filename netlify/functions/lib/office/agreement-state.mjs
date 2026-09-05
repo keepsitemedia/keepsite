@@ -46,7 +46,10 @@ export function newAgreement({ slug, template, templateVersion, fields, keepsite
 }
 
 export function markSent(a, now = new Date()) {
-  assertStatus(a, ['draft'], 'send');
+  // The admin may sign the draft before sending; what must not have
+  // happened yet is the client's signature, which only exists once sent.
+  const preSigned = a.status === 'partiallySigned' && a.signers.client.status !== 'signed';
+  if (a.status !== 'draft' && !preSigned) fail(`cannot send an agreement that is ${a.status}`);
   const expiresAt = new Date(now.getTime() + EXPIRY_DAYS * 86400e3).toISOString();
   let next = withSigner(withSigner(a, 'keepsite', { expiresAt }), 'client', { expiresAt });
   next = { ...next, status: 'sent', sentAt: now.toISOString() };
@@ -91,6 +94,7 @@ export function isExpired(a, now = new Date()) {
 
 export function markExpired(a, now = new Date()) {
   assertStatus(a, ['sent', 'partiallySigned'], 'expire');
+  if (!isExpired(a, now)) fail('cannot expire an agreement that has not lapsed');
   let next = a;
   for (const party of ['keepsite', 'client']) {
     if (next.signers[party].status !== 'signed') next = withSigner(next, party, { status: 'expired' });

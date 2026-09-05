@@ -42,7 +42,7 @@ test('the admin signs the draft, then sending sets expiry and does not mutate th
   assert.equal(signed.signers.keepsite.status, 'signed');
   assert.equal(signed.signers.keepsite.signatureKey, 'sig.png');
   assert.equal(signed.signers.keepsite.signedAt, NOW.toISOString());
-  const sent = markSent({ ...signed, status: 'draft' }, later(1));
+  const sent = markSent(signed, later(1));
   assert.equal(sent.status, 'sent');
   assert.equal(sent.sentAt, later(1).toISOString());
   assert.equal(sent.signers.client.expiresAt, new Date(later(1).getTime() + 14 * 86400e3).toISOString());
@@ -52,8 +52,7 @@ test('the admin signs the draft, then sending sets expiry and does not mutate th
 });
 
 test('the client views then signs, completing the agreement; sealing records the hash', () => {
-  let a = markSent({ ...markSigned(base(), 'keepsite', NOW, evidence), status: 'draft' }, NOW);
-  a = { ...a, status: 'sent' };
+  const a = markSent(markSigned(base(), 'keepsite', NOW, evidence), NOW);
   const viewed = markViewed(a, 'client', later(2), { ip: '198.51.100.7', userAgent: 'UA2' });
   assert.equal(viewed.signers.client.status, 'viewed');
   assert.equal(viewed.signers.client.viewedAt, later(2).toISOString());
@@ -71,18 +70,30 @@ test('the client views then signs, completing the agreement; sealing records the
 
 test('the client may not sign a draft, and nobody signs twice', () => {
   assert.throws(() => markSigned(base(), 'client', NOW, evidence), InvalidTransition);
-  const a = markSent({ ...markSigned(base(), 'keepsite', NOW, evidence), status: 'draft' }, NOW);
-  assert.throws(() => markSigned({ ...a, status: 'sent' }, 'keepsite', NOW, evidence), /already signed/);
+  const a = markSent(markSigned(base(), 'keepsite', NOW, evidence), NOW);
+  assert.throws(() => markSigned(a, 'keepsite', NOW, evidence), /already signed/);
+});
+
+test('markSent rejects anything but a draft or an unsigned-client partial', () => {
+  const sentUnsigned = markSent(base(), NOW);
+  assert.throws(() => markSent(sentUnsigned, NOW), InvalidTransition);
+  const clientSigned = markSigned(sentUnsigned, 'client', NOW, evidence);
+  assert.equal(clientSigned.status, 'partiallySigned');
+  assert.throws(() => markSent(clientSigned, NOW), InvalidTransition);
+  const completed = markSigned(clientSigned, 'keepsite', NOW, evidence);
+  assert.equal(completed.status, 'completed');
+  assert.throws(() => markSent(completed, NOW), InvalidTransition);
 });
 
 test('decline, expire and void', () => {
-  const sent = { ...markSent({ ...markSigned(base(), 'keepsite', NOW, evidence), status: 'draft' }, NOW), status: 'sent' };
+  const sent = markSent(markSigned(base(), 'keepsite', NOW, evidence), NOW);
   const declined = markDeclined(sent, 'client', later(1), { ip: '1.2.3.4', reason: 'Changed our minds' });
   assert.equal(declined.status, 'declined');
   assert.equal(declined.signers.client.declineReason, 'Changed our minds');
   assert.throws(() => markSigned(declined, 'client', later(2), evidence), InvalidTransition);
   assert.equal(isExpired(sent, later(24 * 13)), false);
   assert.equal(isExpired(sent, later(24 * 15)), true);
+  assert.throws(() => markExpired(sent, NOW), InvalidTransition);
   const expired = markExpired(sent, later(24 * 15));
   assert.equal(expired.status, 'expired');
   assert.equal(expired.signers.client.status, 'expired');
