@@ -11,5 +11,6 @@ import { send } from './actions/send.mjs';
 import { meeting } from './actions/meeting.mjs';
 import { payment } from './actions/payment.mjs';
 import { agreement } from './actions/agreement.mjs';
+import { document } from './actions/document.mjs';
 
-export const actions = { __proto__: null, login, logout, client, stage, task, settings, export: exportData, send, meeting, payment, agreement };
+export const actions = { __proto__: null, login, logout, client, stage, task, settings, export: exportData, send, meeting, payment, agreement, document };
