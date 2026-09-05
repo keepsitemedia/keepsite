@@ -23,6 +23,10 @@ export async function document(request, ctx, s = defaultStore(), now = new Date(
     const invalid = validateUpload(file);
     if (invalid) return back(invalid);
     const name = safeName(file.name);
+    // The store reserves this suffix for its own metadata sidecar; safeName
+    // alone would let it through and the write below would clobber another
+    // document's meta instead of the file it looks like.
+    if (name.endsWith('.meta.json')) return back('that name is reserved');
     // Sealed PDFs and signature images share the namespace; an upload must
     // never be able to replace the evidence they hold.
     const existing = await s.documents.meta(slug, name);

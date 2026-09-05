@@ -50,6 +50,16 @@ test('an upload cannot overwrite a sealed or signed document', async () => {
   assert.deepEqual([...(await s.documents.get('lova', 'agreement-1.pdf'))], [1]);
 });
 
+test('an upload named like a metadata sidecar is refused as reserved', async () => {
+  const s = await make();
+  await s.documents.put('lova', 'agreement-1.pdf', new Uint8Array([1]), { type: 'application/pdf', source: 'seal' });
+  const before = await s.documents.meta('lova', 'agreement-1.pdf');
+  const res = await document(post({ csrf, op: 'upload', slug: 'lova', file: pdf('agreement-1.pdf.meta.json') }), ctx(), s, NOW);
+  assert.match(loc(res), /error=that name is reserved/);
+  assert.deepEqual(await s.documents.meta('lova', 'agreement-1.pdf'), before);
+  assert.equal((await s.documents.list('lova')).length, 1);
+});
+
 test('remove deletes an upload and refuses anything else', async () => {
   const s = await make();
   await s.documents.put('lova', 'brief.pdf', new Uint8Array([1]), { type: 'application/pdf', source: 'upload' });

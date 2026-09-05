@@ -53,7 +53,11 @@ function perClient(backend, type) {
 // with the same regex the store uses, rather than duplicating it.
 export const DOC_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
 const assertDocName = (name) => {
-  if (!DOC_NAME.test(String(name))) throw new Error(`bad document name: ${name}`);
+  const s = String(name);
+  // ".meta.json" is the sidecar's own reserved suffix; a document named
+  // "x.pdf.meta.json" would otherwise write straight over another
+  // document's metadata file.
+  if (!DOC_NAME.test(s) || s.endsWith('.meta.json')) throw new Error(`bad document name: ${name}`);
   return name;
 };
 

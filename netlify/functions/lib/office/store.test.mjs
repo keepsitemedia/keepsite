@@ -79,6 +79,13 @@ test('documents store bytes with a metadata sidecar and list by client', async (
   assert.equal((await s.counts()).documents, 2);
 });
 
+test('a document name ending in .meta.json is rejected as reserved', async () => {
+  const s = make();
+  await assert.rejects(() => s.documents.put('lova', 'x.pdf.meta.json', new Uint8Array([1]), {}), /bad document name/);
+  await s.documents.put('lova', 'x.pdf', new Uint8Array([1]), { type: 'application/pdf' });
+  assert.ok(await s.documents.meta('lova', 'x.pdf'));
+});
+
 test('locks are acquired once', async () => {
   const s = make();
   assert.equal(await s.locks.acquire('seal-abc'), true);
