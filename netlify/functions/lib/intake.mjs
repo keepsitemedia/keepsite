@@ -4,7 +4,7 @@
 // path that does not depend on anyone saving it by hand.
 import path from 'node:path';
 
-const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
+export const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export const FORMS = ['intro', 'brand', 'build'];
 
 export async function pullIntake({ slug, dir, source, write }) {
@@ -22,9 +22,14 @@ export async function pullIntake({ slug, dir, source, write }) {
     if (key.endsWith('.json')) continue;
     const bytes = await source.getBytes(key);
     if (!bytes) continue;
+    // The store's keys are trusted today, but this script writes to disk
+    // unattended, so a key riding a `..` segment must not escape intake/.
     const name = key.slice(slug.length + 1);
-    await write(into(name), bytes);
-    written.push(into(name));
+    if (!name || name.includes('/') || name.includes('\\') || name.startsWith('.')) continue;
+    const dest = into(name);
+    if (path.relative(into(''), dest).startsWith('..')) throw new Error(`bad attachment key: ${key}`);
+    await write(dest, bytes);
+    written.push(dest);
   }
   return { written, missing };
 }
