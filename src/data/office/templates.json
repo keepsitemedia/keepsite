@@ -71,5 +71,11 @@
     "name": "Meeting reminder",
     "subject": "Reminder: {{meeting.title}} in {{meeting.hours}}",
     "body": "Hi {{client.firstName}},\n\n**{{meeting.title}}** is on {{meeting.when}}, {{meeting.hours}} from now.\n\nJoin here: {{meeting.link}}\n\nThanks,\n{{site.brand}}"
+  },
+  {
+    "id": "meeting-cancelled",
+    "name": "Meeting cancelled",
+    "subject": "Cancelled: {{meeting.title}} on {{meeting.when}}",
+    "body": "Hi {{client.firstName}},\n\n**{{meeting.title}}** on {{meeting.when}} is cancelled. A calendar update is attached; reply to this email to find another time.\n\nThanks,\n{{site.brand}}"
   }
 ]

@@ -40,3 +40,17 @@ test('a CRLF-injecting attendee email cannot add a calendar line', () => {
   const ics = buildIcs({ ...base, attendee: { name: 'Sierra Lee', email: 's@example.com\r\nX-EVIL:1' } });
   assert.ok(!ics.split('\r\n').some((line) => line.startsWith('X-EVIL')));
 });
+
+test('sequence and method default to a fresh REQUEST', () => {
+  const lines = buildIcs(base).split('\r\n');
+  assert.ok(lines.includes('METHOD:REQUEST'));
+  assert.ok(lines.includes('SEQUENCE:0'));
+  assert.ok(!lines.includes('STATUS:CANCELLED'));
+});
+
+test('a CANCEL method carries its sequence and STATUS:CANCELLED', () => {
+  const lines = buildIcs({ ...base, sequence: 2, method: 'CANCEL' }).split('\r\n');
+  assert.ok(lines.includes('METHOD:CANCEL'));
+  assert.ok(lines.includes('SEQUENCE:2'));
+  assert.ok(lines.includes('STATUS:CANCELLED'));
+});

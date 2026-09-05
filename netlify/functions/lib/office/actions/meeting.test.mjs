@@ -75,7 +75,11 @@ test('reschedule moves the meeting, resets reminders and re-confirms; delete rem
   const del = await meeting(post({ csrf, op: 'delete', slug: 'lova', id }), ctx(), s, fetchFn, NOW);
   assert.equal(del.status, 303);
   assert.equal(await s.meetings.get('lova', id), null);
-  assert.equal(sent.length, 4);
+  assert.equal(sent.length, 6);
+  assert.match(sent[4].subject, /^Cancelled: Kickoff on Wed, Sep 9 at 9:00 am Mountain$/);
+  const cancelIcs = Buffer.from(sent[4].attachments[0].content, 'base64').toString();
+  assert.match(cancelIcs, /METHOD:CANCEL/);
+  assert.match(cancelIcs, /STATUS:CANCELLED/);
 });
 
 test('a failed confirmation still keeps the meeting', async () => {

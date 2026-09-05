@@ -10,17 +10,21 @@ import { sendMail, logFailure } from '../mail.mjs';
 const LINK = /^https?:\/\/\S+$/;
 const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meeting';
 
-// Both parties get the same confirmation with the same calendar file, so
-// neither can hold a different time. Sends are best-effort: the meeting is
-// already stored, and the Emails tab shows a failure.
-export async function confirmMeeting({ client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {
-  const template = findTemplate(await loadTemplates(s), 'meeting-confirmation');
+// Both parties get the same mail with the same calendar file, so neither can
+// hold a different time (or miss a cancellation). Sends are best-effort: the
+// meeting document is already written, and the Emails tab shows a failure.
+async function sendMeetingMail({ templateId, method, client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {
+  const template = findTemplate(await loadTemplates(s), templateId);
   if (!template) {
-    await logFailure({ slug: client.slug, to: client.email, template: 'meeting-confirmation', kind: 'meeting-confirmation', error: 'template meeting-confirmation is missing' }, s, now);
+    await logFailure({ slug: client.slug, to: client.email, template: templateId, kind: templateId, error: `template ${templateId} is missing` }, s, now);
     return;
   }
   const context = buildContext({ client, admin, secret: process.env.KEEPSITE_TOKEN_SECRET ?? '', meeting, now });
   const { subject, text, html } = render(template, context, {});
+  // A cancellation bumps SEQUENCE past whatever the client's calendar last
+  // saw, which is what tells it to replace the event with STATUS:CANCELLED
+  // rather than ignore a stale-looking update.
+  const sequence = method === 'CANCEL' ? (meeting.sequence ?? 0) + 1 : (meeting.sequence ?? 0);
   const ics = buildIcs({
     uid: `${meeting.id}@keepsitemedia.com`,
     start: toInstant(meeting.ymd, meeting.time),
@@ -31,11 +35,21 @@ export async function confirmMeeting({ client, meeting, admin, s, fetchFn = fetc
     organizer: { name: context.site.brand, email: process.env.KEEPSITE_NOTIFY_FROM ?? context.site.email },
     attendee: { name: client.name, email: client.email },
     stamp: now,
+    sequence,
+    method,
   });
   const attachments = [{ filename: `${slugify(meeting.title)}.ics`, content: Buffer.from(ics).toString('base64') }];
-  const base = { slug: client.slug, subject, text, html, attachments, template: 'meeting-confirmation', kind: 'meeting-confirmation' };
+  const base = { slug: client.slug, subject, text, html, attachments, template: templateId, kind: templateId };
   await sendMail({ ...base, to: client.email }, s, fetchFn, now);
   if (process.env.KEEPSITE_NOTIFY_TO) await sendMail({ ...base, to: process.env.KEEPSITE_NOTIFY_TO }, s, fetchFn, new Date(now.getTime() + 1000));
+}
+
+export async function confirmMeeting({ client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {
+  await sendMeetingMail({ templateId: 'meeting-confirmation', method: 'REQUEST', client, meeting, admin, s, fetchFn, now });
+}
+
+async function cancelMeeting({ client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {
+  await sendMeetingMail({ templateId: 'meeting-cancelled', method: 'CANCEL', client, meeting, admin, s, fetchFn, now });
 }
 
 const when = (data) => {
@@ -73,7 +87,7 @@ export async function meeting(request, ctx, s = defaultStore(), fetchFn = fetch,
     const id = newId(now);
     const doc = {
       id, slug, title, ymd: w.ymd, time: w.time, minutes, link, notes: field(data, 'notes'),
-      remindersSent: { day: null, hour: null }, createdAt: at, updatedAt: at,
+      remindersSent: { day: null, hour: null }, sequence: 0, createdAt: at, updatedAt: at,
     };
     await s.meetings.put(slug, id, doc);
     await confirmMeeting({ client, meeting: doc, admin: ctx.admin, s, fetchFn, now });
@@ -88,13 +102,15 @@ export async function meeting(request, ctx, s = defaultStore(), fetchFn = fetch,
   if (op === 'reschedule') {
     const w = when(data);
     if (w.error) return problem(400, w.error);
-    // A moved meeting is a new meeting to the reminder cron.
-    const doc = { ...existing, ymd: w.ymd, time: w.time, remindersSent: { day: null, hour: null }, updatedAt: at };
+    // A moved meeting is a new meeting to the reminder cron, and a new
+    // revision of the calendar event to the client's calendar app.
+    const doc = { ...existing, ymd: w.ymd, time: w.time, remindersSent: { day: null, hour: null }, sequence: (existing.sequence ?? 0) + 1, updatedAt: at };
     await s.meetings.put(slug, id, doc);
     await confirmMeeting({ client, meeting: doc, admin: ctx.admin, s, fetchFn, now });
     return redirect(to);
   }
   if (op === 'delete') {
+    await cancelMeeting({ client, meeting: existing, admin: ctx.admin, s, fetchFn, now });
     await s.meetings.remove(slug, id);
     return redirect(to);
   }

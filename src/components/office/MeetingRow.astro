@@ -22,7 +22,7 @@ const { meeting: m, csrf, back, showClient = false, business = '' } = Astro.prop
         <input type="date" name="date" value={m.ymd} required aria-label="New date" />
         <input type="time" name="time" value={m.time} required aria-label="New time" />
         <button class="btn-small" name="op" value="reschedule">Save and re-send</button>
-        <button class="btn-small" name="op" value="delete" formnovalidate>Cancel meeting</button>
+        <button class="btn-small" name="op" value="delete" formnovalidate onclick="return confirm('Cancel this meeting and email the client?')">Cancel meeting</button>
       </form>
     </details>
   </td>
