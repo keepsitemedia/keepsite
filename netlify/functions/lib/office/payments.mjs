@@ -119,8 +119,10 @@ const INVOICE_EVENTS = new Set(['invoice.paid', 'invoice.payment_failed']);
 
 // Idempotent by construction: every write records the event id, and a
 // document that already carries it is returned untouched. Stripe redelivers
-// on any non-2xx and sometimes on a 2xx too.
-export async function applyEvent(event, s, now = new Date()) {
+// on any non-2xx and sometimes on a 2xx too. The store has no compare-and-
+// swap, so a lost update between two concurrent deliveries leaves a stale
+// status the admin can see and correct, never a wrong charge.
+export async function applyEvent(event, s, now = new Date(), fetchFn = fetch) {
   const type = event.type;
   const object = event.data?.object ?? {};
   if (!CHECKOUT_EVENTS.has(type) && !INVOICE_EVENTS.has(type) && type !== 'customer.subscription.deleted') {
@@ -171,7 +173,17 @@ export async function applyEvent(event, s, now = new Date()) {
       await save(doc, { status: 'paid', paidAt: at, failureReason: null, amount: object.amount_paid ?? doc.amount });
       return { handled: true, slug, change: 'monthly paid' };
     }
-    await save(doc, { status: 'failed', failureReason: object.last_payment_error?.message ?? 'payment failed', amount: object.amount_due ?? doc.amount });
+    // The decline reason lives on the PaymentIntent, which invoice webhooks
+    // deliver as a bare id, not an expanded object.
+    let reason = null;
+    if (typeof object.payment_intent === 'string') {
+      try {
+        const pi = await stripeRequest('GET', `/payment_intents/${object.payment_intent}`, {}, fetchFn);
+        reason = pi.last_payment_error?.message ?? null;
+      } catch { reason = null; }
+    }
+    const failureReason = reason ?? object.last_finalization_error?.message ?? 'payment failed';
+    await save(doc, { status: 'failed', failureReason, amount: object.amount_due ?? doc.amount });
     return { handled: true, slug, change: 'monthly failed' };
   }
 

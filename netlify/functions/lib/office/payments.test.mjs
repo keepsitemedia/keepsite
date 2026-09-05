@@ -221,7 +221,8 @@ test('invoices create monthly documents, paid or failed, found by customer when 
   assert.equal(m.status, 'paid');
   assert.equal(m.stripe.invoiceId, 'in_1');
   assert.equal(m.stripe.subscriptionId, 'sub_1');
-  await applyEvent(evt('evt_5', 'invoice.payment_failed', { id: 'in_2', customer: 'cus_1', subscription: 'sub_1', amount_due: 15000, last_payment_error: { message: 'Your card was declined.' } }), s, NOW);
+  const { fetchFn } = stripe([{ id: 'pi_2', last_payment_error: { message: 'Your card was declined.' } }]);
+  await applyEvent(evt('evt_5', 'invoice.payment_failed', { id: 'in_2', customer: 'cus_1', subscription: 'sub_1', amount_due: 15000, payment_intent: 'pi_2' }), s, NOW, fetchFn);
   const failed = (await s.payments.list('lova')).find((p) => p.stripe.invoiceId === 'in_2');
   assert.equal(failed.status, 'failed');
   assert.equal(failed.amount, 15000);
@@ -232,6 +233,22 @@ test('invoices create monthly documents, paid or failed, found by customer when 
   assert.equal(retried.status, 'paid');
   assert.equal(retried.failureReason, null);
   assert.equal((await s.payments.list('lova')).length, 2);
+});
+
+test('a failed invoice falls back to last_finalization_error, then to a generic message', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
+  const throwingFetch = async () => { throw new Error('network down'); };
+  await applyEvent(evt('evt_7', 'invoice.payment_failed', {
+    id: 'in_7', customer: 'cus_1', subscription: 'sub_1', amount_due: 15000, payment_intent: 'pi_7',
+    last_finalization_error: { message: 'Could not finalize invoice.' },
+  }), s, NOW, throwingFetch);
+  const withFinalizationError = (await s.payments.list('lova')).find((p) => p.stripe.invoiceId === 'in_7');
+  assert.equal(withFinalizationError.failureReason, 'Could not finalize invoice.');
+
+  await applyEvent(evt('evt_8', 'invoice.payment_failed', { id: 'in_8', customer: 'cus_1', subscription: 'sub_1', amount_due: 15000 }), s, NOW);
+  const generic = (await s.payments.list('lova')).find((p) => p.stripe.invoiceId === 'in_8');
+  assert.equal(generic.failureReason, 'payment failed');
 });
 
 test('a deleted subscription cancels the subscription document', async () => {

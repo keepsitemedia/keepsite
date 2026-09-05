@@ -29,6 +29,7 @@ test('stripeRequest posts form data with the bearer key and parses the answer', 
     assert.equal(seen.init.method, 'POST');
     assert.equal(seen.init.headers.Authorization, 'Bearer sk_test_1');
     assert.equal(seen.init.headers['Content-Type'], 'application/x-www-form-urlencoded');
+    assert.equal(seen.init.headers['Stripe-Version'], '2024-06-20');
     assert.equal(seen.init.body, 'email=a%40b.co&metadata[slug]=lova');
   });
 });

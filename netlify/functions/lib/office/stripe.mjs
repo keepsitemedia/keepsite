@@ -36,7 +36,10 @@ export async function stripeRequest(method, path, params = {}, fetchFn = fetch) 
   if (!key) throw new Error('STRIPE_SECRET_KEY is not set');
   const encoded = encodeForm(params);
   const url = method === 'GET' && encoded ? `${API}${path}?${encoded}` : `${API}${path}`;
-  const init = { method, headers: { Authorization: `Bearer ${key}` } };
+  // Pinned so the payload shape does not move under us when the account's
+  // default version changes; bump deliberately, in step with the code that
+  // reads the response.
+  const init = { method, headers: { Authorization: `Bearer ${key}`, 'Stripe-Version': '2024-06-20' } };
   if (method !== 'GET') {
     init.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     init.body = encoded;
