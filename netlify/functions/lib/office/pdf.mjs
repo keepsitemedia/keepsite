@@ -3,6 +3,7 @@
 // function can afford; the trade is WinAnsi text only, hence toPdfText.
 import { createHash } from 'node:crypto';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { TZ } from './dates.mjs';
 
 const PAGE = { width: 612, height: 792 };
 const MARGIN = 72;
@@ -25,8 +26,16 @@ export function signaturePng(dataUrl) {
   const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl ?? ''));
   if (!m) return null;
   const bytes = new Uint8Array(Buffer.from(m[1], 'base64'));
-  if (bytes.byteLength > 200_000 || bytes.byteLength < PNG_MAGIC.length) return null;
+  // 45 bytes is the smallest a real PNG can be: signature + IHDR chunk (with
+  // its 13-byte payload) + IEND chunk. Magic bytes alone let a corrupt body
+  // through, and embedPng() throwing at seal time would wedge a completed
+  // agreement, so check the IHDR and IEND chunk framing too.
+  if (bytes.byteLength > 200_000 || bytes.byteLength < 45) return null;
   if (!PNG_MAGIC.every((b, i) => bytes[i] === b)) return null;
+  const view = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.readUInt32BE(8) !== 13) return null;
+  if (view.toString('ascii', 12, 16) !== 'IHDR') return null;
+  if (view.toString('ascii', bytes.byteLength - 8, bytes.byteLength - 4) !== 'IEND') return null;
   return bytes;
 }
 
@@ -44,7 +53,7 @@ function wrap(font, size, text, width) {
   return lines;
 }
 
-const fmtDate = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
+const fmtDate = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: TZ, dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
 
 class Writer {
   constructor(doc, fonts) {
@@ -54,7 +63,7 @@ class Writer {
     this.page = this.doc.addPage([PAGE.width, PAGE.height]);
     this.pageNo += 1;
     this.y = PAGE.height - MARGIN;
-    this.page.drawText(`Page ${this.pageNo}`, { x: PAGE.width - MARGIN - 40, y: MARGIN / 2, size: SIZES.small, font: this.fonts.body, color: rgb(0.4, 0.4, 0.4) });
+    this.page.drawText(toPdfText(`Page ${this.pageNo}`), { x: PAGE.width - MARGIN - 40, y: MARGIN / 2, size: SIZES.small, font: this.fonts.body, color: rgb(0.4, 0.4, 0.4) });
   }
   need(height) { if (!this.page || this.y - height < MARGIN) this.newPage(); }
   text(str, { font = this.fonts.body, size = SIZES.p, gapAfter = size * 0.6, x = MARGIN, width = CONTENT } = {}) {
@@ -68,6 +77,7 @@ class Writer {
     this.y -= gapAfter;
   }
   table(rows) {
+    if (!rows.length) return;
     const cols = Math.max(...rows.map((r) => r.length));
     const widths = cols === 2 ? [CONTENT * 0.38, CONTENT * 0.62] : cols === 3 ? [CONTENT * 0.34, CONTENT * 0.36, CONTENT * 0.30] : Array(cols).fill(CONTENT / cols);
     const size = SIZES.table; const lh = size * LEADING; const pad = 4;
@@ -94,10 +104,12 @@ class Writer {
       this.text(party.label, { font: this.fonts.bold, gapAfter: 4 });
       if (sig?.png) {
         const img = await this.doc.embedPng(sig.png);
-        const scale = Math.min(180 / img.width, 60 / img.height);
+        // Cap at 1 so a small pad-captured signature is drawn at its own
+        // size rather than blown up to fill the 180x60 box.
+        const scale = Math.min(1, 180 / img.width, 60 / img.height);
         this.need(70);
         this.page.drawImage(img, { x: MARGIN + 70, y: this.y - 62, width: img.width * scale, height: img.height * scale });
-        this.page.drawText('Signature:', { x: MARGIN, y: this.y - 62, size: SIZES.p, font: this.fonts.body });
+        this.page.drawText(toPdfText('Signature:'), { x: MARGIN, y: this.y - 62, size: SIZES.p, font: this.fonts.body });
         this.y -= 70;
       } else {
         this.text('Signature: ______________________________________', { gapAfter: 2 });
@@ -127,8 +139,13 @@ class Writer {
   }
 }
 
-export async function renderAgreement({ blocks, signatures = {}, certificate = null }) {
+export async function renderAgreement({ blocks, signatures = {}, certificate = null, renderedAt = new Date(0) }) {
   const doc = await PDFDocument.create();
+  // The certificate prints the SHA-256 of this body render so it can be
+  // re-verified later; pdf-lib defaults /CreationDate and /ModDate to the
+  // wall clock, which would make identical inputs hash differently every run.
+  doc.setCreationDate(renderedAt);
+  doc.setModificationDate(renderedAt);
   const fonts = { body: await doc.embedFont(StandardFonts.TimesRoman), bold: await doc.embedFont(StandardFonts.HelveticaBold) };
   const w = new Writer(doc, fonts);
   w.newPage();

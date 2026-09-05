@@ -26,6 +26,12 @@ test('signaturePng accepts a small PNG data URL and nothing else', () => {
   assert.equal(signaturePng(''), null);
 });
 
+test('signaturePng rejects magic bytes with a corrupt chunk body', () => {
+  const magic = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const garbage = Buffer.concat([magic, Buffer.alloc(64, 7)]);
+  assert.equal(signaturePng(`data:image/png;base64,${garbage.toString('base64')}`), null);
+});
+
 test('a full agreement renders to a multi-page PDF without throwing', async () => {
   const blocks = fillBlocks(findAgreementTemplate('search-plus'), fields);
   const bytes = await renderAgreement({ blocks });
@@ -52,4 +58,22 @@ test('signatures and the certificate page are drawn, and the hash is stable', as
   assert.equal(count(signed), count(plain) + 1);
   assert.ok(Buffer.from(signed).toString('latin1').includes('/Subtype /Image'));
   assert.equal(sha256(new Uint8Array([1, 2, 3])), '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81');
+});
+
+test('renders of the same blocks are byte-identical', async () => {
+  const blocks = fillBlocks(findAgreementTemplate('presence'), { ...fields, discountApplied: false });
+  const a = await renderAgreement({ blocks });
+  const b = await renderAgreement({ blocks });
+  assert.deepEqual(Buffer.from(a), Buffer.from(b));
+
+  const renderedAt = new Date('2026-01-01T00:00:00.000Z');
+  const c = await renderAgreement({ blocks, renderedAt });
+  const d = await renderAgreement({ blocks, renderedAt });
+  assert.deepEqual(Buffer.from(c), Buffer.from(d));
+  assert.notDeepEqual(Buffer.from(a), Buffer.from(c));
+});
+
+test('an unknown block kind renders as a paragraph instead of throwing', async () => {
+  const bytes = await renderAgreement({ blocks: [{ type: 'title', text: 'Doc' }, { type: 'list', text: 'x' }] });
+  assert.equal(Buffer.from(bytes.subarray(0, 5)).toString(), '%PDF-');
 });
