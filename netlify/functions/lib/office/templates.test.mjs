@@ -29,6 +29,10 @@ test('validateTemplates names each problem', () => {
   assert.match(validateTemplates([{ id: 'a', name: 'x', subject: 's', body: 'b' }, { id: 'a', name: 'y', subject: 's', body: 'b' }]).join(), /duplicate/);
   assert.match(validateTemplates([{ id: 'a', name: 'x', subject: 's', body: 'b', fields: [{ key: 'Bad Key', label: 'l' }] }]).join(), /key/);
   assert.match(validateTemplates([{ id: 'a', name: 'x', subject: 's', body: 'b', fields: [{ key: 'k' }] }]).join(), /label/);
+  assert.match(
+    validateTemplates([{ id: 'a', name: 'x', subject: 's', body: 'b', fields: [{ key: 'x', label: 'l1' }, { key: 'x', label: 'l2' }] }]).join(),
+    /duplicate field key "x"/,
+  );
 });
 
 test('loadTemplates prefers the stored copy', async () => {
@@ -43,6 +47,12 @@ test('fill substitutes known paths and leaves the rest visible', () => {
   const r = fill('Hi {{client.firstName}} from {{site.brand}}: {{links.intro}} {{ghost}} {{client.phone}}', ctx);
   assert.equal(r.text, 'Hi Sierra from Keepsite Media: https://x/intro {{ghost}} {{client.phone}}');
   assert.deepEqual(r.unresolved, ['ghost', 'client.phone']);
+});
+
+test('a hyphenated placeholder name is found and filled', () => {
+  assert.deepEqual(placeholdersIn('{{sign-link}}'), ['sign-link']);
+  const r = fill('{{sign-link}}', {}, { 'sign-link': 'https://sign/1' });
+  assert.equal(r.text, 'https://sign/1');
 });
 
 test('fill prefers a prompted value and can escape for HTML', () => {

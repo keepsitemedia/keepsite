@@ -6,7 +6,7 @@ import { marked } from 'marked';
 import seed from '../../../../src/data/office/templates.json' with { type: 'json' };
 
 const KEY = /^[a-z][a-zA-Z0-9-]{0,31}$/;
-const PLACEHOLDER = /\{\{\s*([a-zA-Z][a-zA-Z0-9_.]*)\s*\}\}/g;
+const PLACEHOLDER = /\{\{\s*([a-zA-Z][a-zA-Z0-9_.-]*)\s*\}\}/g;
 
 export const KNOWN_PLACEHOLDERS = [
   'client.name', 'client.firstName', 'client.business', 'client.email',
@@ -32,10 +32,13 @@ export function validateTemplates(value) {
     if (!t.body) errors.push(`${at}: body is required`);
     if (t.fields !== undefined) {
       if (!Array.isArray(t.fields)) return errors.push(`${at}: fields must be a list`);
+      const keys = new Set();
       t.fields.forEach((f, j) => {
         const fat = `${at}, field ${j + 1}`;
         if (!f || typeof f !== 'object') return errors.push(`${fat}: not an object`);
         if (!KEY.test(String(f.key))) errors.push(`${fat}: key must be a single word`);
+        if (keys.has(f.key)) errors.push(`${at}: duplicate field key "${f.key}"`);
+        keys.add(f.key);
         if (!f.label) errors.push(`${fat}: label is required`);
       });
     }
