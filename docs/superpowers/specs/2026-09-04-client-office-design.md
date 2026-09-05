@@ -320,9 +320,10 @@ and balance, then monthly, matching the agreements:
   `setup_future_usage: off_session` so the method is saved, and
   `metadata` carrying slug and kind. The amounts prefill from half the
   tier's build price and the admin edits them; phase 4 fills them from
-  the signed agreement. The session URL is `{{links.pay}}` in the
-  stage email or copied from the Payments tab. Stripe hosts the page,
-  the receipt, and the ACH mandate text.
+  the signed agreement. The session URL is copied from the Payments
+  tab into the launch email's prompted `payLink` field; phase 4 may
+  automate it. Stripe hosts the page, the receipt, and the ACH mandate
+  text.
 - **Monthly** is a Subscription on the saved default payment method,
   started by a button on the client page after launch, with the tier's
   price from `src/data/packages.json` (looked up by tier, so prices
@@ -330,7 +331,7 @@ and balance, then monthly, matching the agreements:
   the invoice description; Stripe coupons are not used. `billing_cycle_anchor`
   is set to the launch date.
 
-`office-stripe-webhook.mjs` verifies the signature with
+`stripe-webhook.mjs` verifies the signature with
 `STRIPE_WEBHOOK_SECRET` and writes a payment document on
 `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
 `checkout.session.async_payment_failed`, `invoice.paid`,
