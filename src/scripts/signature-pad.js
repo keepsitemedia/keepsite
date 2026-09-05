@@ -49,6 +49,10 @@
     form.addEventListener('submit', function (e) {
       if (!inked) { e.preventDefault(); return; }
       target.value = canvas.toDataURL('image/png');
+      // A double-click would otherwise post the same signature twice, and two
+      // overlapping signs race over one agreement. The button carries no
+      // name, so disabling it costs the form nothing.
+      submit.disabled = true;
     });
     ready();
   });

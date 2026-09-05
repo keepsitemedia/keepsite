@@ -36,6 +36,10 @@ export function signaturePng(dataUrl) {
   if (view.readUInt32BE(8) !== 13) return null;
   if (view.toString('ascii', 12, 16) !== 'IHDR') return null;
   if (view.toString('ascii', bytes.byteLength - 8, bytes.byteLength - 4) !== 'IEND') return null;
+  // A compressed 200 KB file can declare 7000x7000, and pdf-lib decodes the
+  // whole bitmap — four times per seal, since the body and the certificate
+  // render both signatures. The pad captures well under this.
+  if (view.readUInt32BE(16) > 2000 || view.readUInt32BE(20) > 800) return null;
   return bytes;
 }
 

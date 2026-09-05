@@ -1,8 +1,9 @@
 ---
 // The same blocks the PDF is drawn from, as HTML for reading on screen.
+import { TZ } from '../../../netlify/functions/lib/office/dates.mjs';
 interface Props { blocks: any[]; signatures?: Record<string, { src: string; signedAt: string } | undefined> }
 const { blocks, signatures = {} } = Astro.props;
-const when = (iso: string) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
+const when = (iso: string) => new Intl.DateTimeFormat('en-US', { timeZone: TZ, dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
 ---
 <div class="agreement">
   {blocks.map((b) => {

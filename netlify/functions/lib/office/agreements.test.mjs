@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent, sealAgreement, signatureViews, TemplateGone } from './agreements.mjs';
+import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent, sealAgreement, signatureViews, TemplateGone, DOWNLOADABLE } from './agreements.mjs';
+import { sha256 } from './pdf.mjs';
+import { PNG, DATA_URL } from './test-fixtures.mjs';
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
@@ -8,8 +10,6 @@ import { newId } from './ids.mjs';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
-const DATA_URL = `data:image/png;base64,${PNG.toString('base64')}`;
 const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Search' };
 const admin = { email: 'me@keepsitemedia.com' };
 const make = async () => {
@@ -225,4 +225,75 @@ test('sending closes the "agreement: sent" task and completion closes "agreement
   const { fetchFn } = mailer();
   await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(1));
   assert.equal((await s.tasks.get('lova', t2)).done, true);
+});
+
+// Both submits write before either re-reads, which is what two requests
+// against a last-write-wins store come to.
+const pairedPuts = (s, n) => {
+  let arrived = 0;
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  return {
+    ...s,
+    agreements: {
+      ...s.agreements,
+      async put(slug, id, doc) {
+        await s.agreements.put(slug, id, doc);
+        if ((arrived += 1) === n) release();
+        return gate;
+      },
+    },
+  };
+};
+
+const sealedOnce = async (s, a, sent) => {
+  const stored = await s.agreements.get('lova', a.id);
+  assert.equal(stored.audit.filter((e) => e.event === 'sealed').length, 1);
+  assert.deepEqual((await s.documents.list('lova')).filter((d) => d.name.endsWith('.pdf')).map((d) => d.name), [`agreement-${a.id}.pdf`]);
+  assert.equal(sha256(await s.documents.get('lova', stored.documentKey)), stored.hash);
+  assert.equal(sent.length, 2);
+};
+
+test('two overlapping signs seal once, with one PDF whose hash is the stored one', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  const sign = (when, ip) => signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true, ip }, s, fetchFn, when);
+  const results = await Promise.all([sign(later(3), '3.3.3.3'), sign(later(4), '4.4.4.4')]);
+  assert.equal(results.filter((r) => r.ok).length, 1);
+  assert.equal(results.find((r) => !r.ok).error, 'already signed');
+  await sealedOnce(s, a, sent);
+});
+
+test('two signs that both write before either re-reads still seal once', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  const paired = pairedPuts(s, 2);
+  const sign = (when) => signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, paired, fetchFn, when);
+  const results = await Promise.all([sign(later(3)), sign(later(4))]);
+  assert.equal(results.filter((r) => r.ok).length, 1);
+  await sealedOnce(s, a, sent);
+});
+
+test('the sweep leaves an agreement completed between the listing and the write alone', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { fetchFn } = mailer();
+  await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  // The snapshot the sweep loops over predates the signature.
+  const stale = { ...s, agreements: { ...s.agreements, async listAll() { return [a]; } } };
+  assert.equal(await expireAgreements(stale, later(24 * 15)), 0);
+  assert.equal((await s.agreements.get('lova', a.id)).status, 'completed');
+});
+
+test('renderCurrent throws a TemplateGone when the stored version is not the current one', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  await assert.rejects(() => renderCurrent({ ...a, templateVersion: '2020-01-01', documentKey: null }, s), TemplateGone);
+});
+
+test('the PDF route serves the statuses the sign page offers a download for, and no others', () => {
+  assert.deepEqual(DOWNLOADABLE, ['sent', 'partiallySigned', 'completed']);
+  for (const status of ['draft', 'declined', 'expired', 'voided']) assert.equal(DOWNLOADABLE.includes(status), false);
 });

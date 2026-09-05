@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderAgreement, sha256, toPdfText, signaturePng } from './pdf.mjs';
 import { findAgreementTemplate, fillBlocks } from './agreement-templates.mjs';
+import { PNG, DATA_URL, pngDeclaring } from './test-fixtures.mjs';
 
 const fields = {
   legalName: 'Lova Content Creation LLC', entityType: 'LLC', address: '1 Main St, Lehi, Utah 84043', signerName: 'Sierra Lee', signerTitle: 'Owner',
@@ -9,9 +10,6 @@ const fields = {
   discountApplied: true,
   discount: { name: 'Founding client', type: 'Fixed dollar amount', amount: '$350', adjustedBuildFee: 140000, monthlyType: '', monthlyAmount: '', discountedMonthlyFee: null, months: null, conditions: 'Testimonial' },
 };
-// A 1x1 transparent PNG.
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
-const DATA_URL = `data:image/png;base64,${PNG.toString('base64')}`;
 
 test('toPdfText keeps WinAnsi characters and replaces the rest', () => {
   assert.equal(toPdfText('Fee — “quoted” ☐ Yes ☑ No • ok'), 'Fee — “quoted” [ ] Yes [x] No • ok');
@@ -30,6 +28,14 @@ test('signaturePng rejects magic bytes with a corrupt chunk body', () => {
   const magic = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const garbage = Buffer.concat([magic, Buffer.alloc(64, 7)]);
   assert.equal(signaturePng(`data:image/png;base64,${garbage.toString('base64')}`), null);
+});
+
+test('signaturePng refuses a small file that declares a huge bitmap', () => {
+  assert.equal(signaturePng(pngDeclaring(7000, 7000)), null);
+  assert.equal(signaturePng(pngDeclaring(2001, 100)), null);
+  assert.equal(signaturePng(pngDeclaring(100, 801)), null);
+  assert.notEqual(signaturePng(pngDeclaring(600, 200)), null);
+  assert.notEqual(signaturePng(DATA_URL), null);
 });
 
 test('a full agreement renders to a multi-page PDF without throwing', async () => {

@@ -138,6 +138,16 @@ const signaturesFor = async (a, s) => {
 // it reads fillBlocks directly instead of going through renderCurrent.
 export class TemplateGone extends Error {}
 
+// A render must match the version the stored record and the certificate name,
+// or the client would be shown (and sealed into) text nobody agreed to: the
+// docx regeneration that retires a template can also rewrite one in place.
+export function templateFor(a) {
+  const template = findAgreementTemplate(a.template);
+  if (!template) throw new TemplateGone(`template ${a.template} no longer exists`);
+  if (template.version !== a.templateVersion) throw new TemplateGone(`template ${a.template} has changed since this agreement was created`);
+  return template;
+}
+
 // The same PNGs sealAgreement embeds in the PDF, as data URLs for the admin
 // and (task 7) public signing pages to show inline; only for signers who
 // have actually signed, so an unsigned party still shows the blank line.
@@ -150,11 +160,14 @@ export async function signatureViews(a, s = defaultStore()) {
   return out;
 }
 
-export async function sealAgreement(a, s = defaultStore(), fetchFn = fetch, now = new Date()) {
+export async function sealAgreement(stale, s = defaultStore(), fetchFn = fetch, now = new Date()) {
   // Idempotent: a second call would re-render (a different renderedAt hashes
-  // differently), overwrite the stored PDF, and mail both parties again.
+  // differently), overwrite the stored PDF, and mail both parties again. The
+  // caller's copy can predate another request's seal, so decide from a fresh
+  // read rather than from what was passed in.
+  const a = (await s.agreements.get(stale.slug, stale.id)) ?? stale;
   if (a.documentKey) return a;
-  const template = findAgreementTemplate(a.template);
+  const template = templateFor(a);
   const blocks = fillBlocks(template, a.fields);
   const signatures = await signaturesFor(a, s);
   const inner = await renderAgreement({ blocks, signatures, renderedAt: now });
@@ -205,11 +218,16 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     // markSigned first: it is pure and throws on a bad transition (a voided
     // or otherwise closed agreement), so a rejected sign never leaves an
     // orphan PNG behind in documents.
-    let next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
+    const next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
     await storeSignature(a, party, signatureDataUrl, s, now);
     await s.agreements.put(a.slug, a.id, next);
-    if (next.status === 'completed') next = await sealAgreement(next, s, fetchFn, now);
-    return { ok: true, agreement: next };
+    // Two submits that overlap both pass the checks above against the same
+    // stored copy and both write; the store is last-write-wins, so the one
+    // whose signature survived the write owns the seal and the other is a
+    // duplicate that must not seal, mail or answer ok.
+    const fresh = await s.agreements.get(a.slug, a.id);
+    if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };
+    return { ok: true, agreement: fresh.status === 'completed' ? await sealAgreement(fresh, s, fetchFn, now) : fresh };
   } catch (e) {
     if (e instanceof InvalidTransition) return { ok: false, error: e.message };
     throw e;
@@ -254,8 +272,12 @@ export async function voidAgreement({ slug, id, note }, s = defaultStore(), now 
 
 export async function expireAgreements(s = defaultStore(), now = new Date()) {
   let n = 0;
-  for (const a of await s.agreements.listAll()) {
-    if (isExpired(a, now)) {
+  // The listing is a snapshot: a client can sign between the read and the
+  // write, and writing a record built from the snapshot would overwrite a
+  // completed, sealed agreement with 'expired'. Re-read each candidate.
+  for (const stale of await s.agreements.listAll()) {
+    const a = await s.agreements.get(stale.slug, stale.id);
+    if (a && isExpired(a, now)) {
       await s.agreements.put(a.slug, a.id, markExpired(a, now));
       n += 1;
     }
@@ -268,10 +290,13 @@ export async function renderCurrent(a, s = defaultStore()) {
     const bytes = await s.documents.get(a.slug, a.documentKey);
     if (bytes) return bytes;
   }
-  const template = findAgreementTemplate(a.template);
-  if (!template) throw new TemplateGone(`template ${a.template} no longer exists`);
-  return renderAgreement({ blocks: fillBlocks(template, a.fields), signatures: await signaturesFor(a, s) });
+  return renderAgreement({ blocks: fillBlocks(templateFor(a), a.fields), signatures: await signaturesFor(a, s) });
 }
+
+// The public PDF route answers for exactly the statuses whose sign page
+// offers a download; a draft, declined, expired or voided agreement is a 404
+// there, so its PDF must not be fetchable either.
+export const DOWNLOADABLE = ['sent', 'partiallySigned', 'completed'];
 
 export const latestSent = (agreements) =>
   agreements.filter((a) => a.status === 'sent' || a.status === 'partiallySigned').sort((x, y) => y.id.localeCompare(x.id))[0];

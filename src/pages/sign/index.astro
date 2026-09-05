@@ -10,8 +10,8 @@ import '@fontsource-variable/instrument-sans/wght.css';
 import AgreementBody from '../../components/office/AgreementBody.astro';
 import site from '../../data/site.json';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
-import { viewAgreement, signatureViews } from '../../../netlify/functions/lib/office/agreements.mjs';
-import { findAgreementTemplate, fillBlocks } from '../../../netlify/functions/lib/office/agreement-templates.mjs';
+import { viewAgreement, signatureViews, templateFor, TemplateGone } from '../../../netlify/functions/lib/office/agreements.mjs';
+import { fillBlocks } from '../../../netlify/functions/lib/office/agreement-templates.mjs';
 import { TOKEN, clientIp, userAgentOf } from '../../../netlify/functions/lib/office/sign.mjs';
 
 type View = { agreement: any; party: 'keepsite' | 'client' | null; state: 'sign' | 'signed' | 'declined' | 'expired' | 'voided' | 'invalid' };
@@ -31,15 +31,20 @@ if (view.state === 'invalid') return new Response('This signing link is not vali
 if (view.party !== 'client') return new Response('This signing link is not valid.', { status: 404, headers: { 'Content-Type': 'text/plain' } });
 if (view.state === 'expired') Astro.response.status = 410;
 const a = view.agreement;
-// Only the 'sign' state renders AgreementBody below; fillBlocks needs a
-// template that fillBlocks/findAgreementTemplate can still find, which a
-// retired docx re-generation could have dropped. renderCurrent maps that
-// same gap to a 410 on /sign/document; mirror it here rather than crash.
+// Only the 'sign' state renders AgreementBody below, and it must render the
+// version the record names: a docx re-generation can retire a template or
+// change one under a live agreement. renderCurrent maps that same gap to a
+// 410 on /sign/document; mirror it here rather than show the wrong text.
 let blocks: any[] = [];
 let signatures: Record<string, { src: string; signedAt: string } | undefined> = {};
 if (view.state === 'sign') {
-  const template = findAgreementTemplate(a.template);
-  if (!template) return new Response('template no longer exists', { status: 410 });
+  let template;
+  try {
+    template = templateFor(a);
+  } catch (e) {
+    if (e instanceof TemplateGone) return new Response("this agreement's template has changed; void it and create a new one", { status: 410, headers: { 'Content-Type': 'text/plain' } });
+    throw e;
+  }
   blocks = fillBlocks(template, a.fields) as any[];
   // Signed parties show their drawn signature on screen, matching the PDF.
   signatures = (await signatureViews(a, s)) as Record<string, { src: string; signedAt: string } | undefined>;

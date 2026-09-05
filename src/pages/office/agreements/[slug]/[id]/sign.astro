@@ -4,8 +4,8 @@ import OfficeLayout from '../../../../../layouts/OfficeLayout.astro';
 import AgreementBody from '../../../../../components/office/AgreementBody.astro';
 import { store, SLUG } from '../../../../../../netlify/functions/lib/office/store.mjs';
 import { ID } from '../../../../../../netlify/functions/lib/office/ids.mjs';
-import { findAgreementTemplate, fillBlocks } from '../../../../../../netlify/functions/lib/office/agreement-templates.mjs';
-import { signatureViews } from '../../../../../../netlify/functions/lib/office/agreements.mjs';
+import { fillBlocks } from '../../../../../../netlify/functions/lib/office/agreement-templates.mjs';
+import { signatureViews, templateFor, TemplateGone } from '../../../../../../netlify/functions/lib/office/agreements.mjs';
 
 type Agreement = { id: string; slug: string; template: string; templateName: string; status: string; fields: any };
 const slug = Astro.params.slug ?? '';
@@ -14,8 +14,13 @@ if (!SLUG.test(slug) || !ID.test(id)) return new Response('not found', { status:
 const s = store();
 const a = (await s.agreements.get(slug, id)) as Agreement | null;
 if (!a) return new Response('not found', { status: 404 });
-const template = findAgreementTemplate(a.template);
-if (!template) return new Response('template no longer exists', { status: 410 });
+let template;
+try {
+  template = templateFor(a);
+} catch (e) {
+  if (e instanceof TemplateGone) return new Response("this agreement's template has changed; void it and create a new one", { status: 410, headers: { 'Content-Type': 'text/plain' } });
+  throw e;
+}
 const blocks = fillBlocks(template, a.fields) as any[];
 // agreements.mjs has no .d.ts, so tsc infers signatureViews' return from its
 // `const out = {}` body rather than treating it as any; cast to what
