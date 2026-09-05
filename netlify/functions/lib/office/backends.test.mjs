@@ -34,4 +34,14 @@ for (const [name, make] of [
     await b.remove('documents/a/x.png');
     assert.equal(await b.getBytes('documents/a/x.png'), null);
   });
+
+  test(`${name} setTextIfNew writes once`, async () => {
+    const b = await make();
+    assert.equal(await b.setTextIfNew('locks/a', '1'), true);
+    assert.equal(await b.setTextIfNew('locks/a', '2'), false);
+    assert.equal(await b.getText('locks/a'), '1');
+    // Ten racers, one winner.
+    const results = await Promise.all(Array.from({ length: 10 }, (_, i) => b.setTextIfNew('locks/b', String(i))));
+    assert.equal(results.filter(Boolean).length, 1);
+  });
 }

@@ -78,3 +78,40 @@ test('documents store bytes with a metadata sidecar and list by client', async (
   await assert.rejects(() => s.documents.get('lova', 'a b.png'), /bad document name/);
   assert.equal((await s.counts()).documents, 2);
 });
+
+test('locks are acquired once', async () => {
+  const s = make();
+  assert.equal(await s.locks.acquire('seal-abc'), true);
+  assert.equal(await s.locks.acquire('seal-abc'), false);
+  assert.equal(await s.locks.acquire('seal-def'), true);
+  await assert.rejects(() => s.locks.acquire('bad name!'), /bad lock/);
+});
+
+test('tokens index round-trips and rejects bad tokens', async () => {
+  const s = make();
+  const tok = 'A'.repeat(43);
+  assert.equal(await s.tokens.get(tok), null);
+  await s.tokens.put(tok, { slug: 'lova', id: 'x', party: 'client' });
+  assert.deepEqual(await s.tokens.get(tok), { slug: 'lova', id: 'x', party: 'client' });
+  await assert.rejects(() => s.tokens.put('short', {}), /bad token/);
+  await assert.rejects(() => s.tokens.get('../clients/lova.json'), /bad token/);
+});
+
+test('documents remove bytes and sidecar together', async () => {
+  const s = make();
+  await s.documents.put('lova', 'brief.pdf', new Uint8Array([1, 2, 3]), { type: 'application/pdf' });
+  assert.equal((await s.documents.list('lova')).length, 1);
+  await s.documents.remove('lova', 'brief.pdf');
+  assert.equal(await s.documents.get('lova', 'brief.pdf'), null);
+  assert.equal(await s.documents.meta('lova', 'brief.pdf'), null);
+  assert.deepEqual(await s.documents.list('lova'), []);
+});
+
+test('questionnaire files are readable by name', async () => {
+  const q = memoryBackend();
+  const s = createStore({ office: memoryBackend(), questionnaires: q });
+  await q.setBytes('lova/logo-mark.png', new Uint8Array([137, 80]));
+  assert.deepEqual([...(await s.questionnaires.file('lova', 'logo-mark.png'))], [137, 80]);
+  assert.equal(await s.questionnaires.file('lova', 'none.png'), null);
+  await assert.rejects(() => s.questionnaires.file('lova', '../acme/logo.png'), /bad document name/);
+});

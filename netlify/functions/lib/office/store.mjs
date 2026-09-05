@@ -7,6 +7,10 @@ import { ID } from './ids.mjs';
 export const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SETTING = /^[a-z]+$/;
 const FORM = /^[a-z]+$/;
+// Exported so sign.mjs (and any other route that verifies a signing link)
+// imports the token shape from one place instead of redefining the regex.
+export const TOKEN = /^[A-Za-z0-9_-]{43}$/;
+const LOCK = /^[a-z]+-[A-Za-z0-9_-]{1,80}$/;
 
 export function assertSlug(slug) {
   if (!SLUG.test(String(slug))) throw new Error(`bad slug: ${slug}`);
@@ -22,6 +26,8 @@ const assertName = (re, what) => (v) => {
 };
 const assertSetting = assertName(SETTING, 'setting');
 const assertForm = assertName(FORM, 'form');
+const assertToken = assertName(TOKEN, 'token');
+const assertLock = assertName(LOCK, 'lock');
 
 async function readJSON(backend, key) {
   const text = await backend.getText(key);
@@ -43,7 +49,9 @@ function perClient(backend, type) {
   };
 }
 
-const DOC_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
+// Exported so a later route that reads a document by name can validate it
+// with the same regex the store uses, rather than duplicating it.
+export const DOC_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
 const assertDocName = (name) => {
   if (!DOC_NAME.test(String(name))) throw new Error(`bad document name: ${name}`);
   return name;
@@ -61,6 +69,10 @@ function documents(backend) {
     },
     async get(slug, name) { return backend.getBytes(key(slug, name)); },
     async meta(slug, name) { return readJSON(backend, `${key(slug, name)}.meta.json`); },
+    async remove(slug, name) {
+      await backend.remove(key(slug, name));
+      await backend.remove(`${key(slug, name)}.meta.json`);
+    },
     async list(slug) {
       const keys = (await backend.list(`documents/${assertSlug(slug)}/`)).filter((k) => k.endsWith('.meta.json'));
       return Promise.all(keys.map((k) => readJSON(backend, k)));
@@ -92,8 +104,19 @@ export function createStore({ office, questionnaires }) {
       async files(slug) {
         return (await questionnaires.list(`${assertSlug(slug)}/`)).filter((k) => !k.endsWith('.json'));
       },
+      async file(slug, name) { return questionnaires.getBytes(`${assertSlug(slug)}/${assertDocName(name)}`); },
     },
     documents: documents(office),
+    tokens: {
+      async get(token) { return readJSON(office, `tokens/${assertToken(token)}.json`); },
+      async put(token, ref) { return writeJSON(office, `tokens/${assertToken(token)}.json`, ref); },
+    },
+    // A lock is a key that can be created once. There is no release: a seal
+    // happens once per agreement, so the lock's name carries the agreement id
+    // and is never reused.
+    locks: {
+      async acquire(name) { return office.setTextIfNew(`locks/${assertLock(name)}`, new Date().toISOString()); },
+    },
     async counts() {
       const out = { clients: await s.clients.count() };
       for (const t of TYPES) out[t] = await s[t].count();
