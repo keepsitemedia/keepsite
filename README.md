@@ -169,6 +169,8 @@ grants access; a logged-in Identity user without the role is refused.
 | `KEEPSITE_TOKEN_SECRET` | Already set for the questionnaires; the office uses it to show each client's questionnaire links. |
 | `RESEND_API_KEY`, `KEEPSITE_NOTIFY_FROM`, `KEEPSITE_NOTIFY_TO` | Already set for the questionnaires. The office sends every client email from `KEEPSITE_NOTIFY_FROM` and the daily digest and meeting copies to `KEEPSITE_NOTIFY_TO`. |
 | `URL` | Set by Netlify. Used in links inside emails; locally it is unset and links point at `https://www.keepsitemedia.com`. |
+| `STRIPE_SECRET_KEY` | Creates customers, Checkout links and subscriptions. Without it the Payments tab shows a banner and every payment button is disabled. Use the test key until the first real client. |
+| `STRIPE_WEBHOOK_SECRET` | Verifies webhook signatures. Without it every webhook is refused with 400 and no payment is ever marked paid. |
 
 ### Local development
 
@@ -220,6 +222,35 @@ each get a confirmation with a calendar file. Two scheduled functions run:
 13:00 UTC is 7 a.m. Mountain in summer and 6 a.m. in winter. Change the hour
 in `netlify/functions/office-digest-cron.mjs` in March and November if that
 matters. Netlify shows both functions under Functions → Scheduled.
+
+### Payments
+
+Stripe is the system of record; the office stores IDs and outcomes.
+Entering the Agreement stage creates the Stripe customer. The Payments tab
+makes a deposit or balance link (Stripe Checkout, card and US bank account,
+the method is saved for the monthly) and starts the monthly subscription
+against that saved method. Amounts prefill from `src/data/packages.json`
+and are edited on the form for a discount.
+
+Outcomes arrive through one webhook. In Stripe → Developers → Webhooks add
+an endpoint at
+
+```
+https://www.keepsitemedia.com/.netlify/functions/stripe-webhook
+```
+
+listening to `checkout.session.completed`,
+`checkout.session.async_payment_succeeded`,
+`checkout.session.async_payment_failed`, `invoice.paid`,
+`invoice.payment_failed` and `customer.subscription.deleted`, and put its
+signing secret in `STRIPE_WEBHOOK_SECRET`. A paid deposit or balance
+closes the matching task; nothing advances a stage on its own. Failed
+payments show on the dashboard and in the digest; a bank payment shows as
+pending until Stripe confirms it, usually within four business days.
+
+Give a bookkeeper a read-only role in Stripe rather than an office login;
+`/office/data/` exports the payment documents as CSV for revenue by
+client.
 
 ## Enabling the CMS (/admin)
 

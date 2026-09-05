@@ -63,6 +63,7 @@ The marketing pages keep building static, the sitemap filter excludes
 | `/office/data/` | admin | Every document type with counts; download any type as JSON or CSV. |
 | `/office/api/{action}` | admin (login excepted) | Form actions: login, logout, client, stage, task, settings, export. |
 | `/sign/?t=…` | signer token | Client signing page. |
+| `/pay/thanks/, /pay/cancelled/` | none | Where Stripe Checkout returns. Prerendered, noindex. |
 | `/questionnaire/*` | questionnaire token | Unchanged. |
 
 Mutations are native form posts to `/office/api/{action}`, one Astro
@@ -146,7 +147,7 @@ nothing is copied.
 | `clients/{slug}.json` | name, business, email, phone, address, tier, `pipeline`, `stage`, stage history, `stripeCustomerId`, dates (inquiry, signed, launched), notes | admin |
 | `tasks/{slug}/{id}.json` | title, due date, optional time, done, `source` (`pipeline` or `manual`), stage that created it, notes | admin; the questionnaire function and the Stripe webhook may set `done` on the tasks they own |
 | `meetings/{slug}/{id}.json` | start, duration, video link, notes, `remindersSent` | admin creates; the hourly job writes `remindersSent` |
-| `payments/{slug}/{id}.json` | kind (`deposit`, `balance`, `monthly`), amount, currency, Stripe IDs, status, paid date, failure reason | Stripe webhook |
+| `payments/{slug}/{id}.json` | kind (`deposit`, `balance`, `monthly`), amount, currency, Stripe IDs, status, paid date, failure reason | the payment action creates the document as `pending`; the Stripe webhook writes every later change |
 | `agreements/{slug}/{id}.json` | template, filled fields, status, signers, hash, audit trail | signing route and the admin send action, only through `agreement-state.mjs` |
 | `documents/{slug}/{name}` | raw bytes | admin upload, sealing |
 | `documents/{slug}/{name}.meta.json` | original name, size, type, source, uploaded at | same as its file |
@@ -324,8 +325,10 @@ and balance, then monthly, matching the agreements:
 - **Monthly** is a Subscription on the saved default payment method,
   started by a button on the client page after launch, with the tier's
   price from `src/data/packages.json` (looked up by tier, so prices
-  still live in one place) and any discount from the agreement as a
-  coupon, with `billing_cycle_anchor` on the launch date.
+  still live in one place) and any discount as a reduced amount named in
+  the invoice description; Stripe coupons are not used, with `billing_cycle_anchor` on the launch date.
+
+Until phase 4 exists, the deposit and balance amounts prefill from half the tier's build price and the admin edits them; phase 4 fills them from the signed agreement.
 
 `office-stripe-webhook.mjs` verifies the signature with
 `STRIPE_WEBHOOK_SECRET` and writes a payment document on
