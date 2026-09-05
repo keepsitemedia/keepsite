@@ -3,7 +3,8 @@ import { store as defaultStore, SLUG } from '../store.mjs';
 import { ID } from '../ids.mjs';
 import { EMAIL } from '../clients.mjs';
 import { findAgreementTemplate } from '../agreement-templates.mjs';
-import { createAgreement, sendAgreement, voidAgreement } from '../agreements.mjs';
+import { createAgreement, sendAgreement, voidAgreement, sealAgreement } from '../agreements.mjs';
+import { clientIp, userAgentOf } from '../sign.mjs';
 import { dollarsToCents } from './payment.mjs';
 
 const TEXT = ['legalName', 'entityType', 'address', 'signerName', 'signerTitle', 'email', 'phone'];
@@ -48,7 +49,7 @@ export function fieldsFromForm(data) {
   return { fields: f, errors };
 }
 
-export async function agreement(request, ctx, s = defaultStore(), now = new Date()) {
+export async function agreement(request, ctx, s = defaultStore(), fetchFn = fetch, now = new Date()) {
   if (request.method !== 'POST') return problem(405, 'POST only');
   const data = await readForm(request);
   if (!data) return problem(400, 'expected a form');
@@ -59,7 +60,7 @@ export async function agreement(request, ctx, s = defaultStore(), now = new Date
   const client = await s.clients.get(slug);
   if (!client) return problem(404, 'no such client');
   const op = field(data, 'op');
-  if (!['create', 'send', 'void'].includes(op)) return problem(400, 'unknown op');
+  if (!['create', 'send', 'void', 'reseal'].includes(op)) return problem(400, 'unknown op');
   const tab = `/office/clients/${slug}/?tab=agreements`;
   const back = (message) => redirect(`${tab}&error=${encodeURIComponent(message)}`);
   // A rejected create loses everything the admin typed unless the redirect
@@ -87,7 +88,8 @@ export async function agreement(request, ctx, s = defaultStore(), now = new Date
 
   const id = field(data, 'id');
   if (!ID.test(id)) return problem(400, 'bad id');
-  if (!(await s.agreements.get(slug, id))) return problem(404, 'no such agreement');
+  const existing = await s.agreements.get(slug, id);
+  if (!existing) return problem(404, 'no such agreement');
   // A failed send belongs back on the signing page, where the pad and the
   // consent state still are, not on the tab that lost all of that context.
   const signBack = (message) => redirect(`/office/agreements/${slug}/${id}/sign/?error=${encodeURIComponent(message)}`);
@@ -96,10 +98,17 @@ export async function agreement(request, ctx, s = defaultStore(), now = new Date
     if (op === 'send') {
       await sendAgreement({
         slug, id, signatureDataUrl: String(data.get('signature') ?? ''), admin: ctx.admin,
-        ip: request.headers.get('x-nf-client-connection-ip') ?? request.headers.get('x-forwarded-for') ?? null,
-        userAgent: request.headers.get('user-agent') ?? null,
+        ip: clientIp(request), userAgent: userAgentOf(request),
       }, s, now);
       return redirect(`/office/send/${slug}/agreement/`);
+    }
+    if (op === 'reseal') {
+      // The seal is the only step that can fail after both parties have
+      // signed, and a completed agreement can no longer be voided; without
+      // this the record has no PDF, no hash and no way back.
+      if (existing.status !== 'completed' || existing.documentKey) return back('only a completed agreement with no sealed PDF can be sealed again');
+      await sealAgreement(existing, s, fetchFn, now);
+      return redirect(tab);
     }
     await voidAgreement({ slug, id, note: field(data, 'note') || null }, s, now);
     return redirect(tab);

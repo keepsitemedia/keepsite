@@ -265,12 +265,14 @@ agreement email with the client's signing link filled in. The client reads
 the agreement at `/sign/?t=…`, ticks two consents, draws a signature and
 signs, or declines with a reason. Signing links last fourteen days.
 
-When both have signed, the office seals a PDF with both signatures and a
-certificate of completion page, stores it in the client's documents with its
-SHA-256, emails it to the client and to `KEEPSITE_NOTIFY_TO`, closes the
-"Send agreement" task, and the Payments tab prefills the deposit and balance
-from Schedule 1. Nothing in an agreement can be edited after it is sent; void
-it and create a new one.
+Sending closes the "Send agreement" task. When both have signed, the office
+seals a PDF with both signatures and a certificate of completion page, stores
+it in the client's documents with its SHA-256, emails it to the client and to
+`KEEPSITE_NOTIFY_TO`, closes the "Client signs agreement" task, and the
+Payments tab prefills the deposit and balance from Schedule 1. Nothing in an
+agreement can be edited after it is sent; void it and create a new one. If the
+seal ever fails, the tab offers "Seal again" on the completed agreement that
+has no PDF.
 
 The certificate records each signer's name, email, IP address, browser and
 time, the full audit trail, and the document hash. This is the evidence the
@@ -284,8 +286,8 @@ ESIGN Act and UETA look for; it is not legal advice.
    both boxes, draw, sign. Expect the thank-you page, the PDF download to
    open, and both completion emails with the PDF attached.
 3. On the client's Agreements tab: status `completed`, a hash, a PDF link;
-   the "Send agreement" task closed; the Payments tab's deposit prefilled
-   from Schedule 1.
+   both the "Send agreement" and "Client signs agreement" tasks closed; the
+   Payments tab's deposit prefilled from Schedule 1.
 4. Repeat with a second draft and click Decline: the office receives the
    decline email and the tab shows `declined`.
 5. Confirm `/sign/?t=garbage` is a plain 404 and that

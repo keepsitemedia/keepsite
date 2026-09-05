@@ -29,7 +29,7 @@ test('advancing writes the stage and its tasks and opens the stage email', async
   assert.equal(res.headers.get('Location'), '/office/send/lova/agreement/');
   assert.equal((await s.clients.get('lova')).stage, 'agreement');
   const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();
-  assert.deepEqual(titles, ['Deposit received', 'Reply with recommendation', 'Send agreement']);
+  assert.deepEqual(titles, ['Client signs agreement', 'Deposit received', 'Reply with recommendation', 'Send agreement']);
 });
 
 test('a stage without an email, or re-setting the same stage, lands on the client page', async () => {

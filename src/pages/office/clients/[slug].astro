@@ -371,6 +371,15 @@ const tabs = [
                   <a href={`/office/agreements/${slug}/${a.id}/document`}>PDF</a>
                   {a.status === 'draft' && <> · <a href={`/office/agreements/${slug}/${a.id}/sign/`}>Sign and send</a></>}
                   {(a.status === 'sent' || a.status === 'partiallySigned') && <> · <a href={`/office/send/${slug}/agreement/`}>Resend link</a></>}
+                  {a.status === 'completed' && !a.documentKey && (
+                    <form method="POST" action="/office/api/agreement" class="inline">
+                      <input type="hidden" name="csrf" value={csrf} />
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="id" value={a.id} />
+                      <input type="hidden" name="op" value="reseal" />
+                      <button class="btn-outline btn-small">Seal again</button>
+                    </form>
+                  )}
                   {a.status !== 'completed' && a.status !== 'voided' && (
                     <form method="POST" action="/office/api/agreement" class="inline">
                       <input type="hidden" name="csrf" value={csrf} />

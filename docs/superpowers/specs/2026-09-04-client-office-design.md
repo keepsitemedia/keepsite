@@ -416,10 +416,10 @@ hash stays reproducible from the stored inputs. Both signature images
 are stamped in their block, the certificate page lists every audit
 entry (event, who, when, IP), and the result is written to
 `documents/{slug}/agreement-{id}.pdf`. The SHA-256 of the final bytes
-is stored on the agreement and printed on the certificate as the hash
-of the document before the certificate was appended, so the
-certificate can describe the document without describing itself. Both
-parties get the sealed PDF by email. The client moves to the Intro
+is stored on the agreement. The certificate prints the SHA-256 of the
+body before the certificate was appended, so it can describe the
+document without describing itself. Both parties get the sealed PDF by
+email. The client moves to the Intro
 questionnaire stage only when the admin clicks advance.
 
 Legal footing: ESIGN and UETA require intent to sign, consent to do

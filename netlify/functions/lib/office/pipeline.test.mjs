@@ -48,9 +48,10 @@ test('advancing creates the stage tasks with due dates from today', () => {
   const { client, tasks } = advance({ client: fresh(), pipeline: website(), stageId: 'agreement', today: '2026-09-04', now: NOW });
   assert.equal(client.stage, 'agreement');
   assert.equal(client.stages.at(-1).stage, 'agreement');
-  assert.deepEqual(tasks.map((t) => [t.title, t.due, t.payment]), [
-    ['Send agreement', '2026-09-04', null],
-    ['Deposit received', '2026-09-11', 'deposit'],
+  assert.deepEqual(tasks.map((t) => [t.title, t.due, t.payment, t.agreement]), [
+    ['Send agreement', '2026-09-04', null, 'sent'],
+    ['Client signs agreement', '2026-09-11', null, 'completed'],
+    ['Deposit received', '2026-09-11', 'deposit', null],
   ]);
   for (const t of tasks) {
     assert.equal(t.slug, 'lova');

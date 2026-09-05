@@ -8,7 +8,7 @@
       { "id": "inquiry", "name": "Inquiry",
         "tasks": [{ "title": "Reply with recommendation", "due": 1 }] },
       { "id": "agreement", "name": "Agreement", "email": "agreement",
-        "tasks": [{ "title": "Send agreement", "due": 0, "agreement": "sent" }, { "title": "Deposit received", "due": 7, "payment": "deposit" }] },
+        "tasks": [{ "title": "Send agreement", "due": 0, "agreement": "sent" }, { "title": "Client signs agreement", "due": 7, "agreement": "completed" }, { "title": "Deposit received", "due": 7, "payment": "deposit" }] },
       { "id": "intro", "name": "Intro questionnaire", "email": "intro",
         "tasks": [{ "title": "Intro questionnaire back", "due": 5, "questionnaire": "intro" }] },
       { "id": "demo", "name": "Demo",
