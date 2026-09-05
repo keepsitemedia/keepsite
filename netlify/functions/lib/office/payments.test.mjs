@@ -210,6 +210,16 @@ test('a failed bank payment marks the document failed and leaves the task open',
   assert.equal((await s.tasks.get('lova', taskId)).done, false);
 });
 
+test('an expired checkout session marks the document expired and leaves the task open', async () => {
+  const { s, doc, taskId } = await withPendingDeposit();
+  const r = await applyEvent(evt('evt_x', 'checkout.session.expired', { id: 'cs_1', customer: 'cus_1', metadata: { slug: 'lova' } }), s, NOW);
+  assert.equal(r.change, 'deposit expired');
+  const p = await s.payments.get('lova', doc.id);
+  assert.equal(p.status, 'expired');
+  assert.equal(p.failureReason, 'payment link expired after 24 hours');
+  assert.equal((await s.tasks.get('lova', taskId)).done, false);
+});
+
 test('invoices create monthly documents, paid or failed, found by customer when metadata is absent', async () => {
   const s = await make();
   await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });

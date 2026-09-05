@@ -241,12 +241,15 @@ https://www.keepsitemedia.com/.netlify/functions/stripe-webhook
 
 listening to `checkout.session.completed`,
 `checkout.session.async_payment_succeeded`,
-`checkout.session.async_payment_failed`, `invoice.paid`,
-`invoice.payment_failed` and `customer.subscription.deleted`, and put its
-signing secret in `STRIPE_WEBHOOK_SECRET`. A paid deposit or balance
-closes the matching task; nothing advances a stage on its own. Failed
-payments show on the dashboard and in the digest; a bank payment shows as
-pending until Stripe confirms it, usually within four business days.
+`checkout.session.async_payment_failed`, `checkout.session.expired`,
+`invoice.paid`, `invoice.payment_failed` and
+`customer.subscription.deleted`, and put its signing secret in
+`STRIPE_WEBHOOK_SECRET`. A paid deposit or balance closes the matching
+task; nothing advances a stage on its own. Failed payments show on the
+dashboard and in the digest; a bank payment shows as pending until
+Stripe confirms it, usually within four business days. A Checkout link
+expires 24 hours after it is created; an expired link shows on the
+Payments tab so the admin can create a new one.
 
 Give a bookkeeper a read-only role in Stripe rather than an office login;
 `/office/data/` exports the payment documents as CSV for revenue by

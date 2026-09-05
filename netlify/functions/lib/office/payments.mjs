@@ -116,7 +116,7 @@ export async function markPaymentTasks(slug, kind, s, now = new Date()) {
   }
 }
 
-const CHECKOUT_EVENTS = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded', 'checkout.session.async_payment_failed']);
+const CHECKOUT_EVENTS = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded', 'checkout.session.async_payment_failed', 'checkout.session.expired']);
 const INVOICE_EVENTS = new Set(['invoice.paid', 'invoice.payment_failed']);
 
 // Idempotent by construction: every write records the event id, and a
@@ -151,6 +151,10 @@ export async function applyEvent(event, s, now = new Date(), fetchFn = fetch) {
     if (type === 'checkout.session.async_payment_failed') {
       await save(doc, { status: 'failed', failureReason: 'bank payment failed', stripe });
       return { handled: true, slug, change: `${doc.kind} failed` };
+    }
+    if (type === 'checkout.session.expired') {
+      await save(doc, { status: 'expired', failureReason: 'payment link expired after 24 hours', stripe });
+      return { handled: true, slug, change: `${doc.kind} expired` };
     }
     const paid = type === 'checkout.session.async_payment_succeeded' || object.payment_status === 'paid';
     if (!paid) {

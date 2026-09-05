@@ -263,7 +263,7 @@ const tabs = [
     </>
   )}
 
-  {tab === 'payments' && (
+  {tab === 'payments' && pipelinePlan && (
     <>
       {!stripeOn && <p class="error">STRIPE_SECRET_KEY is not set, so nothing here can talk to Stripe.</p>}
       <h2>Stripe customer</h2>
@@ -279,6 +279,7 @@ const tabs = [
       )}
 
       <h2>Collect</h2>
+      <p class="field-hint">A link is good for 24 hours; create a new one if it lapses.</p>
       <div class="row">
         {(['deposit', 'balance'] as const).map((kind) => (
           <form method="POST" action="/office/api/payment" class="card">
@@ -317,7 +318,7 @@ const tabs = [
                 <td>{formatYmd(todayIn(undefined, new Date(p.createdAt)))}</td>
                 <td>{p.kind}<div class="muted">{p.description}</div></td>
                 <td class="num">${dollars(p.amount)}</td>
-                <td class={p.status === 'failed' ? 'overdue' : ''}>{p.status}{p.paidAt && ` · ${formatYmd(todayIn(undefined, new Date(p.paidAt)))}`}{p.failureReason && ` · ${p.failureReason}`}</td>
+                <td class={p.status === 'failed' || p.status === 'expired' ? 'overdue' : ''}>{p.status}{p.paidAt && ` · ${formatYmd(todayIn(undefined, new Date(p.paidAt)))}`}{p.failureReason && ` · ${p.failureReason}`}</td>
                 <td>
                   {p.status === 'pending' && p.url && <><a href={p.url}>Checkout link</a> </>}
                   {p.stripe.paymentIntentId && <><a href={dashboardUrl('payment', p.stripe.paymentIntentId)}>payment</a> </>}
