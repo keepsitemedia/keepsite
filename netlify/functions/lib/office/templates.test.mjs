@@ -22,6 +22,12 @@ test('the seed validates and every placeholder is known or prompted', () => {
   }
 });
 
+test('agreement.sentAt is known even though no seed template uses it yet', () => {
+  // buildContext always supplies it (context.mjs), so a future template can
+  // use it without a check-office failure.
+  assert.ok(KNOWN_PLACEHOLDERS.includes('agreement.sentAt'));
+});
+
 test('validateTemplates names each problem', () => {
   assert.match(validateTemplates('x').join(), /must be a list/);
   assert.match(validateTemplates([{ id: 'A', name: 'x', subject: 's', body: 'b' }]).join(), /id/);

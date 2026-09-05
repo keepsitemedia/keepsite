@@ -15,7 +15,7 @@ export const KNOWN_PLACEHOLDERS = [
   'admin.email',
   'questionnaire.title', 'questionnaire.link',
   'meeting.title', 'meeting.when', 'meeting.link', 'meeting.minutes', 'meeting.hours',
-  'agreement.name', 'agreement.completedAt', 'agreement.hash', 'agreement.declineReason',
+  'agreement.name', 'agreement.sentAt', 'agreement.completedAt', 'agreement.hash', 'agreement.declineReason',
 ];
 
 export function validateTemplates(value) {

@@ -80,6 +80,7 @@ export async function findByToken(s, token) {
 }
 
 const stateOf = (a, party) => {
+  if (a.status === 'draft') return 'invalid';
   if (a.status === 'declined') return 'declined';
   if (a.status === 'expired') return 'expired';
   if (a.status === 'voided') return 'voided';
@@ -92,16 +93,24 @@ export async function viewAgreement({ token, ip, userAgent }, s = defaultStore()
   if (!found) return { agreement: null, party: null, state: 'invalid' };
   let { agreement: a } = found;
   const { party } = found;
-  if (isExpired(a, now)) {
-    a = markExpired(a, now);
-    await s.agreements.put(a.slug, a.id, a);
+  // stateOf already keeps a draft off the markViewed path; the catch below
+  // is the same backstop signAgreement and declineAgreement use, in case a
+  // status this function does not yet special-case turns out to be illegal.
+  try {
+    if (isExpired(a, now)) {
+      a = markExpired(a, now);
+      await s.agreements.put(a.slug, a.id, a);
+    }
+    const state = stateOf(a, party);
+    if (state === 'sign' && a.signers[party].status === 'pending') {
+      a = markViewed(a, party, now, { ip, userAgent });
+      await s.agreements.put(a.slug, a.id, a);
+    }
+    return { agreement: a, party, state };
+  } catch (e) {
+    if (e instanceof InvalidTransition) return { agreement: null, party: null, state: 'invalid' };
+    throw e;
   }
-  const state = stateOf(a, party);
-  if (state === 'sign' && a.signers[party].status === 'pending') {
-    a = markViewed(a, party, now, { ip, userAgent });
-    await s.agreements.put(a.slug, a.id, a);
-  }
-  return { agreement: a, party, state };
 }
 
 const signaturesFor = async (a, s) => {
@@ -117,6 +126,9 @@ const signaturesFor = async (a, s) => {
 };
 
 export async function sealAgreement(a, s = defaultStore(), fetchFn = fetch, now = new Date()) {
+  // Idempotent: a second call would re-render (a different renderedAt hashes
+  // differently), overwrite the stored PDF, and mail both parties again.
+  if (a.documentKey) return a;
   const template = findAgreementTemplate(a.template);
   const blocks = fillBlocks(template, a.fields);
   const signatures = await signaturesFor(a, s);
@@ -152,6 +164,9 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
   if (!found) return { ok: false, error: 'this signing link is not valid' };
   let { agreement: a } = found;
   const { party } = found;
+  // Only the client signs through their own token; the office signs via
+  // sendAgreement, never this path.
+  if (party !== 'client') return { ok: false, error: 'this signing link is not valid' };
   if (isExpired(a, now)) {
     a = markExpired(a, now);
     await s.agreements.put(a.slug, a.id, a);
@@ -161,8 +176,11 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
   if (!consentEsign) return { ok: false, error: 'you must agree to sign electronically' };
   if (!signaturePng(signatureDataUrl)) return { ok: false, error: 'draw your signature before sending' };
   try {
-    const key = await storeSignature(a, party, signatureDataUrl, s, now);
-    let next = markSigned(a, party, now, { ip, userAgent, signatureKey: key });
+    // markSigned first: it is pure and throws on a bad transition (a voided
+    // or otherwise closed agreement), so a rejected sign never leaves an
+    // orphan PNG behind in documents.
+    let next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
+    await storeSignature(a, party, signatureDataUrl, s, now);
     await s.agreements.put(a.slug, a.id, next);
     if (next.status === 'completed') next = await sealAgreement(next, s, fetchFn, now);
     return { ok: true, agreement: next };
@@ -175,7 +193,14 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
 export async function declineAgreement({ token, reason, ip }, s = defaultStore(), fetchFn = fetch, now = new Date()) {
   const found = await findByToken(s, token);
   if (!found) return { ok: false, error: 'this signing link is not valid' };
-  const { agreement: a, party } = found;
+  let { agreement: a } = found;
+  const { party } = found;
+  // Only the client declines through their own token.
+  if (party !== 'client') return { ok: false, error: 'this signing link is not valid' };
+  if (isExpired(a, now)) {
+    a = markExpired(a, now);
+    await s.agreements.put(a.slug, a.id, a);
+  }
   try {
     const next = markDeclined(a, party, now, { ip, reason: String(reason ?? '').slice(0, 500) });
     await s.agreements.put(a.slug, a.id, next);

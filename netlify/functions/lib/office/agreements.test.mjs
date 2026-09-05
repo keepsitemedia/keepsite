@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent } from './agreements.mjs';
+import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent, sealAgreement } from './agreements.mjs';
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
@@ -141,4 +141,59 @@ test('renderCurrent returns the sealed PDF when there is one, else a fresh draft
   const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
   const sealed = await renderCurrent(r.agreement, s);
   assert.deepEqual([...sealed], [...(await s.documents.get('lova', r.agreement.documentKey))]);
+});
+
+test('only the client signs or declines through the token path', async () => {
+  const s = await make();
+  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  const { fetchFn } = mailer();
+  const draftAttempt = await signAgreement({ token: draft.signers.keepsite.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, NOW);
+  assert.match(draftAttempt.error, /not valid/);
+  const sent = await sendAgreement({ slug: 'lova', id: draft.id, signatureDataUrl: DATA_URL, admin, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
+  const sentAttempt = await signAgreement({ token: sent.signers.keepsite.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(2));
+  assert.match(sentAttempt.error, /not valid/);
+  const declineAttempt = await declineAgreement({ token: sent.signers.keepsite.token, reason: 'no' }, s, fetchFn, later(2));
+  assert.match(declineAttempt.error, /not valid/);
+});
+
+test('viewAgreement refuses a draft, storing nothing', async () => {
+  const s = await make();
+  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  const v = await viewAgreement({ token: draft.signers.client.token }, s, NOW);
+  assert.equal(v.state, 'invalid');
+  assert.equal((await s.agreements.get('lova', draft.id)).signers.client.viewedAt, null);
+});
+
+test('signing a voided agreement leaves the documents count unchanged', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const voided = await voidAgreement({ slug: 'lova', id: a.id, note: 'oops' }, s, later(2));
+  const before = (await s.counts()).documents;
+  const { fetchFn } = mailer();
+  const r = await signAgreement({ token: voided.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  assert.equal(r.ok, false);
+  assert.match(r.error, /voided/);
+  assert.equal((await s.counts()).documents, before);
+});
+
+test('declineAgreement refuses an expired agreement', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { fetchFn } = mailer();
+  const r = await declineAgreement({ token: a.signers.client.token, reason: 'late' }, s, fetchFn, later(24 * 15));
+  assert.equal(r.ok, false);
+  assert.match(r.error, /expired/);
+  assert.equal((await s.agreements.get('lova', a.id)).status, 'expired');
+});
+
+test('sealAgreement is idempotent: sealing twice sends two mails total, not four', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  assert.equal(sent.length, 2);
+  const again = await sealAgreement(r.agreement, s, fetchFn, later(4));
+  assert.equal(again.documentKey, r.agreement.documentKey);
+  assert.equal(again.hash, r.agreement.hash);
+  assert.equal(sent.length, 2);
 });
