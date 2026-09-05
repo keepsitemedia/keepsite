@@ -235,19 +235,32 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     // or otherwise closed agreement), so a rejected sign never leaves an
     // orphan PNG behind in documents.
     const next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
-    await storeSignature(a, party, signatureDataUrl, s, now);
     // Writing `next` from a stale copy would orphan a PDF that has already
     // gone out by mail: another submit may have signed, sealed and mailed
     // this agreement since this call read it.
     const before = await s.agreements.get(a.slug, a.id);
     if (before?.documentKey) return { ok: true, agreement: before };
-    // One writer, taken before the write rather than before the seal: the
-    // lock can be created once per agreement, so a submit that read a stale
-    // copy can never overwrite the record another submit signed or sealed,
-    // and duplicate sealing is closed by the same key. A crash between the
-    // acquire and the put strands the lock and leaves the record `sent`; the
-    // office voids it and creates a new agreement.
-    if (!(await s.locks.acquire(`seal-${a.id}`))) return { ok: true, agreement: (await s.agreements.get(a.slug, a.id)) ?? before };
+    // One writer, taken before anything is stored: the lock can be created
+    // once per agreement, so a submit that read a stale copy can never
+    // overwrite the record another submit signed or sealed, nor the PNG the
+    // winner's sealed PDF embeds, and duplicate sealing is closed by the same
+    // key. A crash between the acquire and the put strands the lock and
+    // leaves the record `sent`; the office voids it and creates a new one.
+    if (!(await s.locks.acquire(`seal-${a.id}`))) {
+      const held = (await s.agreements.get(a.slug, a.id)) ?? before;
+      // A held lock with an unsigned record behind it is a submit that died
+      // before it wrote: no later submit can ever sign this agreement, and
+      // the client has just been thanked for a signature nobody has. The
+      // failed row on the Emails tab is the only way the office finds out.
+      if (held?.signers[party].status !== 'signed') {
+        await logFailure({
+          slug: a.slug, to: a.signers.client.email, template: null, kind: 'sign-lock',
+          error: 'signing lock held but the record is unsigned; void and recreate the agreement',
+        }, s, now);
+      }
+      return { ok: true, agreement: held };
+    }
+    await storeSignature(a, party, signatureDataUrl, s, now);
     await s.agreements.put(a.slug, a.id, next);
     const fresh = await s.agreements.get(a.slug, a.id);
     if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };

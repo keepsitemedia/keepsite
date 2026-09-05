@@ -272,6 +272,9 @@ test('a submit held at the lock cannot write over the seal that beat it', async 
   assert.equal((await late).ok, true);
   const final = await s.agreements.get('lova', a.id);
   assert.equal(final.signers.client.signedAt, later(4).toISOString());
+  // The loser saw a record that was already signed, so there is nothing for
+  // the office to act on and nothing is logged.
+  assert.deepEqual((await s.emails.list('lova')).filter((e) => e.kind === 'sign-lock'), []);
   await sealedOnce(s, a, sent);
 });
 
@@ -287,6 +290,12 @@ test('a stranded seal lock leaves the record sent for the office to void', async
   assert.equal(stored.status, 'sent');
   assert.equal(stored.signers.client.status, 'pending');
   assert.equal(sent.length, 0);
+  // The client was thanked for a signature nobody has; the failed row is how
+  // the office finds out.
+  const logged = (await s.emails.list('lova')).filter((e) => e.kind === 'sign-lock');
+  assert.equal(logged.length, 1);
+  assert.equal(logged[0].status, 'failed');
+  assert.match(logged[0].error, /void and recreate/);
   assert.equal((await voidAgreement({ slug: 'lova', id: a.id, note: 'stuck' }, s, later(4))).status, 'voided');
 });
 
@@ -401,22 +410,22 @@ test('two simultaneous signs with the same clock seal once', async () => {
   assert.equal((await s.documents.list('lova')).filter((d) => d.source === 'seal').length, 1);
 });
 
-test('a submit that read stale still does not overwrite a seal that finished before its write lands', async () => {
+test('a submit that loses the lock to one still writing stores nothing', async () => {
   const s = await make();
   const a = await sentAgreement(s);
   const { sent, fetchFn } = mailer();
   const als = new AsyncLocalStorage();
   let release;
   const gate = new Promise((r) => { release = r; });
-  // Tags each call's async context so the wrapper can hold exactly the
-  // "late" submit's write at the point it would otherwise land after the
-  // other submit's seal, regardless of how the two actually interleave.
+  // Tags each call's async context so the wrapper can hold the winner inside
+  // its signature write — the window the other submit used to write through —
+  // regardless of how the two actually interleave.
   const wrapped = {
     ...s,
     documents: {
       ...s.documents,
       async put(...args) {
-        if (als.getStore() === 'late') await gate;
+        if (als.getStore() === 'holder') await gate;
         return s.documents.put(...args);
       },
     },
@@ -425,15 +434,23 @@ test('a submit that read stale still does not overwrite a seal that finished bef
     { token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true },
     wrapped, fetchFn, when,
   ));
-  const late = sign('late', later(3));
-  const early = await sign('early', later(4));
-  assert.equal(early.ok, true);
-  assert.equal(early.agreement.documentKey, `agreement-${a.id}.pdf`);
+  const holder = sign('holder', later(3));
+  const loser = await sign('loser', later(4));
+  // Nothing of the loser's is stored: no record, no signature image, and the
+  // office is told the lock is held over an unsigned record.
+  assert.equal(loser.ok, true);
+  assert.equal(loser.agreement.documentKey, null);
+  assert.equal((await s.emails.list('lova')).filter((e) => e.kind === 'sign-lock').length, 1);
   release();
-  assert.equal((await late).ok, true);
+  const won = await holder;
+  assert.equal(won.ok, true);
   const final = await s.agreements.get('lova', a.id);
   assert.equal(final.documentKey, `agreement-${a.id}.pdf`);
-  assert.equal(final.hash, early.agreement.hash);
+  assert.equal(final.hash, won.agreement.hash);
   assert.equal(final.audit.filter((e) => e.event === 'sealed').length, 1);
   assert.equal(sent.length, 2);
+  // The sealed PDF embeds the winner's signature image; the loser must not be
+  // able to write its own PNG over it.
+  const sig = await s.documents.meta('lova', `agreement-${a.id}-client.png`);
+  assert.equal(sig.uploadedAt, final.signers.client.signedAt);
 });
