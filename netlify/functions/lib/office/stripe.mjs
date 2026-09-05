@@ -10,14 +10,19 @@ function flatten(value, prefix, out) {
   if (Array.isArray(value)) {
     value.forEach((v, i) => flatten(v, `${prefix}[${i}]`, out));
   } else if (typeof value === 'object') {
-    for (const [k, v] of Object.entries(value)) flatten(v, prefix ? `${prefix}[${k}]` : k, out);
+    for (const [k, v] of Object.entries(value)) {
+      const key = encodeURIComponent(k);
+      flatten(v, prefix ? `${prefix}[${key}]` : key, out);
+    }
   } else {
     out.push([prefix, String(value)]);
   }
 }
 
-// Bracket keys stay literal: Stripe reads `line_items[0][quantity]`, not its
-// percent-encoded form. Values are encoded the usual way.
+// Brackets stay literal: Stripe reads `line_items[0][quantity]`, not its
+// percent-encoded form. The segments inside them, like every value, are
+// percent-encoded — an unescaped `&` or `=` in a key would otherwise be read
+// as a second field by a form parser.
 export function encodeForm(params) {
   const pairs = [];
   flatten(params ?? {}, '', pairs);

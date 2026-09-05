@@ -16,6 +16,7 @@ test('encodeForm uses Stripe bracket notation and skips empty values', () => {
     'mode=payment&customer=cus_1&line_items[0][price_data][currency]=usd&line_items[0][price_data][unit_amount]=55000&line_items[0][quantity]=1&metadata[slug]=lova&flag=true',
   );
   assert.equal(encodeForm({ name: 'A & B' }), 'name=A+%26+B');
+  assert.equal(encodeForm({ metadata: { 'a&b': 2, 'c d': 'x' } }), 'metadata[a%26b]=2&metadata[c%20d]=x');
 });
 
 test('stripeRequest posts form data with the bearer key and parses the answer', async () => {
