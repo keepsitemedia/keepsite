@@ -73,10 +73,18 @@ test('verifyWebhook accepts a correctly signed body inside the tolerance and rej
   assert.equal(verifyWebhook(body, `${header},v1=${'0'.repeat(64)}`, 'whsec_test', now).id, 'evt_1');
 });
 
-test('dashboardUrl points at the right Stripe page', () => {
-  assert.equal(dashboardUrl('customer', 'cus_1'), 'https://dashboard.stripe.com/customers/cus_1');
-  assert.equal(dashboardUrl('payment', 'pi_1'), 'https://dashboard.stripe.com/payments/pi_1');
-  assert.equal(dashboardUrl('subscription', 'sub_1'), 'https://dashboard.stripe.com/subscriptions/sub_1');
-  assert.equal(dashboardUrl('invoice', 'in_1'), 'https://dashboard.stripe.com/invoices/in_1');
-  assert.throws(() => dashboardUrl('nope', 'x'), /unknown/);
+test('dashboardUrl points at the right Stripe page, test mode under /test', async () => {
+  await withKey('sk_live_1', async () => {
+    assert.equal(dashboardUrl('customer', 'cus_1'), 'https://dashboard.stripe.com/customers/cus_1');
+    assert.equal(dashboardUrl('payment', 'pi_1'), 'https://dashboard.stripe.com/payments/pi_1');
+    assert.equal(dashboardUrl('subscription', 'sub_1'), 'https://dashboard.stripe.com/subscriptions/sub_1');
+    assert.equal(dashboardUrl('invoice', 'in_1'), 'https://dashboard.stripe.com/invoices/in_1');
+    assert.throws(() => dashboardUrl('nope', 'x'), /unknown/);
+  });
+  await withKey('sk_test_1', async () => {
+    assert.equal(dashboardUrl('customer', 'cus_1'), 'https://dashboard.stripe.com/test/customers/cus_1');
+    assert.equal(dashboardUrl('payment', 'pi_1'), 'https://dashboard.stripe.com/test/payments/pi_1');
+    assert.equal(dashboardUrl('subscription', 'sub_1'), 'https://dashboard.stripe.com/test/subscriptions/sub_1');
+    assert.equal(dashboardUrl('invoice', 'in_1'), 'https://dashboard.stripe.com/test/invoices/in_1');
+  });
 });

@@ -90,5 +90,8 @@ const DASHBOARD = { __proto__: null, customer: 'customers', payment: 'payments',
 export function dashboardUrl(kind, id) {
   const seg = DASHBOARD[kind];
   if (!seg) throw new Error(`unknown dashboard kind: ${kind}`);
-  return `https://dashboard.stripe.com/${seg}/${id}`;
+  // A live-mode link opened against test data (or the reverse) is a 404 in
+  // the wrong Stripe dashboard; key the link off the key that made the object.
+  const test = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test') ? '/test' : '';
+  return `https://dashboard.stripe.com${test}/${seg}/${id}`;
 }
