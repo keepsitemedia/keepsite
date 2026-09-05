@@ -47,3 +47,24 @@ test('unknown client or stage is refused, bad csrf is 403', async () => {
   assert.equal((await stage(post({ csrf, slug: 'lova', stage: 'nope' }), ctx(), s)).status, 400);
   assert.equal((await stage(post({ csrf: 'x', slug: 'lova', stage: 'demo' }), ctx(), s)).status, 403);
 });
+
+test('entering Agreement creates the Stripe customer when Stripe is configured, best-effort', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_1';
+  try {
+    const s = await seeded();
+    const calls = [];
+    const fetchFn = async (url, init) => { calls.push(url); return new Response('{"id":"cus_1"}'); };
+    await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s, new Date('2026-09-04T16:00:00Z'), fetchFn);
+    assert.equal(calls[0], 'https://api.stripe.com/v1/customers');
+    assert.equal((await s.clients.get('lova')).stripeCustomerId, 'cus_1');
+    assert.equal((await s.clients.get('lova')).stage, 'agreement');
+    // A Stripe failure does not block the stage change.
+    const s2 = await seeded();
+    const res = await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s2, new Date(), async () => { throw new Error('offline'); });
+    assert.equal(res.status, 303);
+    assert.equal((await s2.clients.get('lova')).stage, 'agreement');
+    assert.equal((await s2.clients.get('lova')).stripeCustomerId, null);
+  } finally {
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});

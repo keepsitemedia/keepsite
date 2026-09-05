@@ -2,8 +2,10 @@ import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../
 import { store as defaultStore, SLUG } from '../store.mjs';
 import { loadPipelines, findPipeline, findStage, advance } from '../pipeline.mjs';
 import { todayIn } from '../dates.mjs';
+import { stripeConfigured } from '../stripe.mjs';
+import { ensureCustomer } from '../payments.mjs';
 
-export async function stage(request, ctx, s = defaultStore(), now = new Date()) {
+export async function stage(request, ctx, s = defaultStore(), now = new Date(), fetchFn = fetch) {
   if (request.method !== 'POST') return problem(405, 'POST only');
   const data = await readForm(request);
   if (!data) return problem(400, 'expected a form');
@@ -22,9 +24,15 @@ export async function stage(request, ctx, s = defaultStore(), now = new Date()) 
   // the admin can see, rather than a stage with no tasks, which they cannot.
   for (const t of tasks) await s.tasks.put(slug, t.id, t);
   await s.clients.put(slug, updated);
+  const entered = updated.stages.length > client.stages.length;
+  // The Stripe customer exists from the moment there is something to bill,
+  // so the deposit link is one click later. Best-effort: Stripe being down
+  // must not stop a stage change, and the Payments tab has a button for it.
+  if (entered && stageId === 'agreement' && stripeConfigured()) {
+    try { await ensureCustomer(updated, s, fetchFn, now); } catch (e) { console.error('stripe customer', e.message); }
+  }
   // A stage with an entry email opens the send screen rather than sending:
   // the admin reads it with the client in mind and clicks Send themselves.
-  const entered = updated.stages.length > client.stages.length;
   const target = findStage(pipeline, stageId);
   if (entered && target.email) return redirect(`/office/send/${slug}/${target.email}/`);
   return redirect(`/office/clients/${slug}/`);
