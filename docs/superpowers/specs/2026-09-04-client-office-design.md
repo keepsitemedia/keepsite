@@ -245,10 +245,13 @@ Templates live in `settings/templates.json`. A template has an ID, a
 subject, a body in Markdown, and two kinds of placeholders:
 
 - **Auto-filled**, resolved from the client and the triggering event:
-  `{{client.name}}`, `{{client.business}}`, `{{links.sign}}`,
-  `{{links.intro}}`, `{{links.brand}}`, `{{links.build}}`,
-  `{{links.demo}}`, `{{links.pay}}`, `{{meeting.start}}`,
-  `{{meeting.link}}`, `{{payment.amount}}`, `{{agreement.deposit}}`.
+  `{{client.name}}`, `{{client.firstName}}`, `{{client.business}}`,
+  `{{client.email}}`, `{{links.intro}}`, `{{links.brand}}`,
+  `{{links.build}}`, `{{links.demo}}`, `{{site.brand}}`, `{{site.url}}`,
+  `{{site.email}}`, `{{site.phone}}`, `{{admin.email}}`,
+  `{{questionnaire.title}}`, `{{questionnaire.link}}`,
+  `{{meeting.title}}`, `{{meeting.when}}`, `{{meeting.link}}`,
+  `{{meeting.minutes}}`, `{{meeting.hours}}`.
 - **Prompted**, declared on the template as `fields: [{key, label,
   default, required}]`. The send screen shows one input per prompted
   field above the preview.
@@ -272,7 +275,11 @@ client under contract about their own project.
 
 A meeting is booked on the client page with date, time, duration,
 video link and notes. Booking sends the client a confirmation with an
-attached `.ics` file and the same to the admin.
+attached `.ics` file and the same to the admin. Rescheduling re-sends
+the confirmation with an incremented `SEQUENCE`; cancelling sends the
+`meeting-cancelled` template with a `METHOD:CANCEL` / `STATUS:CANCELLED`
+`.ics` at `SEQUENCE + 1` before the meeting is removed, so both
+calendars replace rather than ignore the change.
 
 `office-meetings-cron.mjs` runs hourly. For every meeting starting in
 the next 25 hours it sends the 24-hour reminder if
