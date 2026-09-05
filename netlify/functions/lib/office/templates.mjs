@@ -10,11 +10,12 @@ const PLACEHOLDER = /\{\{\s*([a-zA-Z][a-zA-Z0-9_.-]*)\s*\}\}/g;
 
 export const KNOWN_PLACEHOLDERS = [
   'client.name', 'client.firstName', 'client.business', 'client.email',
-  'links.intro', 'links.brand', 'links.build', 'links.demo',
+  'links.intro', 'links.brand', 'links.build', 'links.demo', 'links.sign',
   'site.brand', 'site.url', 'site.email', 'site.phone',
   'admin.email',
   'questionnaire.title', 'questionnaire.link',
   'meeting.title', 'meeting.when', 'meeting.link', 'meeting.minutes', 'meeting.hours',
+  'agreement.name', 'agreement.completedAt', 'agreement.hash', 'agreement.declineReason',
 ];
 
 export function validateTemplates(value) {

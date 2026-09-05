@@ -1,0 +1,144 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent } from './agreements.mjs';
+import { findAgreementTemplate } from './agreement-templates.mjs';
+import { createStore } from './store.mjs';
+import { memoryBackend } from './backends.mjs';
+
+const NOW = new Date('2026-09-08T16:00:00Z');
+const later = (h) => new Date(NOW.getTime() + h * 3600e3);
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+const DATA_URL = `data:image/png;base64,${PNG.toString('base64')}`;
+const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Search' };
+const admin = { email: 'me@keepsitemedia.com' };
+const make = async () => {
+  const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+  await s.clients.put('lova', client);
+  return s;
+};
+const mailer = () => { const sent = []; return { sent, fetchFn: async (u, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); } }; };
+test.before(() => { process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@keepsitemedia.com'; delete process.env.URL; });
+test.after(() => { delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO; });
+
+async function sentAgreement(s) {
+  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  return sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, admin, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
+}
+
+test('defaultFields prefill Schedule 1 from the client and the tier', () => {
+  const f = defaultFields(client, findAgreementTemplate('search'));
+  assert.equal(f.legalName, 'Lova Content Creation');
+  assert.equal(f.signerName, 'Sierra Lee');
+  assert.equal(f.email, 's@example.com');
+  assert.equal(f.buildFee, 175000);
+  assert.equal(f.monthlyFee, 15000);
+  assert.equal(f.deposit, 87500);
+  assert.equal(f.balance, 87500);
+  assert.equal(f.pages, 8);
+  assert.equal(f.discountApplied, false);
+  const other = defaultFields({ ...client, tier: '' }, findAgreementTemplate('presence'));
+  assert.equal(other.buildFee, 110000);
+  assert.equal(other.pages, 5);
+});
+
+test('createAgreement stores a draft with both signers named', async () => {
+  const s = await make();
+  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  assert.equal(a.status, 'draft');
+  assert.equal(a.template, 'search');
+  assert.equal(a.templateName, 'Search Package');
+  assert.equal(a.signers.client.name, 'Sierra Lee');
+  assert.equal(a.signers.client.email, 's@example.com');
+  assert.equal(a.signers.keepsite.name, 'Sierra Nichols');
+  assert.equal((await s.agreements.get('lova', a.id)).id, a.id);
+  await assert.rejects(() => createAgreement({ client, templateId: 'nope', fields: {}, admin }, s, NOW), /unknown template/);
+});
+
+test('sendAgreement stores the admin signature, signs and sends', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  assert.equal(a.status, 'sent');
+  assert.equal(a.signers.keepsite.status, 'signed');
+  assert.equal(a.signers.keepsite.signatureKey, `agreement-${a.id}-keepsite.png`);
+  assert.deepEqual([...(await s.documents.get('lova', a.signers.keepsite.signatureKey))], [...PNG]);
+  assert.equal(a.signers.client.expiresAt, new Date(later(1).getTime() + 14 * 86400e3).toISOString());
+  assert.equal(latestSent(await s.agreements.list('lova')).id, a.id);
+  await assert.rejects(() => sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: 'data:image/png;base64,AAAA', admin }, s, NOW), /signature/);
+});
+
+test('findByToken and viewAgreement mark the client as having viewed', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  assert.equal(await findByToken(s, 'nope'), null);
+  const found = await findByToken(s, a.signers.client.token);
+  assert.equal(found.party, 'client');
+  const v = await viewAgreement({ token: a.signers.client.token, ip: '2.2.2.2', userAgent: 'UA2' }, s, later(2));
+  assert.equal(v.state, 'sign');
+  assert.equal(v.agreement.signers.client.status, 'viewed');
+  assert.equal((await s.agreements.get('lova', a.id)).signers.client.viewedAt, later(2).toISOString());
+  assert.equal((await viewAgreement({ token: 'nope' }, s, NOW)).state, 'invalid');
+});
+
+test('signAgreement requires both consents and a PNG, then completes and seals with two emails', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  const t = a.signers.client.token;
+  assert.match((await signAgreement({ token: t, signatureDataUrl: DATA_URL, consentTerms: false, consentEsign: true }, s, fetchFn, later(3))).error, /agree to the terms/);
+  assert.match((await signAgreement({ token: t, signatureDataUrl: 'nope', consentTerms: true, consentEsign: true }, s, fetchFn, later(3))).error, /signature/);
+  const r = await signAgreement({ token: t, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true, ip: '3.3.3.3', userAgent: 'UA3' }, s, fetchFn, later(3));
+  assert.equal(r.ok, true);
+  assert.equal(r.agreement.status, 'completed');
+  assert.match(r.agreement.hash, /^[0-9a-f]{64}$/);
+  assert.equal(r.agreement.documentKey, `agreement-${a.id}.pdf`);
+  const pdf = await s.documents.get('lova', r.agreement.documentKey);
+  assert.equal(Buffer.from(pdf.subarray(0, 5)).toString(), '%PDF-');
+  const meta = await s.documents.meta('lova', r.agreement.documentKey);
+  assert.equal(meta.source, 'seal');
+  assert.equal(meta.agreementId, a.id);
+  assert.equal(sent.length, 2);
+  assert.deepEqual(sent.map((m) => m.to), [['s@example.com'], ['me@keepsitemedia.com']]);
+  assert.match(sent[0].subject, /Signed: your Keepsite agreement/);
+  assert.equal(sent[0].attachments[0].filename, `agreement-${a.id}.pdf`);
+  assert.match(sent[0].text, new RegExp(r.agreement.hash));
+  assert.equal((await s.emails.list('lova')).length, 2);
+  // Signing twice is refused.
+  assert.match((await signAgreement({ token: t, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(4))).error, /already/);
+});
+
+test('declineAgreement records the reason and tells the admin', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  const r = await declineAgreement({ token: a.signers.client.token, reason: 'Not now', ip: '4.4.4.4' }, s, fetchFn, later(2));
+  assert.equal(r.agreement.status, 'declined');
+  assert.equal(sent.length, 1);
+  assert.deepEqual(sent[0].to, ['me@keepsitemedia.com']);
+  assert.match(sent[0].text, /Not now/);
+  assert.equal((await viewAgreement({ token: a.signers.client.token }, s, later(3))).state, 'declined');
+});
+
+test('expiry is applied on view and by the sweep; void works on anything unsigned', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const v = await viewAgreement({ token: a.signers.client.token }, s, later(24 * 15));
+  assert.equal(v.state, 'expired');
+  const b = await sentAgreement(s);
+  assert.equal(await expireAgreements(s, later(24 * 15)), 1);
+  assert.equal((await s.agreements.get('lova', b.id)).status, 'expired');
+  const c = await sentAgreement(s);
+  const voided = await voidAgreement({ slug: 'lova', id: c.id, note: 'typo' }, s, later(1));
+  assert.equal(voided.status, 'voided');
+  assert.equal((await viewAgreement({ token: c.signers.client.token }, s, later(2))).state, 'voided');
+});
+
+test('renderCurrent returns the sealed PDF when there is one, else a fresh draft', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const draft = await renderCurrent(a, s);
+  assert.equal(Buffer.from(draft.subarray(0, 5)).toString(), '%PDF-');
+  const { fetchFn } = mailer();
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  const sealed = await renderCurrent(r.agreement, s);
+  assert.deepEqual([...sealed], [...(await s.documents.get('lova', r.agreement.documentKey))]);
+});

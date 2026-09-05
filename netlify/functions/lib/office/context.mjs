@@ -20,7 +20,7 @@ export const siteUrl = () => process.env.URL || 'https://www.keepsitemedia.com';
 const questionnaireLink = (secret, slug, form) =>
   secret ? `${siteUrl()}/questionnaire/${form}/?c=${slug}&t=${mint(secret, slug, form)}` : '';
 
-export function buildContext({ client, admin, secret, form, meeting, now = new Date() }) {
+export function buildContext({ client, admin, secret, form, meeting, agreement, now = new Date() }) {
   const url = siteUrl();
   const ctx = {
     client: {
@@ -46,6 +46,14 @@ export function buildContext({ client, admin, secret, form, meeting, now = new D
       link: meeting.link || '(no link yet)',
       minutes: meeting.minutes,
       hours: formatHours(toInstant(meeting.ymd, meeting.time) - now),
+    };
+  }
+  if (agreement) {
+    ctx.links.sign = `${url}/sign/?t=${agreement.signers.client.token}`;
+    ctx.agreement = {
+      name: agreement.templateName ?? agreement.template,
+      sentAt: agreement.sentAt ?? '', completedAt: agreement.completedAt ?? '',
+      hash: agreement.hash ?? '', declineReason: agreement.signers?.client?.declineReason ?? '',
     };
   }
   return ctx;

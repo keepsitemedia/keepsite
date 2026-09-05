@@ -22,9 +22,9 @@ if (!template) return new Response('not found', { status: 404 });
 const form = Astro.url.searchParams.get('form') ?? '';
 const error = Astro.url.searchParams.get('error');
 const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
-// buildContext's meeting has no default, so TS infers it required even
-// though the function treats a missing key the same as undefined.
-const context = buildContext({ client, admin: Astro.locals.admin, secret, form: /^[a-z]+$/.test(form) ? form : undefined, meeting: undefined });
+// buildContext's meeting and agreement have no default, so TS infers them
+// required even though the function treats a missing key the same as undefined.
+const context = buildContext({ client, admin: Astro.locals.admin, secret, form: /^[a-z]+$/.test(form) ? form : undefined, meeting: undefined, agreement: undefined });
 // Rendered with defaults only; prompted values are typed on the page and
 // substituted by the inline script, then the action re-checks for leftovers.
 // keepPrompted keeps an unfilled optional {{key}} visible so the script has

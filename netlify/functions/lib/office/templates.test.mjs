@@ -7,7 +7,7 @@ import { memoryBackend } from './backends.mjs';
 
 const ctx = {
   client: { name: 'Sierra Lee', firstName: 'Sierra', business: 'Lova', email: 's@example.com' },
-  links: { intro: 'https://x/intro', brand: 'https://x/brand', build: 'https://x/build', demo: 'https://x/demo' },
+  links: { intro: 'https://x/intro', brand: 'https://x/brand', build: 'https://x/build', demo: 'https://x/demo', sign: 'https://x/sign/1' },
   site: { brand: 'Keepsite Media', url: 'https://x', email: 'k@x', phone: '(385) 307-8190' },
   admin: { email: 'me@x' },
 };
@@ -67,23 +67,27 @@ test('fill prefers a prompted value and can escape for HTML', () => {
 test('render HTML-escapes a substituted value via toSafeHtml', () => {
   const t = findTemplate(seed, 'agreement');
   const evil = { ...ctx, client: { ...ctx.client, business: 'A & B <Co>' } };
-  const r = render(t, evil, { signLink: 'https://sign/1' });
+  const r = render(t, evil, {});
   assert.ok(r.html.includes('A &amp; B &lt;Co&gt;'));
 });
 
-test('render fills subject and body, reports missing required fields, and renders HTML', () => {
+test('render fills subject and body from context and renders HTML', () => {
   const t = findTemplate(seed, 'agreement');
-  const r = render(t, ctx, { signLink: 'https://sign/1' });
+  const r = render(t, ctx, {});
   assert.equal(r.subject, 'Your Keepsite agreement');
-  assert.match(r.text, /https:\/\/sign\/1/);
+  assert.match(r.text, /https:\/\/x\/sign\/1/);
   assert.match(r.html, /<strong>Sign here:<\/strong>/);
   assert.deepEqual(r.missing, []);
   // The optional note defaults to '' and so renders as nothing, not as {{note}}.
   assert.ok(!r.text.includes('{{note}}'));
+});
+
+test('render reports a missing required prompted field', () => {
+  const t = findTemplate(seed, 'layouts');
   const bare = render(t, ctx, {});
-  assert.deepEqual(bare.missing, ['signLink']);
-  assert.ok(bare.text.includes('{{signLink}}'));
-  assert.deepEqual(bare.unresolved, ['signLink']);
+  assert.deepEqual(bare.missing, ['previewLink']);
+  assert.ok(bare.text.includes('{{previewLink}}'));
+  assert.deepEqual(bare.unresolved, ['previewLink']);
 });
 
 test('toHtml renders paragraphs, bold and links', () => {
@@ -110,8 +114,8 @@ test('toSafeHtml neutralizes a raw anchor and keeps Markdown and autolinks worki
 test('render escapes Markdown syntax in substituted values so they cannot become links', () => {
   const t = findTemplate(seed, 'agreement');
   const evil = { ...ctx, client: { ...ctx.client, business: '[click me](javascript:alert(1))' } };
-  const r = render(t, evil, { signLink: 'https://sign/1' });
-  // Only the real signLink autolinks; the injected value stays inert, literal text.
+  const r = render(t, evil, {});
+  // Only the real links.sign autolinks; the injected value stays inert, literal text.
   assert.ok(!r.html.includes('href="javascript:'));
   assert.ok(r.html.includes('[click me](javascript:alert(1))'));
   assert.ok(r.text.includes('[click me](javascript:alert(1))'));
@@ -119,7 +123,8 @@ test('render escapes Markdown syntax in substituted values so they cannot become
 
 test('render keeps a URL value live, underscore and all', () => {
   const t = findTemplate(seed, 'agreement');
-  const r = render(t, ctx, { signLink: 'https://app.hellosign.com/sign/abcDEF_123xyz' });
+  const signy = { ...ctx, links: { ...ctx.links, sign: 'https://app.hellosign.com/sign/abcDEF_123xyz' } };
+  const r = render(t, signy, {});
   assert.ok(r.html.includes('href="https://app.hellosign.com/sign/abcDEF_123xyz"'));
   // The old `<${v}>` markdown-autolink wrapper survives toSafeHtml's earlier
   // HTML-escaping as literal "&lt;"/"&gt;" around the link; bare URLs don't.
@@ -135,6 +140,6 @@ test('fill leaves a URL_ONLY value bare in its escape path', () => {
 test('a URL-shaped value that fails the strict autolink pattern is not linked', () => {
   const t = findTemplate(seed, 'agreement');
   const evil = { ...ctx, client: { ...ctx.client, business: 'https://evil.test/x)' } };
-  const r = render(t, evil, { signLink: 'https://sign/1' });
+  const r = render(t, evil, {});
   assert.ok(!r.html.includes('href="https://evil.test'));
 });

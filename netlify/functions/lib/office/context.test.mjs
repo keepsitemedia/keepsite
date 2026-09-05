@@ -41,3 +41,12 @@ test('a meeting adds when, link, minutes and hours', () => {
   assert.equal(c.meeting.minutes, 30);
   assert.equal(c.meeting.hours, 'about 2 hours');
 });
+
+test('an agreement adds the signing link and its facts', () => {
+  const agreement = { template: 'search', templateName: 'Search Package', signers: { client: { token: 'tok_abc', declineReason: 'Too soon' } }, sentAt: '2026-09-08T16:00:00.000Z', completedAt: null, hash: null };
+  const c = buildContext({ client, admin: { email: 'me@x' }, secret: '', agreement });
+  assert.equal(c.links.sign, 'https://www.keepsitemedia.com/sign/?t=tok_abc');
+  assert.equal(c.agreement.name, 'Search Package');
+  assert.equal(c.agreement.declineReason, 'Too soon');
+  assert.equal(c.agreement.hash, '');
+});

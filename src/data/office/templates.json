@@ -3,9 +3,8 @@
     "id": "agreement",
     "name": "Agreement to sign",
     "subject": "Your Keepsite agreement",
-    "body": "Hi {{client.firstName}},\n\nHere is the agreement for {{client.business}}. It lays out the build, the monthly fee, and what happens at each stage.\n\n**Sign here:** {{signLink}}\n\nOnce it is signed I will send the first questionnaire, which takes about ten minutes.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "body": "Hi {{client.firstName}},\n\nHere is the agreement for {{client.business}}. It lays out the build, the monthly fee, and what happens at each stage.\n\n**Sign here:** {{links.sign}}\n\nOnce it is signed I will send the first questionnaire, which takes about ten minutes.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
     "fields": [
-      { "key": "signLink", "label": "Signing link", "required": true },
       { "key": "note", "label": "Personal note", "default": "" }
     ]
   },
@@ -77,5 +76,17 @@
     "name": "Meeting cancelled",
     "subject": "Cancelled: {{meeting.title}} on {{meeting.when}}",
     "body": "Hi {{client.firstName}},\n\n**{{meeting.title}}** on {{meeting.when}} is cancelled. A calendar update is attached; reply to this email to find another time.\n\nThanks,\n{{site.brand}}"
+  },
+  {
+    "id": "agreement-completed",
+    "name": "Agreement signed",
+    "subject": "Signed: your Keepsite agreement",
+    "body": "Hi {{client.firstName}},\n\nBoth signatures are on the agreement for {{client.business}}. The signed copy is attached, with a certificate of completion on the last page; its SHA-256 fingerprint is {{agreement.hash}}.\n\nNext up is the first questionnaire, which takes about ten minutes. It will arrive in a separate email.\n\nThanks,\n{{site.brand}}"
+  },
+  {
+    "id": "agreement-declined",
+    "name": "Agreement declined (to you)",
+    "subject": "{{client.business}} declined the agreement",
+    "body": "{{client.name}} declined the {{agreement.name}} agreement.\n\nReason given: {{agreement.declineReason}}\n\nOpen the client in the office to follow up."
   }
 ]
