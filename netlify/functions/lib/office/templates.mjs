@@ -84,6 +84,9 @@ const escapeMarkdown = (s) =>
 // autolink services put there routinely. The strict pattern excludes
 // whitespace, quotes and brackets so nothing in the value can close the
 // autolink early or smuggle a second, attacker-chosen scheme into the href.
+// The value is left bare (not markdown-autolink-wrapped) because toSafeHtml
+// already HTML-escapes the "<"/">" that would otherwise wrap it, and marked's
+// GFM autolinking turns a bare URL into a live link on its own.
 const URL_ONLY = /^https?:\/\/[^\s<>"'()]+$/;
 
 export function fill(source, context, prompted = {}, { escape = false } = {}) {
@@ -96,7 +99,7 @@ export function fill(source, context, prompted = {}, { escape = false } = {}) {
     }
     v = String(v);
     if (!escape) return v;
-    return URL_ONLY.test(v) ? `<${v}>` : escapeMarkdown(v);
+    return URL_ONLY.test(v) ? v : escapeMarkdown(v);
   });
   return { text, unresolved };
 }

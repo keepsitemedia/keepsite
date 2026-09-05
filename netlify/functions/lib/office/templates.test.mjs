@@ -121,6 +121,15 @@ test('render keeps a URL value live, underscore and all', () => {
   const t = findTemplate(seed, 'agreement');
   const r = render(t, ctx, { signLink: 'https://app.hellosign.com/sign/abcDEF_123xyz' });
   assert.ok(r.html.includes('href="https://app.hellosign.com/sign/abcDEF_123xyz"'));
+  // The old `<${v}>` markdown-autolink wrapper survives toSafeHtml's earlier
+  // HTML-escaping as literal "&lt;"/"&gt;" around the link; bare URLs don't.
+  assert.ok(!r.html.includes('&lt;<a'));
+  assert.ok(!r.html.includes('&lt;https'));
+});
+
+test('fill leaves a URL_ONLY value bare in its escape path', () => {
+  const r = fill('{{links.demo}}', { links: { demo: 'https://x.test/demo/lova/' } }, {}, { escape: true });
+  assert.equal(r.text, 'https://x.test/demo/lova/');
 });
 
 test('a URL-shaped value that fails the strict autolink pattern is not linked', () => {
