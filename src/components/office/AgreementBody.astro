@@ -1,0 +1,38 @@
+---
+// The same blocks the PDF is drawn from, as HTML for reading on screen.
+interface Props { blocks: any[]; signatures?: Record<string, { src: string; signedAt: string } | undefined> }
+const { blocks, signatures = {} } = Astro.props;
+const when = (iso: string) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
+---
+<div class="agreement">
+  {blocks.map((b) => {
+    if (b.type === 'title') return <h1>{b.text}</h1>;
+    if (b.type === 'subtitle') return <p class="subtitle">{b.text}</p>;
+    if (b.type === 'h1') return <h2 class="exhibit">{b.text}</h2>;
+    if (b.type === 'h2') return <h2>{b.text}</h2>;
+    if (b.type === 'h3') return <h3>{b.text}</h3>;
+    if (b.type === 'table') return (
+      <table>{b.rows.map((r: string[], i: number) => <tr>{r.map((c) => (i === 0 ? <th>{c}</th> : <td>{c}</td>))}</tr>)}</table>
+    );
+    if (b.type === 'signatures') return (
+      <div class="signatures">
+        {b.intro && <p>{b.intro}</p>}
+        {b.parties.map((p: any) => {
+          const sig = signatures[p.party];
+          return (
+            <div class="party">
+              <p><strong>{p.label}</strong></p>
+              {sig ? <img src={sig.src} alt={`Signature of ${p.name}`} class="signature" /> : <p>Signature: ______________________________________</p>}
+              <p>Name: {p.name}</p>
+              {p.title && <p>Title: {p.title}</p>}
+              {p.party === 'keepsite' && p.email && <p>Email: {p.email}</p>}
+              <p>Date signed: {sig ? when(sig.signedAt) : '______________________'}</p>
+            </div>
+          );
+        })}
+        {b.note && <p class="muted">{b.note}</p>}
+      </div>
+    );
+    return <p>{b.text}</p>;
+  })}
+</div>
