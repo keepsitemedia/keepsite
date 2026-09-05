@@ -5,7 +5,7 @@ import { store as defaultStore } from './store.mjs';
 import { toInstant } from './dates.mjs';
 import { buildContext } from './context.mjs';
 import { loadTemplates, findTemplate, render } from './templates.mjs';
-import { sendMail } from './mail.mjs';
+import { sendMail, logFailure } from './mail.mjs';
 
 const HOUR = 3600e3;
 
@@ -27,13 +27,21 @@ export async function runMeetingReminders({ s = defaultStore(), now = new Date()
   let sent = 0;
   for (const { meeting, kind } of due) {
     const client = await s.clients.get(meeting.slug);
-    if (!client || !template) continue;
+    if (!client) continue;
     const at = now.toISOString();
     // The hour reminder supersedes a day reminder that never went out.
     const remindersSent = kind === 'hour'
       ? { day: meeting.remindersSent?.day ?? at, hour: at }
       : { ...meeting.remindersSent, day: at };
+    // Written even when the template is missing below: an hourly cron
+    // must not reconsider the same meeting every run just because the
+    // template it needs isn't there.
     await s.meetings.put(meeting.slug, meeting.id, { ...meeting, remindersSent });
+    if (!template) {
+      await logFailure({ slug: meeting.slug, to: client.email, template: 'meeting-reminder', kind: `meeting-reminder-${kind}`, error: 'template meeting-reminder is missing' }, s, now);
+      sent += 1;
+      continue;
+    }
     const context = buildContext({ client, admin: null, secret: process.env.KEEPSITE_TOKEN_SECRET ?? '', meeting, now });
     const { subject, text, html } = render(template, context, {});
     const base = { slug: meeting.slug, subject, text, html, template: 'meeting-reminder', kind: `meeting-reminder-${kind}` };

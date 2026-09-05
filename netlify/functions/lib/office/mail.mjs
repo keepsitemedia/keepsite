@@ -46,3 +46,18 @@ export async function sendMail(
   await s.emails.put(slug, id, entry);
   return { ok: entry.status === 'sent', id, error: entry.error };
 }
+
+// A failure that never reaches Resend still needs a row the Emails tab can
+// show; a silent skip is the failure the log exists to prevent.
+export async function logFailure({ slug, to, template = null, kind = 'manual', error }, s = defaultStore(), now = new Date()) {
+  const id = newId(now);
+  const entry = {
+    id, slug, kind, template,
+    to: [].concat(to).filter(Boolean),
+    subject: '', text: '',
+    sentAt: now.toISOString(),
+    resendId: null, status: 'failed', error,
+  };
+  await s.emails.put(slug, id, entry);
+  return { ok: false, id, error };
+}

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sendMail } from './mail.mjs';
+import { sendMail, logFailure } from './mail.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 
@@ -59,6 +59,19 @@ test('missing secrets fail closed without calling Resend', async () => {
     assert.match(r.error, /RESEND_API_KEY/);
     assert.equal((await s.emails.list('lova'))[0].status, 'failed');
   });
+});
+
+test('logFailure writes a failed row without calling Resend', async () => {
+  const s = make();
+  const r = await logFailure({ slug: 'lova', to: 's@example.com', template: 'meeting-confirmation', kind: 'meeting-confirmation', error: 'template meeting-confirmation is missing' }, s, NOW);
+  assert.equal(r.ok, false);
+  const [log] = await s.emails.list('lova');
+  assert.equal(log.status, 'failed');
+  assert.equal(log.error, 'template meeting-confirmation is missing');
+  assert.equal(log.subject, '');
+  assert.equal(log.text, '');
+  assert.equal(log.resendId, null);
+  assert.deepEqual(log.to, ['s@example.com']);
 });
 
 test('attachments and an explicit html body pass through', async () => {

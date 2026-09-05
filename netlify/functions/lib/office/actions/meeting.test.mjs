@@ -86,3 +86,15 @@ test('a failed confirmation still keeps the meeting', async () => {
   assert.equal((await s.meetings.list('lova')).length, 1);
   assert.ok((await s.emails.list('lova')).every((e) => e.status === 'failed'));
 });
+
+test('a missing meeting-confirmation template logs a failure instead of vanishing', async () => {
+  const s = await make();
+  await s.settings.put('templates', []);
+  const none = async () => { throw new Error('must not send'); };
+  const res = await meeting(post(add), ctx(), s, none, NOW);
+  assert.equal(res.status, 303);
+  assert.equal((await s.meetings.list('lova')).length, 1);
+  const [log] = await s.emails.list('lova');
+  assert.equal(log.status, 'failed');
+  assert.equal(log.error, 'template meeting-confirmation is missing');
+});

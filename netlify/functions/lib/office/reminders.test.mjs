@@ -47,6 +47,27 @@ test('runMeetingReminders flags then sends to client and admin, and never sends 
   }
 });
 
+test('a missing meeting-reminder template logs a failure and still flags the meeting', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.settings.put('templates', []);
+    await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com' });
+    const doc = m();
+    await s.meetings.put('lova', doc.id, doc);
+    const none = async () => { throw new Error('must not send'); };
+    const now = new Date('2026-09-07T20:30:00Z');
+    const r = await runMeetingReminders({ s, now, fetchFn: none });
+    assert.deepEqual(r, { considered: 1, sent: 1 });
+    assert.equal((await s.meetings.get('lova', doc.id)).remindersSent.day, now.toISOString());
+    const [log] = await s.emails.list('lova');
+    assert.equal(log.status, 'failed');
+    assert.equal(log.error, 'template meeting-reminder is missing');
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM;
+  }
+});
+
 test('a meeting whose client is gone is skipped, and a send failure does not throw', async () => {
   process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x';
   try {

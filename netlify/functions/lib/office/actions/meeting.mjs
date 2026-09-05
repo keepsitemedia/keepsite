@@ -5,7 +5,7 @@ import { isYmd, isHhmm, toInstant } from '../dates.mjs';
 import { buildContext } from '../context.mjs';
 import { loadTemplates, findTemplate, render } from '../templates.mjs';
 import { buildIcs } from '../ics.mjs';
-import { sendMail } from '../mail.mjs';
+import { sendMail, logFailure } from '../mail.mjs';
 
 const LINK = /^https?:\/\/\S+$/;
 const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meeting';
@@ -15,7 +15,10 @@ const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').repla
 // already stored, and the Emails tab shows a failure.
 export async function confirmMeeting({ client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {
   const template = findTemplate(await loadTemplates(s), 'meeting-confirmation');
-  if (!template) return;
+  if (!template) {
+    await logFailure({ slug: client.slug, to: client.email, template: 'meeting-confirmation', kind: 'meeting-confirmation', error: 'template meeting-confirmation is missing' }, s, now);
+    return;
+  }
   const context = buildContext({ client, admin, secret: process.env.KEEPSITE_TOKEN_SECRET ?? '', meeting, now });
   const { subject, text, html } = render(template, context, {});
   const ics = buildIcs({
