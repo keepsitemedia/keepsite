@@ -39,6 +39,7 @@ export function validatePipelines(value) {
         if (t.payment !== undefined && t.payment !== 'deposit' && t.payment !== 'balance') {
           errors.push(`${tat}: payment must be "deposit" or "balance"`);
         }
+        if (t.agreement !== undefined && !['sent', 'completed'].includes(t.agreement)) errors.push(`${tat}: agreement must be sent or completed`);
       });
     });
   });
@@ -87,6 +88,7 @@ export function advance({ client, pipeline, stageId, today, now = new Date() }) 
         stage: stageId,
         questionnaire: t.questionnaire ?? null,
         payment: t.payment ?? null,
+        agreement: t.agreement ?? null,
         notes: '',
         createdAt: at,
       }))

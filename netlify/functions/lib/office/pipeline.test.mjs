@@ -25,6 +25,7 @@ test('validatePipelines names what is wrong', () => {
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [] }, { id: 'a', name: 'y', stages: [] }]).join(), /duplicate pipeline/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'deposit' }] }] }]).join(), /^$/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'refund' }] }] }]).join(), /payment must be "deposit" or "balance"/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, agreement: 'signed' }] }] }]).join(), /agreement/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: 'deposit-balance-monthly' }, stages: [] }]).join(), /^$/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', payments: {}, stages: [] }]).join(), /payments\.plan is required/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: '' }, stages: [] }]).join(), /payments\.plan is required/);

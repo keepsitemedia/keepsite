@@ -50,6 +50,12 @@ export async function createAgreement({ client, templateId, fields, admin }, s =
 
 const signatureName = (a, party) => `agreement-${a.id}-${party}.png`;
 
+export async function markAgreementTasks(slug, event, s, now = new Date()) {
+  for (const t of await s.tasks.list(slug)) {
+    if (t.agreement === event && !t.done) await s.tasks.put(slug, t.id, { ...t, done: true, doneAt: now.toISOString() });
+  }
+}
+
 async function storeSignature(a, party, dataUrl, s, now) {
   const png = signaturePng(dataUrl);
   if (!png) throw new Error('signature must be a small PNG image');
@@ -67,6 +73,7 @@ export async function sendAgreement({ slug, id, signatureDataUrl, admin, ip, use
   // still pending); nothing outside the state module touches status.
   const sent = markSent(signed, now);
   await s.agreements.put(slug, id, sent);
+  await markAgreementTasks(slug, 'sent', s, now);
   return sent;
 }
 
@@ -161,6 +168,7 @@ export async function sealAgreement(a, s = defaultStore(), fetchFn = fetch, now 
   await s.documents.put(a.slug, documentKey, final, { type: 'application/pdf', source: 'seal', agreementId: a.id }, now);
   const sealed = markSealed(a, now, { hash: sha256(final), documentKey });
   await s.agreements.put(a.slug, a.id, sealed);
+  await markAgreementTasks(a.slug, 'completed', s, now);
 
   const client = await s.clients.get(a.slug);
   const template2 = findTemplate(await loadTemplates(s), 'agreement-completed');

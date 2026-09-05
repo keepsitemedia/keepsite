@@ -4,6 +4,7 @@ import { buildDigest, runDigest } from './digest.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 import { newId } from './ids.mjs';
+import { newAgreement, markSent } from './agreement-state.mjs';
 
 const today = '2026-09-08';
 const now = new Date('2026-09-08T13:00:00Z');
@@ -84,6 +85,31 @@ test('runDigest sends to the admin under the office slug, and sends nothing when
     const [log] = await s.emails.list('office');
     assert.equal(log.kind, 'digest');
     assert.deepEqual(log.to, ['me@x']);
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
+  }
+});
+
+test('runDigest expires a stale agreement before building the digest', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.clients.put('lova', { slug: 'lova', business: 'Lova', email: 'l@x' });
+    const oldNow = new Date('2026-08-01T00:00:00Z');
+    const a = markSent(newAgreement({
+      slug: 'lova', template: 'search', templateVersion: 1, fields: {},
+      keepsite: { name: 'K', email: 'k@x' }, client: { name: 'C', email: 'c@x' },
+    }, oldNow), oldNow);
+    await s.agreements.put('lova', a.id, a);
+    // A task keeps the digest non-empty so the assertion below is checking
+    // the agreements section is absent, not that nothing was sent at all.
+    const task = t('lova', '2026-09-01');
+    await s.tasks.put('lova', task.id, task);
+    const fetchFn = async () => new Response('{"id":"re"}');
+    await runDigest({ s, now, fetchFn });
+    assert.equal((await s.agreements.get('lova', a.id)).status, 'expired');
+    const [log] = await s.emails.list('office');
+    assert.ok(!log.text.includes('Agreements unsigned'));
   } finally {
     delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
   }

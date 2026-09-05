@@ -4,6 +4,7 @@ import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreeme
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
+import { newId } from './ids.mjs';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
@@ -211,4 +212,17 @@ test('sealAgreement is idempotent: sealing twice sends two mails total, not four
   assert.equal(again.documentKey, r.agreement.documentKey);
   assert.equal(again.hash, r.agreement.hash);
   assert.equal(sent.length, 2);
+});
+
+test('sending closes the "agreement: sent" task and completion closes "agreement: completed"', async () => {
+  const s = await make();
+  const t1 = newId(NOW); const t2 = newId(new Date(NOW.getTime() + 1000));
+  await s.tasks.put('lova', t1, { id: t1, slug: 'lova', title: 'Send agreement', due: '2026-09-08', done: false, doneAt: null, agreement: 'sent', payment: null, questionnaire: null });
+  await s.tasks.put('lova', t2, { id: t2, slug: 'lova', title: 'Signed', due: '2026-09-08', done: false, doneAt: null, agreement: 'completed', payment: null, questionnaire: null });
+  const a = await sentAgreement(s);
+  assert.equal((await s.tasks.get('lova', t1)).done, true);
+  assert.equal((await s.tasks.get('lova', t2)).done, false);
+  const { fetchFn } = mailer();
+  await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(1));
+  assert.equal((await s.tasks.get('lova', t2)).done, true);
 });
