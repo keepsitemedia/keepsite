@@ -276,6 +276,22 @@ The certificate records each signer's name, email, IP address, browser and
 time, the full audit trail, and the document hash. This is the evidence the
 ESIGN Act and UETA look for; it is not legal advice.
 
+#### After deploying
+
+1. Open a test client, create a Presence draft, sign as Keepsite, and send
+   the agreement email to yourself.
+2. Open the link from the email in a private window: read to the end, tick
+   both boxes, draw, sign. Expect the thank-you page, the PDF download to
+   open, and both completion emails with the PDF attached.
+3. On the client's Agreements tab: status `completed`, a hash, a PDF link;
+   the "Send agreement" task closed; the Payments tab's deposit prefilled
+   from Schedule 1.
+4. Repeat with a second draft and click Decline: the office receives the
+   decline email and the tab shows `declined`.
+5. Confirm `/sign/?t=garbage` is a plain 404 and that
+   `curl -sI https://www.keepsitemedia.com/sign/?t=x | grep -i x-robots-tag`
+   shows `noindex`.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:

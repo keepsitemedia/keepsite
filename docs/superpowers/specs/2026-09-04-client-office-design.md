@@ -359,17 +359,17 @@ The three agreements are converted once from the docx files by
 `src/data/office/agreements/`, with the Schedule 1, signature and
 Exhibit D blanks as placeholders. The same blocks render as HTML on
 the signing page and as PDF (`pdf-lib`, standard fonts) for the
-record, so there is no form-field PDF to maintain. Two blanks stay
-plain underscores rather than placeholders, by decision: Section 8.6's
-portfolio opt-out initials and Exhibit D's discount-expiry date. Each
-template carries a version; an agreement records which version it was
-made from.
+record, so there is no form-field PDF to maintain. The portfolio
+opt-out initials line, where a template has one, and Exhibit D's
+discount-expiry date stay plain underscores rather than placeholders,
+by decision. Each template carries a version; an agreement records
+which version it was made from.
 
 An agreement is created from the client page by picking a template and
 confirming the prefilled fields, which come from the tier prices and
 the client record. The admin can edit any field before sending.
 
-`netlify/functions/lib/office/agreement-state.mjs` is the only code that
+`agreement-state.mjs` is the only code that
 changes an agreement's status, and it appends an audit entry for every
 change. States: `draft`, `sent`, `partiallySigned`, `completed`,
 `declined`, `expired`, `voided`. Two signers, `keepsite` and `client`,
@@ -384,8 +384,8 @@ send moves the agreement to `sent` and opens the Agreement email send
 screen with `{{links.sign}}` filled.
 
 Signing: `/sign/?t=…` is server-rendered. The token is matched by
-scanning the client's agreements — a token index is a later
-optimisation — and resolves only to the client's own signer; the
+scanning every stored agreement across every client — a token index is
+a later optimisation — and resolves only to the client's own signer; the
 Keepsite token and a draft's token are both refused here. It records
 `viewed` on first open and shows the agreement as HTML in a scrolling
 box, with a PDF download; the Sign button enables once the text has
