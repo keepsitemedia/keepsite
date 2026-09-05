@@ -2385,7 +2385,7 @@ import '@fontsource-variable/newsreader/opsz.css';
 import AgreementBody from '../../components/office/AgreementBody.astro';
 import site from '../../data/site.json';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
-import { viewAgreement } from '../../../netlify/functions/lib/office/agreements.mjs';
+import { viewAgreement, signatureViews } from '../../../netlify/functions/lib/office/agreements.mjs';
 import { findAgreementTemplate, fillBlocks } from '../../../netlify/functions/lib/office/agreement-templates.mjs';
 
 type View = { agreement: any; party: 'keepsite' | 'client' | null; state: 'sign' | 'signed' | 'declined' | 'expired' | 'voided' | 'invalid' };
@@ -2399,7 +2399,8 @@ if (view.state === 'expired') Astro.response.status = 410;
 const a = view.agreement;
 const blocks = view.state === 'sign' || view.state === 'signed' ? (fillBlocks(findAgreementTemplate(a.template), a.fields) as any[]) : [];
 // Signature images are private documents; the page shows names and dates only.
-const signatures: Record<string, undefined> = {};
+// Signed parties show their drawn signature on screen, matching the PDF.
+const signatures = blocks.length ? await signatureViews(a, s) : {};
 const titles: Record<string, string> = { sign: `Sign: ${a.templateName}`, signed: 'Signed', declined: 'Declined', expired: 'Link expired', voided: 'Agreement withdrawn' };
 ---
 <!doctype html>
