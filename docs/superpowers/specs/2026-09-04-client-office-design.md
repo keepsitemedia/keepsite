@@ -318,17 +318,17 @@ and balance, then monthly, matching the agreements:
 - **Deposit** and **balance** are Checkout sessions in `payment` mode
   with `us_bank_account` and `card` as payment method types,
   `setup_future_usage: off_session` so the method is saved, and
-  `metadata` carrying slug and kind. The amounts come from the
-  agreement's filled fields. The session URL is `{{links.pay}}` in the
+  `metadata` carrying slug and kind. The amounts prefill from half the
+  tier's build price and the admin edits them; phase 4 fills them from
+  the signed agreement. The session URL is `{{links.pay}}` in the
   stage email or copied from the Payments tab. Stripe hosts the page,
   the receipt, and the ACH mandate text.
 - **Monthly** is a Subscription on the saved default payment method,
   started by a button on the client page after launch, with the tier's
   price from `src/data/packages.json` (looked up by tier, so prices
   still live in one place) and any discount as a reduced amount named in
-  the invoice description; Stripe coupons are not used, with `billing_cycle_anchor` on the launch date.
-
-Until phase 4 exists, the deposit and balance amounts prefill from half the tier's build price and the admin edits them; phase 4 fills them from the signed agreement.
+  the invoice description; Stripe coupons are not used. `billing_cycle_anchor`
+  is set to the launch date.
 
 `office-stripe-webhook.mjs` verifies the signature with
 `STRIPE_WEBHOOK_SECRET` and writes a payment document on
