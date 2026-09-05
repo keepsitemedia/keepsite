@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderAgreement, sha256, toPdfText, signaturePng } from './pdf.mjs';
 import { findAgreementTemplate, fillBlocks } from './agreement-templates.mjs';
-import { PNG, DATA_URL, pngDeclaring } from './test-fixtures.mjs';
+import { PNG, DATA_URL, pngDeclaring } from './fixtures.mjs';
 
 const fields = {
   legalName: 'Lova Content Creation LLC', entityType: 'LLC', address: '1 Main St, Lehi, Utah 84043', signerName: 'Sierra Lee', signerTitle: 'Owner',

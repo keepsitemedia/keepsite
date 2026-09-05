@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { agreement } from './agreement.mjs';
 import { signAgreement } from '../agreements.mjs';
-import { DATA_URL } from '../test-fixtures.mjs';
+import { DATA_URL } from '../fixtures.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';

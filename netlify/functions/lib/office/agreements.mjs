@@ -214,6 +214,15 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
   if (!consentTerms) return { ok: false, error: 'you must agree to the terms' };
   if (!consentEsign) return { ok: false, error: 'you must agree to sign electronically' };
   if (!signaturePng(signatureDataUrl)) return { ok: false, error: 'draw your signature before sending' };
+  // A docx re-generation can move the template between the page load and
+  // this post. Finding that out before anything is stored keeps the client
+  // out of a completed record nobody can render.
+  try {
+    templateFor(a);
+  } catch (e) {
+    if (e instanceof TemplateGone) return { ok: false, error: "this agreement's template has changed; ask Keepsite for a new one" };
+    throw e;
+  }
   try {
     // markSigned first: it is pure and throws on a bad transition (a voided
     // or otherwise closed agreement), so a rejected sign never leaves an
@@ -222,12 +231,25 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     await storeSignature(a, party, signatureDataUrl, s, now);
     await s.agreements.put(a.slug, a.id, next);
     // Two submits that overlap both pass the checks above against the same
-    // stored copy and both write; the store is last-write-wins, so the one
-    // whose signature survived the write owns the seal and the other is a
-    // duplicate that must not seal, mail or answer ok.
+    // stored copy and both write, and the store is last-write-wins. This
+    // re-read resolves the ordering where both writes land before either
+    // read: only the signature that survived seals. A submit that read
+    // before the first write, or two sharing a millisecond, can still
+    // duplicate the seal mail; closing that needs a compare-and-set the
+    // store does not have yet.
     const fresh = await s.agreements.get(a.slug, a.id);
     if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };
-    return { ok: true, agreement: fresh.status === 'completed' ? await sealAgreement(fresh, s, fetchFn, now) : fresh };
+    if (fresh.status !== 'completed') return { ok: true, agreement: fresh };
+    try {
+      return { ok: true, agreement: await sealAgreement(fresh, s, fetchFn, now) };
+    } catch (e) {
+      // The signature is recorded either way. A template that moved between
+      // the check above and the seal parks the record completed-unsealed,
+      // which the office can seal again or void; the client sees the
+      // thank-you page rather than a 500.
+      if (e instanceof TemplateGone) return { ok: true, agreement: fresh };
+      throw e;
+    }
   } catch (e) {
     if (e instanceof InvalidTransition) return { ok: false, error: e.message };
     throw e;

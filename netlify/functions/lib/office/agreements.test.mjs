@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent, sealAgreement, signatureViews, TemplateGone, DOWNLOADABLE } from './agreements.mjs';
 import { sha256 } from './pdf.mjs';
-import { PNG, DATA_URL } from './test-fixtures.mjs';
+import { PNG, DATA_URL } from './fixtures.mjs';
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
@@ -296,4 +296,43 @@ test('renderCurrent throws a TemplateGone when the stored version is not the cur
 test('the PDF route serves the statuses the sign page offers a download for, and no others', () => {
   assert.deepEqual(DOWNLOADABLE, ['sent', 'partiallySigned', 'completed']);
   for (const status of ['draft', 'declined', 'expired', 'voided']) assert.equal(DOWNLOADABLE.includes(status), false);
+});
+
+test('a template that moved before the submit refuses the sign and stores nothing', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  await s.agreements.put('lova', a.id, { ...a, templateVersion: '2020-01-01' });
+  const before = (await s.counts()).documents;
+  const { sent, fetchFn } = mailer();
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  assert.equal(r.ok, false);
+  assert.match(r.error, /template has changed/);
+  assert.equal((await s.agreements.get('lova', a.id)).status, 'sent');
+  assert.equal((await s.counts()).documents, before);
+  assert.equal(sent.length, 0);
+});
+
+test('a template that moves before the seal still thanks the client and parks the record', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  // The version moves with the write of the signed record, which is the
+  // narrowest window signAgreement's own check cannot cover.
+  const moving = { ...s, agreements: { ...s.agreements, put: (slug, id, doc) => s.agreements.put(slug, id, { ...doc, templateVersion: '2020-01-01' }) } };
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, moving, fetchFn, later(3));
+  assert.equal(r.ok, true);
+  assert.equal(r.agreement.status, 'completed');
+  assert.equal(r.agreement.documentKey, null);
+  assert.equal(sent.length, 0);
+  // The office can still get out of it: void, or reseal once the template is back.
+  assert.equal((await voidAgreement({ slug: 'lova', id: a.id, note: 'template moved' }, s, later(4))).status, 'voided');
+});
+
+test('voiding is refused once the PDF exists', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { fetchFn } = mailer();
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  assert.equal(r.agreement.documentKey, `agreement-${a.id}.pdf`);
+  await assert.rejects(() => voidAgreement({ slug: 'lova', id: a.id, note: 'no' }, s, later(4)), /sealed/);
 });

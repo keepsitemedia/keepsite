@@ -103,7 +103,10 @@ export function markExpired(a, now = new Date()) {
 }
 
 export function markVoided(a, now = new Date(), note = null) {
-  if (a.status === 'completed') fail('cannot void a completed agreement');
+  // A completed agreement whose seal never landed is the one recoverable
+  // failure state: no PDF, no hash, nothing either party can keep. Once the
+  // PDF exists it is the evidence, and evidence does not change.
+  if (a.status === 'completed' && a.documentKey) fail('cannot void a sealed agreement');
   return touch({ ...a, status: 'voided' }, now, entry(now, 'voided', 'admin', { note }));
 }
 

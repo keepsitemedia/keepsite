@@ -380,7 +380,7 @@ const tabs = [
                       <button class="btn-outline btn-small">Seal again</button>
                     </form>
                   )}
-                  {a.status !== 'completed' && a.status !== 'voided' && (
+                  {a.status !== 'voided' && (a.status !== 'completed' || !a.documentKey) && (
                     <form method="POST" action="/office/api/agreement" class="inline">
                       <input type="hidden" name="csrf" value={csrf} />
                       <input type="hidden" name="slug" value={slug} />

@@ -5,10 +5,9 @@ import { createAgreement, sendAgreement, defaultFields } from './agreements.mjs'
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
+import { DATA_URL } from './fixtures.mjs';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
-const DATA_URL = `data:image/png;base64,${PNG.toString('base64')}`;
 const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', phone: '', address: '', tier: 'Search' };
 const post = (path, fields, headers = {}) => {
   const d = new FormData();

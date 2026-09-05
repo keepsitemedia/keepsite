@@ -103,5 +103,7 @@ test('decline, expire and void', () => {
   assert.equal(voided.status, 'voided');
   assert.equal(voided.audit.at(-1).note, 'sent to the wrong address');
   const completed = markSigned({ ...markViewed(sent, 'client', NOW, {}) }, 'client', NOW, evidence);
-  assert.throws(() => markVoided(completed, NOW, 'x'), InvalidTransition);
+  // Completed but unsealed is recoverable; sealed is the evidence.
+  assert.equal(markVoided(completed, NOW, 'the seal never landed').status, 'voided');
+  assert.throws(() => markVoided({ ...completed, documentKey: `agreement-${completed.id}.pdf` }, NOW, 'x'), InvalidTransition);
 });
