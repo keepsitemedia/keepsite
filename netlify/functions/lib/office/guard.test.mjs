@@ -57,3 +57,9 @@ test('isOffice, isPublic and isApi classify paths as expected', () => {
   assert.equal(isApi('/office/api/task'), true);
   assert.equal(isApi('/office/clients/'), false);
 });
+
+test('sign paths are public and get the office headers', () => {
+  assert.deepEqual(decide('/sign/', { ok: false, cookies: [] }), { kind: 'public' });
+  assert.deepEqual(decide('/sign/api/submit', { ok: false, cookies: [] }), { kind: 'public' });
+  assert.deepEqual(decide('/signup', { ok: false, cookies: [] }), { kind: 'skip' });
+});

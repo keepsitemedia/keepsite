@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { requireAdmin } from '../netlify/functions/lib/office/session.mjs';
-import { isOffice, isPublic, decide, applyHeaders } from '../netlify/functions/lib/office/guard.mjs';
+import { isOffice, isPublic, isSign, decide, applyHeaders } from '../netlify/functions/lib/office/guard.mjs';
 
 // decide() can also return 'skip' and 'public', but the isOffice/isPublic
 // checks below already rule those out before decide() is ever called; this
@@ -16,6 +16,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.admin = null;
   context.locals.csrf = '';
 
+  // The signing page is public but must carry the same headers the office
+  // does: netlify.toml headers never reach a rendered route.
+  if (isSign(pathname)) return applyHeaders(await next());
   if (!isOffice(pathname)) return next();
   if (isPublic(pathname)) return applyHeaders(await next());
 

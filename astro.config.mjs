@@ -15,7 +15,8 @@ export default defineConfig({
         !page.includes('/404') &&
         !page.includes('/questionnaire/') &&
         !page.includes('/office/') &&
-        !page.includes('/pay/'),
+        !page.includes('/pay/') &&
+        !page.includes('/sign/'),
     }),
   ],
 });

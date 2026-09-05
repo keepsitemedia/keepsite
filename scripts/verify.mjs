@@ -63,15 +63,20 @@ check('renamed routes are gone', () => {
 });
 check('noindex pages are out of the sitemap', () => {
   const s = read('sitemap-0.xml');
-  if (s.includes('/start/thanks') || s.includes('/404') || s.includes('/questionnaire/'))
+  if (s.includes('/start/thanks') || s.includes('/404') || s.includes('/questionnaire/') || s.includes('/sign/'))
     throw new Error('noindex page in sitemap');
 });
 check('private routes are disallowed and unlisted', () => {
   const robots = read('robots.txt');
   if (!robots.includes('Disallow: /office/')) throw new Error('robots.txt lacks /office/');
   if (!robots.includes('Disallow: /pay/')) throw new Error('robots.txt lacks /pay/');
+  if (!robots.includes('Disallow: /sign/')) throw new Error('robots.txt lacks /sign/');
   if (read('sitemap-0.xml').includes('/office/')) throw new Error('office in sitemap');
   if (read('sitemap-0.xml').includes('/pay/')) throw new Error('pay in sitemap');
+  // /sign/ is server-rendered only (prerender = false throughout); a static
+  // dist/sign/ would mean the signing page leaked into the prerendered,
+  // publicly-cached build instead of requiring a fresh per-request render.
+  if (fs.existsSync(path.join('dist', 'sign'))) throw new Error('dist/sign/ exists: the signing page must not be prerendered');
   // Deny-by-default: every office page is server-rendered except login, so
   // dist/office/ may hold login/index.html and nothing else. A three-path
   // denylist misses any new office route added later; this allowlist cannot.

@@ -6,5 +6,6 @@ Disallow: /demo/
 Disallow: /questionnaire/
 Disallow: /office/
 Disallow: /pay/
+Disallow: /sign/
 
 Sitemap: https://www.keepsitemedia.com/sitemap-index.xml

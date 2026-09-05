@@ -21,10 +21,14 @@ export const OFFICE_HEADERS = {
 export const isOffice = (pathname) => /^\/office(\/|$)/.test(pathname);
 export const isPublic = (pathname) => pathname === '/office/login/' || pathname === '/office/api/login';
 export const isApi = (pathname) => pathname.startsWith('/office/api/');
+// The client signing page: no session, so it never reaches requireAdmin,
+// but it still needs the office response headers (CSP, no-store, noindex).
+export const isSign = (pathname) => /^\/sign(\/|$)/.test(pathname);
 
 // auth is a requireAdmin() result; only read when the path is office and
 // not public, so decide() never needs it for skip/public paths.
 export function decide(pathname, auth) {
+  if (isSign(pathname)) return { kind: 'public' };
   if (!isOffice(pathname)) return { kind: 'skip' };
   if (isPublic(pathname)) return { kind: 'public' };
   if (!auth.ok) {
