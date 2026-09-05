@@ -95,3 +95,84 @@ export async function startSubscription({ client, amount, description, startYmd 
   await s.payments.put(client.slug, doc.id, doc);
   return doc;
 }
+
+export function slugFor(object, clients) {
+  const meta = object?.metadata?.slug ?? object?.subscription_details?.metadata?.slug;
+  if (meta) return meta;
+  const customerId = typeof object?.customer === 'string' ? object.customer : object?.customer?.id;
+  return clients.find((c) => c.stripeCustomerId && c.stripeCustomerId === customerId)?.slug ?? null;
+}
+
+export async function markPaymentTasks(slug, kind, s, now = new Date()) {
+  for (const t of await s.tasks.list(slug)) {
+    if (t.payment === kind && !t.done) await s.tasks.put(slug, t.id, { ...t, done: true, doneAt: now.toISOString() });
+  }
+}
+
+const CHECKOUT_EVENTS = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded', 'checkout.session.async_payment_failed']);
+const INVOICE_EVENTS = new Set(['invoice.paid', 'invoice.payment_failed']);
+
+// Idempotent by construction: every write records the event id, and a
+// document that already carries it is returned untouched. Stripe redelivers
+// on any non-2xx and sometimes on a 2xx too.
+export async function applyEvent(event, s, now = new Date()) {
+  const type = event.type;
+  const object = event.data?.object ?? {};
+  if (!CHECKOUT_EVENTS.has(type) && !INVOICE_EVENTS.has(type) && type !== 'customer.subscription.deleted') {
+    return { handled: false, slug: null, change: `ignored ${type}` };
+  }
+  const clients = await s.clients.list();
+  const slug = slugFor(object, clients);
+  if (!slug) return { handled: false, slug: null, change: `no client for customer ${object.customer ?? 'unknown'}` };
+  const client = clients.find((c) => c.slug === slug);
+  const payments = await s.payments.list(slug);
+  const at = now.toISOString();
+  const save = async (doc, patch) => {
+    const next = { ...doc, ...patch, eventIds: [...doc.eventIds, event.id], updatedAt: at };
+    await s.payments.put(slug, doc.id, next);
+    return next;
+  };
+
+  if (CHECKOUT_EVENTS.has(type)) {
+    const doc = payments.find((p) => p.stripe.checkoutSessionId === object.id);
+    if (!doc) return { handled: false, slug, change: `no payment for session ${object.id}` };
+    if (doc.eventIds.includes(event.id)) return { handled: true, slug, change: 'duplicate event' };
+    const intent = typeof object.payment_intent === 'string' ? object.payment_intent : doc.stripe.paymentIntentId;
+    const stripe = { ...doc.stripe, paymentIntentId: intent };
+    if (type === 'checkout.session.async_payment_failed') {
+      await save(doc, { status: 'failed', failureReason: 'bank payment failed', stripe });
+      return { handled: true, slug, change: `${doc.kind} failed` };
+    }
+    const paid = type === 'checkout.session.async_payment_succeeded' || object.payment_status === 'paid';
+    if (!paid) {
+      await save(doc, { stripe });
+      return { handled: true, slug, change: `${doc.kind} pending` };
+    }
+    await save(doc, { status: 'paid', paidAt: at, failureReason: null, stripe });
+    await markPaymentTasks(slug, doc.kind, s, now);
+    return { handled: true, slug, change: `${doc.kind} paid` };
+  }
+
+  if (INVOICE_EVENTS.has(type)) {
+    let doc = payments.find((p) => p.stripe.invoiceId === object.id);
+    if (doc?.eventIds.includes(event.id)) return { handled: true, slug, change: 'duplicate event' };
+    if (!doc) {
+      doc = newPayment({
+        slug, kind: 'monthly', amount: object.amount_paid ?? object.amount_due ?? 0, description: 'Monthly',
+        stripe: { customerId: client?.stripeCustomerId ?? object.customer ?? null, invoiceId: object.id, subscriptionId: object.subscription ?? null },
+      }, now);
+    }
+    if (type === 'invoice.paid') {
+      await save(doc, { status: 'paid', paidAt: at, failureReason: null, amount: object.amount_paid ?? doc.amount });
+      return { handled: true, slug, change: 'monthly paid' };
+    }
+    await save(doc, { status: 'failed', failureReason: object.last_payment_error?.message ?? 'payment failed', amount: object.amount_due ?? doc.amount });
+    return { handled: true, slug, change: 'monthly failed' };
+  }
+
+  const sub = payments.find((p) => p.kind === 'subscription' && p.stripe.subscriptionId === object.id);
+  if (!sub) return { handled: false, slug, change: `no subscription document for ${object.id}` };
+  if (sub.eventIds.includes(event.id)) return { handled: true, slug, change: 'duplicate event' };
+  await save(sub, { status: 'cancelled' });
+  return { handled: true, slug, change: 'subscription cancelled' };
+}
