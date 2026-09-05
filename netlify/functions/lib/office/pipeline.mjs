@@ -18,6 +18,9 @@ export function validatePipelines(value) {
     ids.add(p.id);
     if (!p.name) errors.push(`${at}: name is required`);
     if (p.questionnaires !== undefined && !Array.isArray(p.questionnaires)) errors.push(`${at}: questionnaires must be a list`);
+    if (p.payments !== undefined && (typeof p.payments !== 'object' || p.payments === null || typeof p.payments.plan !== 'string' || !p.payments.plan)) {
+      errors.push(`${at}: payments.plan is required and must be a non-empty string`);
+    }
     if (!Array.isArray(p.stages)) return errors.push(`${at}: stages must be a list`);
     const stageIds = new Set();
     p.stages.forEach((s, j) => {
@@ -33,6 +36,9 @@ export function validatePipelines(value) {
         if (!t || typeof t !== 'object') return errors.push(`${tat}: not an object`);
         if (!t.title) errors.push(`${tat}: title is required`);
         if (!Number.isInteger(t.due) || t.due < 0) errors.push(`${tat}: due must be a whole number of days, 0 or more`);
+        if (t.payment !== undefined && t.payment !== 'deposit' && t.payment !== 'balance') {
+          errors.push(`${tat}: payment must be "deposit" or "balance"`);
+        }
       });
     });
   });

@@ -23,6 +23,12 @@ test('validatePipelines names what is wrong', () => {
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: -1 }] }] }]).join(), /due/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [] }, { id: 's', name: 'T', tasks: [] }] }]).join(), /duplicate stage/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [] }, { id: 'a', name: 'y', stages: [] }]).join(), /duplicate pipeline/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'deposit' }] }] }]).join(), /^$/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'refund' }] }] }]).join(), /payment must be "deposit" or "balance"/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: 'deposit-balance-monthly' }, stages: [] }]).join(), /^$/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: {}, stages: [] }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: '' }, stages: [] }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: 'deposit', stages: [] }]).join(), /payments\.plan is required/);
 });
 
 test('loadPipelines falls back to the seed and prefers the stored copy', async () => {
