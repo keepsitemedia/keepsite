@@ -25,7 +25,7 @@ export function buildDigest({ clients, tasks, meetings, submitted, agreements = 
 
   const nudgeAfter = addDays(today, -3);
   const waiting = open
-    .filter((t) => t.questionnaire && t.due < nudgeAfter && !submitted.has(`${t.slug}/${t.questionnaire}`))
+    .filter((t) => t.questionnaire && t.due <= nudgeAfter && !submitted.has(`${t.slug}/${t.questionnaire}`))
     .map((t) => `${who(t.slug)}: ${t.questionnaire}, due ${formatYmd(t.due)} — nudge: ${siteUrl()}/office/send/${t.slug}/questionnaire-reminder/?form=${t.questionnaire}`);
 
   const failed = payments

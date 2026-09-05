@@ -60,6 +60,14 @@ test('an overdue questionnaire counts in Overdue once and in Questionnaires wait
   assert.ok(!recent.text.includes('Questionnaires waiting'));
 });
 
+test('a questionnaire due exactly three days ago already counts as waiting', () => {
+  // addDays(today, -3) is 2026-09-05; the boundary itself must nudge, not
+  // wait for the fourth day.
+  const tasks = [t('lova', '2026-09-05', { title: 'Brand questionnaire back', questionnaire: 'brand' })];
+  const d = buildDigest({ clients, tasks, meetings: [], submitted: new Set(), today, now });
+  assert.match(d.text, /Questionnaires waiting \(1\)/);
+});
+
 test('runDigest sends to the admin under the office slug, and sends nothing when empty', async () => {
   process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@x';
   try {
