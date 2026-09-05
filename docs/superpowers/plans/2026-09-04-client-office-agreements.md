@@ -2398,7 +2398,6 @@ if (view.state === 'invalid') return new Response('This signing link is not vali
 if (view.state === 'expired') Astro.response.status = 410;
 const a = view.agreement;
 const blocks = view.state === 'sign' || view.state === 'signed' ? (fillBlocks(findAgreementTemplate(a.template), a.fields) as any[]) : [];
-// Signature images are private documents; the page shows names and dates only.
 // Signed parties show their drawn signature on screen, matching the PDF.
 const signatures = blocks.length ? await signatureViews(a, s) : {};
 const titles: Record<string, string> = { sign: `Sign: ${a.templateName}`, signed: 'Signed', declined: 'Declined', expired: 'Link expired', voided: 'Agreement withdrawn' };
