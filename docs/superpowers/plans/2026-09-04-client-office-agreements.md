@@ -1495,13 +1495,13 @@ export async function sealAgreement(a, s = defaultStore(), fetchFn = fetch, now 
   const template = findAgreementTemplate(a.template);
   const blocks = fillBlocks(template, a.fields);
   const signatures = await signaturesFor(a, s);
-  const inner = await renderAgreement({ blocks, signatures });
+  const inner = await renderAgreement({ blocks, signatures, renderedAt: now });
   const certificate = {
     agreementId: a.id, template: a.template, version: a.templateVersion, hash: sha256(inner),
     signers: ['keepsite', 'client'].map((p) => ({ party: p, ...a.signers[p] })),
     audit: a.audit,
   };
-  const final = await renderAgreement({ blocks, signatures, certificate });
+  const final = await renderAgreement({ blocks, signatures, certificate, renderedAt: now });
   const documentKey = `agreement-${a.id}.pdf`;
   await s.documents.put(a.slug, documentKey, final, { type: 'application/pdf', source: 'seal', agreementId: a.id }, now);
   const sealed = markSealed(a, now, { hash: sha256(final), documentKey });
