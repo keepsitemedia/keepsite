@@ -206,6 +206,12 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# Stripe Checkout lands here. Nothing on these pages is worth indexing.
+[[headers]]
+  for = "/pay/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
 # Only the prerendered login page gets these from here. Netlify applies
 # netlify.toml headers to static files alone, so every server-rendered
 # office response sets its own copy in src/middleware.ts.

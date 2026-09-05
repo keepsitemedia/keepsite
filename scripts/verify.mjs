@@ -40,6 +40,8 @@ const PAGES = [
   'questionnaire/brand/index.html',
   'questionnaire/build/index.html',
   'questionnaire/thanks/index.html',
+  'pay/thanks/index.html',
+  'pay/cancelled/index.html',
   '404.html',
 ];
 
@@ -64,10 +66,12 @@ check('noindex pages are out of the sitemap', () => {
   if (s.includes('/start/thanks') || s.includes('/404') || s.includes('/questionnaire/'))
     throw new Error('noindex page in sitemap');
 });
-check('office is disallowed and unlisted', () => {
+check('private routes are disallowed and unlisted', () => {
   const robots = read('robots.txt');
   if (!robots.includes('Disallow: /office/')) throw new Error('robots.txt lacks /office/');
+  if (!robots.includes('Disallow: /pay/')) throw new Error('robots.txt lacks /pay/');
   if (read('sitemap-0.xml').includes('/office/')) throw new Error('office in sitemap');
+  if (read('sitemap-0.xml').includes('/pay/')) throw new Error('pay in sitemap');
   // Deny-by-default: every office page is server-rendered except login, so
   // dist/office/ may hold login/index.html and nothing else. A three-path
   // denylist misses any new office route added later; this allowlist cannot.
@@ -179,7 +183,7 @@ check('one h1 per page, no skipped levels, main and canonical present', () => {
 check('noindex on 404, thanks, and every questionnaire route', () => {
   for (const p of PAGES) {
     const has = read(p).includes('noindex,follow');
-    const should = p === '404.html' || p.endsWith('thanks/index.html') || p.startsWith('questionnaire/');
+    const should = p === '404.html' || p.endsWith('thanks/index.html') || p.startsWith('questionnaire/') || p === 'pay/cancelled/index.html';
     if (has !== should) throw new Error(`${p} noindex=${has}, expected ${should}`);
   }
 });

@@ -17,6 +17,7 @@ type Meeting = { id: string; slug: string; title: string; ymd: string; time: str
 type Stage = { id: string; name: string };
 type Pipeline = { id: string; name: string; stages: Stage[] };
 type Bucket = 'overdue' | 'today' | 'soon';
+type PaymentDoc = { id: string; slug: string; kind: string; amount: number; status: string; createdAt: string; url: string | null; failureReason: string | null };
 
 const s = store();
 const today = todayIn();
@@ -45,6 +46,11 @@ const groups: [Bucket, string][] = [
   ['today', 'Due today'],
   ['soon', 'Next three days'],
 ];
+const weekAgo = addDays(today, -7);
+const allPayments = (await s.payments.listAll()) as PaymentDoc[];
+const stalePending = allPayments.filter((p) => p.status === 'pending' && todayIn(undefined, new Date(p.createdAt)) <= weekAgo);
+const failedPayments = allPayments.filter((p) => p.status === 'failed');
+const dollars = (cents: number) => (cents / 100).toFixed(2);
 ---
 <OfficeLayout title="Dashboard">
   <h1>Dashboard</h1>
@@ -82,5 +88,13 @@ const groups: [Bucket, string][] = [
     </table></div>
   )}
   <h2>Payments</h2>
-  <p class="empty">Payments arrive with phase 3.</p>
+  {stalePending.length === 0 && failedPayments.length === 0 && <p class="empty">Nothing waiting.</p>}
+  {(stalePending.length > 0 || failedPayments.length > 0) && (
+    <div class="table-scroll"><table>
+      <tbody>
+        {failedPayments.map((p) => <tr><td class="overdue">failed</td><td><a href={`/office/clients/${p.slug}/?tab=payments`}>{names.get(p.slug) ?? p.slug}</a></td><td>{p.kind} ${dollars(p.amount)}</td><td>{p.failureReason}</td></tr>)}
+        {stalePending.map((p) => <tr><td>unpaid a week</td><td><a href={`/office/clients/${p.slug}/?tab=payments`}>{names.get(p.slug) ?? p.slug}</a></td><td>{p.kind} ${dollars(p.amount)}</td><td>{p.url && <a href={p.url}>Checkout link</a>}</td></tr>)}
+      </tbody>
+    </table></div>
+  )}
 </OfficeLayout>
