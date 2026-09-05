@@ -130,10 +130,14 @@ rejects anything else. Send the `intro` link when the agreement is signed, and
 the `brand` and `build` links once their demo is up. The same command is where
 the client's Google Drive photo folder gets created by hand.
 
-### Saving a submission for the build skills
+### Pulling a submission for the build skills
 
-**This step is manual and nothing does it for you.** The email arrives with a
-`{form}.json` attachment. Save it into the client's workspace as:
+```bash
+NETLIFY_SITE_ID=... NETLIFY_AUTH_TOKEN=... node scripts/pull-intake.mjs {slug}
+```
+
+This writes whatever the client has submitted into the workspace beside this
+repo:
 
 ```
 {slug}/intake/intro.json
@@ -141,12 +145,15 @@ the client's Google Drive photo folder gets created by hand.
 {slug}/intake/build.json
 ```
 
+plus any logo or brand guide they attached. Pass a second argument to write
+somewhere else. The site ID is on the Netlify site's settings page and the
+token is a personal access token from your Netlify user settings; both stay on
+your machine. The email attachment still arrives and is the backup if the
+store is ever unreachable.
+
 `keepsite-sitemap` reads `brand.json` and `build.json` from that directory and
 refuses to run without them; `intro.json` feeds `client-design-proposals` at
 stage one. The filename matters — the skill looks for exactly those names.
-Netlify Blobs holds the durable copy under the same slug if an email is ever
-lost: **Netlify → Blobs → `questionnaires` → `{slug}/{form}.json`**, with any
-uploaded logo or brand guide beside it.
 
 ## The office (/office)
 
