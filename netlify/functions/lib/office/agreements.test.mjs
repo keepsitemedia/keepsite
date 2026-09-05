@@ -8,6 +8,7 @@ import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 import { newId } from './ids.mjs';
 import { newAgreement, markSent, markSigned } from './agreement-state.mjs';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
@@ -390,4 +391,41 @@ test('two simultaneous signs with the same clock seal once', async () => {
   assert.equal(final.audit.filter((e) => e.event === 'sealed').length, 1);
   assert.equal(sent.length, 2);
   assert.equal((await s.documents.list('lova')).filter((d) => d.source === 'seal').length, 1);
+});
+
+test('a submit that read stale still does not overwrite a seal that finished before its write lands', async () => {
+  const s = await make();
+  const a = await sendClientPending(s);
+  const { sent, fetchFn } = mailer();
+  const als = new AsyncLocalStorage();
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  // Tags each call's async context so the wrapper can hold exactly the
+  // "late" submit's write at the point it would otherwise land after the
+  // other submit's seal, regardless of how the two actually interleave.
+  const wrapped = {
+    ...s,
+    documents: {
+      ...s.documents,
+      async put(...args) {
+        if (als.getStore() === 'late') await gate;
+        return s.documents.put(...args);
+      },
+    },
+  };
+  const sign = (tag, when) => als.run(tag, () => signAgreement(
+    { token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true },
+    wrapped, fetchFn, when,
+  ));
+  const late = sign('late', later(3));
+  const early = await sign('early', later(4));
+  assert.equal(early.ok, true);
+  assert.equal(early.agreement.documentKey, `agreement-${a.id}.pdf`);
+  release();
+  assert.equal((await late).ok, true);
+  const final = await s.agreements.get('lova', a.id);
+  assert.equal(final.documentKey, `agreement-${a.id}.pdf`);
+  assert.equal(final.hash, early.agreement.hash);
+  assert.equal(final.audit.filter((e) => e.event === 'sealed').length, 1);
+  assert.equal(sent.length, 2);
 });

@@ -245,13 +245,21 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     // orphan PNG behind in documents.
     const next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
     await storeSignature(a, party, signatureDataUrl, s, now);
+    // Writing `next` from a stale copy would orphan a PDF that has already
+    // gone out by mail: another submit may have signed, sealed and mailed
+    // this agreement since this call read it.
+    const before = await s.agreements.get(a.slug, a.id);
+    if (before?.documentKey) return { ok: true, agreement: before };
     await s.agreements.put(a.slug, a.id, next);
     const fresh = await s.agreements.get(a.slug, a.id);
     if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };
     if (fresh.status !== 'completed') return { ok: true, agreement: fresh };
-    // The store is last-write-wins, so two overlapping submits can both
-    // reach this point. The lock is a key that can be created once; the
-    // second creator sees the thank-you page and lets the first one seal.
+    // The lock closes duplicate sealing: same-millisecond or otherwise
+    // overlapping submits that both reach this point seal once. The pre-put
+    // re-read above closes the stale overwrite except for the window
+    // between that read and the put; closing that fully needs a
+    // compare-and-set on the agreement write (Blobs `onlyIfMatch`), which
+    // the store does not expose yet.
     if (!(await s.locks.acquire(`seal-${a.id}`))) return { ok: true, agreement: fresh };
     try {
       return { ok: true, agreement: await sealAgreement(fresh, s, fetchFn, now) };

@@ -385,27 +385,28 @@ agreement and nothing else, so no caller resets status by hand; the
 send moves the agreement to `sent` and opens the Agreement email send
 screen with `{{links.sign}}` filled.
 
-Signing: `/sign/?t=…` is server-rendered. The signing link is resolved
-through a `tokens/{token}` index written when the agreement is sent,
-confirmed against the agreement in constant time; agreements sent
-before the index existed fall back to a scan that backfills it.
-Sealing takes a lock (`locks/seal-{id}`, a key that can be created
-once), so two overlapping submits seal once. It resolves only to the
-client's own signer; the Keepsite token and a draft's token are both
-refused here. It records
-`viewed` on first open and shows the agreement as HTML in a scrolling
-box, with a PDF download; the Sign button enables once the text has
-been scrolled to its end. Signing requires two checkboxes (I have read
-and agree to these terms; I agree to sign this agreement
-electronically) and a drawn signature. `sign.mjs` validates the token
-again, refuses a signer that is not `pending` or `viewed`, validates
-the signature PNG before writing anything, and records consent time,
-IP, user agent, and the signature PNG in `documents/{slug}/`. The IP
-and user agent are truncated to 45 and 300 characters before they
-reach the audit trail or the certificate. The state module then moves
-the signer to `signed` and the agreement to `partiallySigned` or
-`completed`. A retired template — one a docx regeneration dropped —
-answers 410 on both the office and the public signing page.
+Signing: `/sign/?t=…` is server-rendered. The signing link is
+resolved through a `tokens/{token}` index written when the agreement
+is sent, confirmed against the agreement in constant time; agreements
+sent before the index existed fall back to a scan that backfills it.
+It resolves only to the client's own signer; the Keepsite token and a
+draft's token are both refused here. It records `viewed` on first
+open and shows the agreement as HTML in a scrolling box, with a PDF
+download; the Sign button enables once the text has been scrolled to
+its end. Signing requires two checkboxes (I have read and agree to
+these terms; I agree to sign this agreement electronically) and a
+drawn signature. `sign.mjs` validates the token again, refuses a
+signer that is not `pending` or `viewed`, validates the signature PNG
+before writing anything, and records consent time, IP, user agent,
+and the signature PNG in `documents/{slug}/`. The IP and user agent
+are truncated to 45 and 300 characters before they reach the audit
+trail or the certificate. The state module then moves the signer to
+`signed` and the agreement to `partiallySigned` or `completed`. A
+retired template — one a docx regeneration dropped — answers 410 on
+both the office and the public signing page. Sealing takes a lock
+(`locks/seal-{id}`, a key that can be created once), so two
+overlapping submits seal once. A submit that read before another's
+write re-reads before writing and never overwrites a sealed record.
 
 Declining records a reason, capped at 500 characters, moves the
 agreement to `declined`, and emails the admin. Expiry is checked on
