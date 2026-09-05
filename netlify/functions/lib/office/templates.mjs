@@ -55,9 +55,6 @@ export const placeholdersIn = (source) =>
 const lookup = (context, path) =>
   path.split('.').reduce((o, k) => (o != null && typeof o === 'object' ? o[k] : undefined), context);
 
-const escapeHtml = (s) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-
 // Substituted values come from clients and must never become Markdown: a
 // business name like "[click me](javascript:...)" would otherwise become a
 // live link once toHtml runs. Backslash first, so the escapes below are not
@@ -65,12 +62,18 @@ const escapeHtml = (s) =>
 // also split with a zero-width space: marked's GFM literal-URL autolinking
 // matches that scheme text on its own, outside of any [](...)  syntax, so
 // backslash-escaping brackets alone does not stop a malformed value like
-// "https://evil.test/x)" from still rendering as a live link.
+// "https://evil.test/x)" from still rendering as a live link. ">" is left
+// alone: escaping it here would smuggle a backslash into toSafeHtml's later
+// HTML-entity pass, and marked's own backslash handling would then decode
+// and mangle it into "&amp;gt;" instead of a clean "&gt;". Plain ">" is not
+// a Markdown control character mid-line (only "> " at the start of a line
+// opens a blockquote), so leaving it for toSafeHtml to entity-escape is both
+// correct and simpler.
 const ZERO_WIDTH_SPACE = '\u200B';
 const escapeMarkdown = (s) =>
   String(s)
     .replace(/\\/g, '\\\\')
-    .replace(/[`*_[\]()#>!|~]/g, (c) => `\\${c}`)
+    .replace(/[`*_[\]()#!|~]/g, (c) => `\\${c}`)
     .replace(/(https?:)\/\//gi, `$1${ZERO_WIDTH_SPACE}//`);
 
 // URL values (signing and payment links, mainly) are the one kind that must
@@ -90,7 +93,7 @@ export function fill(source, context, prompted = {}, { escape = false } = {}) {
     }
     v = String(v);
     if (!escape) return v;
-    return URL_ONLY.test(v) ? `<${v}>` : escapeMarkdown(escapeHtml(v));
+    return URL_ONLY.test(v) ? `<${v}>` : escapeMarkdown(v);
   });
   return { text, unresolved };
 }
@@ -145,7 +148,7 @@ export function render(template, context, prompted = {}, { keepPrompted = false 
   return {
     subject: subject.text.replace(/\s+/g, ' ').trim(),
     text: text.text.replace(/\n{3,}/g, '\n\n').trim(),
-    html: toHtml(htmlSource.text.replace(/\n{3,}/g, '\n\n').trim()),
+    html: toSafeHtml(htmlSource.text.replace(/\n{3,}/g, '\n\n').trim()),
     unresolved: [...new Set([...subject.unresolved, ...text.unresolved])],
     missing,
   };

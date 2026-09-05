@@ -47,9 +47,18 @@ test('fill substitutes known paths and leaves the rest visible', () => {
 
 test('fill prefers a prompted value and can escape for HTML', () => {
   const r = fill('{{note}} {{client.business}}', { client: { business: 'A & B <Co>' } }, { note: 'Hello' }, { escape: true });
-  assert.equal(r.text, 'Hello A &amp; B &lt;Co&gt;');
+  // fill's escape path only neutralizes Markdown now; HTML-escaping the
+  // whole document is toSafeHtml's job, downstream in render.
+  assert.equal(r.text, 'Hello A & B <Co>');
   const empty = fill('{{note}}', {}, { note: '' });
   assert.deepEqual(empty.unresolved, ['note']);
+});
+
+test('render HTML-escapes a substituted value via toSafeHtml', () => {
+  const t = findTemplate(seed, 'agreement');
+  const evil = { ...ctx, client: { ...ctx.client, business: 'A & B <Co>' } };
+  const r = render(t, evil, { signLink: 'https://sign/1' });
+  assert.ok(r.html.includes('A &amp; B &lt;Co&gt;'));
 });
 
 test('render fills subject and body, reports missing required fields, and renders HTML', () => {
