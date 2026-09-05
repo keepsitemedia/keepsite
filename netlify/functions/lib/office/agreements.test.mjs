@@ -232,25 +232,6 @@ test('sending closes the "agreement: sent" task and completion closes "agreement
   assert.equal((await s.tasks.get('lova', t2)).done, true);
 });
 
-// Both submits write before either re-reads, which is what two requests
-// against a last-write-wins store come to.
-const pairedPuts = (s, n) => {
-  let arrived = 0;
-  let release;
-  const gate = new Promise((r) => { release = r; });
-  return {
-    ...s,
-    agreements: {
-      ...s.agreements,
-      async put(slug, id, doc) {
-        await s.agreements.put(slug, id, doc);
-        if ((arrived += 1) === n) release();
-        return gate;
-      },
-    },
-  };
-};
-
 const sealedOnce = async (s, a, sent) => {
   const stored = await s.agreements.get('lova', a.id);
   assert.equal(stored.audit.filter((e) => e.event === 'sealed').length, 1);
@@ -265,20 +246,52 @@ test('two overlapping signs seal once, with one PDF whose hash is the stored one
   const { sent, fetchFn } = mailer();
   const sign = (when, ip) => signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true, ip }, s, fetchFn, when);
   const results = await Promise.all([sign(later(3), '3.3.3.3'), sign(later(4), '4.4.4.4')]);
-  assert.equal(results.filter((r) => r.ok).length, 1);
-  assert.equal(results.find((r) => !r.ok).error, 'already signed');
+  // Whichever submit loses the lock sees the record the winner wrote, or is
+  // turned away as already signed; neither outcome writes a second time.
+  for (const r of results) assert.ok(r.ok || r.error === 'already signed', JSON.stringify(r));
   await sealedOnce(s, a, sent);
 });
 
-test('two signs that both write before either re-reads still seal once', async () => {
+test('a submit held at the lock cannot write over the seal that beat it', async () => {
   const s = await make();
   const a = await sentAgreement(s);
   const { sent, fetchFn } = mailer();
-  const paired = pairedPuts(s, 2);
-  const sign = (when) => signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, paired, fetchFn, when);
-  const results = await Promise.all([sign(later(3)), sign(later(4))]);
-  assert.equal(results.filter((r) => r.ok).length, 1);
+  const als = new AsyncLocalStorage();
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  // Holds the late submit between its guard re-read and its write — the
+  // window a re-read alone cannot close — while the other signs and seals.
+  const wrapped = {
+    ...s,
+    locks: { async acquire(name) { if (als.getStore() === 'late') await gate; return s.locks.acquire(name); } },
+  };
+  const sign = (tag, when) => als.run(tag, () => signAgreement(
+    { token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true, ip: tag },
+    wrapped, fetchFn, when,
+  ));
+  const late = sign('late', later(3));
+  const early = await sign('early', later(4));
+  assert.equal(early.ok, true);
+  release();
+  assert.equal((await late).ok, true);
+  const final = await s.agreements.get('lova', a.id);
+  assert.equal(final.signers.client.signedAt, later(4).toISOString());
   await sealedOnce(s, a, sent);
+});
+
+test('a stranded seal lock leaves the record sent for the office to void', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  // What a crash between the acquire and the write leaves behind.
+  assert.equal(await s.locks.acquire(`seal-${a.id}`), true);
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
+  assert.equal(r.ok, true);
+  const stored = await s.agreements.get('lova', a.id);
+  assert.equal(stored.status, 'sent');
+  assert.equal(stored.signers.client.status, 'pending');
+  assert.equal(sent.length, 0);
+  assert.equal((await voidAgreement({ slug: 'lova', id: a.id, note: 'stuck' }, s, later(4))).status, 'voided');
 });
 
 test('the sweep leaves an agreement completed between the listing and the write alone', async () => {

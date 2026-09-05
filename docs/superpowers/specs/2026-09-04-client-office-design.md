@@ -403,10 +403,13 @@ are truncated to 45 and 300 characters before they reach the audit
 trail or the certificate. The state module then moves the signer to
 `signed` and the agreement to `partiallySigned` or `completed`. A
 retired template — one a docx regeneration dropped — answers 410 on
-both the office and the public signing page. Sealing takes a lock
+both the office and the public signing page. Signing takes a lock
 (`locks/seal-{id}`, a key that can be created once), so two
-overlapping submits seal once. A submit that read before another's
-write re-reads before writing and never overwrites a sealed record.
+overlapping submits seal once. The lock is taken before the signed
+record is written, so a submit that read a stale copy never overwrites
+a signed or sealed record. A crash between taking the lock and the
+write strands the lock and leaves the agreement `sent`, which the
+office voids to issue a new one.
 
 Declining records a reason, capped at 500 characters, moves the
 agreement to `declined`, and emails the admin. Expiry is checked on

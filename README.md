@@ -279,7 +279,9 @@ it in the client's documents with its SHA-256, emails it to the client and to
 Payments tab prefills the deposit and balance from Schedule 1. Nothing in an
 agreement can be edited after it is sent; void it and create a new one. If the
 seal ever fails, the tab offers "Seal again" on the completed agreement that
-has no PDF.
+has no PDF. Signing takes a one-shot lock before it writes; if a submit dies
+between the two, the agreement stays `sent` and no signature can land on it
+again, so void it and create a new one.
 
 The certificate records each signer's name, email, IP address, browser and
 time, the full audit trail, and the document hash. This is the evidence the

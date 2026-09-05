@@ -73,8 +73,8 @@ export async function sendAgreement({ slug, id, signatureDataUrl, admin, ip, use
   // still pending); nothing outside the state module touches status.
   const sent = markSent(signed, now);
   await s.agreements.put(slug, id, sent);
-  // The index lets /sign/ find an agreement without reading every one; the
-  // scan in findByToken stays as the fallback for agreements sent before it.
+  // The index is how /sign/ finds an agreement: findByToken looks the token
+  // up here and nowhere else, so an unindexed token resolves to nothing.
   for (const party of ['keepsite', 'client']) await s.tokens.put(sent.signers[party].token, { slug, id, party });
   await markAgreementTasks(slug, 'sent', s, now);
   return sent;
@@ -250,17 +250,17 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     // this agreement since this call read it.
     const before = await s.agreements.get(a.slug, a.id);
     if (before?.documentKey) return { ok: true, agreement: before };
+    // One writer, taken before the write rather than before the seal: the
+    // lock can be created once per agreement, so a submit that read a stale
+    // copy can never overwrite the record another submit signed or sealed,
+    // and duplicate sealing is closed by the same key. A crash between the
+    // acquire and the put strands the lock and leaves the record `sent`; the
+    // office voids it and creates a new agreement.
+    if (!(await s.locks.acquire(`seal-${a.id}`))) return { ok: true, agreement: (await s.agreements.get(a.slug, a.id)) ?? before };
     await s.agreements.put(a.slug, a.id, next);
     const fresh = await s.agreements.get(a.slug, a.id);
     if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };
     if (fresh.status !== 'completed') return { ok: true, agreement: fresh };
-    // The lock closes duplicate sealing: same-millisecond or otherwise
-    // overlapping submits that both reach this point seal once. The pre-put
-    // re-read above closes the stale overwrite except for the window
-    // between that read and the put; closing that fully needs a
-    // compare-and-set on the agreement write (Blobs `onlyIfMatch`), which
-    // the store does not expose yet.
-    if (!(await s.locks.acquire(`seal-${a.id}`))) return { ok: true, agreement: fresh };
     try {
       return { ok: true, agreement: await sealAgreement(fresh, s, fetchFn, now) };
     } catch (e) {
