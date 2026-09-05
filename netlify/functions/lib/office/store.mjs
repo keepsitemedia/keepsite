@@ -43,6 +43,34 @@ function perClient(backend, type) {
   };
 }
 
+const DOC_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
+const assertDocName = (name) => {
+  if (!DOC_NAME.test(String(name))) throw new Error(`bad document name: ${name}`);
+  return name;
+};
+
+function documents(backend) {
+  const key = (slug, name) => `documents/${assertSlug(slug)}/${assertDocName(name)}`;
+  return {
+    async put(slug, name, bytes, meta = {}, now = new Date()) {
+      await backend.setBytes(key(slug, name), bytes);
+      await writeJSON(backend, `${key(slug, name)}.meta.json`, {
+        name, size: bytes.byteLength, type: meta.type ?? 'application/octet-stream',
+        source: meta.source ?? 'upload', uploadedAt: now.toISOString(), ...meta,
+      });
+    },
+    async get(slug, name) { return backend.getBytes(key(slug, name)); },
+    async meta(slug, name) { return readJSON(backend, `${key(slug, name)}.meta.json`); },
+    async list(slug) {
+      const keys = (await backend.list(`documents/${assertSlug(slug)}/`)).filter((k) => k.endsWith('.meta.json'));
+      return Promise.all(keys.map((k) => readJSON(backend, k)));
+    },
+    async count() {
+      return (await backend.list('documents/')).filter((k) => k.endsWith('.meta.json')).length;
+    },
+  };
+}
+
 export const TYPES = ['tasks', 'meetings', 'payments', 'agreements', 'emails'];
 
 export function createStore({ office, questionnaires }) {
@@ -65,9 +93,11 @@ export function createStore({ office, questionnaires }) {
         return (await questionnaires.list(`${assertSlug(slug)}/`)).filter((k) => !k.endsWith('.json'));
       },
     },
+    documents: documents(office),
     async counts() {
       const out = { clients: await s.clients.count() };
       for (const t of TYPES) out[t] = await s[t].count();
+      out.documents = await s.documents.count();
       return out;
     },
   };

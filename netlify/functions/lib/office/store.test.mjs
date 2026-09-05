@@ -54,5 +54,27 @@ test('counts every type', async () => {
   const s = make();
   await s.clients.put('lova', { slug: 'lova' });
   await s.tasks.put('lova', newId(), { title: 't' });
-  assert.deepEqual(await s.counts(), { clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0 });
+  assert.deepEqual(await s.counts(), {
+    clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0, documents: 0,
+  });
+});
+
+test('documents store bytes with a metadata sidecar and list by client', async () => {
+  const s = make();
+  const png = new Uint8Array([137, 80, 78, 71]);
+  await s.documents.put('lova', 'agreement-1.pdf', new Uint8Array([37, 80, 68, 70]), { type: 'application/pdf', source: 'seal' });
+  await s.documents.put('lova', 'sig.png', png, { type: 'image/png', source: 'sign' });
+  assert.deepEqual([...(await s.documents.get('lova', 'sig.png'))], [...png]);
+  assert.equal(await s.documents.get('lova', 'none.png'), null);
+  const meta = await s.documents.meta('lova', 'sig.png');
+  assert.equal(meta.name, 'sig.png');
+  assert.equal(meta.size, 4);
+  assert.equal(meta.type, 'image/png');
+  assert.equal(meta.source, 'sign');
+  assert.match(meta.uploadedAt, /^\d{4}-/);
+  assert.deepEqual((await s.documents.list('lova')).map((m) => m.name), ['agreement-1.pdf', 'sig.png']);
+  assert.deepEqual(await s.documents.list('acme'), []);
+  await assert.rejects(() => s.documents.put('lova', '../x', png, {}), /bad document name/);
+  await assert.rejects(() => s.documents.get('lova', 'a b.png'), /bad document name/);
+  assert.equal((await s.counts()).documents, 2);
 });

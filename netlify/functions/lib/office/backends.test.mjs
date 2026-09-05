@@ -23,4 +23,15 @@ for (const [name, make] of [
     assert.equal(await b.getText('clients/a.json'), null);
     await b.remove('clients/never.json');
   });
+
+  test(`${name}: round-trips bytes and keeps them apart from text`, async () => {
+    const b = await make();
+    assert.equal(await b.getBytes('documents/a/x.png'), null);
+    const bytes = new Uint8Array([137, 80, 78, 71, 0, 255]);
+    await b.setBytes('documents/a/x.png', bytes);
+    assert.deepEqual([...(await b.getBytes('documents/a/x.png'))], [...bytes]);
+    assert.deepEqual(await b.list('documents/a/'), ['documents/a/x.png']);
+    await b.remove('documents/a/x.png');
+    assert.equal(await b.getBytes('documents/a/x.png'), null);
+  });
 }

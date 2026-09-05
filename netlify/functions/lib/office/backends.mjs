@@ -1,7 +1,7 @@
 // Three backends behind one four-method shape. Blobs is the real one; the
 // file backend lets `astro dev` run without the Netlify CLI, and memory keeps
-// tests free of disk and network. Text only for now: phase 5 adds bytes for
-// uploads, and nothing in phase 1 needs them.
+// tests free of disk and network. Text and bytes: JSON documents are text;
+// signature images and sealed PDFs are bytes.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -10,6 +10,8 @@ export function memoryBackend() {
   return {
     async getText(key) { return map.has(key) ? map.get(key) : null; },
     async setText(key, text) { map.set(key, text); },
+    async getBytes(key) { return map.has(key) ? map.get(key) : null; },
+    async setBytes(key, bytes) { map.set(key, bytes); },
     async list(prefix) { return [...map.keys()].filter((k) => k.startsWith(prefix)).sort(); },
     async remove(key) { map.delete(key); },
   };
@@ -42,6 +44,16 @@ export function fileBackend(dir) {
       await fs.mkdir(path.dirname(file(key)), { recursive: true });
       await fs.writeFile(file(key), text);
     },
+    async getBytes(key) {
+      try { return new Uint8Array(await fs.readFile(file(key))); } catch (e) {
+        if (e.code === 'ENOENT') return null;
+        throw e;
+      }
+    },
+    async setBytes(key, bytes) {
+      await fs.mkdir(path.dirname(file(key)), { recursive: true });
+      await fs.writeFile(file(key), bytes);
+    },
     async list(prefix) { return (await walk(dir)).filter((k) => k.startsWith(prefix)).sort(); },
     async remove(key) { await fs.rm(file(key), { force: true }); },
   };
@@ -54,6 +66,13 @@ export function blobsBackend(name) {
   return {
     async getText(key) { return (await (await open()).get(key)) ?? null; },
     async setText(key, text) { await (await open()).set(key, text); },
+    async getBytes(key) {
+      const buf = await (await open()).get(key, { type: 'arrayBuffer' });
+      return buf ? new Uint8Array(buf) : null;
+    },
+    async setBytes(key, bytes) {
+      await (await open()).set(key, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    },
     async list(prefix) {
       const { blobs } = await (await open()).list({ prefix });
       return blobs.map((b) => b.key).sort();
