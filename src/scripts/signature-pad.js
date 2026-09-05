@@ -28,7 +28,15 @@
 
     size();
     var drawing = false;
-    canvas.addEventListener('pointerdown', function (e) { drawing = true; canvas.setPointerCapture(e.pointerId); var p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('pointerdown', function (e) {
+      drawing = true; canvas.setPointerCapture(e.pointerId);
+      var p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+      // A tap with no drag never fires pointermove, so draw the dot here too
+      // (lineTo the same point, round linecap) or it counts as ink with
+      // nothing on the canvas.
+      ctx.lineTo(p.x, p.y); ctx.stroke();
+      inked = true; ready();
+    });
     canvas.addEventListener('pointermove', function (e) { if (!drawing) return; var p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); inked = true; ready(); });
     function stop() { drawing = false; }
     canvas.addEventListener('pointerup', stop); canvas.addEventListener('pointercancel', stop); canvas.addEventListener('pointerleave', stop);

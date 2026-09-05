@@ -25,15 +25,22 @@ export function fieldsFromForm(data) {
   f.pages = Number.isInteger(pages) && pages > 0 ? pages : null;
   if (f.pages === null) errors.push('pages must be a whole number');
   f.discountApplied = field(data, 'discountApplied') === 'on';
-  const adjusted = field(data, 'discount_adjustedBuildFee');
-  const discounted = field(data, 'discount_discountedMonthlyFee');
-  const months = field(data, 'discount_months');
-  f.discount = {
-    ...Object.fromEntries(DISCOUNT_TEXT.map((k) => [k, field(data, `discount_${k}`)])),
-    adjustedBuildFee: adjusted ? dollarsToCents(adjusted) : null,
-    discountedMonthlyFee: discounted ? dollarsToCents(discounted) : null,
-    months: months ? Number(months) : null,
-  };
+  if (f.discountApplied) {
+    const adjusted = field(data, 'discount_adjustedBuildFee');
+    const discounted = field(data, 'discount_discountedMonthlyFee');
+    const months = Number(field(data, 'discount_months'));
+    f.discount = {
+      ...Object.fromEntries(DISCOUNT_TEXT.map((k) => [k, field(data, `discount_${k}`)])),
+      adjustedBuildFee: adjusted ? dollarsToCents(adjusted) : null,
+      discountedMonthlyFee: discounted ? dollarsToCents(discounted) : null,
+      months: Number.isInteger(months) && months > 0 ? months : null,
+    };
+    if (f.discount.months === null) errors.push('discount months must be a whole number');
+  } else {
+    // Unticking the box drops whatever was typed underneath it; Exhibit D
+    // is either attached in full or not at all.
+    f.discount = { name: '', type: '', amount: '', adjustedBuildFee: null, monthlyType: '', monthlyAmount: '', discountedMonthlyFee: null, months: null, conditions: '' };
+  }
   if (errors.length === 0) {
     const effective = f.discountApplied && f.discount.adjustedBuildFee ? f.discount.adjustedBuildFee : f.buildFee;
     if (f.deposit + f.balance !== effective) errors.push(`deposit and balance must add up to the build fee (${(effective / 100).toFixed(2)})`);
@@ -52,14 +59,28 @@ export async function agreement(request, ctx, s = defaultStore(), now = new Date
   const client = await s.clients.get(slug);
   if (!client) return problem(404, 'no such client');
   const op = field(data, 'op');
+  if (!['create', 'send', 'void'].includes(op)) return problem(400, 'unknown op');
   const tab = `/office/clients/${slug}/?tab=agreements`;
   const back = (message) => redirect(`${tab}&error=${encodeURIComponent(message)}`);
+  // A rejected create loses everything the admin typed unless the redirect
+  // carries it back; the client page's form reads these over its defaults.
+  const createBack = (message) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of data.entries()) {
+      if (k === 'csrf' || typeof v !== 'string') continue;
+      params.set(k, v);
+    }
+    // error goes on the end via encodeURIComponent, not params.set, so a
+    // space in the message reads as %20 like every other back() redirect
+    // rather than URLSearchParams' '+'.
+    return redirect(`${tab}&${params.toString()}&error=${encodeURIComponent(message)}`);
+  };
 
   if (op === 'create') {
     const templateId = field(data, 'template');
-    if (!findAgreementTemplate(templateId)) return back('unknown template');
+    if (!findAgreementTemplate(templateId)) return createBack('unknown template');
     const { fields, errors } = fieldsFromForm(data);
-    if (errors.length) return back(errors.join('; '));
+    if (errors.length) return createBack(errors.join('; '));
     const a = await createAgreement({ client, templateId, fields, admin: ctx.admin }, s, now);
     return redirect(`/office/agreements/${slug}/${a.id}/sign/`);
   }
@@ -67,6 +88,9 @@ export async function agreement(request, ctx, s = defaultStore(), now = new Date
   const id = field(data, 'id');
   if (!ID.test(id)) return problem(400, 'bad id');
   if (!(await s.agreements.get(slug, id))) return problem(404, 'no such agreement');
+  // A failed send belongs back on the signing page, where the pad and the
+  // consent state still are, not on the tab that lost all of that context.
+  const signBack = (message) => redirect(`/office/agreements/${slug}/${id}/sign/?error=${encodeURIComponent(message)}`);
 
   try {
     if (op === 'send') {
@@ -77,12 +101,9 @@ export async function agreement(request, ctx, s = defaultStore(), now = new Date
       }, s, now);
       return redirect(`/office/send/${slug}/agreement/`);
     }
-    if (op === 'void') {
-      await voidAgreement({ slug, id, note: field(data, 'note') || null }, s, now);
-      return redirect(tab);
-    }
+    await voidAgreement({ slug, id, note: field(data, 'note') || null }, s, now);
+    return redirect(tab);
   } catch (e) {
-    return back(e.message);
+    return op === 'send' ? signBack(e.message) : back(e.message);
   }
-  return problem(400, 'unknown op');
 }

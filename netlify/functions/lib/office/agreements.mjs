@@ -125,6 +125,24 @@ const signaturesFor = async (a, s) => {
   return out;
 };
 
+// A template pulled after an agreement was created (never expected, but a
+// docx re-generation could drop one); the document route maps this to a 410
+// rather than a 500, and the office sign page checks for it separately since
+// it reads fillBlocks directly instead of going through renderCurrent.
+export class TemplateGone extends Error {}
+
+// The same PNGs sealAgreement embeds in the PDF, as data URLs for the admin
+// and (task 7) public signing pages to show inline; only for signers who
+// have actually signed, so an unsigned party still shows the blank line.
+export async function signatureViews(a, s = defaultStore()) {
+  const raw = await signaturesFor(a, s);
+  const out = {};
+  for (const party of ['keepsite', 'client']) {
+    if (raw[party]) out[party] = { src: `data:image/png;base64,${Buffer.from(raw[party].png).toString('base64')}`, signedAt: raw[party].signedAt };
+  }
+  return out;
+}
+
 export async function sealAgreement(a, s = defaultStore(), fetchFn = fetch, now = new Date()) {
   // Idempotent: a second call would re-render (a different renderedAt hashes
   // differently), overwrite the stored PDF, and mail both parties again.
@@ -243,6 +261,7 @@ export async function renderCurrent(a, s = defaultStore()) {
     if (bytes) return bytes;
   }
   const template = findAgreementTemplate(a.template);
+  if (!template) throw new TemplateGone(`template ${a.template} no longer exists`);
   return renderAgreement({ blocks: fillBlocks(template, a.fields), signatures: await signaturesFor(a, s) });
 }
 

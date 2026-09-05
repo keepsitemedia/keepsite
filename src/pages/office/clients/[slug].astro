@@ -33,7 +33,7 @@ type EmailDoc = { id: string; kind: string; template: string | null; to: string[
 type MeetingDoc = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
 type TemplateRow = { id: string; name: string };
 type PaymentDoc = { id: string; kind: string; amount: number; status: string; description: string; url: string | null; paidAt: string | null; failureReason: string | null; createdAt: string; stripe: { customerId: string | null; checkoutSessionId: string | null; paymentIntentId: string | null; invoiceId: string | null; subscriptionId: string | null } };
-type AgreementDoc = { id: string; template: string; templateName: string; status: string; sentAt: string | null; completedAt: string | null; hash: string | null; documentKey: string | null; fields: { deposit: number; balance: number }; signers: { client: { status: string; expiresAt: string | null } } };
+type AgreementDoc = { id: string; template: string; templateName: string; status: string; createdAt: string; sentAt: string | null; completedAt: string | null; hash: string | null; documentKey: string | null; fields: { deposit: number; balance: number }; signers: { client: { status: string; expiresAt: string | null } } };
 
 const slug = Astro.params.slug ?? '';
 if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
@@ -97,6 +97,10 @@ const agreementTemplates = loadAgreementTemplates() as { id: string; name: strin
 const defaultTemplateId = ({ Presence: 'presence', Search: 'search', 'Search Plus': 'search-plus' } as Record<string, string>)[client.tier] ?? 'presence';
 const draftFields = defaultFields(client, agreementTemplates.find((t) => t.id === defaultTemplateId) as any) as Record<string, any>;
 const dollarsOf = (cents: number | null) => (cents == null ? '' : (cents / 100).toFixed(2));
+// A rejected create redirects back with every posted field on the query
+// string (see createBack in the action); prefer that over the tier default
+// so a validation error doesn't erase what the admin typed.
+const posted = (name: string) => Astro.url.searchParams.get(name);
 const tabs = [
   ['overview', 'Overview'],
   ['tasks', `Tasks (${open.length})`],
@@ -355,7 +359,7 @@ const tabs = [
           <tbody>
             {agreements.map((a) => (
               <tr>
-                <td>{formatYmd(`${a.id.slice(0, 4)}-${a.id.slice(4, 6)}-${a.id.slice(6, 8)}`)}</td>
+                <td>{formatYmd(todayIn(undefined, new Date(a.createdAt)))}</td>
                 <td>{a.templateName}</td>
                 <td>
                   <span class="badge">{a.status}</span>
@@ -390,41 +394,41 @@ const tabs = [
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="op" value="create" />
         <label class="field"><span>Template</span>
-          <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === defaultTemplateId}>{t.name}</option>)}</select>
+          <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === (posted('template') ?? defaultTemplateId)}>{t.name}</option>)}</select>
         </label>
         <p class="field-hint">Amounts below prefill for {client.tier || 'Presence'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
         <h3>Client</h3>
         <div class="row">
-          <label class="field"><span>Legal business name</span><input name="legalName" value={draftFields.legalName} required /></label>
-          <label class="field"><span>Entity type</span><input name="entityType" value={draftFields.entityType} placeholder="LLC, sole proprietorship, corporation" /></label>
-          <label class="field"><span>Business address</span><input name="address" value={draftFields.address} /></label>
-          <label class="field"><span>Signer name</span><input name="signerName" value={draftFields.signerName} required /></label>
-          <label class="field"><span>Signer title</span><input name="signerTitle" value={draftFields.signerTitle} /></label>
-          <label class="field"><span>Email for notices</span><input type="email" name="email" value={draftFields.email} required /></label>
-          <label class="field"><span>Phone</span><input name="phone" value={draftFields.phone} /></label>
+          <label class="field"><span>Legal business name</span><input name="legalName" value={posted('legalName') ?? draftFields.legalName} required /></label>
+          <label class="field"><span>Entity type</span><input name="entityType" value={posted('entityType') ?? draftFields.entityType} placeholder="LLC, sole proprietorship, corporation" /></label>
+          <label class="field"><span>Business address</span><input name="address" value={posted('address') ?? draftFields.address} /></label>
+          <label class="field"><span>Signer name</span><input name="signerName" value={posted('signerName') ?? draftFields.signerName} required /></label>
+          <label class="field"><span>Signer title</span><input name="signerTitle" value={posted('signerTitle') ?? draftFields.signerTitle} /></label>
+          <label class="field"><span>Email for notices</span><input type="email" name="email" value={posted('email') ?? draftFields.email} required /></label>
+          <label class="field"><span>Phone</span><input name="phone" value={posted('phone') ?? draftFields.phone} /></label>
         </div>
         <h3>Commercial terms (USD)</h3>
         <div class="row">
-          <label class="field"><span>Build fee</span><input name="buildFee" inputmode="decimal" value={dollarsOf(draftFields.buildFee)} required /></label>
-          <label class="field"><span>Monthly fee</span><input name="monthlyFee" inputmode="decimal" value={dollarsOf(draftFields.monthlyFee)} required /></label>
-          <label class="field"><span>Deposit on signing</span><input name="deposit" inputmode="decimal" value={dollarsOf(draftFields.deposit)} required /></label>
-          <label class="field"><span>Balance on launch</span><input name="balance" inputmode="decimal" value={dollarsOf(draftFields.balance)} required /></label>
-          <label class="field"><span>Pages included</span><input name="pages" type="number" min="1" value={draftFields.pages ?? ''} required /></label>
+          <label class="field"><span>Build fee</span><input name="buildFee" inputmode="decimal" value={posted('buildFee') ?? dollarsOf(draftFields.buildFee)} required /></label>
+          <label class="field"><span>Monthly fee</span><input name="monthlyFee" inputmode="decimal" value={posted('monthlyFee') ?? dollarsOf(draftFields.monthlyFee)} required /></label>
+          <label class="field"><span>Deposit on signing</span><input name="deposit" inputmode="decimal" value={posted('deposit') ?? dollarsOf(draftFields.deposit)} required /></label>
+          <label class="field"><span>Balance on launch</span><input name="balance" inputmode="decimal" value={posted('balance') ?? dollarsOf(draftFields.balance)} required /></label>
+          <label class="field"><span>Pages included</span><input name="pages" type="number" min="1" value={posted('pages') ?? (draftFields.pages ?? '')} required /></label>
         </div>
         <details>
           <summary>Discount (Exhibit D)</summary>
-          <label class="field"><span><input type="checkbox" name="discountApplied" /> A discount applies; attach Exhibit D</span></label>
+          <label class="field"><span><input type="checkbox" name="discountApplied" checked={posted('discountApplied') === 'on'} /> A discount applies; attach Exhibit D</span></label>
           <div class="row">
-            <label class="field"><span>Discount or promotion name</span><input name="discount_name" /></label>
-            <label class="field"><span>Build fee discount type</span><input name="discount_type" placeholder="Percentage of Build Fee or Fixed dollar amount" /></label>
-            <label class="field"><span>Build fee discount amount</span><input name="discount_amount" placeholder="10% or $350" /></label>
-            <label class="field"><span>Adjusted build fee (USD)</span><input name="discount_adjustedBuildFee" inputmode="decimal" /></label>
-            <label class="field"><span>Monthly discount type</span><input name="discount_monthlyType" /></label>
-            <label class="field"><span>Monthly discount amount</span><input name="discount_monthlyAmount" /></label>
-            <label class="field"><span>Discounted monthly fee (USD)</span><input name="discount_discountedMonthlyFee" inputmode="decimal" /></label>
-            <label class="field"><span>Applies for (months)</span><input name="discount_months" type="number" min="1" /></label>
+            <label class="field"><span>Discount or promotion name</span><input name="discount_name" value={posted('discount_name') ?? ''} /></label>
+            <label class="field"><span>Build fee discount type</span><input name="discount_type" value={posted('discount_type') ?? ''} placeholder="Percentage of Build Fee or Fixed dollar amount" /></label>
+            <label class="field"><span>Build fee discount amount</span><input name="discount_amount" value={posted('discount_amount') ?? ''} placeholder="10% or $350" /></label>
+            <label class="field"><span>Adjusted build fee (USD)</span><input name="discount_adjustedBuildFee" inputmode="decimal" value={posted('discount_adjustedBuildFee') ?? ''} /></label>
+            <label class="field"><span>Monthly discount type</span><input name="discount_monthlyType" value={posted('discount_monthlyType') ?? ''} /></label>
+            <label class="field"><span>Monthly discount amount</span><input name="discount_monthlyAmount" value={posted('discount_monthlyAmount') ?? ''} /></label>
+            <label class="field"><span>Discounted monthly fee (USD)</span><input name="discount_discountedMonthlyFee" inputmode="decimal" value={posted('discount_discountedMonthlyFee') ?? ''} /></label>
+            <label class="field"><span>Applies for (months)</span><input name="discount_months" type="number" min="1" value={posted('discount_months') ?? ''} /></label>
           </div>
-          <label class="field"><span>Conditions marked</span><input name="discount_conditions" placeholder="Testimonial; portfolio use" /></label>
+          <label class="field"><span>Conditions marked</span><input name="discount_conditions" value={posted('discount_conditions') ?? ''} placeholder="Testimonial; portfolio use" /></label>
           <p class="field-hint">When a discount applies, deposit and balance must add up to the adjusted build fee.</p>
         </details>
         <p><button class="btn">Create draft</button></p>

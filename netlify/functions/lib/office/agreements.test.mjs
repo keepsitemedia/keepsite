@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent, sealAgreement } from './agreements.mjs';
+import { defaultFields, createAgreement, sendAgreement, findByToken, viewAgreement, signAgreement, declineAgreement, voidAgreement, expireAgreements, renderCurrent, latestSent, sealAgreement, signatureViews, TemplateGone } from './agreements.mjs';
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
@@ -141,6 +141,21 @@ test('renderCurrent returns the sealed PDF when there is one, else a fresh draft
   const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
   const sealed = await renderCurrent(r.agreement, s);
   assert.deepEqual([...sealed], [...(await s.documents.get('lova', r.agreement.documentKey))]);
+});
+
+test('renderCurrent throws a TemplateGone when the template has been retired', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  await assert.rejects(() => renderCurrent({ ...a, template: 'retired', documentKey: null }, s), TemplateGone);
+});
+
+test('signatureViews has a data URL for a signer who has signed, not one who has not', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const views = await signatureViews(a, s);
+  assert.match(views.keepsite.src, /^data:image\/png;base64,/);
+  assert.equal(views.keepsite.signedAt, a.signers.keepsite.signedAt);
+  assert.equal(views.client, undefined);
 });
 
 test('only the client signs or declines through the token path', async () => {

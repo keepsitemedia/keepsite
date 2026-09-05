@@ -62,6 +62,23 @@ test('create validates', async () => {
   assert.equal((await s.agreements.list('lova')).length, 0);
 });
 
+test('create validates a ticked discount and drops it when unticked', async () => {
+  const s = await make();
+  assert.match(loc(await agreement(post({ ...createFields, discountApplied: 'on', deposit: '700', balance: '700', discount_adjustedBuildFee: '1400', discount_months: 'six' }), ctx(), s, NOW)), /error=discount months must be a whole number/);
+  await agreement(post({ ...createFields, discountApplied: 'off', discount_name: 'Founding client', discount_months: '6' }), ctx(), s, NOW);
+  const [a] = await s.agreements.list('lova');
+  assert.equal(a.fields.discount.name, '');
+  assert.equal(a.fields.discount.months, null);
+});
+
+test('a rejected create carries the typed fields back on the redirect', async () => {
+  const s = await make();
+  const loc2 = loc(await agreement(post({ ...createFields, legalName: '' }), ctx(), s, NOW));
+  assert.match(loc2, /legalName=/);
+  assert.match(loc2, /signerName=Sierra\+Lee/);
+  assert.match(loc2, /buildFee=1750/);
+});
+
 test('send signs as Keepsite and lands on the agreement email; void marks voided', async () => {
   const s = await make();
   await agreement(post(createFields), ctx(), s, NOW);
@@ -71,7 +88,7 @@ test('send signs as Keepsite and lands on the agreement email; void marks voided
   const sent = await s.agreements.get('lova', a.id);
   assert.equal(sent.status, 'sent');
   assert.equal(sent.signers.keepsite.status, 'signed');
-  assert.match(loc(await agreement(post({ csrf, op: 'send', slug: 'lova', id: a.id, signature: 'nope' }), ctx(), s, NOW)), /error=/);
+  assert.equal(loc(await agreement(post({ csrf, op: 'send', slug: 'lova', id: a.id, signature: 'nope' }), ctx(), s, NOW)), `/office/agreements/lova/${a.id}/sign/?error=signature must be a small PNG image`);
   const v = await agreement(post({ csrf, op: 'void', slug: 'lova', id: a.id, note: 'typo' }), ctx(), s, NOW);
   assert.equal(loc(v), '/office/clients/lova/?tab=agreements');
   assert.equal((await s.agreements.get('lova', a.id)).status, 'voided');
