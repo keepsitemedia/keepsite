@@ -49,8 +49,11 @@ for (const p of seed) {
 // stage/task forms shipped with: FormData.get() returns whichever control
 // comes first in the DOM, silently discarding the button the admin clicked.
 // Catch it statically so it cannot come back unnoticed in a new form.
+// /sign/ posts anonymously on a bare token (task 7) with the same failure
+// mode as an office form, so every page under src/pages is in scope, not
+// just src/pages/office.
 const OFFICE_ASTRO = [
-  ...walk('src/pages/office').filter((f) => f.endsWith('.astro')),
+  ...walk('src/pages').filter((f) => f.endsWith('.astro')),
   ...fs.readdirSync('src/components/office').filter((f) => f.endsWith('.astro')).map((f) => `src/components/office/${f}`),
 ];
 

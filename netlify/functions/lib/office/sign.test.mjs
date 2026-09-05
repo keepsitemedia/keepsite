@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { submit, decline } from './sign.mjs';
+import { submit, decline, clientIp, userAgentOf } from './sign.mjs';
 import { createAgreement, sendAgreement, defaultFields } from './agreements.mjs';
 import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
@@ -63,4 +63,17 @@ test('decline records the reason and lands on the declined state', async () => {
   assert.equal(res.headers.get('Location'), `/sign/?t=${t}`);
   assert.equal((await s.agreements.get('lova', a.id)).status, 'declined');
   assert.equal(sent.length, 1);
+});
+
+test('clientIp falls back to x-forwarded-for and bounds both to 45 chars', () => {
+  const req = (headers) => new Request('https://site.test/sign/api/submit', { headers });
+  assert.equal(clientIp(req({ 'x-nf-client-connection-ip': '', 'x-forwarded-for': '9.9.9.9' })), '9.9.9.9');
+  const long = '9'.repeat(3000);
+  assert.equal(clientIp(req({ 'x-forwarded-for': long })).length, 45);
+});
+
+test('userAgentOf bounds the header to 300 chars', () => {
+  const req = (ua) => new Request('https://site.test/sign/api/submit', { headers: { 'user-agent': ua } });
+  assert.equal(userAgentOf(req('x'.repeat(3000))).length, 300);
+  assert.equal(userAgentOf(new Request('https://site.test/sign/api/submit')), null);
 });

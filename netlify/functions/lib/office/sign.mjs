@@ -5,8 +5,17 @@ import { readForm, redirect, problem, field } from './http.mjs';
 import { store as defaultStore } from './store.mjs';
 import { signAgreement, declineAgreement } from './agreements.mjs';
 
-const TOKEN = /^[A-Za-z0-9_-]{43}$/;
-const clientIp = (request) => request.headers.get('x-nf-client-connection-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? null;
+export const TOKEN = /^[A-Za-z0-9_-]{43}$/;
+
+const first = (v) => (v ? String(v).split(',')[0].trim() : '');
+// Both go into the sealed certificate verbatim (agreements.mjs's audit
+// entries, then pdf.mjs), and the request is otherwise unauthenticated, so
+// an attacker who controls these headers must not be able to inflate the
+// certificate: bound them the same way declineAgreement bounds the reason.
+export const clientIp = (request) =>
+  (first(request.headers.get('x-nf-client-connection-ip')) || first(request.headers.get('x-forwarded-for'))).slice(0, 45) || null;
+export const userAgentOf = (request) => (request.headers.get('user-agent') ?? '').slice(0, 300) || null;
+
 const back = (t, error) => redirect(`/sign/?t=${encodeURIComponent(t)}${error ? `&error=${encodeURIComponent(error)}` : ''}`);
 
 async function parse(request) {
@@ -26,7 +35,7 @@ export async function submit(request, s = defaultStore(), fetchFn = fetch, now =
     signatureDataUrl: String(data.get('signature') ?? ''),
     consentTerms: field(data, 'consentTerms') === 'on',
     consentEsign: field(data, 'consentEsign') === 'on',
-    ip: clientIp(request), userAgent: request.headers.get('user-agent') ?? null,
+    ip: clientIp(request), userAgent: userAgentOf(request),
   }, s, fetchFn, now);
   if (!r.ok && r.error === 'this signing link is not valid') return problem(404, 'not found');
   return r.ok ? back(t) : back(t, r.error);

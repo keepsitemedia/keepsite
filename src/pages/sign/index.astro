@@ -12,14 +12,23 @@ import site from '../../data/site.json';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { viewAgreement, signatureViews } from '../../../netlify/functions/lib/office/agreements.mjs';
 import { findAgreementTemplate, fillBlocks } from '../../../netlify/functions/lib/office/agreement-templates.mjs';
+import { TOKEN, clientIp, userAgentOf } from '../../../netlify/functions/lib/office/sign.mjs';
 
 type View = { agreement: any; party: 'keepsite' | 'client' | null; state: 'sign' | 'signed' | 'declined' | 'expired' | 'voided' | 'invalid' };
 const t = Astro.url.searchParams.get('t') ?? '';
+// Same shape as viewAgreement's own 'invalid' response below: a malformed
+// token never reaches findByToken, so the store sees only well-formed ones.
+if (!TOKEN.test(t)) return new Response('This signing link is not valid.', { status: 404, headers: { 'Content-Type': 'text/plain' } });
 const error = Astro.url.searchParams.get('error');
 const s = store();
-const ip = Astro.request.headers.get('x-nf-client-connection-ip') ?? Astro.request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? undefined;
-const view = (await viewAgreement({ token: t, ip, userAgent: Astro.request.headers.get('user-agent') ?? undefined }, s)) as View;
+const ip = clientIp(Astro.request) ?? undefined;
+const userAgent = userAgentOf(Astro.request) ?? undefined;
+const view = (await viewAgreement({ token: t, ip, userAgent }, s)) as View;
 if (view.state === 'invalid') return new Response('This signing link is not valid.', { status: 404, headers: { 'Content-Type': 'text/plain' } });
+// A keepsite token also resolves through findByToken; only the client uses
+// this public page, and signAgreement/declineAgreement already refuse the
+// other party, so mirror that here rather than render their side.
+if (view.party !== 'client') return new Response('This signing link is not valid.', { status: 404, headers: { 'Content-Type': 'text/plain' } });
 if (view.state === 'expired') Astro.response.status = 410;
 const a = view.agreement;
 // Only the 'sign' state renders AgreementBody below; fillBlocks needs a
