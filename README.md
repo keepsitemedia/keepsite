@@ -255,6 +255,27 @@ Give a bookkeeper a read-only role in Stripe rather than an office login;
 `/office/data/` exports the payment documents as CSV for revenue by
 client.
 
+### Agreements
+
+The three package agreements are generated from the docx files (see "What
+doesn't belong in this repo" for regenerating). On a client's Agreements tab,
+pick the template, check Schedule 1 (prefilled from the client and the tier),
+and create the draft. Sign it as Keepsite on the next screen; Send opens the
+agreement email with the client's signing link filled in. The client reads
+the agreement at `/sign/?t=…`, ticks two consents, draws a signature and
+signs, or declines with a reason. Signing links last fourteen days.
+
+When both have signed, the office seals a PDF with both signatures and a
+certificate of completion page, stores it in the client's documents with its
+SHA-256, emails it to the client and to `KEEPSITE_NOTIFY_TO`, closes the
+"Send agreement" task, and the Payments tab prefills the deposit and balance
+from Schedule 1. Nothing in an agreement can be edited after it is sent; void
+it and create a new one.
+
+The certificate records each signer's name, email, IP address, browser and
+time, the full audit trail, and the document hash. This is the evidence the
+ESIGN Act and UETA look for; it is not legal advice.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:

@@ -95,11 +95,8 @@ No third-party script is added anywhere. Login talks to Identity's
 same-origin endpoints, Stripe pages are Stripe-hosted redirects, and
 the signature pad is a small canvas script in `src/scripts/`. The
 strict `/*` Content-Security-Policy in `netlify.toml` stays as it is
-for every route but one. The signing page shows the filled PDF in a
-same-origin iframe served by `office-sign-document.mjs`, and `/*` sets
-`frame-ancestors 'none'` and `X-Frame-Options: DENY`, which forbid
-exactly that. A `/sign/*` header block relaxes both to same-origin;
-the widening is scoped to `/sign/*` and nothing else changes.
+for every route; `/sign/*` responses carry the same office headers,
+set by the same middleware, rather than a widened policy of their own.
 
 ## Auth
 
@@ -150,6 +147,8 @@ nothing is copied.
 | `payments/{slug}/{id}.json` | kind (`deposit`, `balance`, `monthly`), amount, currency, Stripe IDs, status, paid date, failure reason | the payment action creates the document as `pending`; the Stripe webhook writes every later change |
 | `agreements/{slug}/{id}.json` | template, filled fields, status, signers, hash, audit trail | signing route and the admin send action, only through `agreement-state.mjs` |
 | `documents/{slug}/{name}` | raw bytes | admin upload, sealing |
+| `documents/{slug}/agreement-{id}-{party}.png` | a signer's drawn signature | the admin send action (keepsite) and the signing route (client) |
+| `documents/{slug}/agreement-{id}.pdf` | the sealed agreement | sealing, triggered from the signing route once both have signed |
 | `documents/{slug}/{name}.meta.json` | original name, size, type, source, uploaded at | same as its file |
 | `emails/{slug}/{id}.json` | template, subject, rendered body, to, sent at, Resend ID | the send function |
 | `settings/pipelines.json` | list of pipelines | admin |
@@ -318,9 +317,10 @@ and balance, then monthly, matching the agreements:
 - **Deposit** and **balance** are Checkout sessions in `payment` mode
   with `us_bank_account` and `card` as payment method types,
   `setup_future_usage: off_session` so the method is saved, and
-  `metadata` carrying slug and kind. The amounts prefill from half the
-  tier's build price and the admin edits them; phase 4 fills them from
-  the signed agreement. The session URL is copied from the Payments
+  `metadata` carrying slug and kind. The amounts prefill from the
+  completed agreement's Schedule 1 when there is one, else from half
+  the tier's build price, and the admin edits them. The session URL is
+  copied from the Payments
   tab into the launch email's prompted `payLink` field; phase 4 may
   automate it. Stripe hosts the page, the receipt, and the ACH mandate
   text.
@@ -354,21 +354,22 @@ pass-throughs become common.
 
 ## Agreements and e-sign
 
-The three agreements (`presence`, `search`, `search-plus`) become PDF
-templates with named form fields, converted once from the docx files
-and kept in `src/data/office/agreements/{tier}.pdf`. The fields are the
-Schedule 1 blanks: client name, business, address, email, phone, build
-fee, monthly fee, deposit amount and percent, balance amount and
-percent, pages included, discount, effective date, and two signature
-blocks each with name, date and signature image. Each template file
-carries a version in its filename; an agreement records which version
-it was made from.
+The three agreements are converted once from the docx files by
+`scripts/agreement-from-docx.py` into JSON block templates in
+`src/data/office/agreements/`, with the Schedule 1, signature and
+Exhibit D blanks as placeholders. The same blocks render as HTML on
+the signing page and as PDF (`pdf-lib`, standard fonts) for the
+record, so there is no form-field PDF to maintain. Two blanks stay
+plain underscores rather than placeholders, by decision: Section 8.6's
+portfolio opt-out initials and Exhibit D's discount-expiry date. Each
+template carries a version; an agreement records which version it was
+made from.
 
 An agreement is created from the client page by picking a template and
 confirming the prefilled fields, which come from the tier prices and
 the client record. The admin can edit any field before sending.
 
-`netlify/functions/lib/agreement-state.mjs` is the only code that
+`netlify/functions/lib/office/agreement-state.mjs` is the only code that
 changes an agreement's status, and it appends an audit entry for every
 change. States: `draft`, `sent`, `partiallySigned`, `completed`,
 `declined`, `expired`, `voided`. Two signers, `keepsite` and `client`,
@@ -376,36 +377,50 @@ each with a 32-byte random token, a 14-day expiry, and a status of
 `pending`, `viewed`, `signed`, `declined` or `expired`.
 
 Sending: the admin signs first, in the office, on the same signature
-canvas the client will use, and the send action records that
-signature, moves the agreement to `sent`, and opens the Agreement email
-send screen with `{{links.sign}}` filled.
+canvas the client will use, then the same action sends. `markSent`
+accepts a fresh draft or that admin-signed, client-still-pending
+agreement and nothing else, so no caller resets status by hand; the
+send moves the agreement to `sent` and opens the Agreement email send
+screen with `{{links.sign}}` filled.
 
-Signing: `/sign/?t=…` is server-rendered. It looks up the signer by
-token, records `viewed` on first open, and renders the filled PDF
-inline (drawn from the template with the agreement's fields, by
-`pdf-lib`, not stored until sealing). The page requires scrolling the
-document to the end, two checkboxes (I have read and agree to these
-terms; I agree to sign this agreement electronically), and a drawn
-signature. `office-sign.mjs` validates the token again, refuses a
-signer that is not `pending` or `viewed`, and records consent time,
-IP, user agent, and the signature PNG in `documents/{slug}/`. The
-state module then moves the signer to `signed` and the agreement to
-`partiallySigned` or `completed`.
+Signing: `/sign/?t=…` is server-rendered. The token is matched by
+scanning the client's agreements — a token index is a later
+optimisation — and resolves only to the client's own signer; the
+Keepsite token and a draft's token are both refused here. It records
+`viewed` on first open and shows the agreement as HTML in a scrolling
+box, with a PDF download; the Sign button enables once the text has
+been scrolled to its end. Signing requires two checkboxes (I have read
+and agree to these terms; I agree to sign this agreement
+electronically) and a drawn signature. `sign.mjs` validates the token
+again, refuses a signer that is not `pending` or `viewed`, validates
+the signature PNG before writing anything, and records consent time,
+IP, user agent, and the signature PNG in `documents/{slug}/`. The IP
+and user agent are truncated to 45 and 300 characters before they
+reach the audit trail or the certificate. The state module then moves
+the signer to `signed` and the agreement to `partiallySigned` or
+`completed`. A retired template — one a docx regeneration dropped —
+answers 410 on both the office and the public signing page.
 
-Declining records a reason, moves the agreement to `declined`, and
-emails the admin. Expiry is checked on open and by the daily digest
-job. Voiding is an admin action on any agreement not yet completed.
+Declining records a reason, capped at 500 characters, moves the
+agreement to `declined`, and emails the admin. Expiry is checked on
+open, on a sign or decline attempt, and by the daily digest job;
+`markExpired` refuses to expire an agreement that has not actually
+lapsed, so a misfiring caller can never cut a live signing window
+short. Voiding is an admin action on any agreement not yet completed.
 
-Sealing, on `completed`: `pdf-lib` fills the fields, flattens them,
-stamps both signature images in their blocks, appends a certificate of
-completion page listing every audit entry (event, who, when, IP), and
-writes the result to `documents/{slug}/agreement-{id}.pdf`. The
-SHA-256 of the final bytes is stored on the agreement and printed on
-the certificate as the hash of the document before the certificate was
-appended, so the certificate can describe the document without
-describing itself. Both parties get the sealed PDF by email. The client
-moves to the Intro questionnaire stage only when the admin clicks
-advance.
+Sealing, on `completed`: `pdf-lib` renders the agreement twice — once
+to hash before the certificate exists, once more with the certificate
+appended — both stamped with the same seal time as `renderedAt`, so
+identical inputs give identical bytes and the certificate's printed
+hash stays reproducible from the stored inputs. Both signature images
+are stamped in their block, the certificate page lists every audit
+entry (event, who, when, IP), and the result is written to
+`documents/{slug}/agreement-{id}.pdf`. The SHA-256 of the final bytes
+is stored on the agreement and printed on the certificate as the hash
+of the document before the certificate was appended, so the
+certificate can describe the document without describing itself. Both
+parties get the sealed PDF by email. The client moves to the Intro
+questionnaire stage only when the admin clicks advance.
 
 Legal footing: ESIGN and UETA require intent to sign, consent to do
 business electronically, attribution, and a record both parties can
@@ -495,9 +510,11 @@ Unit tests run under `node --test` beside the existing ones in
   one throws; a signer past expiry cannot sign; sealing produces a
   PDF whose stored hash matches its bytes; the certificate lists every
   audit entry.
-- **Accessibility:** `/office/login/` and `/sign/` join the Lighthouse
-  audit list at the existing thresholds. Authenticated office pages
-  cannot be audited by the plugin and are checked by hand.
+- **Accessibility:** `/office/login/` joins the Lighthouse audit list
+  at the existing thresholds. `/sign/` cannot join it, being
+  server-rendered; the login page stands in for it. Authenticated
+  office pages cannot be audited by the plugin either and are checked
+  by hand.
 
 ## Out of scope
 
