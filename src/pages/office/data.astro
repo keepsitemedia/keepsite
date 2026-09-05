@@ -2,6 +2,7 @@
 export const prerender = false;
 import OfficeLayout from '../../layouts/OfficeLayout.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
+import { EXPORTABLE } from '../../../netlify/functions/lib/office/actions/export.mjs';
 
 const counts = (await store().counts()) as Record<string, number>;
 const types = Object.entries(counts);
@@ -20,9 +21,15 @@ const local = Boolean(process.env.OFFICE_STORE_DIR);
           <td>{type}</td>
           <td class="num">{n}</td>
           <td>
-            <a href={`/office/api/export?type=${type}&format=json`}>JSON</a>
-            {' · '}
-            <a href={`/office/api/export?type=${type}&format=csv`}>CSV</a>
+            {EXPORTABLE.includes(type) ? (
+              <>
+                <a href={`/office/api/export?type=${type}&format=json`}>JSON</a>
+                {' · '}
+                <a href={`/office/api/export?type=${type}&format=csv`}>CSV</a>
+              </>
+            ) : (
+              <span class="muted">on each client's Documents tab</span>
+            )}
           </td>
         </tr>
       ))}

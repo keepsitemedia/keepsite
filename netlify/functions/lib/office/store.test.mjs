@@ -50,10 +50,13 @@ test('settings and questionnaires read from their own places', async () => {
   await assert.rejects(() => s.questionnaires.get('lova', 'x/y'), /bad form/);
 });
 
+// The keys are the Data page's rows and the export whitelist's shape; a new
+// store collection that lands here without an export route breaks that page.
 test('counts every type', async () => {
   const s = make();
   await s.clients.put('lova', { slug: 'lova' });
   await s.tasks.put('lova', newId(), { title: 't' });
+  assert.deepEqual(Object.keys(await s.counts()), ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails', 'documents']);
   assert.deepEqual(await s.counts(), {
     clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0, documents: 0,
   });
@@ -111,6 +114,37 @@ test('documents remove bytes and sidecar together', async () => {
   await s.documents.remove('lova', 'brief.pdf');
   assert.equal(await s.documents.get('lova', 'brief.pdf'), null);
   assert.equal(await s.documents.meta('lova', 'brief.pdf'), null);
+  assert.deepEqual(await s.documents.list('lova'), []);
+});
+
+test('a sidecar that will not parse is read as null, not thrown', async () => {
+  const office = memoryBackend();
+  const s = createStore({ office, questionnaires: memoryBackend() });
+  await s.documents.put('lova', 'brief.pdf', new Uint8Array([1]), { type: 'application/pdf', source: 'upload' });
+  await office.setText('documents/lova/broken.pdf.meta.json', '{bad');
+  await office.setText('documents/lova/empty.pdf.meta.json', '');
+  const rows = await s.documents.list('lova');
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows.filter(Boolean).map((m) => m.name), ['brief.pdf']);
+});
+
+test('the sidecar holds the real name, size and time whatever the caller passes', async () => {
+  const s = make();
+  await s.documents.put('lova', 'brief.pdf', new Uint8Array([1, 2]), { name: 'other.pdf', size: 999, uploadedAt: 'whenever', source: 'upload' }, new Date('2026-09-08T16:00:00Z'));
+  const meta = await s.documents.meta('lova', 'brief.pdf');
+  assert.equal(meta.name, 'brief.pdf');
+  assert.equal(meta.size, 2);
+  assert.equal(meta.uploadedAt, '2026-09-08T16:00:00.000Z');
+  assert.equal(meta.source, 'upload');
+});
+
+test('a remove that only gets the sidecar hides the row', async () => {
+  const office = memoryBackend();
+  const s = createStore({ office, questionnaires: memoryBackend() });
+  await s.documents.put('lova', 'brief.pdf', new Uint8Array([1]), { type: 'application/pdf', source: 'upload' });
+  const remove = office.remove.bind(office);
+  office.remove = async (k) => { if (!k.endsWith('.meta.json')) throw new Error('backend down'); return remove(k); };
+  await assert.rejects(() => s.documents.remove('lova', 'brief.pdf'), /backend down/);
   assert.deepEqual(await s.documents.list('lova'), []);
 });
 

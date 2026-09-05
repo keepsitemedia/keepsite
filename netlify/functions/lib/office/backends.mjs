@@ -2,8 +2,8 @@
 // Blobs is the real one; the file backend lets `astro dev` run without the
 // Netlify CLI, and memory keeps tests free of disk and network. Text and
 // bytes: JSON documents are text; signature images and sealed PDFs are bytes.
-// setTextIfNew exists because the seal lock and the token index need a write
-// that fails if the key already exists, which Blobs offers as `onlyIfNew`.
+// setTextIfNew exists because the signing lock needs a write that fails if the
+// key already exists, which Blobs offers as `onlyIfNew`.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 

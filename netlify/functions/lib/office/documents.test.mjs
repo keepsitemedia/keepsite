@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { contentType, disposition, formatSize, validateUpload, listDocuments, UPLOAD_MAX } from './documents.mjs';
+import { contentType, disposition, formatSize, validateUpload, listDocuments, isIntakeFile, UPLOAD_MAX } from './documents.mjs';
 import { createStore, DOC_NAME } from './store.mjs';
 import { safeName } from '../blob-key.mjs';
 import { memoryBackend } from './backends.mjs';
@@ -29,7 +29,7 @@ test('sizes format for humans', () => {
 test('uploads must be a non-empty file under the limit', () => {
   assert.equal(validateUpload(null), 'choose a file');
   assert.equal(validateUpload(new File([], 'empty.txt')), 'choose a file');
-  assert.equal(validateUpload(new File([new Uint8Array(UPLOAD_MAX + 1)], 'big.bin')), 'file is larger than 6 MB');
+  assert.equal(validateUpload(new File([new Uint8Array(UPLOAD_MAX + 1)], 'big.bin')), 'file is larger than 4 MB');
   assert.equal(validateUpload(new File([new Uint8Array(10)], 'ok.bin')), null);
 });
 
@@ -39,6 +39,14 @@ test('a bare Blob is not a File, even with bytes', () => {
 
 // The upload action stores whatever safeName returns, and the store throws on
 // a name DOC_NAME refuses; the two have to agree or an upload becomes a 500.
+test('questionnaire envelopes are not servable as intake files', () => {
+  assert.equal(isIntakeFile('logo-mark.png'), true);
+  assert.equal(isIntakeFile('intro.json'), false);
+  assert.equal(isIntakeFile('logo.png.meta.json'), false);
+  assert.equal(isIntakeFile('../etc/passwd'), false);
+  assert.equal(isIntakeFile(''), false);
+});
+
 test('safeName always yields a name the store will accept', () => {
   for (const raw of ['_final.pdf', '_', '.._x.pdf', '\u65e5\u672c\u8a9e.pdf', 'a b.pdf', '../../etc/passwd', 'x'.repeat(200)]) {
     assert.ok(DOC_NAME.test(safeName(raw)), `${raw} -> ${safeName(raw)}`);
@@ -59,6 +67,18 @@ test('listDocuments merges office documents and questionnaire files, newest firs
   assert.equal(rows[2].href, '/office/documents/lova/intake/logo-mark.png');
   assert.equal(rows[2].source, 'questionnaire');
   assert.equal(rows[2].type, 'image/png');
+});
+
+// A sidecar the store cannot read used to take the whole Documents tab down.
+test('rows without usable metadata are dropped from the listing', async () => {
+  const office = memoryBackend();
+  const s = createStore({ office, questionnaires: memoryBackend() });
+  await s.documents.put('lova', 'brief.pdf', new Uint8Array(8), { type: 'application/pdf', source: 'upload' }, new Date('2026-09-06T10:00:00Z'));
+  await office.setText('documents/lova/broken.pdf.meta.json', '{bad');
+  await office.setText('documents/lova/empty.pdf.meta.json', '');
+  await office.setText('documents/lova/nameless.pdf.meta.json', '{"size":3}');
+  await office.setBytes('documents/lova/orphan.pdf', new Uint8Array(3));
+  assert.deepEqual((await listDocuments('lova', s)).map((r) => r.name), ['brief.pdf']);
 });
 
 test('rows with the same uploadedAt tie-break by name', async () => {

@@ -7,7 +7,6 @@ import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 import { newId } from './ids.mjs';
-import { newAgreement, markSent, markSigned } from './agreement-state.mjs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
@@ -27,9 +26,6 @@ async function sentAgreement(s) {
   const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
   return sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, admin, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
 }
-// Same behaviour the token-index tests below ask for: create, then send with
-// the PNG fixture, returning the sent agreement.
-const sendClientPending = sentAgreement;
 
 test('defaultFields prefill Schedule 1 from the client and the tier', () => {
   const f = defaultFields(client, findAgreementTemplate('search'));
@@ -357,7 +353,7 @@ test('voiding is refused once the PDF exists', async () => {
 
 test('sendAgreement indexes both tokens and findByToken uses the index', async () => {
   const s = await make();
-  const a = await sendClientPending(s);
+  const a = await sentAgreement(s);
   assert.deepEqual(await s.tokens.get(a.signers.client.token), { slug: 'lova', id: a.id, party: 'client' });
   assert.deepEqual(await s.tokens.get(a.signers.keepsite.token), { slug: 'lova', id: a.id, party: 'keepsite' });
   let scans = 0;
@@ -368,33 +364,32 @@ test('sendAgreement indexes both tokens and findByToken uses the index', async (
   assert.equal(scans, 0);
 });
 
-test('findByToken falls back to the scan for an unindexed token and backfills', async () => {
+// The index is the only lookup, so a token it does not hold resolves to
+// nothing rather than costing a read of every agreement in the store.
+test('an unindexed or forged token resolves to nothing without a scan', async () => {
   const s = await make();
-  const template = findAgreementTemplate('search');
-  // Built directly, bypassing sendAgreement, so no token index entry exists
-  // — the case of an agreement sent before the index was introduced.
-  let a = newAgreement({
-    slug: 'lova', template: template.id, templateVersion: template.version, fields: defaultFields(client, template),
-    keepsite: { name: 'Sierra Nichols', email: 'admin@keepsitemedia.com' }, client: { name: client.name, email: client.email },
-  }, NOW);
-  a = markSigned(a, 'keepsite', NOW, { ip: '1.1.1.1', userAgent: 'UA' });
-  a = markSent(a, NOW);
-  await s.agreements.put('lova', a.id, a);
-  const found = await findByToken(s, a.signers.client.token);
-  assert.equal(found?.agreement.id, a.id);
-  assert.ok(await s.tokens.get(a.signers.client.token));
+  const a = await sentAgreement(s);
+  let scans = 0;
+  const listAll = s.agreements.listAll.bind(s.agreements);
+  s.agreements.listAll = async () => { scans += 1; return listAll(); };
+  assert.equal(await findByToken(s, 'f'.repeat(43)), null);
+  await s.tokens.put(a.signers.client.token, { slug: 'lova', id: 'nope', party: 'client' });
+  assert.equal(await findByToken(s, a.signers.client.token), null);
+  assert.equal(scans, 0);
 });
 
-test('a stale index entry does not resolve a token that no longer matches', async () => {
+test('an index entry pointing at the wrong agreement resolves to nothing', async () => {
   const s = await make();
-  const a = await sendClientPending(s);
-  await s.tokens.put(a.signers.client.token, { slug: 'lova', id: 'nope', party: 'client' });
-  assert.equal((await findByToken(s, a.signers.client.token))?.agreement.id, a.id);
+  const a = await sentAgreement(s);
+  const b = await sentAgreement(s);
+  await s.tokens.put(a.signers.client.token, { slug: 'lova', id: b.id, party: 'client' });
+  assert.equal(await findByToken(s, a.signers.client.token), null);
+  assert.equal((await findByToken(s, b.signers.client.token)).agreement.id, b.id);
 });
 
 test('two simultaneous signs with the same clock seal once', async () => {
   const s = await make();
-  const a = await sendClientPending(s);
+  const a = await sentAgreement(s);
   const sent = [];
   const fetchFn = async () => { sent.push(1); return new Response('{}', { status: 200 }); };
   const args = { token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true, ip: '1.1.1.1', userAgent: 'ua' };
@@ -408,7 +403,7 @@ test('two simultaneous signs with the same clock seal once', async () => {
 
 test('a submit that read stale still does not overwrite a seal that finished before its write lands', async () => {
   const s = await make();
-  const a = await sendClientPending(s);
+  const a = await sentAgreement(s);
   const { sent, fetchFn } = mailer();
   const als = new AsyncLocalStorage();
   let release;

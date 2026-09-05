@@ -9,13 +9,17 @@ const FORMATS = {
   csv: { type: 'text/csv; charset=utf-8', body: toCsv },
 };
 
+// The Data page offers a download for exactly these; a store collection that
+// is not here (documents, tokens, locks) has no export and no link.
+export const EXPORTABLE = ['clients', ...TYPES];
+
 // A GET behind the guard; nothing is written, so no CSRF token is needed.
 export async function exportData(request, _ctx, s = defaultStore(), now = new Date()) {
   if (request.method !== 'GET') return problem(405, 'GET only');
   const url = new URL(request.url);
   const type = url.searchParams.get('type') ?? '';
   const format = FORMATS[url.searchParams.get('format') ?? ''];
-  if (!format || !(type === 'clients' || TYPES.includes(type))) return problem(400, 'unknown type or format');
+  if (!format || !EXPORTABLE.includes(type)) return problem(400, 'unknown type or format');
   const rows = type === 'clients' ? await s.clients.list() : await s[type].listAll();
   const name = `${type}-${todayIn(undefined, now)}.${url.searchParams.get('format')}`;
   return new Response(format.body(rows), {

@@ -83,23 +83,14 @@ export async function sendAgreement({ slug, id, signatureDataUrl, admin, ip, use
 export async function findByToken(s, token) {
   if (typeof token !== 'string' || !TOKEN.test(token)) return null;
   const ref = await s.tokens.get(token);
-  if (ref) {
-    // A stale or forged ref can carry a slug or id store.mjs's own key
-    // assertions would reject; that must fall through to the scan below; not
-    // throw. signerByToken re-checks in constant time, so even a well-formed
-    // but wrong ref can never resolve a token the agreement does not hold.
-    const a = await s.agreements.get(ref.slug, ref.id).catch(() => null);
-    const party = a && signerByToken(a, token);
-    if (party) return { agreement: a, party };
-  }
-  for (const a of await s.agreements.listAll()) {
-    const party = signerByToken(a, token);
-    if (party) {
-      await s.tokens.put(token, { slug: a.slug, id: a.id, party });
-      return { agreement: a, party };
-    }
-  }
-  return null;
+  if (!ref) return null;
+  // A stale or forged ref can carry a slug or id store.mjs's own key
+  // assertions would reject, which must read as a miss rather than throw.
+  // signerByToken re-checks in constant time, so even a well-formed but wrong
+  // ref can never resolve a token the agreement does not hold.
+  const a = await s.agreements.get(ref.slug, ref.id).catch(() => null);
+  const party = a && signerByToken(a, token);
+  return party ? { agreement: a, party } : null;
 }
 
 const stateOf = (a, party) => {

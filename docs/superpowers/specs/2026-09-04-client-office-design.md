@@ -387,8 +387,8 @@ screen with `{{links.sign}}` filled.
 
 Signing: `/sign/?t=…` is server-rendered. The signing link is
 resolved through a `tokens/{token}` index written when the agreement
-is sent, confirmed against the agreement in constant time; agreements
-sent before the index existed fall back to a scan that backfills it.
+is sent, confirmed against the agreement in constant time; a token the
+index does not hold resolves to nothing, with no scan behind it.
 It resolves only to the client's own signer; the Keepsite token and a
 draft's token are both refused here. It records `viewed` on first
 open and shows the agreement as HTML in a scrolling box, with a PDF
@@ -448,10 +448,10 @@ agreements, signature images, uploads, logos and brand guides. Each is
 served by an office route under `/office/documents/{slug}/`, which the
 middleware guards and which streams the bytes with `Cache-Control:
 no-store`; Blobs is never exposed as a public URL. Uploads take one
-file at a time, up to 6 MB, the Netlify function body limit, and are
-stored under their sanitised name using the existing `safeName`. Only
-uploads can be removed; sealed agreements and signature images are
-immutable.
+file at a time, capped at 4 MB to stay under the 6 MB Netlify function
+body limit, and are stored under their sanitised name using the
+existing `safeName`. Only uploads can be removed; sealed agreements
+and signature images cannot be replaced by an upload.
 
 The Questionnaires tab shows each form for the client's pipeline as
 not sent, sent, or submitted with the date, and renders the answers

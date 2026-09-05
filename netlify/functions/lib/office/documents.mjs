@@ -3,7 +3,17 @@
 // files a client attached to a questionnaire (questionnaires store). The
 // two stores stay separate because the questionnaire function writes the
 // second one without knowing the office exists.
-export const UPLOAD_MAX = 6 * 1024 * 1024;
+// Under the 6 MB Netlify function body limit, not equal to it: a request at
+// the transport limit never reaches this code, so the message below would
+// never be seen.
+export const UPLOAD_MAX = 4 * 1024 * 1024;
+
+import { DOC_NAME } from './store.mjs';
+
+// The questionnaire store keeps each form's answers as {form}.json beside the
+// files the client attached; the listing hides those envelopes, so the route
+// that streams an attachment has to refuse them by the same rule.
+export const isIntakeFile = (name) => DOC_NAME.test(String(name)) && !String(name).endsWith('.json');
 
 const TYPES = {
   __proto__: null,
@@ -29,12 +39,14 @@ export function formatSize(bytes) {
 
 export function validateUpload(file) {
   if (!(file instanceof File) || !file.size) return 'choose a file';
-  if (file.size > UPLOAD_MAX) return 'file is larger than 6 MB';
+  if (file.size > UPLOAD_MAX) return 'file is larger than 4 MB';
   return null;
 }
 
 export async function listDocuments(slug, s) {
-  const own = (await s.documents.list(slug)).map((m) => ({
+  // A sidecar the store could not read comes back null, and one written by an
+  // older shape may have no name; either would render as a dead row.
+  const own = (await s.documents.list(slug)).filter((m) => m && typeof m.name === 'string').map((m) => ({
     name: m.name, size: m.size ?? null, type: m.type, source: m.source, uploadedAt: m.uploadedAt ?? null,
     href: `/office/documents/${slug}/${m.name}`, removable: m.source === 'upload',
   }));

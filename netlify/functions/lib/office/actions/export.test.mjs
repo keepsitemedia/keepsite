@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { exportData } from './export.mjs';
+import { exportData, EXPORTABLE } from './export.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { newId } from '../ids.mjs';
@@ -32,6 +32,16 @@ test('unknown type or format is 400; POST is 405', async () => {
   assert.equal((await exportData(get('type=secrets&format=json'), ctx, s)).status, 400);
   assert.equal((await exportData(get('type=clients&format=xml'), ctx, s)).status, 400);
   assert.equal((await exportData(new Request('https://site.test/office/api/export', { method: 'POST' }), ctx, s)).status, 405);
+});
+
+// The whitelist is what keeps signing tokens and seal locks off a page that
+// otherwise offers every store collection as a download.
+test('tokens, locks and documents are not exportable types', async () => {
+  const s = await make();
+  assert.deepEqual(EXPORTABLE, ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails']);
+  for (const type of ['tokens', 'locks', 'documents', 'settings']) {
+    assert.equal((await exportData(get(`type=${type}&format=json`), ctx, s)).status, 400, type);
+  }
 });
 
 test('an inherited-property format name is 400, not a crash', async () => {

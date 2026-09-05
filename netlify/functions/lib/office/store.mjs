@@ -33,6 +33,11 @@ async function readJSON(backend, key) {
   const text = await backend.getText(key);
   return text == null ? null : JSON.parse(text);
 }
+// A listing reads many keys at once, so one document that will not parse
+// would otherwise take the whole page down with it; callers drop the nulls.
+async function readJSONOrNull(backend, key) {
+  try { return await readJSON(backend, key); } catch { return null; }
+}
 const writeJSON = (backend, key, doc) => backend.setText(key, JSON.stringify(doc, null, 2));
 const readAll = async (backend, prefix) =>
   Promise.all((await backend.list(prefix)).map((k) => readJSON(backend, k)));
@@ -66,20 +71,24 @@ function documents(backend) {
   return {
     async put(slug, name, bytes, meta = {}, now = new Date()) {
       await backend.setBytes(key(slug, name), bytes);
+      // name, size and uploadedAt come last: they describe what was actually
+      // written, so a caller's `meta` must not be able to disagree with it.
       await writeJSON(backend, `${key(slug, name)}.meta.json`, {
-        name, size: bytes.byteLength, type: meta.type ?? 'application/octet-stream',
-        source: meta.source ?? 'upload', uploadedAt: now.toISOString(), ...meta,
+        type: meta.type ?? 'application/octet-stream', source: meta.source ?? 'upload', ...meta,
+        name, size: bytes.byteLength, uploadedAt: now.toISOString(),
       });
     },
     async get(slug, name) { return backend.getBytes(key(slug, name)); },
     async meta(slug, name) { return readJSON(backend, `${key(slug, name)}.meta.json`); },
     async remove(slug, name) {
-      await backend.remove(key(slug, name));
+      // Sidecar first: the listing is built from sidecars, so a delete that
+      // dies half way hides the row rather than leaving a broken link.
       await backend.remove(`${key(slug, name)}.meta.json`);
+      await backend.remove(key(slug, name));
     },
     async list(slug) {
       const keys = (await backend.list(`documents/${assertSlug(slug)}/`)).filter((k) => k.endsWith('.meta.json'));
-      return Promise.all(keys.map((k) => readJSON(backend, k)));
+      return Promise.all(keys.map((k) => readJSONOrNull(backend, k)));
     },
     async count() {
       return (await backend.list('documents/')).filter((k) => k.endsWith('.meta.json')).length;
@@ -115,9 +124,9 @@ export function createStore({ office, questionnaires }) {
       async get(token) { return readJSON(office, `tokens/${assertToken(token)}.json`); },
       async put(token, ref) { return writeJSON(office, `tokens/${assertToken(token)}.json`, ref); },
     },
-    // A lock is a key that can be created once. There is no release: a seal
-    // happens once per agreement, so the lock's name carries the agreement id
-    // and is never reused.
+    // A lock is a key that can be created once. There is no release: an
+    // agreement is signed and sealed once, so the lock's name carries the
+    // agreement id and is never reused.
     locks: {
       async acquire(name) { return office.setTextIfNew(`locks/${assertLock(name)}`, new Date().toISOString()); },
     },
