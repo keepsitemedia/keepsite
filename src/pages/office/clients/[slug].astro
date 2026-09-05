@@ -12,6 +12,7 @@ import { tierPrices } from '../../../../netlify/functions/lib/office/payments.mj
 import { dashboardUrl, stripeConfigured } from '../../../../netlify/functions/lib/office/stripe.mjs';
 import { loadAgreementTemplates } from '../../../../netlify/functions/lib/office/agreement-templates.mjs';
 import { defaultFields } from '../../../../netlify/functions/lib/office/agreements.mjs';
+import { listDocuments, formatSize } from '../../../../netlify/functions/lib/office/documents.mjs';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
 import { mint } from '../../../../netlify/functions/lib/token.mjs';
 import intro from '../../../data/questionnaires/intro.json';
@@ -34,6 +35,7 @@ type MeetingDoc = { id: string; slug: string; title: string; ymd: string; time: 
 type TemplateRow = { id: string; name: string };
 type PaymentDoc = { id: string; kind: string; amount: number; status: string; description: string; url: string | null; paidAt: string | null; failureReason: string | null; createdAt: string; stripe: { customerId: string | null; checkoutSessionId: string | null; paymentIntentId: string | null; invoiceId: string | null; subscriptionId: string | null } };
 type AgreementDoc = { id: string; template: string; templateName: string; status: string; createdAt: string; sentAt: string | null; completedAt: string | null; hash: string | null; documentKey: string | null; fields: { deposit: number; balance: number }; signers: { client: { status: string; expiresAt: string | null } } };
+type DocumentRow = { name: string; size: number | null; type: string; source: string; uploadedAt: string | null; href: string; removable: boolean };
 
 const slug = Astro.params.slug ?? '';
 if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
@@ -72,6 +74,7 @@ const forms = tab === 'questionnaires'
 const files = (tab === 'questionnaires' ? await s.questionnaires.files(slug) : []) as string[];
 const sent = Astro.url.searchParams.get('sent');
 const emails = tab === 'emails' ? ((await s.emails.list(slug)) as EmailDoc[]).reverse() : [];
+const documents = tab === 'documents' ? ((await listDocuments(slug, s)) as DocumentRow[]) : [];
 const sentAtFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', dateStyle: 'medium', timeStyle: 'short' });
 // The bare questionnaire-reminder template is never sent as-is: each
 // pipeline questionnaire gets its own button below, the same way
@@ -108,6 +111,7 @@ const tabs = [
   ['meetings', 'Meetings'],
   ...(pipelinePlan ? [['payments', 'Payments']] : []),
   ['emails', 'Emails'],
+  ['documents', 'Documents'],
   ['agreements', `Agreements${agreements.some((a) => a.status === 'sent' || a.status === 'partiallySigned') ? ' •' : ''}`],
 ];
 ---
@@ -276,6 +280,50 @@ const tabs = [
           </tbody>
         </table></div>
       )}
+    </>
+  )}
+
+  {tab === 'documents' && (
+    <>
+      <h2>Documents</h2>
+      {documents.length === 0 && <p class="empty">Nothing on file yet.</p>}
+      {documents.length > 0 && (
+        <div class="table-scroll"><table>
+          <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Source</th><th>Added</th><th></th></tr></thead>
+          <tbody>
+            {documents.map((d) => (
+              <tr>
+                <td><a href={d.href}>{d.name}</a></td>
+                <td class="muted">{d.type}</td>
+                <td>{formatSize(d.size)}</td>
+                <td><span class="badge">{d.source}</span></td>
+                <td>{d.uploadedAt ? formatYmd(todayIn(undefined, new Date(d.uploadedAt))) : ''}</td>
+                <td>
+                  {d.removable && (
+                    <form method="POST" action="/office/api/document" class="inline">
+                      <input type="hidden" name="csrf" value={csrf} />
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="op" value="remove" />
+                      <input type="hidden" name="name" value={d.name} />
+                      <button class="btn-outline btn-small" onclick="return confirm('Remove this file?')">Remove</button>
+                    </form>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table></div>
+      )}
+
+      <h2>Upload a file</h2>
+      <p class="muted">One file at a time, up to 6 MB. Sealed agreements and signature images cannot be replaced.</p>
+      <form method="POST" action="/office/api/document" enctype="multipart/form-data" class="upload">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="op" value="upload" />
+        <label>File <input type="file" name="file" required /></label>
+        <button class="btn">Upload</button>
+      </form>
     </>
   )}
 

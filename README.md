@@ -294,6 +294,14 @@ ESIGN Act and UETA look for; it is not legal advice.
    `curl -sI https://www.keepsitemedia.com/sign/?t=x | grep -i x-robots-tag`
    shows `noindex`.
 
+### Documents
+
+A client's Documents tab lists everything on file: sealed agreements and
+signature images, files the admin uploaded, and the logo or brand guide the
+client attached to a questionnaire. Every link streams through the office
+behind the admin login; nothing in Blobs has a public URL. Uploads take one
+file at a time, up to 6 MB, and only uploads can be removed.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:
