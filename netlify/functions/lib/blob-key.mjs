@@ -10,14 +10,17 @@
 const MAX = 80;
 
 // Path separators drop the directory part, then anything outside a
-// conservative charset becomes "-". Leading dots go last, so "..", "../" and
-// "...foo" cannot survive as a traversal segment or a dotfile.
+// conservative charset becomes "-". Leading punctuation goes last, so "..",
+// "../" and "...foo" cannot survive as a traversal segment or a dotfile, and
+// what is left starts with the alphanumeric the office store's own name
+// check requires — "_final.pdf" would otherwise be stored under a name the
+// store refuses to read back.
 export function safeName(name) {
   const base = String(name ?? '')
     .split(/[\\/]/)
     .pop()
     .replace(/[^A-Za-z0-9._-]+/g, '-')
-    .replace(/^[.-]+/, '')
+    .replace(/^[._-]+/, '')
     .slice(0, MAX);
   return base || 'upload';
 }

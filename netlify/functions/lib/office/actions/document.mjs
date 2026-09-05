@@ -1,5 +1,5 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
-import { store as defaultStore, SLUG } from '../store.mjs';
+import { store as defaultStore, SLUG, DOC_NAME } from '../store.mjs';
 import { safeName } from '../../blob-key.mjs';
 import { validateUpload, contentType } from '../documents.mjs';
 
@@ -23,10 +23,10 @@ export async function document(request, ctx, s = defaultStore(), now = new Date(
     const invalid = validateUpload(file);
     if (invalid) return back(invalid);
     const name = safeName(file.name);
-    // The store reserves this suffix for its own metadata sidecar; safeName
-    // alone would let it through and the write below would clobber another
-    // document's meta instead of the file it looks like.
-    if (name.endsWith('.meta.json')) return back('that name is reserved');
+    // The store throws on a name it will not hold, which would leave the admin
+    // with a 500 instead of a message; and ".meta.json" is the sidecar's own
+    // suffix, so a write under it would clobber another document's metadata.
+    if (!DOC_NAME.test(name) || name.endsWith('.meta.json')) return back('that name cannot be used');
     // Sealed PDFs and signature images share the namespace; an upload must
     // never be able to replace the evidence they hold.
     const existing = await s.documents.meta(slug, name);

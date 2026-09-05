@@ -19,8 +19,17 @@ test('a traversal attempt cannot escape the client prefix', () => {
   }
 });
 
+// The store's own name check wants an alphanumeric first character, so a
+// leading underscore has to go the same way a leading dot or dash does.
+test('leading punctuation is stripped so the store can hold the name', () => {
+  assert.equal(safeName('_final.pdf'), 'final.pdf');
+  assert.equal(safeName('_DSC0001.jpg'), 'DSC0001.jpg');
+  assert.equal(safeName('-.._x.pdf'), 'x.pdf');
+});
+
 test('a name that is nothing but dots and slashes falls back', () => {
   assert.equal(safeName('..'), 'upload');
+  assert.equal(safeName('_'), 'upload');
   assert.equal(safeName('/'), 'upload');
   assert.equal(safeName(''), 'upload');
   assert.equal(safeName(undefined), 'upload');

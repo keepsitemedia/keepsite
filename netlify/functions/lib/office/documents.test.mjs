@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { contentType, disposition, formatSize, validateUpload, listDocuments, UPLOAD_MAX } from './documents.mjs';
-import { createStore } from './store.mjs';
+import { createStore, DOC_NAME } from './store.mjs';
+import { safeName } from '../blob-key.mjs';
 import { memoryBackend } from './backends.mjs';
 
 test('content types come from the extension and default to octet-stream', () => {
@@ -34,6 +35,14 @@ test('uploads must be a non-empty file under the limit', () => {
 
 test('a bare Blob is not a File, even with bytes', () => {
   assert.equal(validateUpload(new Blob([new Uint8Array(10)])), 'choose a file');
+});
+
+// The upload action stores whatever safeName returns, and the store throws on
+// a name DOC_NAME refuses; the two have to agree or an upload becomes a 500.
+test('safeName always yields a name the store will accept', () => {
+  for (const raw of ['_final.pdf', '_', '.._x.pdf', '\u65e5\u672c\u8a9e.pdf', 'a b.pdf', '../../etc/passwd', 'x'.repeat(200)]) {
+    assert.ok(DOC_NAME.test(safeName(raw)), `${raw} -> ${safeName(raw)}`);
+  }
 });
 
 test('listDocuments merges office documents and questionnaire files, newest first', async () => {

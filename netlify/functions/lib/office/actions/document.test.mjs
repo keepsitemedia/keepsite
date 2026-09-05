@@ -35,6 +35,15 @@ test('upload stores the file under its safe name with upload metadata', async ()
   assert.equal(meta.uploadedAt, NOW.toISOString());
 });
 
+// safeName kept a leading underscore before; the store then refused the name
+// and the upload threw out of the action as a 500 instead of storing a file.
+test('a name starting with punctuation is stored, not thrown out of', async () => {
+  const s = await make();
+  const res = await document(post({ csrf, op: 'upload', slug: 'lova', file: pdf('_DSC0001.pdf') }), ctx(), s, NOW);
+  assert.equal(loc(res), '/office/clients/lova/?tab=documents');
+  assert.equal((await s.documents.meta('lova', 'DSC0001.pdf')).source, 'upload');
+});
+
 test('an empty or missing file is refused with a message, not a 500', async () => {
   const s = await make();
   const res = await document(post({ csrf, op: 'upload', slug: 'lova' }), ctx(), s, NOW);
@@ -50,12 +59,12 @@ test('an upload cannot overwrite a sealed or signed document', async () => {
   assert.deepEqual([...(await s.documents.get('lova', 'agreement-1.pdf'))], [1]);
 });
 
-test('an upload named like a metadata sidecar is refused as reserved', async () => {
+test('an upload named like a metadata sidecar is refused', async () => {
   const s = await make();
   await s.documents.put('lova', 'agreement-1.pdf', new Uint8Array([1]), { type: 'application/pdf', source: 'seal' });
   const before = await s.documents.meta('lova', 'agreement-1.pdf');
   const res = await document(post({ csrf, op: 'upload', slug: 'lova', file: pdf('agreement-1.pdf.meta.json') }), ctx(), s, NOW);
-  assert.match(loc(res), /error=that name is reserved/);
+  assert.match(loc(res), /error=that name cannot be used/);
   assert.deepEqual(await s.documents.meta('lova', 'agreement-1.pdf'), before);
   assert.equal((await s.documents.list('lova')).length, 1);
 });
