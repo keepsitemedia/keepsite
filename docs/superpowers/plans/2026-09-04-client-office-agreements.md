@@ -621,7 +621,7 @@ git commit -m "Generate agreement templates from the docx files"
   - `tokenMatches(a, b): boolean` — constant-time.
   - `newAgreement({ slug, template, templateVersion, fields, keepsite: { name, email }, client: { name, email } }, now): Agreement` — status `draft`, both signers `pending` with fresh tokens and `expiresAt` null, one audit entry `created`.
   - Transitions, each returning a new object (never mutating) and appending an audit entry, throwing `InvalidTransition` with a readable message otherwise:
-    - `markSent(a, now)`: `draft` → `sent`; sets both `expiresAt` to now + 14 days and `sentAt`.
+    - `markSent(a, now)`: `draft`, or `partiallySigned` with the client not yet signed → `sent`; sets both `expiresAt` to now + 14 days and `sentAt`.
     - `markViewed(a, party, now, { ip, userAgent })`: signer `pending` → `viewed` (no-op if already viewed or signed); allowed in `sent` or `partiallySigned`.
     - `markSigned(a, party, now, { ip, userAgent, signatureKey })`: signer `pending|viewed` → `signed` with `signedAt`, `consentAt`; agreement `draft|sent` → `partiallySigned`, or → `completed` with `completedAt` when both are signed. Signing in `draft` is allowed only for `keepsite` (the admin signs before sending).
     - `markDeclined(a, party, now, { ip, reason })`: signer → `declined`; agreement → `declined`. Allowed in `sent|partiallySigned`.
@@ -1438,9 +1438,9 @@ export async function sendAgreement({ slug, id, signatureDataUrl, admin, ip, use
   if (!a) throw new Error('no such agreement');
   const key = await storeSignature(a, 'keepsite', signatureDataUrl, s, now);
   const signed = markSigned(a, 'keepsite', now, { ip, userAgent, signatureKey: key });
-  // The draft is signed by Keepsite only, so its status is partiallySigned;
-  // markSent expects a draft, and sending is what the admin means here.
-  const sent = markSent({ ...signed, status: 'draft' }, now);
+  // markSent accepts an admin-signed draft (partiallySigned with the client
+  // still pending); nothing outside the state module touches status.
+  const sent = markSent(signed, now);
   await s.agreements.put(slug, id, sent);
   return sent;
 }
