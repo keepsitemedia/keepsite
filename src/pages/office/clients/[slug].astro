@@ -7,7 +7,7 @@ import MeetingRow from '../../../components/office/MeetingRow.astro';
 import { store, SLUG } from '../../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines, findPipeline } from '../../../../netlify/functions/lib/office/pipeline.mjs';
 import { loadTemplates } from '../../../../netlify/functions/lib/office/templates.mjs';
-import { todayIn, formatYmd, formatTime } from '../../../../netlify/functions/lib/office/dates.mjs';
+import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
 import { mint } from '../../../../netlify/functions/lib/token.mjs';
 import intro from '../../../data/questionnaires/intro.json';
@@ -66,7 +66,12 @@ const forms = tab === 'questionnaires'
 const files = (tab === 'questionnaires' ? await s.questionnaires.files(slug) : []) as string[];
 const sent = Astro.url.searchParams.get('sent');
 const emails = tab === 'emails' ? ((await s.emails.list(slug)) as EmailDoc[]).reverse() : [];
-const sendable = tab === 'emails' ? ((await loadTemplates(s)) as TemplateRow[]).filter((t) => !t.id.startsWith('meeting-')) : [];
+const sentAtFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', dateStyle: 'medium', timeStyle: 'short' });
+// The bare questionnaire-reminder template is never sent as-is: each
+// pipeline questionnaire gets its own button below, the same way
+// meeting-* templates are sent only from their own flows.
+const sendable = tab === 'emails' ? ((await loadTemplates(s)) as TemplateRow[]).filter((t) => !t.id.startsWith('meeting-') && t.id !== 'questionnaire-reminder') : [];
+const questionnaireForms = tab === 'emails' ? (pipeline?.questionnaires ?? []) : [];
 const meetings = tab === 'meetings' ? ((await s.meetings.list(slug)) as MeetingDoc[]).sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`)) : [];
 const upcoming = meetings.filter((m) => m.ymd >= today);
 const past = meetings.filter((m) => m.ymd < today);
@@ -224,6 +229,7 @@ const tabs = [
       <h2>Send</h2>
       <p class="toolbar">
         {sendable.map((t) => <a class="btn-outline btn-small" href={`/office/send/${slug}/${t.id}/`}>{t.name}</a>)}
+        {questionnaireForms.map((form: string) => <a class="btn-outline btn-small" href={`/office/send/${slug}/questionnaire-reminder/?form=${form}`}>{`Remind: ${form}`}</a>)}
       </p>
       <h2>Log</h2>
       {emails.length === 0 && <p class="empty">Nothing sent yet.</p>}
@@ -233,7 +239,7 @@ const tabs = [
           <tbody>
             {emails.map((e) => (
               <tr>
-                <td>{e.sentAt.slice(0, 16).replace('T', ' ')}</td>
+                <td>{sentAtFormat.format(new Date(e.sentAt))}</td>
                 <td><details><summary>{e.subject}</summary><pre style="white-space: pre-wrap">{e.text}</pre></details></td>
                 <td>{e.template ?? e.kind}</td>
                 <td class={e.status === 'failed' ? 'overdue' : ''}>{e.status}{e.error && ` · ${e.error}`}</td>
