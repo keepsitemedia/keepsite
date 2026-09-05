@@ -72,6 +72,11 @@ async function savedPaymentMethod(customerId, fetchFn) {
 
 export async function startSubscription({ client, amount, description, startYmd }, s, fetchFn = fetch, now = new Date()) {
   if (!client.stripeCustomerId) throw new Error('no Stripe customer yet; create the deposit link first');
+  // A disabled button is not a guard: a double click or a replayed POST
+  // would otherwise start a second subscription and bill the client twice
+  // a month. Check before any Stripe call, not just before the write.
+  const existing = (await s.payments.list(client.slug)).find((p) => p.kind === 'subscription' && p.status === 'active');
+  if (existing) throw new Error(`a monthly subscription is already active (${existing.stripe.subscriptionId}); cancel it in Stripe first`);
   const pm = await savedPaymentMethod(client.stripeCustomerId, fetchFn);
   if (!pm) throw new Error('no saved payment method on the Stripe customer; the deposit or balance must be paid first');
   const product = await stripeRequest('POST', '/products', { name: description, metadata: { slug: client.slug } }, fetchFn);

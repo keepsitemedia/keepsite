@@ -126,6 +126,25 @@ test('startSubscription falls back to a card and omits the anchor for today or t
   assert.equal(calls[3].body.billing_cycle_anchor, undefined);
 });
 
+test('a second startSubscription refuses while one is already active', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
+  const { fetchFn } = stripe([
+    { data: [{ id: 'pm_bank', type: 'us_bank_account', created: 10 }] },
+    { id: 'prod_1' },
+    { id: 'sub_1', status: 'active' },
+  ]);
+  await startSubscription({ client: await s.clients.get('lova'), amount: 15000, description: 'Search monthly' }, s, fetchFn, NOW);
+  const { calls: calls2, fetchFn: fetchFn2 } = stripe([]);
+  await assert.rejects(
+    async () => startSubscription({ client: await s.clients.get('lova'), amount: 15000, description: 'Search monthly' }, s, fetchFn2, NOW),
+    /already active/,
+  );
+  assert.equal(calls2.length, 0);
+  const subs = (await s.payments.list('lova')).filter((p) => p.kind === 'subscription');
+  assert.equal(subs.length, 1);
+});
+
 test('startSubscription refuses without a saved payment method or a customer', async () => {
   const s = await make();
   await assert.rejects(async () => startSubscription({ client: await s.clients.get('lova'), amount: 5500, description: 'x' }, s, stripe([]).fetchFn, NOW), /no Stripe customer/);
