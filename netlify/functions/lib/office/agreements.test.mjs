@@ -7,6 +7,7 @@ import { findAgreementTemplate } from './agreement-templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 import { newId } from './ids.mjs';
+import { newAgreement, markSent, markSigned } from './agreement-state.mjs';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
@@ -25,6 +26,9 @@ async function sentAgreement(s) {
   const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
   return sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, admin, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
 }
+// Same behaviour the token-index tests below ask for: create, then send with
+// the PNG fixture, returning the sent agreement.
+const sendClientPending = sentAgreement;
 
 test('defaultFields prefill Schedule 1 from the client and the tier', () => {
   const f = defaultFields(client, findAgreementTemplate('search'));
@@ -335,4 +339,55 @@ test('voiding is refused once the PDF exists', async () => {
   const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(3));
   assert.equal(r.agreement.documentKey, `agreement-${a.id}.pdf`);
   await assert.rejects(() => voidAgreement({ slug: 'lova', id: a.id, note: 'no' }, s, later(4)), /sealed/);
+});
+
+test('sendAgreement indexes both tokens and findByToken uses the index', async () => {
+  const s = await make();
+  const a = await sendClientPending(s);
+  assert.deepEqual(await s.tokens.get(a.signers.client.token), { slug: 'lova', id: a.id, party: 'client' });
+  assert.deepEqual(await s.tokens.get(a.signers.keepsite.token), { slug: 'lova', id: a.id, party: 'keepsite' });
+  let scans = 0;
+  const listAll = s.agreements.listAll.bind(s.agreements);
+  s.agreements.listAll = async () => { scans += 1; return listAll(); };
+  const found = await findByToken(s, a.signers.client.token);
+  assert.equal(found.party, 'client');
+  assert.equal(scans, 0);
+});
+
+test('findByToken falls back to the scan for an unindexed token and backfills', async () => {
+  const s = await make();
+  const template = findAgreementTemplate('search');
+  // Built directly, bypassing sendAgreement, so no token index entry exists
+  // — the case of an agreement sent before the index was introduced.
+  let a = newAgreement({
+    slug: 'lova', template: template.id, templateVersion: template.version, fields: defaultFields(client, template),
+    keepsite: { name: 'Sierra Nichols', email: 'admin@keepsitemedia.com' }, client: { name: client.name, email: client.email },
+  }, NOW);
+  a = markSigned(a, 'keepsite', NOW, { ip: '1.1.1.1', userAgent: 'UA' });
+  a = markSent(a, NOW);
+  await s.agreements.put('lova', a.id, a);
+  const found = await findByToken(s, a.signers.client.token);
+  assert.equal(found?.agreement.id, a.id);
+  assert.ok(await s.tokens.get(a.signers.client.token));
+});
+
+test('a stale index entry does not resolve a token that no longer matches', async () => {
+  const s = await make();
+  const a = await sendClientPending(s);
+  await s.tokens.put(a.signers.client.token, { slug: 'lova', id: 'nope', party: 'client' });
+  assert.equal((await findByToken(s, a.signers.client.token))?.agreement.id, a.id);
+});
+
+test('two simultaneous signs with the same clock seal once', async () => {
+  const s = await make();
+  const a = await sendClientPending(s);
+  const sent = [];
+  const fetchFn = async () => { sent.push(1); return new Response('{}', { status: 200 }); };
+  const args = { token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true, ip: '1.1.1.1', userAgent: 'ua' };
+  const [r1, r2] = await Promise.all([signAgreement(args, s, fetchFn, NOW), signAgreement(args, s, fetchFn, NOW)]);
+  assert.ok(r1.ok && r2.ok);
+  const final = await s.agreements.get('lova', a.id);
+  assert.equal(final.audit.filter((e) => e.event === 'sealed').length, 1);
+  assert.equal(sent.length, 2);
+  assert.equal((await s.documents.list('lova')).filter((d) => d.source === 'seal').length, 1);
 });

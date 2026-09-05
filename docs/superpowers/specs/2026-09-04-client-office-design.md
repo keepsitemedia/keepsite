@@ -151,6 +151,8 @@ nothing is copied.
 | `documents/{slug}/agreement-{id}.pdf` | the sealed agreement | sealing, triggered from the signing route once both have signed |
 | `documents/{slug}/{name}.meta.json` | original name, size, type, source, uploaded at | same as its file |
 | `emails/{slug}/{id}.json` | template, subject, rendered body, to, sent at, Resend ID | the send function |
+| `tokens/{token}.json` | signing-link index → slug, id, party | written at send |
+| `locks/{name}` | created once, never reused | the seal |
 | `settings/pipelines.json` | list of pipelines | admin |
 | `settings/templates.json` | list of email templates | admin |
 
@@ -383,10 +385,14 @@ agreement and nothing else, so no caller resets status by hand; the
 send moves the agreement to `sent` and opens the Agreement email send
 screen with `{{links.sign}}` filled.
 
-Signing: `/sign/?t=…` is server-rendered. The token is matched by
-scanning every stored agreement across every client — a token index is
-a later optimisation — and resolves only to the client's own signer; the
-Keepsite token and a draft's token are both refused here. It records
+Signing: `/sign/?t=…` is server-rendered. The signing link is resolved
+through a `tokens/{token}` index written when the agreement is sent,
+confirmed against the agreement in constant time; agreements sent
+before the index existed fall back to a scan that backfills it.
+Sealing takes a lock (`locks/seal-{id}`, a key that can be created
+once), so two overlapping submits seal once. It resolves only to the
+client's own signer; the Keepsite token and a draft's token are both
+refused here. It records
 `viewed` on first open and shows the agreement as HTML in a scrolling
 box, with a PDF download; the Sign button enables once the text has
 been scrolled to its end. Signing requires two checkboxes (I have read
@@ -435,10 +441,13 @@ legal advice.
 The Documents tab lists everything under `documents/{slug}/` and the
 files in the `questionnaires` store under the same slug: sealed
 agreements, signature images, uploads, logos and brand guides. Each is
-served by `office-document.mjs`, which requires an admin and streams
-the bytes; Blobs is never exposed as a public URL. Uploads take one
+served by an office route under `/office/documents/{slug}/`, which the
+middleware guards and which streams the bytes with `Cache-Control:
+no-store`; Blobs is never exposed as a public URL. Uploads take one
 file at a time, up to 6 MB, the Netlify function body limit, and are
-stored under their sanitised name using the existing `safeName`.
+stored under their sanitised name using the existing `safeName`. Only
+uploads can be removed; sealed agreements and signature images are
+immutable.
 
 The Questionnaires tab shows each form for the client's pipeline as
 not sent, sent, or submitted with the date, and renders the answers
@@ -479,8 +488,8 @@ One spec, five sub-projects, each usable when it ships:
    webhook, Payments tab, CSV export.
 4. **Agreements.** PDF templates, state module, signing page, sealing,
    certificate.
-5. **Documents.** Uploads, document streaming, pull-intake script,
-   README updates.
+5. **Documents.** Documents tab, streaming routes, uploads,
+   pull-intake script, token index, seal lock, README.
 
 ## Testing
 

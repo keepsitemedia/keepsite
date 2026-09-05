@@ -2,10 +2,10 @@
 // credential; there is no session and no CSRF cookie, so both handlers
 // answer only to a valid token and refuse everything else.
 import { readForm, redirect, problem, field } from './http.mjs';
-import { store as defaultStore } from './store.mjs';
+import { store as defaultStore, TOKEN } from './store.mjs';
 import { signAgreement, declineAgreement } from './agreements.mjs';
 
-export const TOKEN = /^[A-Za-z0-9_-]{43}$/;
+export { TOKEN };
 
 const first = (v) => (v ? String(v).split(',')[0].trim() : '');
 // Both go into the sealed certificate verbatim (agreements.mjs's audit

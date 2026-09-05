@@ -2,7 +2,7 @@
 // client signs or declines on a token, and completion seals a hashed PDF
 // into the client's documents and mails it to both sides.
 import site from '../../../../src/data/site.json' with { type: 'json' };
-import { store as defaultStore } from './store.mjs';
+import { store as defaultStore, TOKEN } from './store.mjs';
 import { findAgreementTemplate, fillBlocks } from './agreement-templates.mjs';
 import { newAgreement, markSent, markViewed, markSigned, markDeclined, markExpired, markVoided, markSealed, isExpired, signerByToken, InvalidTransition } from './agreement-state.mjs';
 import { renderAgreement, sha256, signaturePng } from './pdf.mjs';
@@ -73,15 +73,31 @@ export async function sendAgreement({ slug, id, signatureDataUrl, admin, ip, use
   // still pending); nothing outside the state module touches status.
   const sent = markSent(signed, now);
   await s.agreements.put(slug, id, sent);
+  // The index lets /sign/ find an agreement without reading every one; the
+  // scan in findByToken stays as the fallback for agreements sent before it.
+  for (const party of ['keepsite', 'client']) await s.tokens.put(sent.signers[party].token, { slug, id, party });
   await markAgreementTasks(slug, 'sent', s, now);
   return sent;
 }
 
 export async function findByToken(s, token) {
-  if (typeof token !== 'string' || token.length < 20) return null;
+  if (typeof token !== 'string' || !TOKEN.test(token)) return null;
+  const ref = await s.tokens.get(token);
+  if (ref) {
+    // A stale or forged ref can carry a slug or id store.mjs's own key
+    // assertions would reject; that must fall through to the scan below; not
+    // throw. signerByToken re-checks in constant time, so even a well-formed
+    // but wrong ref can never resolve a token the agreement does not hold.
+    const a = await s.agreements.get(ref.slug, ref.id).catch(() => null);
+    const party = a && signerByToken(a, token);
+    if (party) return { agreement: a, party };
+  }
   for (const a of await s.agreements.listAll()) {
     const party = signerByToken(a, token);
-    if (party) return { agreement: a, party };
+    if (party) {
+      await s.tokens.put(token, { slug: a.slug, id: a.id, party });
+      return { agreement: a, party };
+    }
   }
   return null;
 }
@@ -230,16 +246,13 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     const next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
     await storeSignature(a, party, signatureDataUrl, s, now);
     await s.agreements.put(a.slug, a.id, next);
-    // Two submits that overlap both pass the checks above against the same
-    // stored copy and both write, and the store is last-write-wins. This
-    // re-read resolves the ordering where both writes land before either
-    // read: only the signature that survived seals. A submit that read
-    // before the first write, or two sharing a millisecond, can still
-    // duplicate the seal mail; closing that needs a compare-and-set the
-    // store does not have yet.
     const fresh = await s.agreements.get(a.slug, a.id);
     if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };
     if (fresh.status !== 'completed') return { ok: true, agreement: fresh };
+    // The store is last-write-wins, so two overlapping submits can both
+    // reach this point. The lock is a key that can be created once; the
+    // second creator sees the thank-you page and lets the first one seal.
+    if (!(await s.locks.acquire(`seal-${a.id}`))) return { ok: true, agreement: fresh };
     try {
       return { ok: true, agreement: await sealAgreement(fresh, s, fetchFn, now) };
     } catch (e) {
