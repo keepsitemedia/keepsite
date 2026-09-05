@@ -4,7 +4,7 @@
 import { store as defaultStore } from './store.mjs';
 import { addDays, formatYmd, formatTime, todayIn, TZ } from './dates.mjs';
 import { dueBucket } from './calendar.mjs';
-import { sendMail } from './mail.mjs';
+import { sendMail, logFailure } from './mail.mjs';
 import { siteUrl } from './context.mjs';
 import { expireAgreements } from './agreements.mjs';
 
@@ -61,11 +61,20 @@ export async function runDigest({ s = defaultStore(), now = new Date(), fetchFn 
   // This cron is the one job that runs every day regardless of whether an
   // agreement is ever opened again, so expiry is applied here as well as on
   // open — otherwise a sent-and-forgotten agreement would sit past its
-  // 14-day window until someone happened to view it.
-  await expireAgreements(s, now);
+  // 14-day window until someone happened to view it. The digest is the
+  // admin's one guaranteed daily view into the office, so a broken
+  // agreements store must not take the whole email down with it: log the
+  // failure and send everything else on time.
+  let agreements = [];
+  try {
+    await expireAgreements(s, now);
+    agreements = await s.agreements.listAll();
+  } catch (e) {
+    await logFailure({ slug: 'office', template: null, kind: 'digest-sweep', error: e.message }, s, now);
+  }
   const today = todayIn(undefined, now);
-  const [clients, tasks, meetings, agreements, payments] = await Promise.all([
-    s.clients.list(), s.tasks.listAll(), s.meetings.listAll(), s.agreements.listAll(), s.payments.listAll(),
+  const [clients, tasks, meetings, payments] = await Promise.all([
+    s.clients.list(), s.tasks.listAll(), s.meetings.listAll(), s.payments.listAll(),
   ]);
   const submitted = new Set();
   for (const t of tasks) {

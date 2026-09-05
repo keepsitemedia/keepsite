@@ -35,7 +35,7 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
     const id = newId(now);
     await s.tasks.put(slug, id, {
       id, slug, title, due: w.due, time: w.time, done: false, doneAt: null,
-      source: 'manual', stage: null, questionnaire: null, payment: null,
+      source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null,
       notes: field(data, 'notes'), createdAt: at,
     });
     return redirect(to);

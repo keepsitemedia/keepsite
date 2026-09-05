@@ -114,3 +114,25 @@ test('runDigest expires a stale agreement before building the digest', async () 
     delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
   }
 });
+
+test('a broken agreements store logs a failure but does not stop the digest from sending', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    // The sweep must not be able to take the whole daily email down with it.
+    s.agreements.listAll = async () => { throw new Error('backend down'); };
+    await s.clients.put('lova', { slug: 'lova', business: 'Lova', email: 'l@x' });
+    const task = t('lova', '2026-09-01');
+    await s.tasks.put('lova', task.id, task);
+    const fetchFn = async () => new Response('{"id":"re"}');
+    assert.deepEqual(await runDigest({ s, now, fetchFn }), { sent: true });
+    const emails = await s.emails.list('office');
+    const failures = emails.filter((e) => e.kind === 'digest-sweep');
+    assert.equal(failures.length, 1);
+    assert.equal(failures[0].status, 'failed');
+    assert.match(failures[0].error, /backend down/);
+    assert.equal(emails.filter((e) => e.kind === 'digest').length, 1);
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
+  }
+});
