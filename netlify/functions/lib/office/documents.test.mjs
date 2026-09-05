@@ -32,6 +32,10 @@ test('uploads must be a non-empty file under the limit', () => {
   assert.equal(validateUpload(new File([new Uint8Array(10)], 'ok.bin')), null);
 });
 
+test('a bare Blob is not a File, even with bytes', () => {
+  assert.equal(validateUpload(new Blob([new Uint8Array(10)])), 'choose a file');
+});
+
 test('listDocuments merges office documents and questionnaire files, newest first', async () => {
   const q = memoryBackend();
   const s = createStore({ office: memoryBackend(), questionnaires: q });
@@ -46,4 +50,14 @@ test('listDocuments merges office documents and questionnaire files, newest firs
   assert.equal(rows[2].href, '/office/documents/lova/intake/logo-mark.png');
   assert.equal(rows[2].source, 'questionnaire');
   assert.equal(rows[2].type, 'image/png');
+});
+
+test('rows with the same uploadedAt tie-break by name', async () => {
+  const q = memoryBackend();
+  const s = createStore({ office: memoryBackend(), questionnaires: q });
+  const when = new Date('2026-09-05T10:00:00Z');
+  await s.documents.put('lova', 'zeta.pdf', new Uint8Array(4), { type: 'application/pdf', source: 'upload' }, when);
+  await s.documents.put('lova', 'alpha.pdf', new Uint8Array(4), { type: 'application/pdf', source: 'upload' }, when);
+  const rows = await listDocuments('lova', s);
+  assert.deepEqual(rows.map((r) => r.name), ['alpha.pdf', 'zeta.pdf']);
 });

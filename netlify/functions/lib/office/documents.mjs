@@ -28,7 +28,7 @@ export function formatSize(bytes) {
 }
 
 export function validateUpload(file) {
-  if (!file || typeof file === 'string' || !file.size) return 'choose a file';
+  if (!(file instanceof File) || !file.size) return 'choose a file';
   if (file.size > UPLOAD_MAX) return 'file is larger than 6 MB';
   return null;
 }
@@ -43,7 +43,7 @@ export async function listDocuments(slug, s) {
     href: `/office/documents/${slug}/intake/${name}`, removable: false,
   }));
   return [...own, ...intake].sort((a, b) => {
-    if (a.uploadedAt && b.uploadedAt) return b.uploadedAt.localeCompare(a.uploadedAt);
+    if (a.uploadedAt && b.uploadedAt) return b.uploadedAt.localeCompare(a.uploadedAt) || a.name.localeCompare(b.name);
     if (a.uploadedAt || b.uploadedAt) return a.uploadedAt ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
