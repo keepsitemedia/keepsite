@@ -463,6 +463,44 @@ and `build.json` from the `questionnaires` store into
 retires the save-the-attachment step in the README. The email
 attachment keeps going out as a backup.
 
+## Second deployment: Lova Content Creation
+
+Lova is a separate business run by the owner's spouse. It gets the same
+office with no client portal, no self-service booking, and no proposals or
+quotes, as a second Netlify site built from this repo, not as a second
+tenant inside the Keepsite office. The reasons are money, records and
+domain: payments must reach Lova's own Stripe account, sealed agreements
+are Lova's legal records, and clients must sign, pay and answer on Lova's
+domain. Separate sites give all three without any permission code, and
+each business sees only its own clients.
+
+Everything brand-specific is data. A brand is a directory under `brands/`
+that overlays the canonical files: `site.json` (brand, legal name, contact
+details, site URL, signer, and `officeOnly`), `packages.json` (tiers and
+prices), `office/pipelines.json`, `office/templates.json`, the
+questionnaire definitions and their registry, the agreement templates, a
+`brand.css` with the colour tokens, and a `_redirects` file. Keepsite is
+the canonical content, so it has no overlay. `node scripts/brand.mjs lova`
+copies the overlay onto the canonical paths before a build; the Lova site's
+build command runs it first. `node scripts/brand.mjs reset` restores the
+working tree after a local Lova session.
+
+`officeOnly: true` turns a deployment into an office with no public site:
+every path outside `/office/`, `/sign/`, `/pay/`, `/questionnaire/` and the
+functions redirects to the login page, the sitemap is empty, robots
+disallows everything, and `scripts/verify.mjs` skips the public-site
+sections. The marketing pages still build; the redirects shadow them.
+
+Nothing in the office code names Keepsite. The brand, legal name, signer
+and site URL come from `site.json`; the tier an agreement template belongs
+to is a field on the template; the set of questionnaire forms is a registry
+module, not three hard-coded names. Secrets keep their `KEEPSITE_` names on
+both sites, since they are variable names, not copy.
+
+Each site has its own Netlify Identity, Blobs stores, environment
+variables, Resend domain, Stripe account and webhook. The Lighthouse build
+plugin runs on both; on an office-only site it audits the login page.
+
 ## Secrets
 
 All in Netlify environment variables. New:
@@ -494,6 +532,9 @@ One spec, five sub-projects, each usable when it ships:
    certificate.
 5. **Documents.** Documents tab, streaming routes, uploads,
    pull-intake script, token index, seal lock, README.
+6. **Second brand.** Brand overlays, office-only mode, the questionnaire
+   registry, tier fields on agreement templates, the Lova overlay and its
+   deploy checklist.
 
 ## Testing
 
