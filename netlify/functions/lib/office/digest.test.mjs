@@ -136,3 +136,23 @@ test('a broken agreements store logs a failure but does not stop the digest from
     delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
   }
 });
+
+test('without KEEPSITE_NOTIFY_TO a non-empty digest is logged as failed, not skipped', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.clients.put('lova', { slug: 'lova', business: 'Lova', email: 'l@x' });
+    const task = t('lova', '2026-09-01');
+    await s.tasks.put('lova', task.id, task);
+    let called = 0;
+    const fetchFn = async () => { called += 1; return new Response('{"id":"re"}'); };
+    assert.deepEqual(await runDigest({ s, now, fetchFn }), { sent: false });
+    assert.equal(called, 0);
+    const [log] = await s.emails.list('office');
+    assert.equal(log.kind, 'digest');
+    assert.equal(log.status, 'failed');
+    assert.match(log.error, /KEEPSITE_NOTIFY_TO/);
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM;
+  }
+});

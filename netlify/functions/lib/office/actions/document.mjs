@@ -32,7 +32,10 @@ export async function document(request, ctx, s = defaultStore(), now = new Date(
     const existing = await s.documents.meta(slug, name);
     if (existing && existing.source !== 'upload') return back('that name belongs to a sealed or signed document');
     const bytes = new Uint8Array(await file.arrayBuffer());
-    await s.documents.put(slug, name, bytes, { type: file.type || contentType(name), source: 'upload', uploadedBy: ctx.admin?.email ?? null }, now);
+    // The byte route serves the stored type back verbatim, and file.type is
+    // whatever the browser (or a crafted request) claimed; the extension is
+    // the only thing the office can vouch for.
+    await s.documents.put(slug, name, bytes, { type: contentType(name), source: 'upload', uploadedBy: ctx.admin?.email ?? null }, now);
     return redirect(tab);
   }
 

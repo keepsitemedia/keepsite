@@ -34,11 +34,14 @@ const redirect = (to) => new Response(null, { status: 302, headers: { Location: 
 const problem = (status, body) =>
   new Response(body, { status, headers: { 'Content-Type': 'text/plain' } });
 
-async function notify(envelope) {
+// Exported, with fetch injectable, only so lib/questionnaire.test.mjs can
+// exercise the refused-send path without a network. Netlify reads `default`
+// and `config` from this file and ignores other named exports.
+export async function notify(envelope, fetchImpl = fetch) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
   const body = JSON.stringify(envelope, null, 2);
-  await fetch('https://api.resend.com/emails', {
+  const res = await fetchImpl('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -54,6 +57,14 @@ async function notify(envelope) {
       ],
     }),
   });
+  // Resend reports a refused send (unverified from-domain, bad recipient) as
+  // a 4xx body, not a thrown error. Without this line the only evidence that
+  // no email went out is the blob nobody was told about.
+  if (!res.ok) {
+    console.error(
+      `questionnaire notify: Resend ${res.status} for ${envelope.slug}/${envelope.form}: ${await res.text()}`,
+    );
+  }
 }
 
 export default async (request) => {
@@ -120,8 +131,8 @@ export default async (request) => {
   // their redirect.
   try {
     await markQuestionnaireDone(slug, form);
-  } catch {
-    // Nothing to do.
+  } catch (e) {
+    console.error(`questionnaire: office hook failed for ${slug}/${form}`, e);
   }
 
   // Best-effort from here: the durable record is already written, so a
@@ -129,8 +140,10 @@ export default async (request) => {
   // into a failed request and an unnecessary retry.
   try {
     await notify(envelope);
-  } catch {
-    // Nothing to do — the client still gets their redirect below.
+  } catch (e) {
+    // The client still gets their redirect below; the log line names the
+    // blob (`${slug}/${form}.json`) so the answers can be found by hand.
+    console.error(`questionnaire: notify failed for ${slug}/${form}`, e);
   }
 
   // The query string is how the thanks page knows which saved draft to clear.

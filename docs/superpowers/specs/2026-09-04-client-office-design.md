@@ -334,14 +334,20 @@ and balance, then monthly, matching the agreements:
   is set to the launch date.
 
 `stripe-webhook.mjs` verifies the signature with
-`STRIPE_WEBHOOK_SECRET` and writes a payment document on
+`STRIPE_WEBHOOK_SECRET` and writes a payment document on seven events:
 `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
-`checkout.session.async_payment_failed`, `invoice.paid`,
-`invoice.payment_failed`, and `customer.subscription.deleted`. An ACH
-deposit shows as pending from the completed session until the
-succeeded event arrives. Events are idempotent on the Stripe event ID,
-stored in the payment document, so a redelivered event changes
-nothing.
+`checkout.session.async_payment_failed`, `checkout.session.expired`,
+`invoice.paid`, `invoice.payment_failed`, and
+`customer.subscription.deleted`. An ACH deposit shows as pending from
+the completed session until the succeeded event arrives; an expired
+Checkout link is marked expired so the admin makes a new one. Events
+are idempotent on the Stripe event ID, stored in the payment document,
+so a redelivered event changes nothing; a first invoice event takes a
+one-shot store lock on its event ID so concurrent deliveries build one
+document, and a `payment_failed` delivered after `invoice.paid` for the
+same invoice is ignored. Customer, Checkout session and subscription
+creation send an `Idempotency-Key` so a lost response or a double
+submit cannot make a second Stripe object.
 
 The Payments tab lists payment documents newest first, each linked to
 the Stripe dashboard, with a running total and the subscription state.

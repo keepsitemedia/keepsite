@@ -75,10 +75,13 @@ export function fileBackend(dir) {
   };
 }
 
-export function blobsBackend(name) {
+export function blobsBackend(name, load = () => import('@netlify/blobs')) {
   let store;
   // Imported lazily so a test process that never touches Blobs never loads it.
-  const open = async () => (store ??= (await import('@netlify/blobs')).getStore(name));
+  // Strong consistency: the SDK defaults to eventual, under which the page
+  // an action redirects to, or the read half of a read-modify-write, can
+  // see the document as it was before the write and quietly undo it.
+  const open = async () => (store ??= (await load()).getStore({ name, consistency: 'strong' }));
   return {
     async getText(key) { return (await (await open()).get(key)) ?? null; },
     async setText(key, text) { await (await open()).set(key, text); },

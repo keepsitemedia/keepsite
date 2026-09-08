@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { memoryBackend, fileBackend } from './backends.mjs';
+import { memoryBackend, fileBackend, blobsBackend } from './backends.mjs';
 
 // Both local backends must behave identically; Blobs is not testable here.
 for (const [name, make] of [
@@ -45,3 +45,37 @@ for (const [name, make] of [
     assert.equal(results.filter(Boolean).length, 1);
   });
 }
+
+// The Blobs backend is an adapter over the SDK's store, so a fake store
+// standing in for the module is enough to check what the adapter asks for.
+function fakeBlobs() {
+  const calls = [];
+  const map = new Map();
+  const store = {
+    async get(key, opts) {
+      if (!map.has(key)) return null;
+      return opts?.type === 'arrayBuffer' ? map.get(key) : map.get(key);
+    },
+    async set(key, value, opts) {
+      if (opts?.onlyIfNew && map.has(key)) return { modified: false };
+      map.set(key, value);
+      return { modified: true };
+    },
+    async list({ prefix }) { return { blobs: [...map.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; },
+    async delete(key) { map.delete(key); },
+  };
+  return { calls, module: { getStore(opts) { calls.push(opts); return store; } } };
+}
+
+test('blobs opens the store once, by name, with strong consistency', async () => {
+  const { calls, module } = fakeBlobs();
+  const b = blobsBackend('office', async () => module);
+  await b.setText('clients/a.json', 'A');
+  assert.equal(await b.getText('clients/a.json'), 'A');
+  assert.equal(await b.setTextIfNew('locks/a', '1'), true);
+  assert.equal(await b.setTextIfNew('locks/a', '2'), false);
+  assert.deepEqual(await b.list('clients/'), ['clients/a.json']);
+  await b.remove('clients/a.json');
+  assert.equal(await b.getText('clients/a.json'), null);
+  assert.deepEqual(calls, [{ name: 'office', consistency: 'strong' }]);
+});

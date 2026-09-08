@@ -5,7 +5,7 @@ import { store as defaultStore } from './store.mjs';
 import { toInstant } from './dates.mjs';
 import { buildContext } from './context.mjs';
 import { loadTemplates, findTemplate, render } from './templates.mjs';
-import { sendMail, logFailure } from './mail.mjs';
+import { sendMail, logFailure, sendAdminCopy } from './mail.mjs';
 
 const HOUR = 3600e3;
 
@@ -33,20 +33,34 @@ export async function runMeetingReminders({ s = defaultStore(), now = new Date()
     const remindersSent = kind === 'hour'
       ? { day: meeting.remindersSent?.day ?? at, hour: at }
       : { ...meeting.remindersSent, day: at };
-    // Written even when the template is missing below: an hourly cron
+    // The listing is a snapshot; the admin may have deleted or moved the
+    // meeting since. Re-read before writing so the flag lands on the current
+    // document, a deleted meeting stays deleted, and a moved one is left for
+    // the run that finds its new time due.
+    const current = await s.meetings.get(meeting.slug, meeting.id);
+    if (!current || current.ymd !== meeting.ymd || current.time !== meeting.time) continue;
+    // Written even when the template is unusable below: an hourly cron
     // must not reconsider the same meeting every run just because the
     // template it needs isn't there.
-    await s.meetings.put(meeting.slug, meeting.id, { ...meeting, remindersSent });
+    await s.meetings.put(meeting.slug, meeting.id, { ...current, remindersSent });
+    const failure = { slug: meeting.slug, to: client.email, template: 'meeting-reminder', kind: `meeting-reminder-${kind}` };
     if (!template) {
-      await logFailure({ slug: meeting.slug, to: client.email, template: 'meeting-reminder', kind: `meeting-reminder-${kind}`, error: 'template meeting-reminder is missing' }, s, now);
+      await logFailure({ ...failure, error: 'template meeting-reminder is missing' }, s, now);
       sent += 1;
       continue;
     }
     const context = buildContext({ client, admin: null, secret: process.env.KEEPSITE_TOKEN_SECRET ?? '', meeting, now });
-    const { subject, text, html } = render(template, context, {});
+    const { subject, text, html, unresolved } = render(template, context, {});
+    // Nobody reviews an automated send, so a literal {{name}} would reach
+    // the client; the missing placeholder is logged for the admin instead.
+    if (unresolved.length) {
+      await logFailure({ ...failure, error: `template meeting-reminder has unfilled placeholders: ${unresolved.join(', ')}` }, s, now);
+      sent += 1;
+      continue;
+    }
     const base = { slug: meeting.slug, subject, text, html, template: 'meeting-reminder', kind: `meeting-reminder-${kind}` };
     await sendMail({ ...base, to: client.email }, s, fetchFn, now);
-    if (process.env.KEEPSITE_NOTIFY_TO) await sendMail({ ...base, to: process.env.KEEPSITE_NOTIFY_TO }, s, fetchFn, new Date(now.getTime() + 1000));
+    await sendAdminCopy(base, s, fetchFn, new Date(now.getTime() + 1000));
     sent += 1;
   }
   return { considered: due.length, sent };

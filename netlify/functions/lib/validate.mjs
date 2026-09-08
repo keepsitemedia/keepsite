@@ -5,6 +5,12 @@
 const TRANSPORT = new Set(['bot-field', 'form', 'formVersion', 'c', 't']);
 const MULTI = new Set(['checkboxes', 'openChecklist']);
 const OWN = '__own';
+// A demo's section id, as the build-time scan in
+// src/pages/questionnaire/brand.astro finds them. The server cannot see that
+// list at runtime, so the shape is the check: the value ends up in brand.json
+// and is looked up as an id by the sitemap skill, which fails silently on a
+// string that is not one.
+const DEMO_ID = /^[a-z0-9-]{1,40}$/;
 
 const questionsOf = (definition) =>
   definition.sections.flatMap((s) => s.questions);
@@ -50,7 +56,9 @@ export function validate(definition, entries) {
       if (v && !q.options.includes(v)) errors.push(`${q.key}: "${v}" is not an option`);
       answers[q.key] = v;
     } else if (q.type === 'demoPick') {
-      answers[q.key] = given[0] === 'mix' ? null : (given[0] ?? null);
+      const v = given[0] ?? '';
+      if (v && v !== 'mix' && !DEMO_ID.test(v)) errors.push(`${q.key}: "${v}" is not a demo`);
+      answers[q.key] = v && v !== 'mix' ? v : null;
     } else {
       answers[q.key] = given[0] ?? '';
     }

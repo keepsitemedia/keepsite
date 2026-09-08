@@ -46,3 +46,11 @@ test('pullIntake still writes a normal flat attachment', async () => {
   assert.deepEqual(result.written, ['/work/lova/intake/logo.png']);
   assert.deepEqual([...out['/work/lova/intake/logo.png']], [1, 2]);
 });
+
+test('pullIntake pulls a client upload whose name ends in .json', async () => {
+  const out = {};
+  const source = fake({ 'lova/brand.json': '{"form":"brand"}', 'lova/logo-x.json': new Uint8Array([7]) });
+  const result = await pullIntake({ slug: 'lova', dir: '/work', source, write: async (p, data) => { out[p] = data; } });
+  assert.deepEqual(result.written, ['/work/lova/intake/brand.json', '/work/lova/intake/logo-x.json']);
+  assert.deepEqual([...out['/work/lova/intake/logo-x.json']], [7]);
+});

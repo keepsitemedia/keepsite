@@ -79,3 +79,38 @@ test('the honeypot and transport fields are ignored, not rejected', () => {
   ]);
   assert.deepEqual(errors, []);
 });
+
+// The brand form's demoPick is the one answer that leaves the answers object
+// as an identifier rather than prose: the sitemap skill looks it up against
+// the demo's section ids. Anything that is not a plausible id is refused.
+const demoDef = {
+  formVersion: '2026-09-03',
+  form: 'brand',
+  sections: [{ legend: 'Demo', questions: [{ key: 'pick', label: 'Which?', type: 'demoPick' }] }],
+};
+
+test('a demoPick id passes through unchanged', () => {
+  const { answers, errors } = validate(demoDef, [['pick', 'field-and-bloom']]);
+  assert.deepEqual(errors, []);
+  assert.equal(answers.pick, 'field-and-bloom');
+});
+
+test('a demoPick of "mix" becomes null', () => {
+  const { answers, errors } = validate(demoDef, [['pick', 'mix']]);
+  assert.deepEqual(errors, []);
+  assert.equal(answers.pick, null);
+});
+
+test('an absent demoPick becomes null', () => {
+  const { answers, errors } = validate(demoDef, []);
+  assert.deepEqual(errors, []);
+  assert.equal(answers.pick, null);
+});
+
+test('a demoPick that is not an id is rejected', () => {
+  for (const bad of ['<script>alert(1)</script>', 'Demo 1', 'UPPER', 'a'.repeat(41), '../x']) {
+    const { errors } = validate(demoDef, [['pick', bad]]);
+    assert.equal(errors.length, 1, bad);
+    assert.match(errors[0], /^pick:/);
+  }
+});

@@ -12,19 +12,18 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
 const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Search' };
-const admin = { email: 'me@keepsitemedia.com' };
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
   await s.clients.put('lova', client);
   return s;
 };
-const mailer = () => { const sent = []; return { sent, fetchFn: async (u, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); } }; };
+const mailer = () => { const sent = []; return { sent, fetchFn: async (_url, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); } }; };
 test.before(() => { process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@keepsitemedia.com'; delete process.env.URL; });
 test.after(() => { delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO; });
 
 async function sentAgreement(s) {
-  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
-  return sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, admin, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
+  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search'))}, s, NOW);
+  return sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
 }
 
 test('defaultFields prefill Schedule 1 from the client and the tier', () => {
@@ -45,7 +44,7 @@ test('defaultFields prefill Schedule 1 from the client and the tier', () => {
 
 test('createAgreement stores a draft with both signers named', async () => {
   const s = await make();
-  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search'))}, s, NOW);
   assert.equal(a.status, 'draft');
   assert.equal(a.template, 'search');
   assert.equal(a.templateName, 'Search Package');
@@ -53,7 +52,7 @@ test('createAgreement stores a draft with both signers named', async () => {
   assert.equal(a.signers.client.email, 's@example.com');
   assert.equal(a.signers.keepsite.name, 'Sierra Nichols');
   assert.equal((await s.agreements.get('lova', a.id)).id, a.id);
-  await assert.rejects(() => createAgreement({ client, templateId: 'nope', fields: {}, admin }, s, NOW), /unknown template/);
+  await assert.rejects(() => createAgreement({ client, templateId: 'nope', fields: {}}, s, NOW), /unknown template/);
 });
 
 test('sendAgreement stores the admin signature, signs and sends', async () => {
@@ -65,7 +64,7 @@ test('sendAgreement stores the admin signature, signs and sends', async () => {
   assert.deepEqual([...(await s.documents.get('lova', a.signers.keepsite.signatureKey))], [...PNG]);
   assert.equal(a.signers.client.expiresAt, new Date(later(1).getTime() + 14 * 86400e3).toISOString());
   assert.equal(latestSent(await s.agreements.list('lova')).id, a.id);
-  await assert.rejects(() => sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: 'data:image/png;base64,AAAA', admin }, s, NOW), /signature/);
+  await assert.rejects(() => sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: 'data:image/png;base64,AAAA'}, s, NOW), /signature/);
 });
 
 test('findByToken and viewAgreement mark the client as having viewed', async () => {
@@ -162,11 +161,11 @@ test('signatureViews has a data URL for a signer who has signed, not one who has
 
 test('only the client signs or declines through the token path', async () => {
   const s = await make();
-  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search'))}, s, NOW);
   const { fetchFn } = mailer();
   const draftAttempt = await signAgreement({ token: draft.signers.keepsite.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, NOW);
   assert.match(draftAttempt.error, /not valid/);
-  const sent = await sendAgreement({ slug: 'lova', id: draft.id, signatureDataUrl: DATA_URL, admin, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
+  const sent = await sendAgreement({ slug: 'lova', id: draft.id, signatureDataUrl: DATA_URL, ip: '1.1.1.1', userAgent: 'UA' }, s, later(1));
   const sentAttempt = await signAgreement({ token: sent.signers.keepsite.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, s, fetchFn, later(2));
   assert.match(sentAttempt.error, /not valid/);
   const declineAttempt = await declineAgreement({ token: sent.signers.keepsite.token, reason: 'no' }, s, fetchFn, later(2));
@@ -175,7 +174,7 @@ test('only the client signs or declines through the token path', async () => {
 
 test('viewAgreement refuses a draft, storing nothing', async () => {
   const s = await make();
-  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin }, s, NOW);
+  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search'))}, s, NOW);
   const v = await viewAgreement({ token: draft.signers.client.token }, s, NOW);
   assert.equal(v.state, 'invalid');
   assert.equal((await s.agreements.get('lova', draft.id)).signers.client.viewedAt, null);
@@ -453,4 +452,82 @@ test('a submit that loses the lock to one still writing stores nothing', async (
   // able to write its own PNG over it.
   const sig = await s.documents.meta('lova', `agreement-${a.id}-client.png`);
   assert.equal(sig.uploadedAt, final.signers.client.signedAt);
+});
+
+test('a second send of a sent agreement throws and leaves the stored signature alone', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const key = a.signers.keepsite.signatureKey;
+  const before = await s.documents.meta('lova', key);
+  await assert.rejects(() => sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, ip: '9.9.9.9' }, s, later(2)), /already signed/);
+  // The same bytes, but a re-store would carry the second send's clock.
+  assert.deepEqual([...(await s.documents.get('lova', key))], [...PNG]);
+  assert.deepEqual(await s.documents.meta('lova', key), before);
+  assert.equal(before.uploadedAt, later(1).toISOString());
+  assert.equal((await s.agreements.get('lova', a.id)).signers.keepsite.signedAt, a.signers.keepsite.signedAt);
+});
+
+test('sendAgreement indexes the tokens before the record goes out as sent', async () => {
+  const s = await make();
+  const draft = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')) }, s, NOW);
+  // The emailed link resolves through the index; a record that reads `sent`
+  // while its tokens are still unindexed is a link that resolves to nothing.
+  const failing = { ...s, agreements: { ...s.agreements, async put() { throw new Error('put failed'); } } };
+  await assert.rejects(() => sendAgreement({ slug: 'lova', id: draft.id, signatureDataUrl: DATA_URL }, failing, later(1)), /put failed/);
+  assert.equal((await s.agreements.get('lova', draft.id)).status, 'draft');
+  assert.deepEqual(await s.tokens.get(draft.signers.client.token), { slug: 'lova', id: draft.id, party: 'client' });
+});
+
+test('a void that lands before the lock is not overwritten by the sign', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  // The office voids between the submit's read and its lock: the window a
+  // record built from the first read would write straight over.
+  const racing = {
+    ...s,
+    locks: {
+      async acquire(name) {
+        await voidAgreement({ slug: 'lova', id: a.id, note: 'wrong address' }, s, later(2));
+        return s.locks.acquire(name);
+      },
+    },
+  };
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, racing, fetchFn, later(3));
+  assert.equal(r.ok, false);
+  assert.match(r.error, /voided/);
+  const stored = await s.agreements.get('lova', a.id);
+  assert.equal(stored.status, 'voided');
+  assert.equal(stored.signers.client.status, 'pending');
+  assert.deepEqual(stored.audit.map((e) => e.event), ['created', 'signed', 'sent', 'voided']);
+  assert.equal(await s.documents.meta('lova', `agreement-${a.id}-client.png`), null);
+  assert.equal(sent.length, 0);
+});
+
+test('a seal that fails after the signature landed still thanks the client and logs the failure', async () => {
+  const s = await make();
+  const a = await sentAgreement(s);
+  const { sent, fetchFn } = mailer();
+  const broken = {
+    ...s,
+    documents: {
+      ...s.documents,
+      async put(slug, name, ...rest) {
+        if (name.endsWith('.pdf')) throw new Error('blob store down');
+        return s.documents.put(slug, name, ...rest);
+      },
+    },
+  };
+  const r = await signAgreement({ token: a.signers.client.token, signatureDataUrl: DATA_URL, consentTerms: true, consentEsign: true }, broken, fetchFn, later(3));
+  assert.equal(r.ok, true);
+  assert.equal(r.agreement.status, 'completed');
+  assert.equal(r.agreement.documentKey, null);
+  assert.equal(sent.length, 0);
+  const logged = (await s.emails.list('lova')).filter((e) => e.kind === 'seal');
+  assert.equal(logged.length, 1);
+  assert.equal(logged[0].status, 'failed');
+  assert.match(logged[0].error, /blob store down/);
+  // The office gets out of it with "Seal again".
+  const sealed = await sealAgreement(r.agreement, s, fetchFn, later(4));
+  assert.equal(sealed.documentKey, `agreement-${a.id}.pdf`);
 });

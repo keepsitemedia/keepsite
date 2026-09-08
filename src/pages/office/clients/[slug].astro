@@ -72,6 +72,11 @@ const forms = tab === 'questionnaires'
     }))
   : [];
 const files = (tab === 'questionnaires' ? await s.questionnaires.files(slug) : []) as string[];
+// The brand questionnaire builds its "pick a direction" options from
+// public/demo/{slug} (src/pages/questionnaire/brand.astro); without that
+// directory the client can only choose "A mix of several". Globbed at build
+// time because this page runs in a function, where public/ is not on disk.
+const demoSlugs = new Set(Object.keys(import.meta.glob('/public/demo/*/index.html')).map((p) => p.split('/').at(-2)));
 const sent = Astro.url.searchParams.get('sent');
 const emails = tab === 'emails' ? ((await s.emails.list(slug)) as EmailDoc[]).reverse() : [];
 const documents = tab === 'documents' ? ((await listDocuments(slug, s)) as DocumentRow[]) : [];
@@ -162,7 +167,7 @@ const tabs = [
 
       <h2>History</h2>
       <ul>
-        {client.stages.map((h) => <li>{formatYmd(h.at.slice(0, 10))} · {stages.find((st: StageRow) => st.id === h.stage)?.name ?? h.stage}</li>)}
+        {client.stages.map((h) => <li>{formatYmd(todayIn(undefined, new Date(h.at)))} · {stages.find((st: StageRow) => st.id === h.stage)?.name ?? h.stage}</li>)}
       </ul>
     </>
   )}
@@ -209,7 +214,12 @@ const tabs = [
               <details><summary>Answers</summary><QuestionnaireAnswers definition={f.definition} submission={f.submission} /></details>
             </>
           ) : (
-            f.link && <p>Link: <code>{f.link}</code></p>
+            f.link && (
+              <p>
+                Link: <code>{f.link}</code>
+                {f.form === 'brand' && !demoSlugs.has(slug) && <span class="muted"> No demo at public/demo/{slug}, so the form will offer only "A mix of several".</span>}
+              </p>
+            )
           )}
         </section>
       ))}

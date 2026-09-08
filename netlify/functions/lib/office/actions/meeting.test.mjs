@@ -29,7 +29,7 @@ const add = { csrf, op: 'add', slug: 'lova', title: 'Kickoff', date: '2026-09-08
 test('add stores the meeting and emails the client and the admin with a calendar file', async () => {
   const s = await make();
   const sent = [];
-  const fetchFn = async (u, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
+  const fetchFn = async (_, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
   const res = await meeting(post(add), ctx(), s, fetchFn, NOW);
   assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=meetings');
   const [m] = await s.meetings.list('lova');
@@ -62,7 +62,7 @@ test('add validates its fields and refuses an unknown client', async () => {
 test('reschedule moves the meeting, resets reminders and re-confirms; delete removes it', async () => {
   const s = await make();
   const sent = [];
-  const fetchFn = async (u, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
+  const fetchFn = async (_, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
   await meeting(post(add), ctx(), s, fetchFn, NOW);
   const [{ id }] = await s.meetings.list('lova');
   await s.meetings.put('lova', id, { ...(await s.meetings.get('lova', id)), remindersSent: { day: '2026-09-07T20:00:00.000Z', hour: null } });
@@ -104,4 +104,36 @@ test('a missing meeting-confirmation template logs a failure instead of vanishin
   const [log] = await s.emails.list('lova');
   assert.equal(log.status, 'failed');
   assert.equal(log.error, 'template meeting-confirmation is missing');
+});
+
+test('a confirmation template with an unknown placeholder logs a failure instead of sending {{name}}', async () => {
+  const s = await make();
+  await s.settings.put('templates', [{ id: 'meeting-confirmation', name: 'C', subject: 'Confirmed', body: 'Hi {{client.firstName}}, see {{ghost}}' }]);
+  const none = async () => { throw new Error('must not send'); };
+  const res = await meeting(post(add), ctx(), s, none, NOW);
+  assert.equal(res.status, 303);
+  assert.equal((await s.meetings.list('lova')).length, 1);
+  const [log] = await s.emails.list('lova');
+  assert.equal(log.status, 'failed');
+  assert.equal(log.kind, 'meeting-confirmation');
+  assert.match(log.error, /ghost/);
+});
+
+test('without KEEPSITE_NOTIFY_TO the admin copy is logged as failed, not skipped', async () => {
+  const s = await make();
+  const prior = process.env.KEEPSITE_NOTIFY_TO;
+  delete process.env.KEEPSITE_NOTIFY_TO;
+  try {
+    const sent = [];
+    const fetchFn = async (_, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
+    await meeting(post(add), ctx(), s, fetchFn, NOW);
+    assert.equal(sent.length, 1);
+    const emails = await s.emails.list('lova');
+    assert.equal(emails.length, 2);
+    const copy = emails.find((e) => e.status === 'failed');
+    assert.equal(copy.kind, 'meeting-confirmation');
+    assert.match(copy.error, /KEEPSITE_NOTIFY_TO/);
+  } finally {
+    process.env.KEEPSITE_NOTIFY_TO = prior;
+  }
 });

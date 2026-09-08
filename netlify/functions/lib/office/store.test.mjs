@@ -156,3 +156,50 @@ test('questionnaire files are readable by name', async () => {
   assert.equal(await s.questionnaires.file('lova', 'none.png'), null);
   await assert.rejects(() => s.questionnaires.file('lova', '../acme/logo.png'), /bad document name/);
 });
+
+test('a client or task that will not parse is dropped from listings, not thrown', async () => {
+  const office = memoryBackend();
+  const s = createStore({ office, questionnaires: memoryBackend() });
+  await s.clients.put('lova', { slug: 'lova' });
+  await office.setText('clients/broken.json', '{bad');
+  await s.tasks.put('lova', newId(), { title: 't' });
+  await office.setText('tasks/lova/broken.json', '');
+  assert.deepEqual((await s.clients.list()).map((c) => c.slug), ['lova']);
+  assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['t']);
+  assert.deepEqual((await s.tasks.listAll()).map((t) => t.title), ['t']);
+  // The backend being down is not a bad document; that still surfaces.
+  office.getText = async () => { throw new Error('backend down'); };
+  await assert.rejects(() => s.clients.list(), /backend down/);
+});
+
+test('a sidecar that will not parse reads as null through meta too', async () => {
+  const office = memoryBackend();
+  const s = createStore({ office, questionnaires: memoryBackend() });
+  await office.setText('documents/lova/broken.pdf.meta.json', '{bad');
+  assert.equal(await s.documents.meta('lova', 'broken.pdf'), null);
+  await assert.rejects(() => s.documents.meta('lova', '../x'), /bad document name/);
+});
+
+test('questionnaire files hide the three form envelopes and nothing else', async () => {
+  const q = memoryBackend();
+  for (const k of ['lova/intro.json', 'lova/brand.json', 'lova/build.json', 'lova/logo-x.json', 'lova/brand.json.png', 'lova/guide.pdf']) {
+    await q.setText(k, 'x');
+  }
+  const s = createStore({ office: memoryBackend(), questionnaires: q });
+  assert.deepEqual(await s.questionnaires.files('lova'), ['lova/brand.json.png', 'lova/guide.pdf', 'lova/logo-x.json']);
+});
+
+test('putIfNew writes a client once', async () => {
+  const s = make();
+  assert.equal(await s.clients.putIfNew('lova', { slug: 'lova', business: 'Lova' }), true);
+  assert.equal(await s.clients.putIfNew('lova', { slug: 'lova', business: 'Other' }), false);
+  assert.equal((await s.clients.get('lova')).business, 'Lova');
+  await assert.rejects(() => s.clients.putIfNew('Bad Slug', {}), /bad slug/);
+});
+
+test('a lock name can carry a slug, a stage id and a timestamp', async () => {
+  const s = make();
+  const name = `stage-${'a'.repeat(64)}-${'b'.repeat(32)}-20260904160000000`;
+  assert.equal(await s.locks.acquire(name), true);
+  assert.equal(await s.locks.acquire(name), false);
+});

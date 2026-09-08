@@ -37,6 +37,18 @@ test('create picks a free slug when the business name is taken', async () => {
   assert.equal(res.headers.get('Location'), '/office/clients/lova-2/');
 });
 
+test('two creates in flight together make one client and one task set', async () => {
+  const s = make();
+  const [a, b] = await Promise.all([
+    action(post({ op: 'create', csrf, ...good }), ctx(), s),
+    action(post({ op: 'create', csrf, ...good }), ctx(), s),
+  ]);
+  assert.equal(a.headers.get('Location'), '/office/clients/lova/');
+  assert.equal(b.headers.get('Location'), '/office/clients/lova/');
+  assert.deepEqual((await s.clients.list()).map((c) => c.slug), ['lova']);
+  assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Reply with recommendation']);
+});
+
 test('create refuses a bad csrf token, a bad pipeline, and bad fields', async () => {
   const s = make();
   assert.equal((await action(post({ op: 'create', csrf: 'x', ...good }), ctx(), s)).status, 403);

@@ -107,3 +107,12 @@ test('decline, expire and void', () => {
   assert.equal(markVoided(completed, NOW, 'the seal never landed').status, 'voided');
   assert.throws(() => markVoided({ ...completed, documentKey: `agreement-${completed.id}.pdf` }, NOW, 'x'), InvalidTransition);
 });
+
+test('a closed agreement cannot be voided again', () => {
+  const sent = markSent(markSigned(base(), 'keepsite', NOW, evidence), NOW);
+  const voided = markVoided(sent, later(1), 'first');
+  assert.throws(() => markVoided(voided, later(2), 'second'), /cannot void an agreement that is voided/);
+  assert.throws(() => markVoided(markDeclined(sent, 'client', later(1), {}), later(2)), /declined/);
+  assert.throws(() => markVoided(markExpired(sent, later(24 * 15)), later(24 * 16)), /expired/);
+  assert.equal(markVoided(base(), NOW).status, 'voided');
+});

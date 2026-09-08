@@ -5,22 +5,29 @@ import { isYmd, isHhmm, toInstant } from '../dates.mjs';
 import { buildContext } from '../context.mjs';
 import { loadTemplates, findTemplate, render } from '../templates.mjs';
 import { buildIcs } from '../ics.mjs';
-import { sendMail, logFailure } from '../mail.mjs';
+import { sendMail, logFailure, sendAdminCopy } from '../mail.mjs';
+import { slugify } from '../clients.mjs';
 
 const LINK = /^https?:\/\/\S+$/;
-const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meeting';
 
 // Both parties get the same mail with the same calendar file, so neither can
 // hold a different time (or miss a cancellation). Sends are best-effort: the
 // meeting document is already written, and the Emails tab shows a failure.
 async function sendMeetingMail({ templateId, method, client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {
   const template = findTemplate(await loadTemplates(s), templateId);
+  const failure = { slug: client.slug, to: client.email, template: templateId, kind: templateId };
   if (!template) {
-    await logFailure({ slug: client.slug, to: client.email, template: templateId, kind: templateId, error: `template ${templateId} is missing` }, s, now);
+    await logFailure({ ...failure, error: `template ${templateId} is missing` }, s, now);
     return;
   }
   const context = buildContext({ client, admin, secret: process.env.KEEPSITE_TOKEN_SECRET ?? '', meeting, now });
-  const { subject, text, html } = render(template, context, {});
+  const { subject, text, html, unresolved } = render(template, context, {});
+  // Nobody reviews an automated send, so a literal {{name}} would reach the
+  // client; the missing placeholder is logged for the admin instead.
+  if (unresolved.length) {
+    await logFailure({ ...failure, error: `template ${templateId} has unfilled placeholders: ${unresolved.join(', ')}` }, s, now);
+    return;
+  }
   // A cancellation bumps SEQUENCE past whatever the client's calendar last
   // saw, which is what tells it to replace the event with STATUS:CANCELLED
   // rather than ignore a stale-looking update.
@@ -41,7 +48,7 @@ async function sendMeetingMail({ templateId, method, client, meeting, admin, s, 
   const attachments = [{ filename: `${slugify(meeting.title)}.ics`, content: Buffer.from(ics).toString('base64') }];
   const base = { slug: client.slug, subject, text, html, attachments, template: templateId, kind: templateId };
   await sendMail({ ...base, to: client.email }, s, fetchFn, now);
-  if (process.env.KEEPSITE_NOTIFY_TO) await sendMail({ ...base, to: process.env.KEEPSITE_NOTIFY_TO }, s, fetchFn, new Date(now.getTime() + 1000));
+  await sendAdminCopy(base, s, fetchFn, new Date(now.getTime() + 1000));
 }
 
 export async function confirmMeeting({ client, meeting, admin, s, fetchFn = fetch, now = new Date() }) {

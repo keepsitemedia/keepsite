@@ -2,7 +2,29 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderAgreement, sha256, toPdfText, signaturePng } from './pdf.mjs';
 import { findAgreementTemplate, fillBlocks } from './agreement-templates.mjs';
+import { deflateSync, crc32 } from 'node:zlib';
 import { PNG, DATA_URL, pngDeclaring } from './fixtures.mjs';
+
+// A real PNG of the given size (8-bit grayscale, all black), as a pad would
+// produce; the fixture's rewritten header is not enough once the bitmap has
+// to match it.
+function realPng(width, height) {
+  const chunk = (type, body) => {
+    const head = Buffer.concat([Buffer.from(type, 'ascii'), body]);
+    const out = Buffer.alloc(12 + body.length);
+    out.writeUInt32BE(body.length, 0);
+    head.copy(out, 4);
+    out.writeUInt32BE(crc32(head) >>> 0, 8 + body.length);
+    return out;
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0); ihdr.writeUInt32BE(height, 4); ihdr[8] = 8;
+  const bytes = Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk('IHDR', ihdr), chunk('IDAT', deflateSync(Buffer.alloc((width + 1) * height))), chunk('IEND', Buffer.alloc(0)),
+  ]);
+  return `data:image/png;base64,${bytes.toString('base64')}`;
+}
 
 const fields = {
   legalName: 'Lova Content Creation LLC', entityType: 'LLC', address: '1 Main St, Lehi, Utah 84043', signerName: 'Sierra Lee', signerTitle: 'Owner',
@@ -34,7 +56,8 @@ test('signaturePng refuses a small file that declares a huge bitmap', () => {
   assert.equal(signaturePng(pngDeclaring(7000, 7000)), null);
   assert.equal(signaturePng(pngDeclaring(2001, 100)), null);
   assert.equal(signaturePng(pngDeclaring(100, 801)), null);
-  assert.notEqual(signaturePng(pngDeclaring(600, 200)), null);
+  assert.notEqual(signaturePng(realPng(600, 200)), null);
+  assert.notEqual(signaturePng(realPng(2000, 800)), null);
   assert.notEqual(signaturePng(DATA_URL), null);
 });
 
@@ -82,4 +105,27 @@ test('renders of the same blocks are byte-identical', async () => {
 test('an unknown block kind renders as a paragraph instead of throwing', async () => {
   const bytes = await renderAgreement({ blocks: [{ type: 'title', text: 'Doc' }, { type: 'list', text: 'x' }] });
   assert.equal(Buffer.from(bytes.subarray(0, 5)).toString(), '%PDF-');
+});
+
+// The fixture's chunks: signature (8), IHDR (25), IDAT (12 + 13), IEND (12).
+const IDAT_BODY = 8 + 25 + 8;
+const withIdat = (body) => {
+  const bytes = Buffer.from(PNG);
+  bytes.set(body, IDAT_BODY);
+  return `data:image/png;base64,${bytes.toString('base64')}`;
+};
+
+// Framing and dimensions alone let a body embedPng cannot decode through,
+// and it fails at seal time, after the record already reads completed.
+test('signaturePng rejects an IDAT that does not inflate to the bitmap it declares', () => {
+  assert.equal(signaturePng(withIdat(Buffer.alloc(13, 0x41))), null);
+  // A well-formed zlib stream that is not the bitmap the header promises.
+  assert.equal(signaturePng(withIdat(Buffer.from([0x78, 0x9c, 0x00, 0xff, 0xff, 0x00, 0x00, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41]))), null);
+  // The chunk table must close on IEND with lengths that add up.
+  const bytes = Buffer.from(PNG);
+  bytes.writeUInt32BE(200, IDAT_BODY - 8);
+  assert.equal(signaturePng(`data:image/png;base64,${bytes.toString('base64')}`), null);
+  // A header that promises more bitmap than the IDAT holds.
+  assert.equal(signaturePng(pngDeclaring(600, 200)), null);
+  assert.notEqual(signaturePng(DATA_URL), null);
 });

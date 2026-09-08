@@ -31,7 +31,10 @@ export function encodeForm(params) {
 
 export const stripeConfigured = () => Boolean(process.env.STRIPE_SECRET_KEY);
 
-export async function stripeRequest(method, path, params = {}, fetchFn = fetch) {
+// `idempotencyKey` makes a POST safe to repeat: Stripe answers a replay
+// with the first result instead of a second object, so a lost response or
+// a double-submitted form cannot bill twice. Stripe keeps a key 24 hours.
+export async function stripeRequest(method, path, params = {}, fetchFn = fetch, { idempotencyKey } = {}) {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error('STRIPE_SECRET_KEY is not set');
   const encoded = encodeForm(params);
@@ -43,6 +46,7 @@ export async function stripeRequest(method, path, params = {}, fetchFn = fetch) 
   if (method !== 'GET') {
     init.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     init.body = encoded;
+    if (idempotencyKey) init.headers['Idempotency-Key'] = idempotencyKey;
   }
   const res = await fetchFn(url, init);
   const body = await res.json().catch(() => null);

@@ -41,3 +41,15 @@ test('the charset is restricted and the length is capped', () => {
   assert.ok(safeName('x'.repeat(500)).length <= 80);
   assert.match(fileKey('lova', 'brandGuide', 'a b\nc.pdf'), /^lova\/brandGuide-[A-Za-z0-9._-]+$/);
 });
+
+// The extension is what the office derives a content type from, so it
+// survives a stem that collapses or one that is cut to length.
+test('the extension survives a stem that empties or is cut', () => {
+  assert.equal(safeName('日本語.pdf'), 'upload.pdf');
+  assert.equal(safeName('日本語 report.pdf'), 'report.pdf');
+  const long = safeName(`${'x'.repeat(500)}.docx`);
+  assert.equal(long.length, 80);
+  assert.ok(long.endsWith('.docx'), long);
+  assert.equal(safeName('.bashrc'), 'bashrc');
+  assert.equal(safeName('archive.tar.gz'), 'archive.tar.gz');
+});

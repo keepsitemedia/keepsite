@@ -287,3 +287,78 @@ test('unknown events, unknown clients and unknown sessions are reported, not thr
   assert.equal((await applyEvent(evt('evt_9', 'invoice.paid', { id: 'in_9', customer: 'cus_ghost', amount_paid: 1 }), s, NOW)).change, 'no client for customer cus_ghost');
   assert.equal((await applyEvent(evt('evt_10', 'checkout.session.completed', { id: 'cs_ghost', customer: 'cus_1', payment_status: 'paid', metadata: { slug: 'lova' } }), s, NOW)).change, 'no payment for session cs_ghost');
 });
+
+test('a payment_failed redelivered after invoice.paid leaves the document paid', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
+  await applyEvent(evt('evt_p1', 'invoice.paid', { id: 'in_1', customer: 'cus_1', subscription: 'sub_1', amount_paid: 15000 }), s, NOW);
+  const { calls, fetchFn } = stripe([{ id: 'pi_1', last_payment_error: { message: 'Your card was declined.' } }]);
+  const r = await applyEvent(evt('evt_p2', 'invoice.payment_failed', { id: 'in_1', customer: 'cus_1', subscription: 'sub_1', amount_due: 15000, payment_intent: 'pi_1' }), s, NOW, fetchFn);
+  assert.equal(r.handled, true);
+  const [m] = await s.payments.list('lova');
+  assert.equal(m.status, 'paid');
+  assert.equal(m.failureReason, null);
+  assert.equal(calls.length, 0);
+});
+
+test('two concurrent deliveries of a new invoice event create one document', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
+  const event = () => evt('evt_race', 'invoice.paid', { id: 'in_race', customer: 'cus_1', subscription: 'sub_1', amount_paid: 15000 });
+  const results = await Promise.all([applyEvent(event(), s, NOW), applyEvent(event(), s, NOW)]);
+  assert.ok(results.every((r) => r.handled));
+  const docs = await s.payments.list('lova');
+  assert.equal(docs.length, 1);
+  assert.equal(docs[0].status, 'paid');
+  // A later redelivery finds the document and is a plain duplicate.
+  assert.equal((await applyEvent(event(), s, NOW)).change, 'duplicate event');
+  assert.equal((await s.payments.list('lova')).length, 1);
+});
+
+test('ensureCustomer sends one Idempotency-Key per client so concurrent posts share a customer', async () => {
+  const s = await make();
+  const { calls, fetchFn } = stripe([{ id: 'cus_1' }, { id: 'cus_1' }]);
+  const client = await s.clients.get('lova');
+  const ids = await Promise.all([ensureCustomer(client, s, fetchFn, NOW), ensureCustomer(client, s, fetchFn, NOW)]);
+  assert.deepEqual(ids, ['cus_1', 'cus_1']);
+  assert.equal(calls[0].init.headers['Idempotency-Key'], 'lova:customer');
+  assert.equal(calls[1].init.headers['Idempotency-Key'], 'lova:customer');
+  assert.equal((await s.clients.get('lova')).stripeCustomerId, 'cus_1');
+});
+
+test('createCheckout keys the session on the document it is about to write', async () => {
+  const s = await make();
+  const { calls, fetchFn } = stripe([{ id: 'cus_1' }, { id: 'cs_1', url: 'https://checkout.stripe.com/c/cs_1' }]);
+  const p = await createCheckout({ client: await s.clients.get('lova'), kind: 'deposit', amount: 87500, description: 'Deposit' }, s, fetchFn, NOW);
+  assert.equal(calls[1].init.headers['Idempotency-Key'], `lova:deposit:${p.id}`);
+});
+
+test('a retried startSubscription after a lost response reuses the same Idempotency-Key', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
+  const pm = { data: [{ id: 'pm_bank', type: 'us_bank_account', created: 10 }] };
+  // First attempt: Stripe creates the subscription but the answer never arrives.
+  const first = stripe([pm, { id: 'prod_1' }]);
+  const lost = async (url, init) => {
+    if (url.endsWith('/subscriptions')) { first.calls.push({ url, init }); throw new Error('socket hang up'); }
+    return first.fetchFn(url, init);
+  };
+  await assert.rejects(async () => startSubscription({ client: await s.clients.get('lova'), amount: 15000, description: 'Search monthly', startYmd: '2026-10-01' }, s, lost, NOW), /socket hang up/);
+  assert.equal((await s.payments.list('lova')).length, 0);
+  const second = stripe([pm, { id: 'prod_1' }, { id: 'sub_1', status: 'active' }]);
+  await startSubscription({ client: await s.clients.get('lova'), amount: 15000, description: 'Search monthly', startYmd: '2026-10-01' }, s, second.fetchFn, NOW);
+  const key = (calls, path) => calls.find((c) => c.url.endsWith(path)).init.headers['Idempotency-Key'];
+  assert.equal(key(first.calls, '/subscriptions'), 'lova:subscription:2026-10-01:15000');
+  assert.equal(key(second.calls, '/subscriptions'), 'lova:subscription:2026-10-01:15000');
+  assert.equal(key(first.calls, '/products'), key(second.calls, '/products'));
+  assert.equal(second.calls.find((c) => c.url.includes('/payment_methods?')).init.headers['Idempotency-Key'], undefined);
+  assert.equal((await s.payments.list('lova')).length, 1);
+});
+
+test('startSubscription with no start day keys on today', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
+  const { calls, fetchFn } = stripe([{ data: [{ id: 'pm_bank', type: 'us_bank_account', created: 10 }] }, { id: 'prod_1' }, { id: 'sub_1' }]);
+  await startSubscription({ client: await s.clients.get('lova'), amount: 5500, description: 'Presence monthly' }, s, fetchFn, NOW);
+  assert.equal(calls[2].init.headers['Idempotency-Key'], 'lova:subscription:2026-09-08:5500');
+});

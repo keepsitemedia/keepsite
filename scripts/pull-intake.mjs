@@ -1,23 +1,25 @@
 // Pulls a client's intake (questionnaire answers and attachments) from the
 // questionnaires Blobs store into {dir}/{slug}/intake/.
 //
-//   NETLIFY_SITE_ID=... NETLIFY_AUTH_TOKEN=... node scripts/pull-intake.mjs lova-content-creation [dir]
+//   NETLIFY_SITE_ID=... NETLIFY_AUTH_TOKEN=... node scripts/pull-intake.mjs lova-content-creation [dir] [--force]
 //
 // dir defaults to the directory above this repo, which is where the build
-// skills expect {slug}/intake/ to live.
+// skills expect {slug}/intake/ to live. A file already there is left alone
+// unless --force is passed: the intake is edited by hand after the pull.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getStore } from '@netlify/blobs';
 import { pullIntake, SLUG } from '../netlify/functions/lib/intake.mjs';
 
-const slug = process.argv[2];
-const dir = process.argv[3] ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const force = process.argv.includes('--force');
+const [slug, dirArg] = process.argv.slice(2).filter((arg) => arg !== '--force');
+const dir = dirArg ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const siteID = process.env.NETLIFY_SITE_ID;
 const token = process.env.NETLIFY_AUTH_TOKEN;
 
 if (!slug || !siteID || !token) {
-  console.error('usage: NETLIFY_SITE_ID=... NETLIFY_AUTH_TOKEN=... node scripts/pull-intake.mjs <slug> [dir]');
+  console.error('usage: NETLIFY_SITE_ID=... NETLIFY_AUTH_TOKEN=... node scripts/pull-intake.mjs <slug> [dir] [--force]');
   process.exit(1);
 }
 
@@ -35,11 +37,17 @@ try {
     async getBytes(key) { const b = await blobs.get(key, { type: 'arrayBuffer' }); return b ? new Uint8Array(b) : null; },
     async list(prefix) { return (await blobs.list({ prefix })).blobs.map((b) => b.key).sort(); },
   };
-  const write = async (p, data) => { await fs.mkdir(path.dirname(p), { recursive: true }); await fs.writeFile(p, data); };
+  const skipped = new Set();
+  const exists = (p) => fs.access(p).then(() => true, () => false);
+  const write = async (p, data) => {
+    if (!force && (await exists(p))) { skipped.add(p); return; }
+    await fs.mkdir(path.dirname(p), { recursive: true });
+    await fs.writeFile(p, data);
+  };
 
   console.log(`writing into ${path.join(dir, slug, 'intake')}`);
   const { written, missing } = await pullIntake({ slug, dir, source, write });
-  for (const p of written) console.log(`wrote ${p}`);
+  for (const p of written) console.log(skipped.has(p) ? `skipped ${p} (exists; pass --force to overwrite)` : `wrote ${p}`);
   for (const form of missing) console.log(`no ${form}.json submitted yet`);
 } catch (err) {
   // A bare stack trace is noise for an unattended pull; one line is enough

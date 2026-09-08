@@ -14,15 +14,15 @@ const post = (path, fields, headers = {}) => {
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
   return new Request(`https://site.test${path}`, { method: 'POST', body: d, headers });
 };
-const mailer = () => { const sent = []; return { sent, fetchFn: async (u, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); } }; };
+const mailer = () => { const sent = []; return { sent, fetchFn: async (_url, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); } }; };
 test.before(() => { process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@x'; });
 test.after(() => { delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO; });
 
 async function ready() {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
   await s.clients.put('lova', client);
-  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')), admin: { email: 'me@x' } }, s, NOW);
-  const sent = await sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL, admin: { email: 'me@x' } }, s, NOW);
+  const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search')) }, s, NOW);
+  const sent = await sendAgreement({ slug: 'lova', id: a.id, signatureDataUrl: DATA_URL }, s, NOW);
   return { s, a: sent, t: sent.signers.client.token };
 }
 

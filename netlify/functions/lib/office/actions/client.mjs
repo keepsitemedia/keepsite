@@ -31,7 +31,12 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     // newClient already records the first stage; advance() would record it
     // twice, so create the first stage's tasks from a client with no history.
     const { client: created, tasks } = advance({ client: { ...base, stages: [] }, pipeline, stageId: first.id, today, now });
-    await s.clients.put(slug, created);
+    // Two creates in flight together (a double-clicked Save) read the same
+    // taken set and settle on the same slug; the second must not replace the
+    // first client or add a second set of its tasks. A second click that
+    // arrives after the first finished still gets "-2": nothing tells it
+    // apart from a new client that shares a business name.
+    if (!(await s.clients.putIfNew(slug, created))) return redirect(`/office/clients/${slug}/`);
     for (const t of tasks) await s.tasks.put(slug, t.id, t);
     return redirect(`/office/clients/${slug}/`);
   }

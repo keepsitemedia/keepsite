@@ -78,6 +78,12 @@ const titles: Record<string, string> = { sign: `Sign: ${a.templateName}`, signed
           <h1>{a.templateName}</h1>
           <p class="lead">Read the agreement below, then sign at the bottom. <a href={`/sign/document?t=${encodeURIComponent(t)}`}>Download as PDF</a>.</p>
           {error && <p class="error">{error}</p>}
+          <noscript>
+            {/* The pad draws on a canvas and the submit button stays disabled
+                until the script enables it, so without JavaScript the page
+                reads fine but cannot be signed. */}
+            <p class="noscript-note">Signing needs JavaScript switched on: the signature is drawn on this page and sent with the form. Please turn it on, or write to <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+          </noscript>
           <div class="scrollbox" id="agreement-text"><AgreementBody blocks={blocks} signatures={signatures} /></div>
           <p class="field-hint">Scroll to the end of the agreement to enable signing.</p>
           <form method="POST" action="/sign/api/submit">
@@ -105,5 +111,8 @@ const titles: Record<string, string> = { sign: `Sign: ${a.templateName}`, signed
       )}
     </div></main>
     <script src="../../scripts/signature-pad.js"></script>
+    <style>
+      .noscript-note { margin-bottom: var(--space-4); padding: var(--space-3); border: 1.5px solid var(--color-brand); border-radius: var(--radius); }
+    </style>
   </body>
 </html>

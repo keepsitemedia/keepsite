@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import seed from '../../../../src/data/office/templates.json' with { type: 'json' };
-import { validateTemplates, loadTemplates, findTemplate, fill, render, toHtml, toSafeHtml, placeholdersIn, KNOWN_PLACEHOLDERS } from './templates.mjs';
+import { validateTemplates, loadTemplates, findTemplate, fill, render, toHtml, toSafeHtml, escapeValues, placeholdersIn, KNOWN_PLACEHOLDERS } from './templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 
@@ -148,4 +148,22 @@ test('a URL-shaped value that fails the strict autolink pattern is not linked', 
   const evil = { ...ctx, client: { ...ctx.client, business: 'https://evil.test/x)' } };
   const r = render(t, evil, {});
   assert.ok(!r.html.includes('href="https://evil.test'));
+});
+
+test('a value with newlines cannot open a Markdown block in the HTML email', () => {
+  const t = findTemplate(seed, 'agreement');
+  const listy = { ...ctx, client: { ...ctx.client, business: 'Lova\n\n- item one\n- item two' } };
+  const r = render(t, listy, {});
+  assert.ok(!r.html.includes('<ul>'));
+  assert.ok(!r.html.includes('<li>'));
+  assert.ok(r.html.includes('Lova - item one - item two'));
+  // The plain-text copy keeps the value as given; only the HTML source folds it.
+  assert.ok(r.text.includes('Lova\n\n- item one'));
+});
+
+test('escapeValues neutralizes Markdown in the given values and nothing else', () => {
+  const body = 'Hi **there**, welcome [click me](javascript:alert(1)) from Lova';
+  const out = escapeValues(body, ['[click me](javascript:alert(1))', 'Lova', 'https://x/sign/1', '']);
+  assert.equal(out, 'Hi **there**, welcome \\[click me\\]\\(javascript:alert\\(1\\)\\) from Lova');
+  assert.ok(!toSafeHtml(out).includes('href="javascript:'));
 });

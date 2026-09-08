@@ -26,10 +26,19 @@ test('validatePipelines names what is wrong', () => {
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'deposit' }] }] }]).join(), /^$/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'refund' }] }] }]).join(), /payment must be "deposit" or "balance"/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, agreement: 'signed' }] }] }]).join(), /agreement/);
-  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: 'deposit-balance-monthly' }, stages: [] }]).join(), /^$/);
-  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: {}, stages: [] }]).join(), /payments\.plan is required/);
-  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: '' }, stages: [] }]).join(), /payments\.plan is required/);
-  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: 'deposit', stages: [] }]).join(), /payments\.plan is required/);
+  const one = [{ id: 's', name: 'S', tasks: [] }];
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: 'deposit-balance-monthly' }, stages: one }]).join(), /^$/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: {}, stages: one }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: '' }, stages: one }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: 'deposit', stages: one }]).join(), /payments\.plan is required/);
+});
+
+// Every new client starts at pipelines[0].stages[0]; a saved setting with
+// nothing there would fail at the next inquiry instead of at save time.
+test('validatePipelines requires a pipeline and a stage in each', () => {
+  assert.deepEqual(validatePipelines([]), ['at least one pipeline is required']);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [] }]).join(), /pipeline 1: at least one stage is required/);
+  assert.deepEqual(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [] }] }]), []);
 });
 
 test('loadPipelines falls back to the seed and prefers the stored copy', async () => {

@@ -61,3 +61,12 @@ export async function logFailure({ slug, to, template = null, kind = 'manual', e
   await s.emails.put(slug, id, entry);
   return { ok: false, id, error };
 }
+
+// The admin's copy of an automated send. With no address configured it is
+// logged as failed rather than skipped, so the Emails tab says why nothing
+// arrived instead of showing a clean run that never reached anyone.
+export async function sendAdminCopy(message, s = defaultStore(), fetchFn = fetch, now = new Date()) {
+  const to = process.env.KEEPSITE_NOTIFY_TO;
+  if (to) return sendMail({ ...message, to }, s, fetchFn, now);
+  return logFailure({ ...message, to: [], error: 'KEEPSITE_NOTIFY_TO is not set' }, s, now);
+}

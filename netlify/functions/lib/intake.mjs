@@ -19,7 +19,9 @@ export async function pullIntake({ slug, dir, source, write }) {
     written.push(into(`${form}.json`));
   }
   for (const key of await source.list(`${slug}/`)) {
-    if (key.endsWith('.json')) continue;
+    // Only the three form records are skipped, by exact name: an upload the
+    // client happened to name x.json is stored as logo-x.json and is theirs.
+    if (FORMS.some((form) => key === `${slug}/${form}.json`)) continue;
     const bytes = await source.getBytes(key);
     if (!bytes) continue;
     // The store's keys are trusted today, but this script writes to disk

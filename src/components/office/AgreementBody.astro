@@ -12,9 +12,14 @@ const when = (iso: string) => new Intl.DateTimeFormat('en-US', { timeZone: TZ, d
     if (b.type === 'h1') return <h2 class="exhibit">{b.text}</h2>;
     if (b.type === 'h2') return <h2>{b.text}</h2>;
     if (b.type === 'h3') return <h3>{b.text}</h3>;
-    if (b.type === 'table') return (
-      <table>{b.rows.map((r: string[], i: number) => <tr>{r.map((c) => (i === 0 ? <th>{c}</th> : <td>{c}</td>))}</tr>)}</table>
-    );
+    if (b.type === 'table') {
+      // A row that repeats the header's first cell is a header again: Exhibit
+      // B restarts its numbering under "Included once per Term".
+      const head = b.rows[0]?.[0];
+      return (
+        <table>{b.rows.map((r: string[], i: number) => <tr>{r.map((c) => (i === 0 || r[0] === head ? <th>{c}</th> : <td>{c}</td>))}</tr>)}</table>
+      );
+    }
     if (b.type === 'signatures') return (
       <div class="signatures">
         {b.intro && <p>{b.intro}</p>}

@@ -14,10 +14,10 @@ export function tierPrices(tierName) {
   return tier ? { build: parseMoney(tier.buildPrice), monthly: parseMoney(tier.monthlyPrice) } : null;
 }
 
-export function newPayment({ slug, kind, amount, description = '', status = 'pending', stripe = {}, url = null }, now = new Date()) {
+export function newPayment({ id, slug, kind, amount, description = '', status = 'pending', stripe = {}, url = null }, now = new Date()) {
   const at = now.toISOString();
   return {
-    id: newId(now), slug, kind, amount, currency: 'usd', status, description,
+    id: id ?? newId(now), slug, kind, amount, currency: 'usd', status, description,
     stripe: {
       customerId: stripe.customerId ?? null,
       checkoutSessionId: stripe.checkoutSessionId ?? null,
@@ -31,9 +31,12 @@ export function newPayment({ slug, kind, amount, description = '', status = 'pen
 
 export async function ensureCustomer(client, s, fetchFn = fetch, now = new Date()) {
   if (client.stripeCustomerId) return client.stripeCustomerId;
+  // Two posts racing past the check above both reach Stripe; the shared key
+  // hands both the same customer. A store lock would do the same job but
+  // has no release, so one failed Stripe call would wedge the client for good.
   const customer = await stripeRequest('POST', '/customers', {
     email: client.email, name: client.name, description: client.business, metadata: { slug: client.slug },
-  }, fetchFn);
+  }, fetchFn, { idempotencyKey: `${client.slug}:customer` });
   await s.clients.put(client.slug, { ...client, stripeCustomerId: customer.id, updatedAt: now.toISOString() });
   return customer.id;
 }
@@ -41,6 +44,9 @@ export async function ensureCustomer(client, s, fetchFn = fetch, now = new Date(
 export async function createCheckout({ client, kind, amount, description }, s, fetchFn = fetch, now = new Date()) {
   const customerId = await ensureCustomer(client, s, fetchFn, now);
   const site = siteUrl();
+  // The id is minted before the call so a retried request replays the same
+  // session; two deliberate clicks are two documents, each with its own link.
+  const id = newId(now);
   const session = await stripeRequest('POST', '/checkout/sessions', {
     mode: 'payment',
     customer: customerId,
@@ -51,9 +57,9 @@ export async function createCheckout({ client, kind, amount, description }, s, f
     metadata: { slug: client.slug, kind },
     success_url: `${site}/pay/thanks/`,
     cancel_url: `${site}/pay/cancelled/`,
-  }, fetchFn);
+  }, fetchFn, { idempotencyKey: `${client.slug}:${kind}:${id}` });
   const doc = newPayment({
-    slug: client.slug, kind, amount, description,
+    id, slug: client.slug, kind, amount, description,
     stripe: { customerId, checkoutSessionId: session.id, paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : null },
     url: session.url,
   }, now);
@@ -79,7 +85,12 @@ export async function startSubscription({ client, amount, description, startYmd 
   if (existing) throw new Error(`a monthly subscription is already active (${existing.stripe.subscriptionId}); cancel it in Stripe first`);
   const pm = await savedPaymentMethod(client.stripeCustomerId, fetchFn);
   if (!pm) throw new Error('no saved payment method on the Stripe customer; the deposit or balance must be paid first');
-  const product = await stripeRequest('POST', '/products', { name: description, metadata: { slug: client.slug } }, fetchFn);
+  // The local check above cannot see a subscription whose response was lost
+  // before the document was written. The same anchor day and amount is the
+  // same subscription, so a retry replays it instead of starting a second.
+  const anchorYmd = startYmd ?? todayIn(undefined, now);
+  const key = (what) => `${client.slug}:${what}:${anchorYmd}:${amount}`;
+  const product = await stripeRequest('POST', '/products', { name: description, metadata: { slug: client.slug } }, fetchFn, { idempotencyKey: key('product') });
   const params = {
     customer: client.stripeCustomerId,
     default_payment_method: pm,
@@ -92,7 +103,7 @@ export async function startSubscription({ client, amount, description, startYmd 
     params.billing_cycle_anchor = Math.floor(toInstant(startYmd, '09:00').getTime() / 1000);
     params.proration_behavior = 'none';
   }
-  const sub = await stripeRequest('POST', '/subscriptions', params, fetchFn);
+  const sub = await stripeRequest('POST', '/subscriptions', params, fetchFn, { idempotencyKey: key('subscription') });
   const doc = newPayment({
     slug: client.slug, kind: 'subscription', amount, description, status: 'active',
     stripe: { customerId: client.stripeCustomerId, subscriptionId: sub.id },
@@ -174,10 +185,19 @@ export async function applyEvent(event, s, now = new Date(), fetchFn = fetch) {
     // the Stripe account does not silently orphan new monthly documents.
     const subscriptionId = object.subscription ?? object.parent?.subscription_details?.subscription ?? null;
     if (!doc) {
+      // The event-id check above only works once a document exists; two
+      // concurrent deliveries of a first invoice event would each build
+      // their own. Only the delivery that claims the event id may create.
+      if (!(await s.locks.acquire(`event-${event.id}`))) return { handled: true, slug, change: 'duplicate event' };
       doc = newPayment({
         slug, kind: 'monthly', amount: object.amount_paid ?? object.amount_due ?? 0, description: 'Monthly',
         stripe: { customerId: client?.stripeCustomerId ?? object.customer ?? null, invoiceId: object.id, subscriptionId },
       }, now);
+    }
+    // Stripe redelivers out of order: a failure that arrives after the
+    // retry succeeded must not take a paid month back to failed.
+    if (type === 'invoice.payment_failed' && doc.status === 'paid') {
+      return { handled: true, slug, change: 'monthly already paid' };
     }
     if (type === 'invoice.paid') {
       await save(doc, { status: 'paid', paidAt: at, failureReason: null, amount: object.amount_paid ?? doc.amount });

@@ -82,7 +82,7 @@
           "type": "choice",
           "options": [
             "Fill out an inquiry form", "Book an appointment", "Request a quote", "Call",
-            "Email", "Purchase Something", "Visit your location", "Join your email list",
+            "Email", "Purchase something", "Visit your location", "Join your email list",
             "Follow you on social media", "Other"
           ]
         },
@@ -92,7 +92,7 @@
           "type": "choice",
           "options": [
             "Fill out an inquiry form", "Book an appointment", "Request a quote", "Call",
-            "Email", "Purchase Something", "Visit your location", "Join your email list",
+            "Email", "Purchase something", "Visit your location", "Join your email list",
             "Follow you on social media", "Other"
           ]
         },
@@ -110,7 +110,7 @@
             "Home", "About", "Services", "Individual service pages", "Portfolio/Gallery",
             "Projects/Case Studies", "Testimonials/Reviews", "Pricing",
             "Frequently Asked Questions", "Process/How it works", "Blog/Resources",
-            "Contact", "Booking", "Shop", "Events", "Team", "Locations/Areas Served",
+            "Contact", "Booking", "Shop", "Events", "Team", "Locations/areas served",
             "Press/Features", "Other"
           ]
         },
@@ -133,8 +133,8 @@
           "options": [
             "Intro/quick overview", "Main services", "About/meet the owner",
             "Featured work or portfolio", "Testimonials", "How it works/process",
-            "Pricing starting point", "Frequently Asked Questions", "Locations/area served",
-            "Featured Products", "Upcoming events", "Blog/resources",
+            "Pricing starting point", "Frequently Asked Questions", "Locations/areas served",
+            "Featured products", "Upcoming events", "Blog/resources",
             "Instagram/social content", "Newsletter signup", "Strong contact/booking section",
             "Other"
           ]

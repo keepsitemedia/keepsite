@@ -8,7 +8,7 @@ import { store } from './lib/office/store.mjs';
 
 // Netlify calls this as (request, context); the injectable store and fetch
 // come after, so a test can supply them without touching Netlify's own args.
-export default async (request, context, s = store(), fetchFn = fetch) => {
+export default async (request, _context, s = store(), fetchFn = fetch) => {
   if (request.method !== 'POST') return new Response('POST only', { status: 405 });
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const raw = await request.text();

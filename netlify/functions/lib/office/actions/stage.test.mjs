@@ -41,6 +41,30 @@ test('a stage without an email, or re-setting the same stage, lands on the clien
   assert.equal(again.headers.get('Location'), '/office/clients/lova/');
 });
 
+test('a double-clicked Advance creates the stage tasks once and lands both on the stage email', async () => {
+  const s = await seeded();
+  const [a, b] = await Promise.all([
+    stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s),
+    stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s),
+  ]);
+  assert.equal(a.headers.get('Location'), '/office/send/lova/agreement/');
+  assert.equal(b.headers.get('Location'), '/office/send/lova/agreement/');
+  assert.equal((await s.clients.get('lova')).stage, 'agreement');
+  assert.equal((await s.clients.get('lova')).stages.length, 2);
+  const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();
+  assert.deepEqual(titles, ['Client signs agreement', 'Deposit received', 'Reply with recommendation', 'Send agreement']);
+});
+
+test('a first entry whose lock is already held writes nothing and still redirects', async () => {
+  const s = await seeded();
+  const created = (await s.clients.get('lova')).createdAt.replace(/\D/g, '');
+  assert.equal(await s.locks.acquire(`stage-lova-demo-${created}`), true);
+  const res = await stage(post({ csrf, slug: 'lova', stage: 'demo' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/');
+  assert.equal((await s.clients.get('lova')).stage, 'inquiry');
+  assert.equal((await s.tasks.list('lova')).length, 1);
+});
+
 test('unknown client or stage is refused, bad csrf is 403', async () => {
   const s = await seeded();
   assert.equal((await stage(post({ csrf, slug: 'ghost', stage: 'demo' }), ctx(), s)).status, 404);
@@ -53,7 +77,7 @@ test('entering Agreement creates the Stripe customer when Stripe is configured, 
   try {
     const s = await seeded();
     const calls = [];
-    const fetchFn = async (url, init) => { calls.push(url); return new Response('{"id":"cus_1"}'); };
+    const fetchFn = async (url) => { calls.push(url); return new Response('{"id":"cus_1"}'); };
     await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s, new Date('2026-09-04T16:00:00Z'), fetchFn);
     assert.equal(calls[0], 'https://api.stripe.com/v1/customers');
     assert.equal((await s.clients.get('lova')).stripeCustomerId, 'cus_1');

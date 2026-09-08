@@ -21,6 +21,11 @@
   form.querySelector('input[name="t"]').value = token;
   form.dataset.slug = slug;
 
+  // A link that lost its ?t= (a forwarded copy, a URL retyped by hand) renders
+  // the form normally and is only refused at submit. Say so up front.
+  var note = form.querySelector('[data-missing-code]');
+  if (note && !token) note.hidden = false;
+
   // The brand page ships every published demo as JSON (one static page
   // serving any client) so the placeholder radios are swapped here for the
   // four directions belonging to the client named by ?c=.

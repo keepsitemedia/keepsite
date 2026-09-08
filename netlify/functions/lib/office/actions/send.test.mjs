@@ -24,7 +24,7 @@ const ok = async () => new Response('{"id":"re_1"}');
 test('a filled email is sent to the client and logged', async () => {
   const s = await make();
   let sent;
-  const fetchFn = async (u, i) => { sent = JSON.parse(i.body); return ok(); };
+  const fetchFn = async (_, i) => { sent = JSON.parse(i.body); return ok(); };
   const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 'Ten minutes', body: 'Hi Sierra\n\nhttps://x' }), ctx(), s, fetchFn);
   assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=emails&sent=1');
   assert.deepEqual(sent.to, ['s@example.com']);
@@ -37,7 +37,7 @@ test('a filled email is sent to the client and logged', async () => {
 test('an unfilled optional field is stripped rather than refused', async () => {
   const s = await make();
   let sent;
-  const fetchFn = async (u, i) => { sent = JSON.parse(i.body); return ok(); };
+  const fetchFn = async (_, i) => { sent = JSON.parse(i.body); return ok(); };
   const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 'x', body: 'Hi\n\n{{note}}\n\nBye' }), ctx(), s, fetchFn);
   assert.equal(res.status, 303);
   assert.equal(sent.text, 'Hi\n\nBye');
@@ -69,4 +69,21 @@ test('a failed send lands on the emails tab with the reason', async () => {
   const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 's', body: 'b' }), ctx(), s, bad);
   assert.match(decodeURIComponent(res.headers.get('Location')), /tab=emails&error=domain not verified/);
   assert.equal((await s.emails.list('lova'))[0].status, 'failed');
+});
+
+test('a client value with Markdown in it is inert in the HTML body but untouched in the text', async () => {
+  const s = await make();
+  const evil = '[click me](javascript:alert(1))';
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: evil, email: 's@example.com' });
+  let sent;
+  const fetchFn = async (_, i) => { sent = JSON.parse(i.body); return ok(); };
+  // The admin's own Markdown around the value must keep working.
+  const body = `Hi Sierra\r\n\r\nHere is the agreement for ${evil}.\r\n\r\n**Sign here:** https://x/sign/1`;
+  const res = await send(post({ csrf, slug: 'lova', template: 'agreement', subject: 'x', body }), ctx(), s, fetchFn);
+  assert.equal(res.status, 303);
+  assert.ok(!sent.html.includes('href="javascript:'));
+  assert.ok(sent.html.includes('[click me](javascript:alert(1))'));
+  assert.match(sent.html, /<strong>Sign here:<\/strong>/);
+  assert.ok(sent.text.includes(`for ${evil}.`));
+  assert.ok(!sent.text.includes('\\['));
 });

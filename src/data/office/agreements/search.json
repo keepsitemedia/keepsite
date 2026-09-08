@@ -1,7 +1,7 @@
 {
  "id": "search",
  "name": "Search Package",
- "version": "2026-09-04",
+ "version": "72e28e010e29",
  "defaults": {
   "buildFee": "$1,750",
   "monthlyFee": "$150",
@@ -500,7 +500,7 @@
   },
   {
    "type": "p",
-   "text": "Before Stage One, we research the terms your customers actually search for, and we use that to shape your site's structure and page map. The page map that comes out of this sets what we build in Stage Two."
+   "text": "Alongside Stage One, we research the terms your customers actually search for, and we use that to shape your site's structure and page map. The page map that comes out of this sets what we build in Stage Two."
   },
   {
    "type": "h3",
@@ -1056,7 +1056,7 @@
    "parties": [
     {
      "party": "keepsite",
-     "label": "EAGLE MOUNTAIN HOUSE LLC, dba KEEPSITE MEDIA",
+     "label": "KEEPSITE MEDIA",
      "name": "Sierra Nichols",
      "title": "Member and Manager",
      "email": "keepsitemedia@gmail.com"
@@ -1389,7 +1389,7 @@
   },
   {
    "type": "p",
-   "text": "(d) Limits. Each discount is one-time, personal to Client, non-transferable, and has no cash value. Discounts do not apply to add-on services under Exhibit C, to third-party costs under Section 2.7, or to any renewal term, and do not combine with any other offer unless stated in subsection (a) or (b). An offered discount expires if this Agreement is not signed by ______________________.",
+   "text": "(d) Limits. Each discount is one-time, personal to Client, non-transferable, and has no cash value. Discounts do not apply to add-on services under Exhibit C, to third-party costs under Section 2.7, or to any renewal term, and do not combine with any other offer unless stated in subsection (a) or (b). An offered discount expires if this Agreement is not signed by the date stated in the offer.",
    "section": "discount"
   },
   {

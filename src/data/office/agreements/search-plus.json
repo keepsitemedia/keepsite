@@ -1,7 +1,7 @@
 {
  "id": "search-plus",
  "name": "Search Plus Package",
- "version": "2026-09-04",
+ "version": "b74f79c4322c",
  "defaults": {
   "buildFee": "$2,000",
   "monthlyFee": "$275",
@@ -500,7 +500,7 @@
   },
   {
    "type": "p",
-   "text": "Before anything else, we look at who you're competing with in search, what they rank for, and where the openings are."
+   "text": "Alongside Stage One, we look at who you're competing with in search, what they rank for, and where the openings are."
   },
   {
    "type": "h3",
@@ -912,7 +912,7 @@
   },
   {
    "type": "p",
-   "text": "We may show your website, screenshots of it, and a description of the work in our portfolio, case studies, and marketing, and put a small credit line and link in your site's footer. Ask in writing and we'll take the footer credit off. Initial here to keep it out of our portfolio too: ______ (leave it blank and we'll take that as a yes)"
+   "text": "We may show your website, screenshots of it, and a description of the work in our portfolio, case studies, and marketing, and put a small credit line and link in your site's footer. Ask in writing and we'll take the footer credit off, or keep the site out of our portfolio altogether."
   },
   {
    "type": "h3",
@@ -1124,7 +1124,7 @@
    "parties": [
     {
      "party": "keepsite",
-     "label": "EAGLE MOUNTAIN HOUSE LLC, dba KEEPSITE MEDIA",
+     "label": "KEEPSITE MEDIA",
      "name": "Sierra Nichols",
      "title": "Member and Manager",
      "email": "keepsitemedia@gmail.com"
@@ -1482,7 +1482,7 @@
   },
   {
    "type": "p",
-   "text": "(d) Limits. Each discount is one-time, personal to Client, non-transferable, and has no cash value. Discounts do not apply to add-on services under Exhibit C, to third-party costs under Section 2.7, or to any renewal term, and do not combine with any other offer unless stated in subsection (a) or (b). An offered discount expires if this Agreement is not signed by ______________________.",
+   "text": "(d) Limits. Each discount is one-time, personal to Client, non-transferable, and has no cash value. Discounts do not apply to add-on services under Exhibit C, to third-party costs under Section 2.7, or to any renewal term, and do not combine with any other offer unless stated in subsection (a) or (b). An offered discount expires if this Agreement is not signed by the date stated in the offer.",
    "section": "discount"
   },
   {

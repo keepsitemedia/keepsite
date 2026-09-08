@@ -5,10 +5,10 @@
 // handler; lib/ is safe because it has no entry file matching its own name.
 //
 // The happy path (valid token, successful submission) calls into Blobs and is
-// not covered here — see task-10-report.md for how it was checked instead.
+// not covered here; it is checked by hand against a deploy preview.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../questionnaire.mjs';
+import handler, { notify } from '../questionnaire.mjs';
 import { mint } from './token.mjs';
 
 const SECRET = 'test-secret';
@@ -119,4 +119,56 @@ test('a body that is not a form submission returns 400, not 500', async () => {
     }),
   );
   assert.equal(res.status, 400);
+});
+
+// Resend answers a rejected send (an unverified from-domain is a 422) with a
+// 2xx-free response, not a thrown error, so a notify that never reads the
+// response leaves no trace in the function log. The blob is still written
+// either way; the log line is how anyone finds out the email did not go.
+async function withResend(fn) {
+  const prior = { key: process.env.RESEND_API_KEY, error: console.error };
+  process.env.RESEND_API_KEY = 're_test';
+  const logged = [];
+  console.error = (...args) => logged.push(args);
+  try {
+    return await fn(logged);
+  } finally {
+    console.error = prior.error;
+    if (prior.key === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = prior.key;
+  }
+}
+
+const envelope = { slug: SLUG, form: 'intro', formVersion: '2026-09-03', answers: {}, files: [] };
+
+test('notify logs the status and body when Resend refuses the send', async () => {
+  await withResend(async (logged) => {
+    const fetch = async () => new Response('{"message":"domain not verified"}', { status: 422 });
+    await notify(envelope, fetch);
+    assert.equal(logged.length, 1);
+    const line = logged[0].join(' ');
+    assert.match(line, /422/);
+    assert.match(line, /domain not verified/);
+    assert.match(line, new RegExp(`${SLUG}.*intro|intro.*${SLUG}`));
+  });
+});
+
+test('notify logs nothing when Resend accepts the send', async () => {
+  await withResend(async (logged) => {
+    const fetch = async () => new Response('{"id":"x"}', { status: 200 });
+    await notify(envelope, fetch);
+    assert.deepEqual(logged, []);
+  });
+});
+
+test('notify does nothing without a Resend key', async () => {
+  const prior = process.env.RESEND_API_KEY;
+  delete process.env.RESEND_API_KEY;
+  try {
+    let called = false;
+    await notify(envelope, async () => { called = true; });
+    assert.equal(called, false);
+  } finally {
+    if (prior !== undefined) process.env.RESEND_API_KEY = prior;
+  }
 });

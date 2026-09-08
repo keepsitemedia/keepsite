@@ -2,7 +2,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { loadTemplates, findTemplate, render, toSafeHtml } from '../../../../../netlify/functions/lib/office/templates.mjs';
+import { loadTemplates, findTemplate, render } from '../../../../../netlify/functions/lib/office/templates.mjs';
 import { buildContext } from '../../../../../netlify/functions/lib/office/context.mjs';
 import { latestSent } from '../../../../../netlify/functions/lib/office/agreements.mjs';
 
@@ -70,7 +70,7 @@ const csrf = Astro.locals.csrf;
     </div>
     <div>
       <h2>Preview</h2>
-      <div class="preview" set:html={toSafeHtml(rendered.text)} />
+      <div class="preview" set:html={rendered.html} />
       <p class="muted">The preview shows the template as loaded; the text on the left is what will be sent.</p>
     </div>
   </form>

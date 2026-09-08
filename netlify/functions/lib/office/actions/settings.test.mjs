@@ -30,6 +30,10 @@ test('invalid JSON and invalid pipelines go back with the reason', async () => {
   assert.match(decodeURIComponent(res.headers.get('Location')), /error=.*JSON/);
   res = await settings(post({ csrf, name: 'pipelines', value: '[{"id":"BAD","name":"x","stages":[]}]' }), ctx(), s);
   assert.match(decodeURIComponent(res.headers.get('Location')), /error=.*id must be/);
+  res = await settings(post({ csrf, name: 'pipelines', value: '[]' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /error=at least one pipeline/);
+  res = await settings(post({ csrf, name: 'pipelines', value: '[{"id":"photo","name":"Photo","stages":[]}]' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /error=.*at least one stage/);
   assert.equal(await s.settings.get('pipelines'), null);
 });
 

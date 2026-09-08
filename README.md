@@ -167,6 +167,8 @@ add email, meetings, payments and e-signed agreements.
 Netlify Identity users with the `admin` role. Netlify → Identity → invite
 the address, then open the user and add `admin` under Roles. Nothing else
 grants access; a logged-in Identity user without the role is refused.
+Identity itself is enabled, and registration set to invite-only, in steps 1
+and 3 of [Enabling the CMS](#enabling-the-cms-admin).
 
 ### Environment variables
 
@@ -251,12 +253,23 @@ listening to `checkout.session.completed`,
 `checkout.session.async_payment_failed`, `checkout.session.expired`,
 `invoice.paid`, `invoice.payment_failed` and
 `customer.subscription.deleted`, and put its signing secret in
-`STRIPE_WEBHOOK_SECRET`. A paid deposit or balance closes the matching
-task; nothing advances a stage on its own. Failed payments show on the
-dashboard and in the digest; a bank payment shows as pending until
-Stripe confirms it, usually within four business days. A Checkout link
-expires 24 hours after it is created; an expired link shows on the
-Payments tab so the admin can create a new one.
+`STRIPE_WEBHOOK_SECRET`. Set the endpoint's API version to the
+`Stripe-Version` pinned in `netlify/functions/lib/office/stripe.mjs`
+so events arrive in the shape the code reads. A paid deposit or balance
+closes the matching task; nothing advances a stage on its own. Failed
+payments show on the dashboard and in the digest; a bank payment shows
+as pending until Stripe confirms it, usually within four business
+days. A Checkout link expires 24 hours after it is created; an expired
+link shows on the Payments tab so the admin can create a new one.
+
+Test and live mode are separate Stripe accounts as far as webhooks go:
+each has its own endpoint and its own signing secret. Going live means
+registering the endpoint a second time in live mode and rotating both
+`STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` together. Before that,
+delete the test client's payment documents (Payments tab, or the store
+under `payments/<slug>/`) so test-mode links and amounts do not sit in
+the CSV totals. Charging the monthly off-session by ACH needs US bank
+account payments turned on in Stripe → Settings → Payment methods.
 
 Give a bookkeeper a read-only role in Stripe rather than an office login;
 `/office/data/` exports the payment documents as CSV for revenue by

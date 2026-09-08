@@ -62,9 +62,9 @@
       {
         "label": "Stage 2",
         "title": "Function",
-        "see": "A layout for every page the site will have. Image areas are outlined boxes and the text is left blank.",
+        "see": "A layout for every page the site will have. Image areas are outlined boxes and the text is lorem ipsum, the standard placeholder.",
         "decide": "Whether the site has every page you need.",
-        "note": "The blank text is on purpose. If we filled it in, you'd read the words instead of looking at the page, and the words aren't written yet.",
+        "note": "The placeholder text is on purpose. If we filled it in with real words, you'd read them instead of looking at the page, and they aren't written yet.",
         "tiers": [
           {
             "name": "Presence",

@@ -4,7 +4,7 @@
 import { store as defaultStore } from './store.mjs';
 import { addDays, formatYmd, formatTime, todayIn, TZ } from './dates.mjs';
 import { dueBucket } from './calendar.mjs';
-import { sendMail, logFailure } from './mail.mjs';
+import { logFailure, sendAdminCopy } from './mail.mjs';
 import { siteUrl } from './context.mjs';
 import { expireAgreements } from './agreements.mjs';
 
@@ -81,7 +81,7 @@ export async function runDigest({ s = defaultStore(), now = new Date(), fetchFn 
     if (t.questionnaire && !t.done && (await s.questionnaires.get(t.slug, t.questionnaire))) submitted.add(`${t.slug}/${t.questionnaire}`);
   }
   const digest = buildDigest({ clients, tasks, meetings, submitted, agreements, payments, today, now });
-  if (digest.empty || !process.env.KEEPSITE_NOTIFY_TO) return { sent: false };
-  await sendMail({ slug: 'office', to: process.env.KEEPSITE_NOTIFY_TO, subject: digest.subject, text: digest.text, kind: 'digest' }, s, fetchFn, now);
-  return { sent: true };
+  if (digest.empty) return { sent: false };
+  const { ok } = await sendAdminCopy({ slug: 'office', subject: digest.subject, text: digest.text, kind: 'digest' }, s, fetchFn, now);
+  return { sent: ok };
 }

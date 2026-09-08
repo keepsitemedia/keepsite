@@ -68,6 +68,16 @@ const demoOptions = [
     </p>
   </noscript>
 
+  {/* Shown by the inline script when the link arrived without its ?t= code:
+      the form stays usable so a saved draft is not lost, but the submission
+      would be a 403, and that is better read now than after forty answers.
+      Same box as the noscript note above, for the same reason. */}
+  <p class="noscript-note" data-missing-code hidden>
+    This link is missing its access code, so your answers cannot be sent from
+    here. Please open the link from your email instead, or write to us at{' '}
+    <a href={`mailto:${site.email}`}>{site.email}</a>.
+  </p>
+
   <p class="hidden-field">
     <label>Don't fill this out: <input name="bot-field" /></label>
   </p>

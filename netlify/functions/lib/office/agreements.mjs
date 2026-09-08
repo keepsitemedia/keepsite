@@ -34,7 +34,7 @@ const keepsiteSigner = (template) => {
   return { name: party.name ?? site.brand, email: party.email ?? site.email };
 };
 
-export async function createAgreement({ client, templateId, fields, admin }, s = defaultStore(), now = new Date()) {
+export async function createAgreement({ client, templateId, fields }, s = defaultStore(), now = new Date()) {
   const template = findAgreementTemplate(templateId);
   if (!template) throw new Error(`unknown template ${templateId}`);
   const a = {
@@ -56,26 +56,28 @@ export async function markAgreementTasks(slug, event, s, now = new Date()) {
   }
 }
 
-async function storeSignature(a, party, dataUrl, s, now) {
-  const png = signaturePng(dataUrl);
-  if (!png) throw new Error('signature must be a small PNG image');
-  const name = signatureName(a, party);
-  await s.documents.put(a.slug, name, png, { type: 'image/png', source: 'sign', agreementId: a.id, party }, now);
-  return name;
-}
+const storeSignature = (a, party, png, s, now) =>
+  s.documents.put(a.slug, signatureName(a, party), png, { type: 'image/png', source: 'sign', agreementId: a.id, party }, now);
 
-export async function sendAgreement({ slug, id, signatureDataUrl, admin, ip, userAgent }, s = defaultStore(), now = new Date()) {
+export async function sendAgreement({ slug, id, signatureDataUrl, ip, userAgent }, s = defaultStore(), now = new Date()) {
   const a = await s.agreements.get(slug, id);
   if (!a) throw new Error('no such agreement');
-  const key = await storeSignature(a, 'keepsite', signatureDataUrl, s, now);
-  const signed = markSigned(a, 'keepsite', now, { ip, userAgent, signatureKey: key });
-  // markSent accepts an admin-signed draft (partiallySigned with the client
-  // still pending); nothing outside the state module touches status.
+  const png = signaturePng(signatureDataUrl);
+  if (!png) throw new Error('signature must be a small PNG image');
+  // The transitions are pure and throw first, so a double-submitted send of
+  // an agreement already out never writes a new PNG over the signature the
+  // client's copy shows. markSent accepts an admin-signed draft
+  // (partiallySigned with the client still pending); nothing outside the
+  // state module touches status.
+  const signed = markSigned(a, 'keepsite', now, { ip, userAgent, signatureKey: signatureName(a, 'keepsite') });
   const sent = markSent(signed, now);
-  await s.agreements.put(slug, id, sent);
+  await storeSignature(a, 'keepsite', png, s, now);
   // The index is how /sign/ finds an agreement: findByToken looks the token
-  // up here and nowhere else, so an unindexed token resolves to nothing.
+  // up here and nowhere else, so an unindexed token resolves to nothing. It
+  // goes in before the record reads `sent`, or a failure between the two
+  // would mail a link that resolves to nothing.
   for (const party of ['keepsite', 'client']) await s.tokens.put(sent.signers[party].token, { slug, id, party });
+  await s.agreements.put(slug, id, sent);
   await markAgreementTasks(slug, 'sent', s, now);
   return sent;
 }
@@ -220,7 +222,8 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
   if (a.signers[party].status === 'signed') return { ok: false, error: 'already signed' };
   if (!consentTerms) return { ok: false, error: 'you must agree to the terms' };
   if (!consentEsign) return { ok: false, error: 'you must agree to sign electronically' };
-  if (!signaturePng(signatureDataUrl)) return { ok: false, error: 'draw your signature before sending' };
+  const png = signaturePng(signatureDataUrl);
+  if (!png) return { ok: false, error: 'draw your signature before sending' };
   // A docx re-generation can move the template between the page load and
   // this post. Finding that out before anything is stored keeps the client
   // out of a completed record nobody can render.
@@ -233,11 +236,12 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
   try {
     // markSigned first: it is pure and throws on a bad transition (a voided
     // or otherwise closed agreement), so a rejected sign never leaves an
-    // orphan PNG behind in documents.
-    const next = markSigned(a, party, now, { ip, userAgent, signatureKey: signatureName(a, party) });
-    // Writing `next` from a stale copy would orphan a PDF that has already
-    // gone out by mail: another submit may have signed, sealed and mailed
-    // this agreement since this call read it.
+    // orphan PNG behind in documents, nor takes the one-shot lock below.
+    const evidence = { ip, userAgent, signatureKey: signatureName(a, party) };
+    markSigned(a, party, now, evidence);
+    // Writing from a stale copy would orphan a PDF that has already gone out
+    // by mail: another submit may have signed, sealed and mailed this
+    // agreement since this call read it.
     const before = await s.agreements.get(a.slug, a.id);
     if (before?.documentKey) return { ok: true, agreement: before };
     // One writer, taken before anything is stored: the lock can be created
@@ -260,7 +264,12 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
       }
       return { ok: true, agreement: held };
     }
-    await storeSignature(a, party, signatureDataUrl, s, now);
+    // The record is signed as it stands now, not as it was read at the top:
+    // a void or decline that landed in between must not be written over,
+    // and its audit entry lost, by a copy that predates it.
+    const current = (await s.agreements.get(a.slug, a.id)) ?? a;
+    const next = markSigned(current, party, now, evidence);
+    await storeSignature(a, party, png, s, now);
     await s.agreements.put(a.slug, a.id, next);
     const fresh = await s.agreements.get(a.slug, a.id);
     if (fresh?.signers[party].signedAt !== now.toISOString()) return { ok: false, error: 'already signed' };
@@ -268,12 +277,16 @@ export async function signAgreement({ token, signatureDataUrl, consentTerms, con
     try {
       return { ok: true, agreement: await sealAgreement(fresh, s, fetchFn, now) };
     } catch (e) {
-      // The signature is recorded either way. A template that moved between
-      // the check above and the seal parks the record completed-unsealed,
-      // which the office can seal again or void; the client sees the
-      // thank-you page rather than a 500.
-      if (e instanceof TemplateGone) return { ok: true, agreement: fresh };
-      throw e;
+      // The signature is recorded either way, so the client sees the
+      // thank-you page rather than a 500, and the record parks
+      // completed-unsealed for the office to seal again or void. A template
+      // that moved between the check above and the seal is the expected way
+      // in; anything else is a failure the office must be told about, and
+      // the Emails tab is where it looks.
+      if (!(e instanceof TemplateGone)) {
+        await logFailure({ slug: a.slug, to: a.signers.client.email, template: null, kind: 'seal', error: `seal failed after signing; seal again from the office: ${e.message}` }, s, now);
+      }
+      return { ok: true, agreement: fresh };
     }
   } catch (e) {
     if (e instanceof InvalidTransition) return { ok: false, error: e.message };

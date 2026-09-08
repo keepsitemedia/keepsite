@@ -2,6 +2,7 @@
 // standard fonts need no font file and no browser, which is what a Netlify
 // function can afford; the trade is WinAnsi text only, hence toPdfText.
 import { createHash } from 'node:crypto';
+import { inflateSync } from 'node:zlib';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { TZ } from './dates.mjs';
 
@@ -21,6 +22,34 @@ export function toPdfText(s) {
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 const PNG_MAGIC = [137, 80, 78, 71, 13, 10, 26, 10];
+const CHANNELS = { __proto__: null, 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
+
+// The byte count the filtered bitmap inflates to: one filter byte per row,
+// and Adam7 interlacing splits the rows across seven passes.
+function bitmapSize(width, height, bitDepth, colorType, interlace) {
+  const channels = CHANNELS[colorType];
+  if (!channels || ![1, 2, 4, 8, 16].includes(bitDepth) || ![0, 1].includes(interlace)) return null;
+  const row = (w) => (w ? Math.ceil((w * channels * bitDepth) / 8) + 1 : 0);
+  if (!interlace) return row(width) * height;
+  const passes = [[0, 0, 8, 8], [4, 0, 8, 8], [0, 4, 4, 8], [2, 0, 4, 4], [0, 2, 2, 4], [1, 0, 2, 2], [0, 1, 1, 2]];
+  return passes.reduce((n, [x, y, dx, dy]) => n + row(Math.ceil(Math.max(0, width - x) / dx)) * Math.ceil(Math.max(0, height - y) / dy), 0);
+}
+
+// The chunk table walked from IHDR to IEND, with the IDAT bodies joined;
+// null for a table whose lengths do not add up to the file.
+function idat(view) {
+  const parts = [];
+  for (let at = 8; at < view.length;) {
+    if (at + 12 > view.length) return null;
+    const length = view.readUInt32BE(at);
+    const type = view.toString('ascii', at + 4, at + 8);
+    if (at + 12 + length > view.length) return null;
+    if (type === 'IDAT') parts.push(view.subarray(at + 8, at + 8 + length));
+    if (type === 'IEND') return at + 12 === view.length ? Buffer.concat(parts) : null;
+    at += 12 + length;
+  }
+  return null;
+}
 
 export function signaturePng(dataUrl) {
   const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl ?? ''));
@@ -39,7 +68,22 @@ export function signaturePng(dataUrl) {
   // A compressed 200 KB file can declare 7000x7000, and pdf-lib decodes the
   // whole bitmap — four times per seal, since the body and the certificate
   // render both signatures. The pad captures well under this.
-  if (view.readUInt32BE(16) > 2000 || view.readUInt32BE(20) > 800) return null;
+  const width = view.readUInt32BE(16);
+  const height = view.readUInt32BE(20);
+  if (width > 2000 || height > 800) return null;
+  // Framing and dimensions still let through an IDAT embedPng cannot decode,
+  // which only surfaces at seal time, after the record reads completed:
+  // every reseal then fails the same way. Inflating here, bounded by the
+  // bitmap the header declares, finds that out while the signer can still
+  // be told to draw again.
+  const expected = bitmapSize(width, height, view[24], view[25], view[28]);
+  const data = idat(view);
+  if (!expected || !data) return null;
+  try {
+    if (inflateSync(data, { maxOutputLength: expected }).length !== expected) return null;
+  } catch {
+    return null;
+  }
   return bytes;
 }
 
@@ -85,8 +129,11 @@ class Writer {
     const cols = Math.max(...rows.map((r) => r.length));
     const widths = cols === 2 ? [CONTENT * 0.38, CONTENT * 0.62] : cols === 3 ? [CONTENT * 0.34, CONTENT * 0.36, CONTENT * 0.30] : Array(cols).fill(CONTENT / cols);
     const size = SIZES.table; const lh = size * LEADING; const pad = 4;
+    // A row that repeats the header's first cell is a header again: Exhibit B
+    // restarts its numbering under "Included once per Term".
+    const head = rows[0][0];
     rows.forEach((row, ri) => {
-      const font = ri === 0 ? this.fonts.bold : this.fonts.body;
+      const font = ri === 0 || row[0] === head ? this.fonts.bold : this.fonts.body;
       const cells = row.map((c, ci) => wrap(font, size, c, widths[ci] - 2 * pad));
       const height = Math.max(...cells.map((c) => c.length)) * lh + 2 * pad;
       this.need(height);

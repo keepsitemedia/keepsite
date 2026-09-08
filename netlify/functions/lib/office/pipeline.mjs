@@ -9,6 +9,10 @@ const KEY = /^[a-z][a-z0-9-]{0,31}$/;
 export function validatePipelines(value) {
   const errors = [];
   if (!Array.isArray(value)) return ['pipelines must be a list'];
+  // Every new client starts at pipelines[0].stages[0], from the inquiry
+  // handler as well as the create form; with nothing there a lead would be
+  // lost at submission time instead of refused here.
+  if (value.length === 0) return ['at least one pipeline is required'];
   const ids = new Set();
   value.forEach((p, i) => {
     const at = `pipeline ${i + 1}`;
@@ -22,6 +26,7 @@ export function validatePipelines(value) {
       errors.push(`${at}: payments.plan is required and must be a non-empty string`);
     }
     if (!Array.isArray(p.stages)) return errors.push(`${at}: stages must be a list`);
+    if (p.stages.length === 0) errors.push(`${at}: at least one stage is required`);
     const stageIds = new Set();
     p.stages.forEach((s, j) => {
       const sat = `${at}, stage ${j + 1}`;

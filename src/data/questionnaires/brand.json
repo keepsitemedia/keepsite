@@ -35,7 +35,7 @@
         {
           "key": "keeps",
           "label": "Are there any specific sections you definitely want to keep as is from any of the demos?",
-          "help": "Please indicate the section and demo. A section can be labeled by the content in it. For example: the very first section from Demo 2, services section Demo 4, and Colors from Demo 3",
+          "help": "Please indicate the section and demo. A section can be labeled by the content in it. For example: the very first section from Demo 2, the services section from Demo 4, and the colors from Demo 3.",
           "type": "paragraph"
         }
       ]

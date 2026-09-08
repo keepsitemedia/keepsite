@@ -82,7 +82,7 @@ export async function agreement(request, ctx, s = defaultStore(), fetchFn = fetc
     if (!findAgreementTemplate(templateId)) return createBack('unknown template');
     const { fields, errors } = fieldsFromForm(data);
     if (errors.length) return createBack(errors.join('; '));
-    const a = await createAgreement({ client, templateId, fields, admin: ctx.admin }, s, now);
+    const a = await createAgreement({ client, templateId, fields }, s, now);
     return redirect(`/office/agreements/${slug}/${a.id}/sign/`);
   }
 
@@ -97,15 +97,15 @@ export async function agreement(request, ctx, s = defaultStore(), fetchFn = fetc
   try {
     if (op === 'send') {
       await sendAgreement({
-        slug, id, signatureDataUrl: String(data.get('signature') ?? ''), admin: ctx.admin,
+        slug, id, signatureDataUrl: String(data.get('signature') ?? ''),
         ip: clientIp(request), userAgent: userAgentOf(request),
       }, s, now);
       return redirect(`/office/send/${slug}/agreement/`);
     }
     if (op === 'reseal') {
       // The seal is the only step that can fail after both parties have
-      // signed, and a completed agreement can no longer be voided; without
-      // this the record has no PDF, no hash and no way back.
+      // signed. Voiding is the other way out of a completed-unsealed record;
+      // this one keeps the signatures both parties already gave.
       if (existing.status !== 'completed' || existing.documentKey) return back('only a completed agreement with no sealed PDF can be sealed again');
       await sealAgreement(existing, s, fetchFn, now);
       return redirect(tab);

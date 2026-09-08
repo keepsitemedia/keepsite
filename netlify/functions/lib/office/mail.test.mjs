@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sendMail, logFailure } from './mail.mjs';
+import { sendMail, logFailure, sendAdminCopy } from './mail.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 
@@ -77,10 +77,33 @@ test('logFailure writes a failed row without calling Resend', async () => {
 test('attachments and an explicit html body pass through', async () => {
   await env({ RESEND_API_KEY: 'k', KEEPSITE_NOTIFY_FROM: 'office@x' }, async () => {
     let sent;
-    const fetchFn = async (url, init) => { sent = JSON.parse(init.body); return new Response('{"id":"x"}'); };
+    const fetchFn = async (_, init) => { sent = JSON.parse(init.body); return new Response('{"id":"x"}'); };
     await sendMail({ slug: 'lova', to: ['a@b', 'c@d'], subject: 's', text: 't', html: '<p>given</p>', attachments: [{ filename: 'm.ics', content: 'QUJD' }] }, make(), fetchFn, NOW);
     assert.equal(sent.html, '<p>given</p>');
     assert.deepEqual(sent.to, ['a@b', 'c@d']);
     assert.equal(sent.attachments[0].filename, 'm.ics');
+  });
+});
+
+test('sendAdminCopy sends to KEEPSITE_NOTIFY_TO, and logs a failure when it is unset', async () => {
+  await env({ RESEND_API_KEY: 'k', KEEPSITE_NOTIFY_FROM: 'office@x', KEEPSITE_NOTIFY_TO: 'me@x' }, async () => {
+    const s = make();
+    let sent;
+    const fetchFn = async (_, init) => { sent = JSON.parse(init.body); return new Response('{"id":"x"}'); };
+    const r = await sendAdminCopy({ slug: 'lova', subject: 's', text: 't', kind: 'digest' }, s, fetchFn, NOW);
+    assert.equal(r.ok, true);
+    assert.deepEqual(sent.to, ['me@x']);
+  });
+  await env({ RESEND_API_KEY: 'k', KEEPSITE_NOTIFY_FROM: 'office@x', KEEPSITE_NOTIFY_TO: undefined }, async () => {
+    const s = make();
+    let called = false;
+    const r = await sendAdminCopy({ slug: 'lova', subject: 's', text: 't', kind: 'digest' }, s, async () => { called = true; }, NOW);
+    assert.equal(called, false);
+    assert.equal(r.ok, false);
+    const [log] = await s.emails.list('lova');
+    assert.equal(log.status, 'failed');
+    assert.equal(log.kind, 'digest');
+    assert.deepEqual(log.to, []);
+    assert.match(log.error, /KEEPSITE_NOTIFY_TO/);
   });
 });

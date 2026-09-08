@@ -27,7 +27,7 @@ test('runMeetingReminders flags then sends to client and admin, and never sends 
     const doc = m();
     await s.meetings.put('lova', doc.id, doc);
     const sent = [];
-    const fetchFn = async (u, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
+    const fetchFn = async (_, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
     // Exactly 24 hours before 20:30Z on the 8th, so formatHours reads "about 24 hours".
     const now = new Date('2026-09-07T20:30:00Z');
     const r = await runMeetingReminders({ s, now, fetchFn });
@@ -81,6 +81,71 @@ test('a meeting whose client is gone is skipped, and a send failure does not thr
     const r = await runMeetingReminders({ s, now: new Date('2026-09-07T20:00:00Z'), fetchFn: boom });
     assert.deepEqual(r, { considered: 2, sent: 1 });
     assert.equal((await s.emails.list('lova'))[0].status, 'failed');
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM;
+  }
+});
+
+test('a meeting deleted after the snapshot is not resurrected, and a moved one waits for its new time', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.clients.put('lova', { slug: 'lova', name: 'S', business: 'Lova', email: 's@example.com' });
+    const gone = m();
+    const moved = m({ id: newId(new Date('2026-09-01T00:00:00Z')) });
+    await s.meetings.put('lova', moved.id, { ...moved, ymd: '2026-09-20' });
+    // The cron's listAll snapshot is older than the store: one meeting was
+    // deleted since, the other rescheduled.
+    s.meetings.listAll = async () => [gone, moved];
+    const none = async () => { throw new Error('must not send'); };
+    const r = await runMeetingReminders({ s, now: new Date('2026-09-07T20:00:00Z'), fetchFn: none });
+    assert.deepEqual(r, { considered: 2, sent: 0 });
+    assert.equal(await s.meetings.get('lova', gone.id), null);
+    assert.equal((await s.meetings.get('lova', moved.id)).remindersSent.day, null);
+    assert.deepEqual(await s.emails.list('lova'), []);
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM;
+  }
+});
+
+test('a template with an unknown placeholder logs a failure instead of sending {{name}} to the client', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.settings.put('templates', [{ id: 'meeting-reminder', name: 'R', subject: 'Reminder', body: 'Hi {{client.firstName}}, see {{ghost}}' }]);
+    await s.clients.put('lova', { slug: 'lova', name: 'S', business: 'Lova', email: 's@example.com' });
+    const doc = m();
+    await s.meetings.put('lova', doc.id, doc);
+    const none = async () => { throw new Error('must not send'); };
+    const now = new Date('2026-09-07T20:30:00Z');
+    const r = await runMeetingReminders({ s, now, fetchFn: none });
+    assert.deepEqual(r, { considered: 1, sent: 1 });
+    assert.equal((await s.meetings.get('lova', doc.id)).remindersSent.day, now.toISOString());
+    const [log] = await s.emails.list('lova');
+    assert.equal(log.status, 'failed');
+    assert.equal(log.kind, 'meeting-reminder-day');
+    assert.match(log.error, /ghost/);
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
+  }
+});
+
+test('without KEEPSITE_NOTIFY_TO the admin copy is logged as failed, not skipped', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.clients.put('lova', { slug: 'lova', name: 'S', business: 'Lova', email: 's@example.com' });
+    const doc = m();
+    await s.meetings.put('lova', doc.id, doc);
+    const sent = [];
+    const fetchFn = async (_, i) => { sent.push(JSON.parse(i.body)); return new Response('{"id":"re"}'); };
+    await runMeetingReminders({ s, now: new Date('2026-09-07T20:30:00Z'), fetchFn });
+    assert.equal(sent.length, 1);
+    const emails = await s.emails.list('lova');
+    assert.equal(emails.length, 2);
+    const copy = emails.find((e) => e.status === 'failed');
+    assert.equal(copy.kind, 'meeting-reminder-day');
+    assert.match(copy.error, /KEEPSITE_NOTIFY_TO/);
   } finally {
     delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM;
   }

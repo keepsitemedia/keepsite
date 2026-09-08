@@ -3,6 +3,7 @@
 // rewrite of this file and no other.
 import { fileBackend, blobsBackend } from './backends.mjs';
 import { ID } from './ids.mjs';
+import { FORMS } from '../intake.mjs';
 
 export const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SETTING = /^[a-z]+$/;
@@ -10,7 +11,7 @@ const FORM = /^[a-z]+$/;
 // Exported so sign.mjs (and any other route that verifies a signing link)
 // imports the token shape from one place instead of redefining the regex.
 export const TOKEN = /^[A-Za-z0-9_-]{43}$/;
-const LOCK = /^[a-z]+-[A-Za-z0-9_-]{1,80}$/;
+const LOCK = /^[a-z]+-[A-Za-z0-9_-]{1,120}$/;
 
 export function assertSlug(slug) {
   if (!SLUG.test(String(slug))) throw new Error(`bad slug: ${slug}`);
@@ -34,13 +35,16 @@ async function readJSON(backend, key) {
   return text == null ? null : JSON.parse(text);
 }
 // A listing reads many keys at once, so one document that will not parse
-// would otherwise take the whole page down with it; callers drop the nulls.
+// would otherwise take the whole page down with it. Only the parse is
+// caught: a backend that cannot be reached is not a bad document.
 async function readJSONOrNull(backend, key) {
-  try { return await readJSON(backend, key); } catch { return null; }
+  const text = await backend.getText(key);
+  try { return text == null ? null : JSON.parse(text); } catch { return null; }
 }
-const writeJSON = (backend, key, doc) => backend.setText(key, JSON.stringify(doc, null, 2));
+const serialize = (doc) => JSON.stringify(doc, null, 2);
+const writeJSON = (backend, key, doc) => backend.setText(key, serialize(doc));
 const readAll = async (backend, prefix) =>
-  Promise.all((await backend.list(prefix)).map((k) => readJSON(backend, k)));
+  (await Promise.all((await backend.list(prefix)).map((k) => readJSONOrNull(backend, k)))).filter((d) => d != null);
 
 function perClient(backend, type) {
   const key = (slug, id) => `${type}/${assertSlug(slug)}/${assertId(id)}.json`;
@@ -79,7 +83,7 @@ function documents(backend) {
       });
     },
     async get(slug, name) { return backend.getBytes(key(slug, name)); },
-    async meta(slug, name) { return readJSON(backend, `${key(slug, name)}.meta.json`); },
+    async meta(slug, name) { return readJSONOrNull(backend, `${key(slug, name)}.meta.json`); },
     async remove(slug, name) {
       // Sidecar first: the listing is built from sidecars, so a delete that
       // dies half way hides the row rather than leaving a broken link.
@@ -98,12 +102,20 @@ function documents(backend) {
 
 export const TYPES = ['tasks', 'meetings', 'payments', 'agreements', 'emails'];
 
+// The questionnaire function keeps each form's answers as {form}.json next to
+// the files the client attached. Only those envelopes are hidden from the
+// file listing: an attachment can itself be named something.json.
+const ENVELOPES = new Set(FORMS.map((f) => `${f}.json`));
+
 export function createStore({ office, questionnaires }) {
   const clientKey = (slug) => `clients/${assertSlug(slug)}.json`;
   const s = {
     clients: {
       async get(slug) { return readJSON(office, clientKey(slug)); },
       async put(slug, doc) { return writeJSON(office, clientKey(slug), doc); },
+      // False when the slug is already taken; the create action uses it so two
+      // creates that settled on the same slug cannot both write it.
+      async putIfNew(slug, doc) { return office.setTextIfNew(clientKey(slug), serialize(doc)); },
       async remove(slug) { return office.remove(clientKey(slug)); },
       async list() { return readAll(office, 'clients/'); },
       async count() { return (await office.list('clients/')).length; },
@@ -115,7 +127,8 @@ export function createStore({ office, questionnaires }) {
     questionnaires: {
       async get(slug, form) { return readJSON(questionnaires, `${assertSlug(slug)}/${assertForm(form)}.json`); },
       async files(slug) {
-        return (await questionnaires.list(`${assertSlug(slug)}/`)).filter((k) => !k.endsWith('.json'));
+        const prefix = `${assertSlug(slug)}/`;
+        return (await questionnaires.list(prefix)).filter((k) => !ENVELOPES.has(k.slice(prefix.length)));
       },
       async file(slug, name) { return questionnaires.getBytes(`${assertSlug(slug)}/${assertDocName(name)}`); },
     },
@@ -125,8 +138,9 @@ export function createStore({ office, questionnaires }) {
       async put(token, ref) { return writeJSON(office, `tokens/${assertToken(token)}.json`, ref); },
     },
     // A lock is a key that can be created once. There is no release: an
-    // agreement is signed and sealed once, so the lock's name carries the
-    // agreement id and is never reused.
+    // agreement is sealed once and a client enters a stage for the first
+    // time once, so the lock's name carries what identifies that one event
+    // and is never reused.
     locks: {
       async acquire(name) { return office.setTextIfNew(`locks/${assertLock(name)}`, new Date().toISOString()); },
     },

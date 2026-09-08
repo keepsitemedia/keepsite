@@ -42,6 +42,7 @@ test('a bare Blob is not a File, even with bytes', () => {
 test('questionnaire envelopes are not servable as intake files', () => {
   assert.equal(isIntakeFile('logo-mark.png'), true);
   assert.equal(isIntakeFile('intro.json'), false);
+  assert.equal(isIntakeFile('logo-x.json'), true);
   assert.equal(isIntakeFile('logo.png.meta.json'), false);
   assert.equal(isIntakeFile('../etc/passwd'), false);
   assert.equal(isIntakeFile(''), false);

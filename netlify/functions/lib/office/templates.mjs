@@ -73,9 +73,13 @@ const lookup = (context, path) =>
 // a Markdown control character mid-line (only "> " at the start of a line
 // opens a blockquote), so leaving it for toSafeHtml to entity-escape is both
 // correct and simpler.
+// Whitespace runs fold to one space first: a newline inside a value would
+// otherwise end the paragraph and let the rest of the value start a list or
+// heading, which no inline escape can prevent.
 const ZERO_WIDTH_SPACE = '\u200B';
 const escapeMarkdown = (s) =>
   String(s)
+    .replace(/\s+/g, ' ')
     .replace(/\\/g, '\\\\')
     .replace(/[`*_[\]()#!|~]/g, (c) => `\\${c}`)
     .replace(/(https?:)\/\//gi, `$1${ZERO_WIDTH_SPACE}//`);
@@ -90,9 +94,22 @@ const escapeMarkdown = (s) =>
 // GFM autolinking turns a bare URL into a live link on its own.
 const URL_ONLY = /^https?:\/\/[^\s<>"'()]+$/;
 
+// For text the admin edited after render() filled it: the values that came
+// from the client are escaped again wherever they still appear, so the HTML
+// body gets the same protection as an automated send without the admin ever
+// seeing a backslash in the textarea. Longest first, so a value that
+// contains another is escaped whole. A value the admin reworded is not
+// found and stays as typed, which is the admin's own Markdown.
+export function escapeValues(text, values) {
+  const risky = [...new Set(values.map((v) => (v == null ? '' : String(v))))]
+    .filter((v) => v && !URL_ONLY.test(v) && escapeMarkdown(v) !== v)
+    .sort((a, b) => b.length - a.length);
+  return risky.reduce((t, v) => t.split(v).join(escapeMarkdown(v)), String(text));
+}
+
 export function fill(source, context, prompted = {}, { escape = false } = {}) {
   const unresolved = [];
-  const text = String(source).replace(PLACEHOLDER, (whole, name) => {
+  const text = String(source).replace(PLACEHOLDER, (_, name) => {
     let v = Object.hasOwn(prompted, name) ? prompted[name] : lookup(context, name);
     if (v == null || v === '') {
       if (!unresolved.includes(name)) unresolved.push(name);

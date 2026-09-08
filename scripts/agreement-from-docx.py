@@ -8,7 +8,7 @@ the docx changes; nothing in the output is hand-edited. Blanks in Schedule 1,
 the signature block and Exhibit D become {{placeholders}} by matching their
 row labels, so a reworded paragraph never breaks the mapping.
 """
-import json, re, sys
+import hashlib, json, re, sys
 import docx
 
 SCHEDULE_CLIENT = {
@@ -120,7 +120,7 @@ def main(path, template_id):
                     if l.startswith('Title:'): out['title'] = l[6:].strip()
                     if l.startswith('Email:'): out['email'] = l[6:].strip()
                 return out
-            keepsite = party('EAGLE MOUNTAIN HOUSE', 'keepsite')
+            keepsite = party('KEEPSITE MEDIA', 'keepsite')
             client = party('CLIENT', 'client')
             client['name'] = '{{signerName}}'; client['title'] = '{{signerTitle}}'; client['email'] = '{{email}}'
             blocks.append({'type': 'h2', 'text': text})
@@ -139,7 +139,13 @@ def main(path, template_id):
         blocks.append(block)
         i += 1
 
-    out = {'id': template_id, 'name': raw[1][2], 'version': '2026-09-04', 'defaults': defaults, 'blocks': blocks}
+    # The office refuses to render or seal an agreement against a template
+    # whose version differs from the one recorded when it was created, so the
+    # version has to move with the text: a hash of the blocks does, a date
+    # typed by hand does not.
+    canonical = json.dumps(blocks, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+    version = hashlib.sha256(canonical.encode('utf-8')).hexdigest()[:12]
+    out = {'id': template_id, 'name': raw[1][2], 'version': version, 'defaults': defaults, 'blocks': blocks}
     json.dump(out, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write('\n')
 

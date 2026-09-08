@@ -1,6 +1,8 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
-import { loadTemplates, findTemplate, placeholdersIn, toSafeHtml } from '../templates.mjs';
+import { loadTemplates, findTemplate, placeholdersIn, fill, escapeValues, toSafeHtml } from '../templates.mjs';
+import { buildContext } from '../context.mjs';
+import { latestSent } from '../agreements.mjs';
 import { sendMail } from '../mail.mjs';
 
 const FORM = /^[a-z]+$/;
@@ -42,13 +44,28 @@ export async function send(request, ctx, s = defaultStore(), fetchFn = fetch, no
       .filter((k) => optional.has(k))
       .reduce((t, k) => t.replace(new RegExp(`\\{\\{\\s*${k}\\s*\\}\\}`, 'g'), ''), v)
       // A textarea posted as multipart/form-data comes back CRLF, not LF.
-      .replace(/(?:\r\n|\r|\n){3,}/g, '\n\n')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
       .trim();
   const cleanSubject = stripOptional(subject);
   const cleanBody = stripOptional(body);
 
+  // The text is sent as the admin saw it, so it holds the client's values
+  // unescaped; the HTML body is built from the same text with those values
+  // neutralized again, the way render() does for an automated send. The
+  // values are re-derived here (the same context the send screen used, plus
+  // the prompted fields as posted) rather than trusted from the form. An
+  // unresolved placeholder comes back as {{name}}, which is not Markdown.
+  const context = buildContext({
+    client, admin: ctx.admin, secret: process.env.KEEPSITE_TOKEN_SECRET ?? '',
+    form: form && FORM.test(form) ? form : undefined, meeting: undefined, agreement: latestSent(await s.agreements.list(slug)), now,
+  });
+  const prompted = Object.fromEntries((template.fields ?? []).map((f) => [f.key, field(data, `f_${f.key}`)]));
+  const values = placeholdersIn(template.body).map((name) => fill(`{{${name}}}`, context, prompted).text);
+  const html = toSafeHtml(escapeValues(cleanBody, values));
+
   const result = await sendMail(
-    { slug, to: client.email, subject: cleanSubject, text: cleanBody, html: toSafeHtml(cleanBody), template: templateId, kind: 'template' },
+    { slug, to: client.email, subject: cleanSubject, text: cleanBody, html, template: templateId, kind: 'template' },
     s, fetchFn, now,
   );
   return redirect(

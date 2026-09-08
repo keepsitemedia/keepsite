@@ -88,3 +88,16 @@ test('dashboardUrl points at the right Stripe page, test mode under /test', asyn
     assert.equal(dashboardUrl('invoice', 'in_1'), 'https://dashboard.stripe.com/test/invoices/in_1');
   });
 });
+
+test('stripeRequest sends an Idempotency-Key on a POST when given one, never on a GET', async () => {
+  await withKey('sk_test_1', async () => {
+    let seen;
+    const fetchFn = async (url, init) => { seen = init; return new Response('{"id":"sub_1"}'); };
+    await stripeRequest('POST', '/subscriptions', { customer: 'cus_1' }, fetchFn, { idempotencyKey: 'lova:subscription:2026-10-01' });
+    assert.equal(seen.headers['Idempotency-Key'], 'lova:subscription:2026-10-01');
+    await stripeRequest('POST', '/subscriptions', { customer: 'cus_1' }, fetchFn);
+    assert.equal(seen.headers['Idempotency-Key'], undefined);
+    await stripeRequest('GET', '/subscriptions/sub_1', {}, fetchFn, { idempotencyKey: 'ignored' });
+    assert.equal(seen.headers['Idempotency-Key'], undefined);
+  });
+});

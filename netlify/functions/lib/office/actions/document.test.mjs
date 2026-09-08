@@ -44,6 +44,18 @@ test('a name starting with punctuation is stored, not thrown out of', async () =
   assert.equal((await s.documents.meta('lova', 'DSC0001.pdf')).source, 'upload');
 });
 
+// The byte route serves the stored type back, so a claimed text/html on a
+// .pdf would have the browser render an upload as a page under the office's
+// origin.
+test('the stored type comes from the name, not from what the browser claimed', async () => {
+  const s = await make();
+  const claimed = (name, type) => new File([new Uint8Array([1, 2, 3])], name, { type });
+  await document(post({ csrf, op: 'upload', slug: 'lova', file: claimed('brief.pdf', 'text/html') }), ctx(), s, NOW);
+  assert.equal((await s.documents.meta('lova', 'brief.pdf')).type, 'application/pdf');
+  await document(post({ csrf, op: 'upload', slug: 'lova', file: claimed('notes.bin', 'text/html') }), ctx(), s, NOW);
+  assert.equal((await s.documents.meta('lova', 'notes.bin')).type, 'application/octet-stream');
+});
+
 test('an empty or missing file is refused with a message, not a 500', async () => {
   const s = await make();
   const res = await document(post({ csrf, op: 'upload', slug: 'lova' }), ctx(), s, NOW);

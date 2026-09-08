@@ -15,7 +15,7 @@ const post = (fields) => {
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
   return new Request('https://site.test/office/api/payment', { method: 'POST', body: d });
 };
-const stripe = (answers) => async (url, init) => {
+const stripe = (answers) => async (url) => {
   const next = answers.shift();
   if (!next) throw new Error(`unexpected Stripe call: ${url}`);
   return new Response(JSON.stringify(next), { status: next.error ? 400 : 200 });

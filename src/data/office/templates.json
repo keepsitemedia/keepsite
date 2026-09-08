@@ -3,7 +3,7 @@
     "id": "agreement",
     "name": "Agreement to sign",
     "subject": "Your Keepsite agreement",
-    "body": "Hi {{client.firstName}},\n\nHere is the agreement for {{client.business}}. It lays out the build, the monthly fee, and what happens at each stage.\n\n**Sign here:** {{links.sign}}\n\nOnce it is signed I will send the first questionnaire, which takes about ten minutes.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "body": "Hi {{client.firstName}},\n\nHere is the agreement for {{client.business}}. It lays out the build, the monthly fee, and what happens at each stage.\n\n**Sign here:** {{links.sign}}\n\nOnce it is signed we will send the first questionnaire, which takes about ten minutes.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
     "fields": [
       { "key": "note", "label": "Personal note", "default": "" }
     ]
@@ -12,7 +12,7 @@
     "id": "intro",
     "name": "Intro questionnaire",
     "subject": "Ten minutes about {{client.business}}",
-    "body": "Hi {{client.firstName}},\n\nThank you for signing. The next step is eight quick questions about your business, most of which you can answer off the top of your head:\n\n{{links.intro}}\n\nThat is everything I need to put four designs in front of you.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "body": "Hi {{client.firstName}},\n\nThank you for signing. The next step is eight quick questions about your business, most of which you can answer off the top of your head:\n\n{{links.intro}}\n\nThat is everything we need to put four designs in front of you.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
     "fields": [{ "key": "note", "label": "Personal note", "default": "" }]
   },
   {
@@ -26,7 +26,7 @@
     "id": "layouts",
     "name": "Layouts ready",
     "subject": "Every page of {{client.business}}, laid out",
-    "body": "Hi {{client.firstName}},\n\nEvery page your site will have is laid out here:\n\n{{previewLink}}\n\nThe text is placeholder and the image areas are outlined boxes on purpose: this round is about whether the site has every page you need and how each one is put together. Send your changes in one go and I will fold them in.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "body": "Hi {{client.firstName}},\n\nEvery page your site will have is laid out here:\n\n{{previewLink}}\n\nThe text is placeholder and the image areas are outlined boxes on purpose: this round is about whether the site has every page you need and how each one is put together. Send your changes in one go and we will fold them in.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
     "fields": [
       { "key": "previewLink", "label": "Preview link", "required": true },
       { "key": "note", "label": "Personal note", "default": "" }
