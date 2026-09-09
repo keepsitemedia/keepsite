@@ -159,8 +159,40 @@ stage one. The filename matters — the skill looks for exactly those names.
 
 A private back office for running clients: pipeline stages, tasks, a
 calendar, each client's questionnaire answers, and data export. Design:
-`docs/superpowers/specs/2026-09-04-client-office-design.md`. Later phases
-add email, meetings, payments and e-signed agreements.
+`docs/superpowers/specs/2026-09-04-client-office-design.md`. Email,
+meetings, payments and e-signed agreements are part of it too, each with
+its own section below.
+
+### Setting up, in order
+
+Once per site. The detail for each step is in the section named beside it;
+this is only the order, which the sections below do not give you.
+
+1. **Turn on Identity and give yourself the role.** Netlify → **Identity →
+   Enable Identity**, **Registration → Invite only**, invite your address,
+   accept the email, then open your user and add `admin` under **Roles**.
+   See [Who can log in](#who-can-log-in). Nothing else grants access, and
+   the role is the step people forget.
+2. **Set the environment variables**, before the first deploy that carries
+   the office. `KEEPSITE_SESSION_SECRET` is the office-only one and every
+   office form post is refused without it; the rest are already set if the
+   questionnaires are running. See
+   [Environment variables](#environment-variables-1).
+3. **Register the Stripe webhook** and put its signing secret in
+   `STRIPE_WEBHOOK_SECRET`. Until both exist, Checkout works and no payment
+   is ever marked paid. See [Payments](#payments).
+4. **Deploy.** Nothing needs creating by hand: the `office` blob store
+   appears on the first write, the pipeline stages and email templates seed
+   themselves from `src/data/office/`, and both scheduled functions
+   register themselves. Confirm they are listed under **Functions →
+   Scheduled**. See [Meetings](#meetings).
+5. **Walk one client end to end.** Submit `/start/` and check that a client
+   lands at the Inquiry stage, then follow
+   [After deploying](#after-deploying) for the agreement, the signature and
+   the sealed PDF.
+
+To work on the office without deploying, see
+[Local development](#local-development-1).
 
 ### Who can log in
 

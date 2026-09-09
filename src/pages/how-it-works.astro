@@ -259,6 +259,53 @@ const endStation = {
 
 </BaseLayout>
 
+<script is:inline>
+  // Two things the radios cannot do for themselves. Without JS you get the
+  // flow as the CSS alone provides it: stations open, none of them close, and
+  // the browser scrolls wherever it likes.
+  (function () {
+    var header = document.querySelector('.site-header');
+    var close = function (input) {
+      // No change event fires for a scripted uncheck, so closing never scrolls.
+      input.checked = false;
+    };
+
+    document.querySelectorAll('.stage').forEach(function (stage) {
+      var input = stage.querySelector('.stage-input');
+      var head = stage.querySelector('.stage-head');
+      if (!input || !head) return;
+
+      // Park the station that just opened at the top of the viewport. Checking
+      // a radio only focuses it, and the browser then scrolls the smallest
+      // distance that brings that hidden 1px control into view, so the panel
+      // came to rest somewhere different on every step.
+      input.addEventListener('change', function () {
+        if (header) {
+          document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+        }
+        stage.scrollIntoView({ block: 'start' });
+      });
+
+      // A radio cannot be unchecked by clicking its label, so an open station
+      // had no way to shut. The label's activation runs after this listener,
+      // so `checked` here is still the state the click found.
+      head.addEventListener('click', function (e) {
+        if (!input.checked) return;
+        e.preventDefault();
+        close(input);
+      });
+
+      // The same toggle from the keyboard: arrow keys walk the rail, space
+      // shuts the station the rail is sitting on.
+      input.addEventListener('keydown', function (e) {
+        if (e.key !== ' ' || !input.checked) return;
+        e.preventDefault();
+        close(input);
+      });
+    });
+  })();
+</script>
+
 <style>
   .steps { list-style: none; counter-reset: step; padding: 0; margin: 0; max-width: var(--maxw-prose); }
   .steps li {
@@ -296,8 +343,9 @@ const endStation = {
   /* Stage flow ------------------------------------------------------
      One rail, four stations, one open at a time. The radios are the
      state: a label on the head opens a station, a label on the button
-     steps to the next one, and arrow keys walk the rail. No JS, which
-     is what keeps this page inside its one-script budget. */
+     steps to the next one, and arrow keys walk the rail. The page's one
+     script adds only what radios cannot do — closing an open station,
+     and parking the opened one at the top of the viewport. */
 
   .flow {
     --rail: 1.1rem;           /* rail centre, from the flow's left edge */
@@ -316,6 +364,9 @@ const endStation = {
   .stage {
     position: relative;
     padding: 0 0 var(--space-2) var(--rail-gutter);
+    /* --header-h is written by the script below rather than hard-coded: the
+       sticky header wraps to two rows on a narrow viewport. */
+    scroll-margin-top: calc(var(--header-h, 0px) + var(--space-3));
   }
   .stage-end { padding-bottom: 0; }
 
