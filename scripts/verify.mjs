@@ -219,11 +219,13 @@ section('JavaScript budget');
 // Every questionnaire form page carries the layout's JSON-LD plus the
 // token-capture/save-and-resume module script; brand additionally carries
 // its demo index, a third script tag.
-check('only JSON-LD, plus one tier-prefill script on /start/', () => {
+check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
   const expect = {
     'index.html': 1,
     'packages/index.html': 2,
-    'how-it-works/index.html': 1,
+    // Plus the stage-scroll script: the CSS accordion cannot put the station
+    // it opens at the top of the viewport, only JS can.
+    'how-it-works/index.html': 2,
     'faq/index.html': 2,
     'start/index.html': 2,
     'start/thanks/index.html': 1,
