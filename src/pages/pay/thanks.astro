@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+// Stripe Checkout returns here after payment. Static and indexable by
+// nobody: the receipt itself comes from Stripe.
+---
+<BaseLayout title="Payment received | Keepsite Media" description="Thank you. Your payment is on its way." noindex>
+  <section class="section">
+    <div class="container narrow">
+      <h1>Thank you</h1>
+      <p class="lead">Your payment is on its way. Stripe will email you a receipt, and we will be in touch about the next step.</p>
+      <p class="muted">Bank payments can take a few business days to settle; that is normal and nothing more is needed from you.</p>
+    </div>
+  </section>
+</BaseLayout>

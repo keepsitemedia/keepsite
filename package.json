@@ -5,19 +5,27 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "dev:office": "OFFICE_STORE_DIR=.office-data IDENTITY_URL=https://www.keepsitemedia.com/.netlify/identity astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:forms": "node scripts/check-questionnaires.mjs",
+    "check:office": "node scripts/check-office.mjs",
     "cms": "npx decap-server",
     "verify": "node scripts/verify.mjs",
-    "gate": "npm run check && npm run build && npm run verify",
-    "og": "node scripts/make-og-image.mjs"
+    "gate": "npm test && npm run check && npm run check:forms && npm run check:office && npm run build && npm run verify",
+    "og": "node scripts/make-og-image.mjs",
+    "test": "node --test"
   },
   "dependencies": {
+    "@astrojs/netlify": "^6.6.5",
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/instrument-sans": "5.3.0",
     "@fontsource-variable/newsreader": "5.3.0",
-    "astro": "^5.0.0"
+    "@netlify/blobs": "^10.7.13",
+    "astro": "^5.0.0",
+    "marked": "^18.0.11",
+    "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",

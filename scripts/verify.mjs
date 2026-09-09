@@ -36,6 +36,12 @@ const PAGES = [
   'faq/index.html',
   'start/index.html',
   'start/thanks/index.html',
+  'questionnaire/intro/index.html',
+  'questionnaire/brand/index.html',
+  'questionnaire/build/index.html',
+  'questionnaire/thanks/index.html',
+  'pay/thanks/index.html',
+  'pay/cancelled/index.html',
   '404.html',
 ];
 
@@ -57,7 +63,34 @@ check('renamed routes are gone', () => {
 });
 check('noindex pages are out of the sitemap', () => {
   const s = read('sitemap-0.xml');
-  if (s.includes('/start/thanks') || s.includes('/404')) throw new Error('noindex page in sitemap');
+  if (s.includes('/start/thanks') || s.includes('/404') || s.includes('/questionnaire/') || s.includes('/sign/'))
+    throw new Error('noindex page in sitemap');
+});
+check('private routes are disallowed and unlisted', () => {
+  const robots = read('robots.txt');
+  if (!robots.includes('Disallow: /office/')) throw new Error('robots.txt lacks /office/');
+  if (!robots.includes('Disallow: /pay/')) throw new Error('robots.txt lacks /pay/');
+  if (!robots.includes('Disallow: /sign/')) throw new Error('robots.txt lacks /sign/');
+  if (read('sitemap-0.xml').includes('/office/')) throw new Error('office in sitemap');
+  if (read('sitemap-0.xml').includes('/pay/')) throw new Error('pay in sitemap');
+  // /sign/ is server-rendered only (prerender = false throughout); a static
+  // dist/sign/ would mean the signing page leaked into the prerendered,
+  // publicly-cached build instead of requiring a fresh per-request render.
+  if (fs.existsSync(path.join('dist', 'sign'))) throw new Error('dist/sign/ exists: the signing page must not be prerendered');
+  // Deny-by-default: every office page is server-rendered except login, so
+  // dist/office/ may hold login/index.html and nothing else. A three-path
+  // denylist misses any new office route added later; this allowlist cannot.
+  const officeDir = path.join('dist', 'office');
+  if (fs.existsSync(officeDir)) {
+    const entries = fs.readdirSync(officeDir, { withFileTypes: true });
+    if (entries.length !== 1 || entries[0].name !== 'login' || !entries[0].isDirectory()) {
+      throw new Error('dist/office/ has more than a login directory: ' + entries.map((e) => e.name).join(', '));
+    }
+    const loginEntries = fs.readdirSync(path.join(officeDir, 'login'));
+    if (loginEntries.length !== 1 || loginEntries[0] !== 'index.html') {
+      throw new Error('dist/office/login/ has more than index.html: ' + loginEntries.join(', '));
+    }
+  }
 });
 
 section('Copy residue');
@@ -152,10 +185,10 @@ check('one h1 per page, no skipped levels, main and canonical present', () => {
     if (!h.includes('og:image')) throw new Error(p + ' has no og:image');
   }
 });
-check('noindex only on 404 and thanks', () => {
+check('noindex on 404, thanks, and every questionnaire route', () => {
   for (const p of PAGES) {
     const has = read(p).includes('noindex,follow');
-    const should = p === '404.html' || p === 'start/thanks/index.html';
+    const should = p === '404.html' || p.endsWith('thanks/index.html') || p.startsWith('questionnaire/') || p === 'pay/cancelled/index.html';
     if (has !== should) throw new Error(`${p} noindex=${has}, expected ${should}`);
   }
 });
@@ -167,6 +200,10 @@ check('no broken internal links', () => {
     for (const m of read(p).matchAll(/(?:href|action)="(\/[^"#?]*)/g)) {
       const href = m[1];
       if (href.startsWith('/_astro/')) continue;
+      // /api/questionnaire is a Netlify redirect to a serverless function
+      // (see netlify.toml), not a static file — it has no counterpart in
+      // dist/ and never will.
+      if (href.startsWith('/api/')) continue;
       const tries = [
         path.join('dist', href),
         path.join('dist', href, 'index.html'),
@@ -179,6 +216,9 @@ check('no broken internal links', () => {
 });
 
 section('JavaScript budget');
+// Every questionnaire form page carries the layout's JSON-LD plus the
+// token-capture/save-and-resume module script; brand additionally carries
+// its demo index, a third script tag.
 check('only JSON-LD, plus one tier-prefill script on /start/', () => {
   const expect = {
     'index.html': 1,
@@ -187,6 +227,12 @@ check('only JSON-LD, plus one tier-prefill script on /start/', () => {
     'faq/index.html': 2,
     'start/index.html': 2,
     'start/thanks/index.html': 1,
+    'questionnaire/intro/index.html': 2,
+    'questionnaire/brand/index.html': 3,
+    'questionnaire/build/index.html': 2,
+    // Plus the draft-clearing script: the redirect here is the only signal
+    // that the server actually stored the answers.
+    'questionnaire/thanks/index.html': 2,
     '404.html': 1,
   };
   for (const [p, n] of Object.entries(expect)) {
@@ -251,6 +297,97 @@ check('the preload and the stylesheet request the same file', () => {
     for (const s of [html, ...sheets]) {
       if (s.includes('fonts.googleapis.com')) throw new Error(p + ' uses a third-party font origin');
     }
+  }
+});
+
+section('Questionnaires');
+check('every question renders a labelled control inside a fieldset', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    const html = read(`questionnaire/${form}/index.html`);
+    const def = JSON.parse(
+      fs.readFileSync(path.join('src', 'data', 'questionnaires', `${form}.json`), 'utf8'),
+    );
+    // Grouped question types (checkboxes, choice, ...) get their own nested
+    // fieldset/legend for the group label, so a plain <legend> count would
+    // also tally those. Section legends carry no class; only they count here.
+    const legends = (html.match(/<legend>/g) || []).length;
+    if (legends !== def.sections.length) {
+      throw new Error(`${form} has ${legends} legends, expected ${def.sections.length}`);
+    }
+    for (const s of def.sections) {
+      for (const q of s.questions) {
+        if (!html.includes(`name="${q.key}"`)) throw new Error(`${form} omits ${q.key}`);
+        if (q.help && !html.includes(`id="${q.key}-help"`)) {
+          throw new Error(`${form}.${q.key} has help with no described-by target`);
+        }
+      }
+    }
+  }
+});
+check('no question label is an input placeholder', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    if (/placeholder="[^"]{40,}/.test(read(`questionnaire/${form}/index.html`))) {
+      throw new Error(`${form} uses a placeholder as a label`);
+    }
+  }
+});
+check('the brand form ships a demo index for every published demo', () => {
+  const html = read('questionnaire/brand/index.html');
+  const m = html.match(/<script type="application\/json" id="demos">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error('no demo index');
+  const demos = JSON.parse(m[1]);
+  for (const dir of fs.readdirSync(path.join('public', 'demo'), { withFileTypes: true })) {
+    if (!dir.isDirectory()) continue;
+    if (!demos[dir.name]) throw new Error(`demo index omits ${dir.name}`);
+    if (demos[dir.name].length !== 4) throw new Error(`${dir.name} parsed ${demos[dir.name].length} directions`);
+  }
+});
+// A regression here is silent and expensive: the function reads any value in
+// bot-field as a bot and redirects to the thanks page without storing or
+// emailing, so a visible honeypot destroys a completed form and tells the
+// client it arrived. The rule used to live in /start/'s scoped <style>, where
+// the questionnaire component could not reach it.
+check('the honeypot is hidden on every page that renders one', () => {
+  const FORMS = [
+    'start/index.html',
+    'questionnaire/intro/index.html',
+    'questionnaire/brand/index.html',
+    'questionnaire/build/index.html',
+  ];
+  for (const p of FORMS) {
+    const html = read(p);
+    if (!html.includes('name="bot-field"')) throw new Error(p + ' renders no honeypot');
+    const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
+      read(m[1].replace(/^\//, ''))
+    );
+    // Astro may scope the selector (.hidden-field:where(.astro-cid-x)), so
+    // match the class and its declaration rather than an exact rule string.
+    const hides = (s) => /\.hidden-field[^{}]*\{[^{}]*display\s*:\s*none/.test(s);
+    if (!sheets.some(hides) && !hides(html)) {
+      throw new Error(`${p} renders bot-field with no rule hiding .hidden-field`);
+    }
+  }
+});
+check('every questionnaire page carries the resume script', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    const html = read(`questionnaire/${form}/index.html`);
+    if (!html.includes('keepsite:questionnaire:')) {
+      throw new Error(`${form} has no localStorage key`);
+    }
+  }
+});
+// The submit event fires before the server has said anything, so clearing
+// there loses the draft on every 403, 400 and 500. Only the redirect to the
+// thanks page proves the answers were stored.
+check('the saved draft is cleared on the thanks page, nowhere else', () => {
+  for (const form of ['intro', 'brand', 'build']) {
+    if (read(`questionnaire/${form}/index.html`).includes('removeItem')) {
+      throw new Error(`${form} clears the draft before the server has accepted it`);
+    }
+  }
+  const thanks = read('questionnaire/thanks/index.html');
+  if (!thanks.includes('removeItem') || !thanks.includes('keepsite:questionnaire:')) {
+    throw new Error('the thanks page never clears the saved draft');
   }
 });
 

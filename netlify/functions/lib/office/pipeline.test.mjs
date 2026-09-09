@@ -1,0 +1,110 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import seed from '../../../../src/data/office/pipelines.json' with { type: 'json' };
+import { validatePipelines, loadPipelines, findPipeline, findStage, advance } from './pipeline.mjs';
+import { createStore } from './store.mjs';
+import { memoryBackend } from './backends.mjs';
+
+const website = () => findPipeline(seed, 'website');
+const fresh = () => ({
+  slug: 'lova', pipeline: 'website', stage: 'inquiry',
+  stages: [{ stage: 'inquiry', at: '2026-09-01T00:00:00.000Z' }], dates: { inquiry: '2026-09-01' },
+});
+const NOW = new Date('2026-09-04T16:00:00Z');
+
+test('the seed validates and every id is unique', () => {
+  assert.deepEqual(validatePipelines(seed), []);
+});
+
+test('validatePipelines names what is wrong', () => {
+  assert.match(validatePipelines('x').join(), /must be a list/);
+  assert.match(validatePipelines([{ id: 'A', name: 'x', stages: [] }]).join(), /id/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: '', due: 1 }] }] }]).join(), /title/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: -1 }] }] }]).join(), /due/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [] }, { id: 's', name: 'T', tasks: [] }] }]).join(), /duplicate stage/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [] }, { id: 'a', name: 'y', stages: [] }]).join(), /duplicate pipeline/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'deposit' }] }] }]).join(), /^$/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, payment: 'refund' }] }] }]).join(), /payment must be "deposit" or "balance"/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, agreement: 'signed' }] }] }]).join(), /agreement/);
+  const one = [{ id: 's', name: 'S', tasks: [] }];
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: 'deposit-balance-monthly' }, stages: one }]).join(), /^$/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: {}, stages: one }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: '' }, stages: one }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', payments: 'deposit', stages: one }]).join(), /payments\.plan is required/);
+});
+
+// Every new client starts at pipelines[0].stages[0]; a saved setting with
+// nothing there would fail at the next inquiry instead of at save time.
+test('validatePipelines requires a pipeline and a stage in each', () => {
+  assert.deepEqual(validatePipelines([]), ['at least one pipeline is required']);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [] }]).join(), /pipeline 1: at least one stage is required/);
+  assert.deepEqual(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [] }] }]), []);
+});
+
+test('loadPipelines falls back to the seed and prefers the stored copy', async () => {
+  const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+  assert.equal((await loadPipelines(s))[0].id, 'website');
+  await s.settings.put('pipelines', [{ id: 'other', name: 'Other', stages: [] }]);
+  assert.equal((await loadPipelines(s))[0].id, 'other');
+});
+
+test('findStage returns undefined for unknown ids', () => {
+  assert.equal(findStage(website(), 'nope'), undefined);
+  assert.equal(findStage(website(), 'demo').name, 'Demo');
+});
+
+test('advancing creates the stage tasks with due dates from today', () => {
+  const { client, tasks } = advance({ client: fresh(), pipeline: website(), stageId: 'agreement', today: '2026-09-04', now: NOW });
+  assert.equal(client.stage, 'agreement');
+  assert.equal(client.stages.at(-1).stage, 'agreement');
+  assert.deepEqual(tasks.map((t) => [t.title, t.due, t.payment, t.agreement]), [
+    ['Send agreement', '2026-09-04', null, 'sent'],
+    ['Client signs agreement', '2026-09-11', null, 'completed'],
+    ['Deposit received', '2026-09-11', 'deposit', null],
+  ]);
+  for (const t of tasks) {
+    assert.equal(t.slug, 'lova');
+    assert.equal(t.source, 'pipeline');
+    assert.equal(t.stage, 'agreement');
+    assert.equal(t.done, false);
+    assert.match(t.id, /^20260904T160000/);
+  }
+});
+
+test('re-entering a stage creates no tasks; moving back creates none either', () => {
+  const first = advance({ client: fresh(), pipeline: website(), stageId: 'demo', today: '2026-09-04', now: NOW });
+  const back = advance({ client: first.client, pipeline: website(), stageId: 'inquiry', today: '2026-09-05', now: NOW });
+  assert.equal(back.client.stage, 'inquiry');
+  assert.deepEqual(back.tasks, []);
+  const again = advance({ client: back.client, pipeline: website(), stageId: 'demo', today: '2026-09-06', now: NOW });
+  assert.deepEqual(again.tasks, []);
+  assert.equal(again.client.stages.length, 4);
+});
+
+test('advancing into a client with empty history still records the stage (client creation)', () => {
+  // client.mjs's create action pre-sets stage to the first stage id while
+  // resetting stages to [], so advance() alone builds the first history
+  // entry and the first stage's tasks. reentering must not trip on this.
+  const base = { ...fresh(), stage: 'demo', stages: [] };
+  const { client, tasks } = advance({ client: base, pipeline: website(), stageId: 'demo', today: '2026-09-04', now: NOW });
+  assert.deepEqual(client.stages, [{ stage: 'demo', at: NOW.toISOString() }]);
+  assert.equal(tasks.length, 2);
+});
+
+test('setting the same stage twice leaves history unchanged', () => {
+  const first = advance({ client: fresh(), pipeline: website(), stageId: 'demo', today: '2026-09-04', now: NOW });
+  const again = advance({ client: first.client, pipeline: website(), stageId: 'demo', today: '2026-09-05', now: NOW });
+  assert.deepEqual(again.tasks, []);
+  assert.deepEqual(again.client.stages, first.client.stages);
+});
+
+test('questionnaire tasks carry the form name and live records the launch date', () => {
+  const { tasks } = advance({ client: fresh(), pipeline: website(), stageId: 'post-demo', today: '2026-09-04', now: NOW });
+  assert.deepEqual(tasks.map((t) => t.questionnaire), ['brand', 'build']);
+  const live = advance({ client: fresh(), pipeline: website(), stageId: 'live', today: '2026-10-01', now: NOW });
+  assert.equal(live.client.dates.launched, '2026-10-01');
+});
+
+test('advance throws on a stage the pipeline does not have', () => {
+  assert.throws(() => advance({ client: fresh(), pipeline: website(), stageId: 'nope', today: '2026-09-04', now: NOW }), /unknown stage/);
+});

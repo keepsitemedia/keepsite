@@ -1,0 +1,1494 @@
+{
+ "id": "search-plus",
+ "name": "Search Plus Package",
+ "version": "b74f79c4322c",
+ "defaults": {
+  "buildFee": "$2,000",
+  "monthlyFee": "$275",
+  "pages": 10
+ },
+ "blocks": [
+  {
+   "type": "title",
+   "text": "WEBSITE DEVELOPMENT AND MANAGEMENT AGREEMENT"
+  },
+  {
+   "type": "subtitle",
+   "text": "Search Plus Package"
+  },
+  {
+   "type": "subtitle",
+   "text": "Keepsite Media — Website Design, Development, Hosting, Maintenance, Search Content, and Ongoing Optimization"
+  },
+  {
+   "type": "p",
+   "text": "This Website Development and Management Agreement (the \"Agreement\") is entered into by and between:"
+  },
+  {
+   "type": "p",
+   "text": "Eagle Mountain House LLC, a Utah limited liability company doing business as Keepsite Media, of 2036 E Autumn St, Eagle Mountain, Utah 84005 (\"Keepsite,\" \"we,\" \"us,\" or \"our\"); and"
+  },
+  {
+   "type": "p",
+   "text": "The Client identified in Schedule 1 (\"Client,\" \"you,\" or \"your\")."
+  },
+  {
+   "type": "p",
+   "text": "Keepsite and Client are each a \"Party\" and together the \"Parties.\""
+  },
+  {
+   "type": "p",
+   "text": "The \"Effective Date\" is the date of the last signature at the end of this agreement. A \"Term\" is one twelve-month stretch of the subscription, described in Section 3.1."
+  },
+  {
+   "type": "h2",
+   "text": "Schedule 1 — Deal Terms"
+  },
+  {
+   "type": "p",
+   "text": "Fill in every row before signing. Where a row lists a default and is left blank, that default applies."
+  },
+  {
+   "type": "p",
+   "text": "Client"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "Field",
+     "Entry"
+    ],
+    [
+     "Legal business name",
+     "{{legalName}}"
+    ],
+    [
+     "Entity type (LLC, sole proprietorship, corporation, other)",
+     "{{entityType}}"
+    ],
+    [
+     "Business address",
+     "{{address}}"
+    ],
+    [
+     "Signer name",
+     "{{signerName}}"
+    ],
+    [
+     "Signer title",
+     "{{signerTitle}}"
+    ],
+    [
+     "Email for notices",
+     "{{email}}"
+    ],
+    [
+     "Phone",
+     "{{phone}}"
+    ]
+   ]
+  },
+  {
+   "type": "p",
+   "text": "Commercial terms"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "Field",
+     "Entry",
+     "If left blank"
+    ],
+    [
+     "Build Fee (Section 2.1)",
+     "{{buildFee}}",
+     "—"
+    ],
+    [
+     "Monthly Fee (Section 2.2)",
+     "{{monthlyFee}} per month",
+     "—"
+    ],
+    [
+     "Deposit due on signing",
+     "{{deposit}} ({{depositPercent}}%)",
+     "50% of the Build Fee"
+    ],
+    [
+     "Balance due on Launch Date",
+     "{{balance}} ({{balancePercent}}%)",
+     "the remaining 50%"
+    ],
+    [
+     "Pages included in the build (Exhibit A)",
+     "{{pages}} pages",
+     "10 pages"
+    ],
+    [
+     "Discount applied (Section 2.8)",
+     "{{discountApplied}}",
+     "No"
+    ]
+   ]
+  },
+  {
+   "type": "p",
+   "text": "Do not enter a date in this Schedule. The Effective Date is set by the last signature."
+  },
+  {
+   "type": "h2",
+   "text": "1. What We Do"
+  },
+  {
+   "type": "h3",
+   "text": "1.1 The build"
+  },
+  {
+   "type": "p",
+   "text": "We design, build, and launch your website. Exhibit A lists exactly what's included. The build is finished when your site is live on your domain and we've sent you the launch notice described in Section 4.11."
+  },
+  {
+   "type": "h3",
+   "text": "1.2 The monthly service"
+  },
+  {
+   "type": "p",
+   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, content updates, the blog program, and ongoing optimization for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
+  },
+  {
+   "type": "h3",
+   "text": "1.3 They go together"
+  },
+  {
+   "type": "p",
+   "text": "The build and the monthly service are one product. We don't build a site without the subscription, and you can't buy the build on its own. If the monthly service ends, your site comes offline on the schedule in Section 3.9."
+  },
+  {
+   "type": "h3",
+   "text": "1.4 Anything else"
+  },
+  {
+   "type": "p",
+   "text": "If it isn't in Exhibit A or Exhibit B, it isn't included. Extra work is priced in Exhibit C, and we won't start any of it until you approve it in writing. Email counts as writing."
+  },
+  {
+   "type": "h2",
+   "text": "2. What It Costs"
+  },
+  {
+   "type": "h3",
+   "text": "2.1 The build fee"
+  },
+  {
+   "type": "p",
+   "text": "The build costs two thousand dollars ($2,000), less any discount in Exhibit D. Schedule 1 sets your deposit and your balance; if those rows are blank, it's half on signing and half on the Launch Date. We start work once the deposit clears."
+  },
+  {
+   "type": "p",
+   "text": "Your deposit is non-refundable once we've started, except as described in Section 3.7."
+  },
+  {
+   "type": "h3",
+   "text": "2.2 The monthly fee"
+  },
+  {
+   "type": "p",
+   "text": "The subscription costs two hundred seventy-five dollars ($275) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
+  },
+  {
+   "type": "h3",
+   "text": "2.3 How you pay"
+  },
+  {
+   "type": "p",
+   "text": "You're authorizing us to charge the monthly fee automatically to the card or account on file, and you agree to keep a working payment method on file."
+  },
+  {
+   "type": "h3",
+   "text": "2.4 Taxes"
+  },
+  {
+   "type": "p",
+   "text": "Our prices don't include sales tax or anything similar. Those are yours to pay."
+  },
+  {
+   "type": "h3",
+   "text": "2.5 Late payments"
+  },
+  {
+   "type": "p",
+   "text": "Invoices are due when you receive them. Anything more than ten (10) days late earns interest at 1.5% per month, or the most Utah law allows if that's lower. If anything is more than thirty (30) days late, we can take your site and services offline — but only after giving you seven (7) days' written notice and a chance to fix it. Fees keep adding up while service is off."
+  },
+  {
+   "type": "h3",
+   "text": "2.6 Price changes"
+  },
+  {
+   "type": "p",
+   "text": "We can change the monthly fee once every twelve (12) months, with at least sixty (60) days' written notice. If you don't want the new rate, you can end this agreement on the day the increase would start, with no early cancellation fee, by telling us in writing before that day."
+  },
+  {
+   "type": "h3",
+   "text": "2.7 Costs we pass through"
+  },
+  {
+   "type": "p",
+   "text": "Domain registration, and any premium fonts, stock photos, plugins, or third-party services you ask for, are billed to you at cost or paid by you directly. We'll tell you what something costs before we buy it, and we won't buy it without your written approval."
+  },
+  {
+   "type": "h3",
+   "text": "2.8 Discounts"
+  },
+  {
+   "type": "p",
+   "text": "If Schedule 1 says a discount applies, Exhibit D is attached and its adjusted prices replace the ones above. If Schedule 1 says no discount, or is blank, the standard prices apply."
+  },
+  {
+   "type": "p",
+   "text": "If you leave early. If we discounted your price in exchange for the twelve-month term and you cancel before that term is up, we add the whole discount back — the build discount and any monthly discount you've already received — to what you owe under Section 3.4, due immediately. This does not apply if you're leaving because we broke the agreement and didn't fix it (Section 3.5), or because we raised your price (Section 2.6)."
+  },
+  {
+   "type": "h2",
+   "text": "3. How Long This Lasts, and How It Ends"
+  },
+  {
+   "type": "h3",
+   "text": "3.1 The term"
+  },
+  {
+   "type": "p",
+   "text": "This agreement starts on the Effective Date. The subscription runs for twelve (12) months from the Launch Date. Each twelve-month stretch is a \"Term.\""
+  },
+  {
+   "type": "h3",
+   "text": "3.2 Renewal"
+  },
+  {
+   "type": "p",
+   "text": "At the end of each Term, this agreement renews for another twelve months."
+  },
+  {
+   "type": "p",
+   "text": "At least sixty (60) days before a Term ends, we'll send you a renewal notice with the renewal date, what your price will be, and which packages you can move to. From there you have until thirty (30) days before the Term ends to do one of three things:"
+  },
+  {
+   "type": "p",
+   "text": "a. Nothing — it renews at the price in our notice;"
+  },
+  {
+   "type": "p",
+   "text": "b. Tell us in writing you're switching packages, effective on the renewal date; or"
+  },
+  {
+   "type": "p",
+   "text": "c. Tell us in writing you're not renewing, and the agreement ends when the Term does."
+  },
+  {
+   "type": "p",
+   "text": "If we don't send that notice on time, your price stays the same for the next Term."
+  },
+  {
+   "type": "h3",
+   "text": "3.3 Changing packages"
+  },
+  {
+   "type": "p",
+   "text": "Moving up: any time. We'll quote whatever build work the new package needs, and your monthly fee changes to the new rate on your next billing date."
+  },
+  {
+   "type": "p",
+   "text": "Moving down: at renewal only, using Section 3.2. The annual pricing is built around a full year of work, so downgrades wait for the renewal date."
+  },
+  {
+   "type": "h3",
+   "text": "3.4 Cancelling in the middle of a Term"
+  },
+  {
+   "type": "p",
+   "text": "You can cancel mid-Term with thirty (30) days' written notice. You'll owe an early cancellation fee equal to the monthly fees remaining in that Term, due on the day the cancellation takes effect."
+  },
+  {
+   "type": "p",
+   "text": "Both of us agree this fee is a fair estimate of what we lose when a year of planned, staffed, and priced work ends early. It is not a charge for work we didn't perform. We can reduce or waive it if we choose to."
+  },
+  {
+   "type": "p",
+   "text": "We can cancel mid-Term with sixty (60) days' written notice, and if we do, you owe nothing beyond the months you've already had."
+  },
+  {
+   "type": "p",
+   "text": "The subscription can't be paused or put on hold after launch. If you need to stop, cancel and start again later at whatever our prices are then. This doesn't limit our right to put a pre-launch build on hold under Section 4.9."
+  },
+  {
+   "type": "h3",
+   "text": "3.5 Cancelling because someone broke the agreement"
+  },
+  {
+   "type": "p",
+   "text": "Either of us can end this immediately, in writing, if the other seriously breaks the agreement and doesn't fix it within fifteen (15) days of being told in writing what's wrong. Late payment is handled under Section 2.5 instead."
+  },
+  {
+   "type": "h3",
+   "text": "3.6 What counts as proper notice"
+  },
+  {
+   "type": "p",
+   "text": "\"Proper notice\" means you told us in writing, you gave the full notice period required by Section 3.2 or Section 3.4, your account is current, and you haven't broken the agreement and left it unfixed. If we cancelled because you broke the agreement (Section 3.5), or your service ended after a suspension for non-payment (Section 2.5), that isn't proper notice."
+  },
+  {
+   "type": "h3",
+   "text": "3.7 Cancelling before the site launches"
+  },
+  {
+   "type": "p",
+   "text": "If you cancel before the Launch Date, you owe your deposit plus a fair share of the rest of the build fee covering the work already done, including competitor analysis, keyword research, and copywriting. If we cancel before launch for any reason other than you breaking the agreement, we refund your deposit minus the value of the work we've done."
+  },
+  {
+   "type": "h3",
+   "text": "3.8 You get your code"
+  },
+  {
+   "type": "p",
+   "text": "Within fifteen (15) business days after the cancellation takes effect, and once you've paid what Section 3.10 says is owed, we hand over, free:"
+  },
+  {
+   "type": "p",
+   "text": "a. The complete website source code — the repository, configuration, build scripts, and assets needed to build, run, and host your site anywhere you want;"
+  },
+  {
+   "type": "p",
+   "text": "b. Your site's text and images, every blog article we published for you, the keyword research and competitor analysis, your customer inquiry data (Section 11.2), and everything listed in Section 10.2, all in ordinary portable formats; and"
+  },
+  {
+   "type": "p",
+   "text": "c. A written summary of what the site needs in order to run — hosting requirements, environment variables, and the third-party services it depends on."
+  },
+  {
+   "type": "p",
+   "text": "You own it. You own the code we hand you, outright. There's no license to maintain, nothing to renew, and no restriction on what you do with it. Host it, change it, hire someone else to work on it — all fine."
+  },
+  {
+   "type": "p",
+   "text": "What we keep. We keep the right to reuse the same components, patterns, and techniques on other projects. That's how we build quickly, and it takes nothing away from you."
+  },
+  {
+   "type": "p",
+   "text": "A few third-party pieces don't transfer. Some fonts, plugins, or services are licensed to us rather than to you. We'll name every one of them in the summary above so you can license them directly. See Section 10.4."
+  },
+  {
+   "type": "p",
+   "text": "Moving the site is separate. Handing you the code costs nothing. Us setting the site up on a new host, moving DNS, and testing it is add-on work under Exhibit C."
+  },
+  {
+   "type": "h3",
+   "text": "3.9 When the site comes down"
+  },
+  {
+   "type": "p",
+   "text": "a. If you gave proper notice, your site stays live for thirty (30) days past the cancellation date, free, so you have time to move it. We take it down at the end of those thirty days."
+  },
+  {
+   "type": "p",
+   "text": "b. Otherwise — meaning we cancelled because you broke the agreement, or service ended after a suspension for non-payment — the site comes down the day cancellation takes effect. We'll keep it up longer if you ask in writing and pay the prorated monthly fee."
+  },
+  {
+   "type": "p",
+   "text": "c. Past those thirty days, either way, we'll keep it live on a rolling monthly basis at the prorated monthly fee for as long as we both agree."
+  },
+  {
+   "type": "p",
+   "text": "d. Your domain stays yours no matter what (Section 10.5), and we hand back admin access to your accounts (Section 10.7)."
+  },
+  {
+   "type": "h3",
+   "text": "3.10 What you owe when it ends"
+  },
+  {
+   "type": "p",
+   "text": "On the day cancellation takes effect, everything you've accrued is immediately due, including any early cancellation fee under Section 3.4 and any discount added back under Section 2.8. Also, your access to the monthly services stops and the content and optimization programs end, and fees you've already paid aren't refunded or prorated."
+  },
+  {
+   "type": "h2",
+   "text": "4. Building It: How It Goes and What We Need From You"
+  },
+  {
+   "type": "h3",
+   "text": "4.1 Three stages"
+  },
+  {
+   "type": "p",
+   "text": "We build in three stages. Each one ends with your approval, and that closes it."
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "Stage",
+     "What we show you",
+     "What you're approving"
+    ],
+    [
+     "One — Style",
+     "Four (4) design directions to pick from",
+     "The look and feel"
+    ],
+    [
+     "Two — Function",
+     "Every page the site will have, in structure only",
+     "The page set, the layouts, and how it works"
+    ],
+    [
+     "Three — Copy and Photography",
+     "The finished site, with real words and images",
+     "The site, for launch"
+    ]
+   ]
+  },
+  {
+   "type": "p",
+   "text": "Each stage includes one (1) round of changes, limited to that stage. A stage closes when you approve it in writing, or when Section 4.9 says it's approved because we didn't hear back. Once a stage closes, reopening it costs extra — see Section 4.10 and Exhibit C."
+  },
+  {
+   "type": "p",
+   "text": "The stages run in order. Each one starts when the one before it closes."
+  },
+  {
+   "type": "h3",
+   "text": "4.2 What we need from you"
+  },
+  {
+   "type": "p",
+   "text": "You'll give us:"
+  },
+  {
+   "type": "p",
+   "text": "a. Your pick of one of the four design directions from Stage One;"
+  },
+  {
+   "type": "p",
+   "text": "b. A filled-in questionnaire with accurate details about your business — what you offer, where you serve, who you serve, your hours, your licensing, and anything a customer would reasonably ask;"
+  },
+  {
+   "type": "p",
+   "text": "c. Your logo files and any photographs you want used, or your written go-ahead for us to source stock images;"
+  },
+  {
+   "type": "p",
+   "text": "d. Source material and business facts for the pages we're writing, delivered by the content lock date in Section 4.8. On this package we write your core page copy; we still need the facts from you;"
+  },
+  {
+   "type": "p",
+   "text": "e. Access to, or authority over, your domain registrar, Google Business Profile, and any analytics or social accounts we're connecting; and"
+  },
+  {
+   "type": "p",
+   "text": "f. An answer at each of the three stage gates, inside the window in Section 4.9."
+  },
+  {
+   "type": "h3",
+   "text": "4.3 How long it takes"
+  },
+  {
+   "type": "p",
+   "text": "We aim to launch two (2) to three (3) weeks after Stage One starts. That's an estimate, not a promise. How fast you respond at each stage is the biggest variable — delays on your side push the schedule out without changing what you pay."
+  },
+  {
+   "type": "h3",
+   "text": "4.4 Competitor and search-market analysis"
+  },
+  {
+   "type": "p",
+   "text": "Alongside Stage One, we look at who you're competing with in search, what they rank for, and where the openings are."
+  },
+  {
+   "type": "h3",
+   "text": "4.5 Keyword research and site structure"
+  },
+  {
+   "type": "p",
+   "text": "We then research the terms your customers actually search for, and use that plus the competitor work to shape your site's structure and page map. The page map that comes out of this sets what we build in Stage Two."
+  },
+  {
+   "type": "h3",
+   "text": "4.6 Stage One — Style"
+  },
+  {
+   "type": "p",
+   "text": "What we show you. We keep a library of house design directions: complete, working site styles we designed and built ahead of time. At Stage One we show you four (4) of them, picked as the best fits for your business. You choose one in writing."
+  },
+  {
+   "type": "p",
+   "text": "What choosing means. The direction you pick is a starting point, not a finished design. We customize it to your business through Stages Two and Three — color, type, imagery, spacing, and components all adapted to fit. You're choosing a direction, not approving a finished website."
+  },
+  {
+   "type": "p",
+   "text": "Changes at this stage. If none of the four works, say so once and we'll either show you up to two (2) more or adapt one of the original four, whichever we think serves you better. That's the one round of changes included here. Anything past that is billed under Exhibit C."
+  },
+  {
+   "type": "p",
+   "text": "Who owns what. You'll own the site we build for you, including its code — Section 10.2 covers that. The house design directions themselves stay part of our library and we keep using them for other clients, which is what makes them possible to offer at this price."
+  },
+  {
+   "type": "h3",
+   "text": "4.7 Stage Two — Function"
+  },
+  {
+   "type": "p",
+   "text": "You fill in the questionnaire. We then design every page your site will have, in structure only:"
+  },
+  {
+   "type": "p",
+   "text": "a. Real page layout, hierarchy, navigation, and where components sit;"
+  },
+  {
+   "type": "p",
+   "text": "b. Image areas drawn as outlined regions, not as placeholder photographs; and"
+  },
+  {
+   "type": "p",
+   "text": "c. All text shown as lorem ipsum or similar placeholder text."
+  },
+  {
+   "type": "p",
+   "text": "That's deliberate. Stage Two is where you decide whether the site does the right things and has the right pages. Stand-in photos and stand-in sentences pull attention onto details that aren't decided yet, so we leave them out on purpose."
+  },
+  {
+   "type": "p",
+   "text": "You're acknowledging that the outlined image regions and placeholder text are intentional; that nothing shown or missing at Stage Two tells you what the finished site will contain; and that your approval here covers the page set, layout, structure, and functionality only."
+  },
+  {
+   "type": "p",
+   "text": "Changes at this stage. You get one (1) round: add or remove pages, rework layouts, and fix functionality where we misread the questionnaire or a tool doesn't do what you need. Anything past that is billed under Exhibit C."
+  },
+  {
+   "type": "p",
+   "text": "Page count. Approving Stage Two locks the page set for the build fee. Pages added after it closes are billed under Exhibit C."
+  },
+  {
+   "type": "h3",
+   "text": "4.8 Stage Three — Copy and Photography"
+  },
+  {
+   "type": "p",
+   "text": "Content lock. Your final copy and photographs are due at the start of Stage Three, and we'll confirm that date in writing. Anything you send after the lock date, or anything you swap out after already sending it, is a change under Exhibit C rather than part of the build."
+  },
+  {
+   "type": "p",
+   "text": "We then place your final copy and images into the approved layouts and finish the site."
+  },
+  {
+   "type": "p",
+   "text": "Changes at this stage. You review the finished site and send all your feedback at once, in a single response. This round covers how we assembled the site: typos, an image in the wrong spot, cropping, spacing, alignment, broken links, and edits to copy we wrote."
+  },
+  {
+   "type": "p",
+   "text": "It does not cover: replacing copy or photographs you already sent, a different design direction, changes to the page set or layouts you approved at Stage Two, or new pages. Those reopen a closed stage — see Section 4.10."
+  },
+  {
+   "type": "h3",
+   "text": "4.9 Approving things, and what happens if you go quiet"
+  },
+  {
+   "type": "p",
+   "text": "Approvals have to be in writing; email is fine. If you don't respond to a request for approval, feedback, content, or any other decision within ten (10) business days, we can treat it as approved and move to the next stage. If we don't hear from you for thirty (30) days straight, we can invoice the rest of the build fee, put the project on hold, and charge one hundred fifty dollars ($150) to restart it."
+  },
+  {
+   "type": "h3",
+   "text": "4.10 Reopening a closed stage"
+  },
+  {
+   "type": "p",
+   "text": "You can ask to reopen a closed stage any time before launch. We'll quote the work in writing first and won't start until you approve the quote. Reopening is billed at the Exhibit C rates, and it resets the schedule for that stage and every stage after it."
+  },
+  {
+   "type": "h3",
+   "text": "4.11 Launch"
+  },
+  {
+   "type": "p",
+   "text": "We publish your site to your live domain and tell you in writing. The date of that notice is the \"Launch Date.\" It starts the monthly service and the billing schedule in Section 2.2, whether or not you've looked at the live site yet."
+  },
+  {
+   "type": "h3",
+   "text": "4.12 Getting the facts right"
+  },
+  {
+   "type": "p",
+   "text": "You're responsible for the accuracy of every business detail, claim, price, credential, license, and legal disclosure published on your site. We publish what you give us and don't independently check it."
+  },
+  {
+   "type": "h2",
+   "text": "5. Updates and Support"
+  },
+  {
+   "type": "h3",
+   "text": "5.1 Small content updates"
+  },
+  {
+   "type": "p",
+   "text": "Your monthly fee covers small content updates — text edits, swapping an image, changing hours or contact details, adding or removing a staff member or a service line, and similar changes that don't need a new page template, new design work, or a whole new page. Email us the request; there's no login for you to learn."
+  },
+  {
+   "type": "h3",
+   "text": "5.2 How fast we respond"
+  },
+  {
+   "type": "p",
+   "text": "We acknowledge support requests within one (1) business day and finish routine small updates within three (3) business days of having everything we need. Business days are Monday to Friday, not counting U.S. federal holidays."
+  },
+  {
+   "type": "h3",
+   "text": "5.3 Fair use"
+  },
+  {
+   "type": "p",
+   "text": "Small updates are offered on a fair-use basis. If your requests regularly run past four (4) requests or two (2) hours a month, we'll tell you, and we'll either agree on an hourly arrangement under Exhibit C or move you to a package that covers the volume."
+  },
+  {
+   "type": "h3",
+   "text": "5.4 If something's broken"
+  },
+  {
+   "type": "p",
+   "text": "Outages and site-down problems are handled under Section 6, not under the response times in Section 5.2."
+  },
+  {
+   "type": "h2",
+   "text": "6. Hosting, Uptime, and Backups"
+  },
+  {
+   "type": "h3",
+   "text": "6.1 Hosting"
+  },
+  {
+   "type": "p",
+   "text": "We host your site on infrastructure we choose, and we can change providers whenever we need to, as long as the change doesn't meaningfully hurt your site's speed or availability."
+  },
+  {
+   "type": "h3",
+   "text": "6.2 Monitoring"
+  },
+  {
+   "type": "p",
+   "text": "We watch your site for outages and errors, and we start working on problems we spot or that you report."
+  },
+  {
+   "type": "h3",
+   "text": "6.3 Uptime"
+  },
+  {
+   "type": "p",
+   "text": "We aim for 99.5% uptime each month. That target doesn't count scheduled maintenance, events outside our control, third-party provider failures, DNS or domain problems we don't control, downtime you cause, or any suspension under Section 2.5. We can't promise the site will never go down or never have an error."
+  },
+  {
+   "type": "h3",
+   "text": "6.4 Backups"
+  },
+  {
+   "type": "p",
+   "text": "We keep a rolling fourteen (14) day set of backups, and we'll restore from them free if your site is lost or damaged through no fault of yours."
+  },
+  {
+   "type": "h3",
+   "text": "6.5 Security"
+  },
+  {
+   "type": "p",
+   "text": "We apply routine platform and dependency updates. We're not responsible for a break-in that comes from your credentials, your third-party integrations, or an attack that reasonable security practices wouldn't have stopped."
+  },
+  {
+   "type": "h2",
+   "text": "7. Blog Content"
+  },
+  {
+   "type": "h3",
+   "text": "7.1 How many articles"
+  },
+  {
+   "type": "p",
+   "text": "We plan, write, edit, and publish twenty-four (24) SEO blog articles per Term — two (2) a month. Articles are planned against the keyword research in Section 4.5 and adjusted through the year based on the search performance review in Section 8."
+  },
+  {
+   "type": "h3",
+   "text": "7.2 What an article is"
+  },
+  {
+   "type": "p",
+   "text": "Every article is original, written for your business, and as long as the topic warrants — usually 800 to 1,400 words — with on-page SEO elements, internal links, and an image where one helps."
+  },
+  {
+   "type": "h3",
+   "text": "7.3 Scheduling"
+  },
+  {
+   "type": "p",
+   "text": "We run the editorial calendar and the publishing schedule. Articles start going out the month after your Launch Date unless we agree otherwise."
+  },
+  {
+   "type": "h3",
+   "text": "7.4 Your review"
+  },
+  {
+   "type": "p",
+   "text": "We email you each article about one (1) week before it's scheduled to publish. You don't have to approve it. If we don't hear back, it publishes on schedule. What we need from you is a flag on anything factually wrong about your business, and we'll fix that before it goes out."
+  },
+  {
+   "type": "h3",
+   "text": "7.5 Rewrites"
+  },
+  {
+   "type": "p",
+   "text": "Fixing facts is included. Rewrites you want for preference reasons, past one (1) revision pass per article, are billed under Exhibit C."
+  },
+  {
+   "type": "h3",
+   "text": "7.6 Articles you don't use"
+  },
+  {
+   "type": "p",
+   "text": "Articles run on the monthly schedule. They don't roll over, bank, or accumulate. Articles we didn't publish because you delayed things, service was suspended, or the agreement ended are gone, and they aren't refunded or made up later. The early cancellation fee in Section 3.4 isn't a charge for those articles — it's the fee described there."
+  },
+  {
+   "type": "h3",
+   "text": "7.7 Who owns the articles"
+  },
+  {
+   "type": "p",
+   "text": "Once you've paid the monthly fee for the month an article published in, that article is yours. It stays yours after this agreement ends, and Section 3.8 covers how we hand everything over."
+  },
+  {
+   "type": "h2",
+   "text": "8. Ongoing Optimization"
+  },
+  {
+   "type": "h3",
+   "text": "8.1 The program"
+  },
+  {
+   "type": "p",
+   "text": "Beyond the content in Section 7, we actively work your site through the year. That means:"
+  },
+  {
+   "type": "p",
+   "text": "a. Watching your search performance in Google Search Console and analytics;"
+  },
+  {
+   "type": "p",
+   "text": "b. Watching the competitive landscape and where your rankings are moving;"
+  },
+  {
+   "type": "p",
+   "text": "c. Updating existing pages — copy, headings, metadata, internal linking, structure — when the data points somewhere useful; and"
+  },
+  {
+   "type": "p",
+   "text": "d. Building strategic supporting pages when they'll help you rank or convert."
+  },
+  {
+   "type": "h3",
+   "text": "8.2 How much"
+  },
+  {
+   "type": "p",
+   "text": "Optimization is continuous rather than a fixed list of deliverables. We commit to at least twenty-four (24) optimization actions or twelve (12) hours per Term, measured across the year. We decide which pages to work on and when, based on what the data supports."
+  },
+  {
+   "type": "h3",
+   "text": "8.3 Supporting pages"
+  },
+  {
+   "type": "p",
+   "text": "Strategic supporting pages we build under Section 8.1(d) are included in your monthly fee, up to four (4) pages per Term. Past that, extra SEO pages are billed under Exhibit C. Pages we start on our own aren't the same as pages you request — pages you ask for are billed under Exhibit C either way."
+  },
+  {
+   "type": "h3",
+   "text": "8.4 Changing pages without asking first"
+  },
+  {
+   "type": "p",
+   "text": "We can change existing page copy, headings, metadata, and structure without checking with you first, when it's optimization work under this Section. We won't change your pricing, service descriptions, claims, credentials, or contact details without your written approval. We'll summarize any meaningful page changes in the quarterly and yearly reporting under Section 9.2."
+  },
+  {
+   "type": "h3",
+   "text": "8.5 Not a promise of volume"
+  },
+  {
+   "type": "p",
+   "text": "This program is a commitment to attention and judgment, not to a set number of pages, rankings, or results."
+  },
+  {
+   "type": "h2",
+   "text": "9. Search Monitoring and Reporting"
+  },
+  {
+   "type": "h3",
+   "text": "9.1 What's included"
+  },
+  {
+   "type": "p",
+   "text": "Search Plus includes full on-page technical SEO setup, analytics installation, Google Search Console setup and ongoing monitoring, Google Business Profile connection, competitor and search-market analysis, a yearly keyword refresh, and a yearly Google Business Profile check."
+  },
+  {
+   "type": "h3",
+   "text": "9.2 Reporting"
+  },
+  {
+   "type": "p",
+   "text": "We send you a written performance summary every quarter, covering search performance, what we published, and what optimization we did, plus a plain-English recap once every twelve (12) months you're subscribed."
+  },
+  {
+   "type": "h3",
+   "text": "9.3 No ranking promise"
+  },
+  {
+   "type": "p",
+   "text": "We can't promise any search ranking, traffic level, lead volume, conversion rate, or revenue. Search engines run their own algorithms, and results depend on things we don't control — your competition, your market, and your business. We're committing to the work described here, not to an outcome."
+  },
+  {
+   "type": "h3",
+   "text": "9.4 What we won't do"
+  },
+  {
+   "type": "p",
+   "text": "We don't use link schemes, cloaking, keyword stuffing, scraped or spun content, or anything else that breaks search engine guidelines."
+  },
+  {
+   "type": "h3",
+   "text": "9.5 Working with your competitors"
+  },
+  {
+   "type": "p",
+   "text": "We can take on other clients, including businesses in your industry. We won't use your confidential information to help another client. If you want an exclusivity arrangement for a defined service area, ask — if we agree, it goes in a signed amendment and may carry its own fee."
+  },
+  {
+   "type": "h2",
+   "text": "10. Who Owns What"
+  },
+  {
+   "type": "h3",
+   "text": "10.1 Your materials"
+  },
+  {
+   "type": "p",
+   "text": "Your logos, images, text, trademarks, and anything else you hand us stays yours (\"Client Materials\"). You're giving us permission to use, change, and publish them as needed to do the work."
+  },
+  {
+   "type": "h3",
+   "text": "10.2 What you own"
+  },
+  {
+   "type": "p",
+   "text": "Once you've paid the build fee and anything else due, you own everything we made for you: the website source code, the finished page designs, the page structure, the written page copy, the keyword research, the competitor analysis, the published blog articles, and the written content. We call all of that the \"Deliverables.\" You own it outright — there's no license to maintain and no restriction on what you do with it. It stays yours after this agreement ends, and Section 3.8 covers how we hand it over."
+  },
+  {
+   "type": "h3",
+   "text": "10.3 What we keep"
+  },
+  {
+   "type": "p",
+   "text": "We keep the right to reuse the components, patterns, templates, tooling, workflows, and know-how we used while building your site, on other projects and for other clients, without asking you. Reusing our own techniques is how we build quickly and price the way we do. It takes nothing away from what you own under Section 10.2 and doesn't limit anything you do with your site."
+  },
+  {
+   "type": "h3",
+   "text": "10.4 Third-party pieces"
+  },
+  {
+   "type": "p",
+   "text": "Fonts, stock images, plugins, and open-source components come with their own licenses, and those pass through to you. A few are licensed to us and don't transfer — we'll name them if you ask, and we list every one of them in the handover summary under Section 3.8(c) so you can license them yourself."
+  },
+  {
+   "type": "h3",
+   "text": "10.5 Your domain"
+  },
+  {
+   "type": "p",
+   "text": "The domain is yours. It's registered in your name, on your account, and it stays yours whatever happens to this agreement. Renewing it is your job. If we registered it or manage it for you, we'll hand over full control within five (5) business days of you asking."
+  },
+  {
+   "type": "h3",
+   "text": "10.6 Showing the work"
+  },
+  {
+   "type": "p",
+   "text": "We may show your website, screenshots of it, and a description of the work in our portfolio, case studies, and marketing, and put a small credit line and link in your site's footer. Ask in writing and we'll take the footer credit off, or keep the site out of our portfolio altogether."
+  },
+  {
+   "type": "h3",
+   "text": "10.7 Your accounts"
+  },
+  {
+   "type": "p",
+   "text": "Your Google Business Profile, Google Analytics, Google Search Console, and any other connected accounts are yours, set up in your name wherever the platform allows it. We hold admin access only while this agreement is running, and we hand it back when it ends."
+  },
+  {
+   "type": "h2",
+   "text": "11. Confidentiality and Your Customers' Data"
+  },
+  {
+   "type": "h3",
+   "text": "11.1 Keeping things confidential"
+  },
+  {
+   "type": "p",
+   "text": "Each of us will keep the other's non-public business, financial, customer, and technical information confidential, and use it only to do or receive the work. That doesn't apply to information that's already public through no fault of ours, that we already knew, that we worked out independently, or that the law requires us to disclose. This survives the end of the agreement by three (3) years."
+  },
+  {
+   "type": "h3",
+   "text": "11.2 Your customers' data"
+  },
+  {
+   "type": "p",
+   "text": "Anything your customers submit through your site — inquiry forms, contact details, similar personal information — is yours. We call it \"Client Data.\" We handle it only to run and maintain your site for you. We don't sell it, use it for our own marketing, or disclose it except where the law requires."
+  },
+  {
+   "type": "p",
+   "text": "Your privacy policy is yours to write, and so is any notice or consent your customers need to be given, and the lawfulness of whatever you're asking the site to collect. Client Data is part of what we hand over under Section 3.8. If you ask in writing after cancellation, we'll delete our copies within thirty (30) days, except for copies sitting in routine backups, which go as those backups expire."
+  },
+  {
+   "type": "h2",
+   "text": "12. Promises, Disclaimers, and Liability"
+  },
+  {
+   "type": "h3",
+   "text": "12.1 What we both promise"
+  },
+  {
+   "type": "p",
+   "text": "Each of us has the authority to enter this agreement, and each of us will follow the law while doing what it requires."
+  },
+  {
+   "type": "h3",
+   "text": "12.2 What you promise"
+  },
+  {
+   "type": "p",
+   "text": "You own or have the right to use everything you give us, none of it infringes anyone else's rights or breaks any law, and the business facts you give us are accurate."
+  },
+  {
+   "type": "h3",
+   "text": "12.3 What we promise"
+  },
+  {
+   "type": "p",
+   "text": "We'll perform the work professionally and competently, to normal industry standards. If we don't, your remedy is that we redo the affected work."
+  },
+  {
+   "type": "h3",
+   "text": "12.4 Disclaimer"
+  },
+  {
+   "type": "p",
+   "text": "EXCEPT AS EXPRESSLY STATED IN THIS AGREEMENT, THE SERVICES AND THE WEBSITE ARE PROVIDED \"AS IS,\" AND KEEPSITE DISCLAIMS ALL OTHER WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. NO SEARCH PERFORMANCE OUTCOME IS WARRANTED."
+  },
+  {
+   "type": "h3",
+   "text": "12.5 Limit on liability"
+  },
+  {
+   "type": "p",
+   "text": "NEITHER PARTY IS LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR LOST PROFITS, LOST REVENUE, LOST DATA, LOST RANKINGS, OR LOST BUSINESS OPPORTUNITY, EVEN IF ADVISED OF THE POSSIBILITY. KEEPSITE'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT WILL NOT EXCEED THE AMOUNTS CLIENT PAID TO KEEPSITE IN THE TWELVE (12) MONTHS PRECEDING THE EVENT GIVING RISE TO THE CLAIM. These limits don't apply to what you owe us, to either side's indemnification obligations, or to gross negligence, willful misconduct, or fraud."
+  },
+  {
+   "type": "h3",
+   "text": "12.6 Covering each other's claims"
+  },
+  {
+   "type": "p",
+   "text": "Client will defend, indemnify, and hold Keepsite harmless from any third-party claim arising out of Client Materials, Client's business, Client's products or services, factual inaccuracies you didn't correct under Section 7.4, or Client's breach of Section 12.2. Keepsite will defend, indemnify, and hold Client harmless from any third-party claim that the Deliverables, excluding Client Materials, infringe that third party's intellectual property rights."
+  },
+  {
+   "type": "h2",
+   "text": "13. Everything Else"
+  },
+  {
+   "type": "h3",
+   "text": "13.1 We're a contractor"
+  },
+  {
+   "type": "p",
+   "text": "Keepsite is an independent contractor. Nothing here makes us partners, a joint venture, employer and employee, or agent and principal."
+  },
+  {
+   "type": "h3",
+   "text": "13.2 Subcontractors"
+  },
+  {
+   "type": "p",
+   "text": "We can use subcontractors, and we stay responsible for their work."
+  },
+  {
+   "type": "h3",
+   "text": "13.3 Don't hire our people"
+  },
+  {
+   "type": "p",
+   "text": "While this agreement is running, and for twelve (12) months after it ends, you won't directly recruit or hire anyone we told you was working on your account, unless we agree in writing."
+  },
+  {
+   "type": "h3",
+   "text": "13.4 Things outside our control"
+  },
+  {
+   "type": "p",
+   "text": "Neither of us is liable for delay or failure caused by something beyond our reasonable control — natural disasters, war, civil unrest, labor disputes, government action, internet or utility failures, or third-party provider failures."
+  },
+  {
+   "type": "h3",
+   "text": "13.5 Handing this agreement to someone else"
+  },
+  {
+   "type": "p",
+   "text": "Neither of us can assign this agreement without the other's written consent, except to a successor in a merger or a sale of substantially all the business."
+  },
+  {
+   "type": "h3",
+   "text": "13.6 Notices"
+  },
+  {
+   "type": "p",
+   "text": "Notices have to be in writing, sent to the email addresses in Schedule 1 and the signature block, or to any address either of us later designates in writing. A notice counts as delivered the business day it's sent, or the next business day if it goes out after 5:00 p.m. Mountain Time."
+  },
+  {
+   "type": "h3",
+   "text": "13.7 Which state's law applies, and where disputes go"
+  },
+  {
+   "type": "p",
+   "text": "This agreement is governed by the laws of the State of Utah, without regard to conflict-of-law rules. Any dispute goes to the state or federal courts in Utah County, Utah, and both of us agree to that."
+  },
+  {
+   "type": "h3",
+   "text": "13.8 Working it out first"
+  },
+  {
+   "type": "p",
+   "text": "Before anyone files suit, we'll both try in good faith to sort it out by talking for thirty (30) days, and then through mediation in Utah with the cost split evenly. That doesn't stop either of us from seeking an injunction."
+  },
+  {
+   "type": "h3",
+   "text": "13.9 Legal fees"
+  },
+  {
+   "type": "p",
+   "text": "Whoever wins an action to enforce this agreement can recover reasonable attorneys' fees and costs."
+  },
+  {
+   "type": "h3",
+   "text": "13.10 If one part fails"
+  },
+  {
+   "type": "p",
+   "text": "If any provision turns out to be unenforceable, the rest stays in force, and that provision gets narrowed just enough to make it work."
+  },
+  {
+   "type": "h3",
+   "text": "13.11 Letting something slide"
+  },
+  {
+   "type": "p",
+   "text": "If either of us doesn't enforce something once, that doesn't give up the right to enforce it later."
+  },
+  {
+   "type": "h3",
+   "text": "13.12 This is the whole agreement"
+  },
+  {
+   "type": "p",
+   "text": "This agreement, including Schedule 1 and Exhibits A, B, C, and D where attached, is the entire agreement between the Parties on this subject and supersedes all prior proposals, quotes, and discussions. It may be amended only in a writing signed by both Parties, except for the price adjustments permitted by Section 2.6."
+  },
+  {
+   "type": "h3",
+   "text": "13.13 What outlives the agreement"
+  },
+  {
+   "type": "p",
+   "text": "Sections 2 (for amounts owed), 3.4, 3.8, 3.9, 3.10, 7.7, 10, 11, 12, and 13 keep applying after this agreement ends."
+  },
+  {
+   "type": "h3",
+   "text": "13.14 Signing"
+  },
+  {
+   "type": "p",
+   "text": "This agreement can be signed in counterparts and electronically, and each copy counts as an original."
+  },
+  {
+   "type": "h2",
+   "text": "Signatures"
+  },
+  {
+   "type": "signatures",
+   "intro": "Both Parties sign electronically. The Effective Date is the date of the last signature below.",
+   "parties": [
+    {
+     "party": "keepsite",
+     "label": "KEEPSITE MEDIA",
+     "name": "Sierra Nichols",
+     "title": "Member and Manager",
+     "email": "keepsitemedia@gmail.com"
+    },
+    {
+     "party": "client",
+     "label": "CLIENT — the business identified in Schedule 1",
+     "name": "{{signerName}}",
+     "title": "{{signerTitle}}",
+     "email": "{{email}}"
+    }
+   ],
+   "note": "Client's business name, address, notice email, and phone are recorded in Schedule 1 and are not repeated here."
+  },
+  {
+   "type": "h1",
+   "text": "EXHIBIT A — Search Plus Build Scope"
+  },
+  {
+   "type": "p",
+   "text": "One-time build fee: $2,000"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "#",
+     "Included"
+    ],
+    [
+     "1",
+     "Everything in the Search build"
+    ],
+    [
+     "2",
+     "Custom website design and build, mobile-first"
+    ],
+    [
+     "3",
+     "The number of pages stated in Schedule 1 (default ten; page map from Section 4.5; the page set is fixed on approval at Stage Two)"
+    ],
+    [
+     "4",
+     "Competitor and search-market analysis"
+    ],
+    [
+     "5",
+     "Deeper keyword research based on competitor gaps"
+    ],
+    [
+     "6",
+     "Search-informed site structure and page map"
+    ],
+    [
+     "7",
+     "Positioning and SEO copy written by Keepsite, shaped by what competitors miss"
+    ],
+    [
+     "8",
+     "Full on-page technical SEO setup — title tags, meta descriptions, headings, schema markup, sitemap, indexability, internal linking, mobile responsiveness, page speed fundamentals"
+    ],
+    [
+     "9",
+     "Google Analytics and Google Search Console setup"
+    ],
+    [
+     "10",
+     "Google Business Profile connection and social profile links"
+    ],
+    [
+     "11",
+     "Blog architecture built and configured for the ongoing content program"
+    ],
+    [
+     "12",
+     "Inquiry page and form routed to Client's email address or existing CRM (simple embed)"
+    ],
+    [
+     "13",
+     "SSL certificate and DNS configuration"
+    ],
+    [
+     "14",
+     "One (1) tone-setting call with Client"
+    ],
+    [
+     "15",
+     "Pre-launch testing across current major browsers and mobile devices"
+    ],
+    [
+     "16",
+     "Selection from four (4) house design directions at Stage One"
+    ],
+    [
+     "17",
+     "One (1) round of changes at each of the three build stages"
+    ]
+   ]
+  },
+  {
+   "type": "p",
+   "text": "Not included in the build: e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, paid advertising management, and pages beyond the approved page map."
+  },
+  {
+   "type": "h1",
+   "text": "EXHIBIT B — Search Plus Monthly Services"
+  },
+  {
+   "type": "p",
+   "text": "Monthly subscription fee: $275 per month"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "#",
+     "Included every month"
+    ],
+    [
+     "1",
+     "Everything in the Search subscription"
+    ],
+    [
+     "2",
+     "Website hosting"
+    ],
+    [
+     "3",
+     "Routine maintenance — platform, dependency, and security updates"
+    ],
+    [
+     "4",
+     "Uptime and error monitoring"
+    ],
+    [
+     "5",
+     "Minor content updates as defined in Section 5.1"
+    ],
+    [
+     "6",
+     "SSL certificate renewal and management"
+    ],
+    [
+     "7",
+     "Backups per Section 6.4"
+    ],
+    [
+     "8",
+     "Two (2) SEO blog articles per month — 24 per Term — planned, written, edited, and published"
+    ],
+    [
+     "9",
+     "Google Search Console and analytics monitoring"
+    ],
+    [
+     "10",
+     "Active review of search performance and the competitive landscape"
+    ],
+    [
+     "11",
+     "Updates to existing pages when the data points somewhere useful"
+    ],
+    [
+     "12",
+     "Email support with the response times in Section 5.2"
+    ]
+   ]
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "#",
+     "Included through the Term"
+    ],
+    [
+     "13",
+     "Strategic supporting pages when they will help — up to four (4) per year under Section 8.3"
+    ],
+    [
+     "14",
+     "Quarterly written performance summary"
+    ],
+    [
+     "15",
+     "Annual keyword refresh"
+    ],
+    [
+     "16",
+     "Annual Google Business Profile check"
+    ],
+    [
+     "17",
+     "A plain-English performance and maintenance recap"
+    ]
+   ]
+  },
+  {
+   "type": "p",
+   "text": "Not included in the monthly: full site redesigns, Client-requested new pages beyond the optimization allowance, paid advertising management, and any work listed in Exhibit C."
+  },
+  {
+   "type": "h1",
+   "text": "EXHIBIT C — Add-On Services"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "Service",
+     "Rate"
+    ],
+    [
+     "Additional standard page",
+     "$180 per page — uses the existing site style and Client-supplied copy; no new keyword research"
+    ],
+    [
+     "Additional SEO page",
+     "$270 per page — a Client-requested search-informed service or location page, or a supporting page beyond the annual allowance in Section 8.3"
+    ],
+    [
+     "Full copy development",
+     "$90 per hour — for material beyond the core pages included in the build"
+    ],
+    [
+     "Advanced integration",
+     "$90 per hour, quoted first — booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed"
+    ],
+    [
+     "Additional article revision pass",
+     "$90 per hour"
+    ],
+    [
+     "Additional round of changes, or reopening a closed stage",
+     "$90 per hour"
+    ],
+    [
+     "Extra blog articles beyond 24 per year",
+     "$140 per article"
+    ],
+    [
+     "Major website expansion",
+     "Custom quote — new service lines, large content migrations, or anything that materially changes the original scope"
+    ],
+    [
+     "Migration to another provider",
+     "$90 per hour — for Keepsite to configure a new host, move DNS, and test. The source code export itself is free under Section 3.8."
+    ]
+   ]
+  },
+  {
+   "type": "p",
+   "text": "Changing packages. Moving up happens whenever you want: we quote the difference in build work, and your monthly fee changes to the new rate on your next billing date. Moving down happens at renewal, using the notice in Section 3.2. See Section 3.3."
+  },
+  {
+   "type": "p",
+   "text": "All add-on work requires written approval before it begins. Add-on fees are invoiced on completion and due on receipt unless stated otherwise."
+  },
+  {
+   "type": "h1",
+   "text": "EXHIBIT D — Discount Schedule",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "Attach this Exhibit only when Schedule 1 marks a discount as applied. If it is not attached, no discount applies and the standard fees in Sections 2.1 and 2.2 govern.",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "(a) Build Fee discount",
+   "section": "discount"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "Discount or promotion name",
+     "{{discount.name}}"
+    ],
+    [
+     "Type",
+     "{{discount.type}}"
+    ],
+    [
+     "Amount",
+     "{{discount.amount}}"
+    ],
+    [
+     "Standard Build Fee",
+     "$2,000"
+    ],
+    [
+     "Adjusted Build Fee",
+     "{{discount.adjustedBuildFee}}"
+    ]
+   ],
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "The deposit and balance in Schedule 1 are calculated from the Adjusted Build Fee.",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "(b) Monthly Fee discount",
+   "section": "discount"
+  },
+  {
+   "type": "table",
+   "rows": [
+    [
+     "Type",
+     "{{discount.monthlyType}}"
+    ],
+    [
+     "Amount",
+     "{{discount.monthlyAmount}}"
+    ],
+    [
+     "Standard Monthly Fee",
+     "$275 per month"
+    ],
+    [
+     "Discounted Monthly Fee",
+     "{{discount.discountedMonthlyFee}}"
+    ],
+    [
+     "Applies to",
+     "the first {{discount.months}} months of the subscription"
+    ]
+   ],
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "When the discount period ends, the Monthly Fee returns to the standard rate in Section 2.2 automatically and without further notice. If no number of months is entered, the monthly discount applies to the first Term only.",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "(c) Conditions. A discount granted in exchange for Client's participation — a founding-client, pilot, or portfolio rate, for example — is conditioned on Client doing the following. Mark all that apply. If none are marked, no participation condition attaches.",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "{{discount.conditions}}",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "If Client does not meet a condition marked above, Keepsite may, after giving Client fifteen (15) days' written notice and an opportunity to cure, invoice the discounted amount, which then becomes immediately due.",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "(d) Limits. Each discount is one-time, personal to Client, non-transferable, and has no cash value. Discounts do not apply to add-on services under Exhibit C, to third-party costs under Section 2.7, or to any renewal term, and do not combine with any other offer unless stated in subsection (a) or (b). An offered discount expires if this Agreement is not signed by the date stated in the offer.",
+   "section": "discount"
+  },
+  {
+   "type": "p",
+   "text": "(e) Recapture. Early cancellation triggers recapture of the full discounted amount under Section 2.8.",
+   "section": "discount"
+  }
+ ]
+}

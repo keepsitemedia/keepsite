@@ -8,11 +8,11 @@
   "steps": [
     {
       "title": "Tell us about your business.",
-      "body": "One questionnaire covers it. We ask for everything we need in one pass, so you're not answering questions in dribs and drabs for three weeks."
+      "body": "Eight questions, and most of them you can answer off the top of your head. That is everything we need to put four designs in front of you."
     },
     {
       "title": "Pick a direction.",
-      "body": "We send you one page with four different home page designs on it. You pick the direction that looks like your business. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
+      "body": "We send you one page with four different home page designs on it. You pick the direction that looks like your business, then answer the two questionnaires that follow — one on your brand and the demo, one to drive the build. Each is one pass, not a back-and-forth. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
     },
     {
       "title": "We lay out every page.",
@@ -62,9 +62,9 @@
       {
         "label": "Stage 2",
         "title": "Function",
-        "see": "A layout for every page the site will have. Image areas are outlined boxes and the text is left blank.",
+        "see": "A layout for every page the site will have. Image areas are outlined boxes and the text is lorem ipsum, the standard placeholder.",
         "decide": "Whether the site has every page you need.",
-        "note": "The blank text is on purpose. If we filled it in, you'd read the words instead of looking at the page, and the words aren't written yet.",
+        "note": "The placeholder text is on purpose. If we filled it in with real words, you'd read them instead of looking at the page, and they aren't written yet.",
         "tiers": [
           {
             "name": "Presence",
@@ -167,7 +167,7 @@
   "wontHaveTo": {
     "heading": "What you won't have to do",
     "items": [
-      "No website homework.",
+      "No web-building homework.",
       "No blank page to stare at.",
       "No standing meetings.",
       "No logging into anything.",

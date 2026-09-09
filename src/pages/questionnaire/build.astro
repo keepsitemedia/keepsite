@@ -1,0 +1,22 @@
+---
+import fs from 'node:fs';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Questionnaire from '../../components/Questionnaire.astro';
+import definition from '../../data/questionnaires/build.json';
+
+// Read at build time, inlined below, so the one script source
+// (src/scripts/questionnaire.js) ships to all three pages without Astro
+// splitting it into a separately-fetched shared chunk.
+const questionnaireScript = fs.readFileSync('src/scripts/questionnaire.js', 'utf8');
+---
+<BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex={true}>
+  <section class="section">
+    <div class="container narrow">
+      <h1>{definition.title}</h1>
+      <p class="lead">{definition.lead}</p>
+      <Questionnaire definition={definition} slug="" token="" />
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline set:html={questionnaireScript} />

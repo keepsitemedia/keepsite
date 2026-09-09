@@ -3,6 +3,8 @@ dist/
 .astro/
 .DS_Store
 .env
+.netlify/
+.office-data/
 
 # Never commit: internal business documents, contracts, credentials.
 *.docx

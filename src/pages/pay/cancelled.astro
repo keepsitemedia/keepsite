@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
+---
+<BaseLayout title="Payment not completed | Keepsite Media" description="No payment was made." noindex>
+  <section class="section">
+    <div class="container narrow">
+      <h1>No payment was made</h1>
+      <p class="lead">The payment link is still good whenever you are ready. If something on the payment page did not work, email <a href={`mailto:${site.email}`}>{site.email}</a> and we will sort it out.</p>
+    </div>
+  </section>
+</BaseLayout>

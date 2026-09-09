@@ -1,0 +1,98 @@
+// The seed is read by the settings page, the pipeline module, and the
+// dashboard. A malformed seed fails in three places; catch it here.
+import fs from 'node:fs';
+import { validatePipelines } from '../netlify/functions/lib/office/pipeline.mjs';
+// Templates are the other half of the pipeline seed: a stage that names an
+// email nobody wrote opens a 404 at the moment the admin advances a client.
+import { validateTemplates, placeholdersIn, KNOWN_PLACEHOLDERS } from '../netlify/functions/lib/office/templates.mjs';
+import { loadAgreementTemplates, validateAgreementTemplate } from '../netlify/functions/lib/office/agreement-templates.mjs';
+
+const seed = JSON.parse(fs.readFileSync('src/data/office/pipelines.json', 'utf8'));
+const errors = validatePipelines(seed);
+
+// The agreement templates are generated, but a stale or hand-edited copy
+// would reach a client as a contract; validate them on every gate.
+for (const t of loadAgreementTemplates()) {
+  errors.push(...validateAgreementTemplate(t).map((e) => `agreement ${t.id}: ${e}`));
+}
+
+const templates = JSON.parse(fs.readFileSync('src/data/office/templates.json', 'utf8'));
+errors.push(...validateTemplates(templates));
+const templateIds = new Set(templates.map((t) => t.id));
+for (const p of seed) {
+  for (const s of p.stages) {
+    if (s.email && !templateIds.has(s.email)) errors.push(`${p.id}/${s.id}: email "${s.email}" has no template`);
+  }
+}
+for (const t of templates) {
+  const prompted = new Set((t.fields ?? []).map((f) => f.key));
+  for (const name of placeholdersIn(`${t.subject}\n${t.body}`)) {
+    if (!KNOWN_PLACEHOLDERS.includes(name) && !prompted.has(name)) {
+      errors.push(`template ${t.id}: {{${name}}} is neither an auto-fill placeholder nor a prompted field`);
+    }
+  }
+}
+const forms = new Set(fs.readdirSync('src/data/questionnaires').map((f) => f.replace(/\.json$/, '')));
+for (const p of seed) {
+  for (const q of p.questionnaires ?? []) {
+    if (!forms.has(q)) errors.push(`${p.id}: questionnaire "${q}" has no definition in src/data/questionnaires`);
+  }
+  for (const s of p.stages) {
+    for (const t of s.tasks) {
+      if (t.questionnaire && !(p.questionnaires ?? []).includes(t.questionnaire)) {
+        errors.push(`${p.id}/${s.id}: task "${t.title}" names questionnaire "${t.questionnaire}" the pipeline does not declare`);
+      }
+    }
+  }
+}
+// A hidden input and a button sharing a name is exactly the bug the two
+// stage/task forms shipped with: FormData.get() returns whichever control
+// comes first in the DOM, silently discarding the button the admin clicked.
+// Catch it statically so it cannot come back unnoticed in a new form.
+// /sign/ posts anonymously on a bare token (task 7) with the same failure
+// mode as an office form, so every page under src/pages is in scope, not
+// just src/pages/office.
+const OFFICE_ASTRO = [
+  ...walk('src/pages').filter((f) => f.endsWith('.astro')),
+  ...fs.readdirSync('src/components/office').filter((f) => f.endsWith('.astro')).map((f) => `src/components/office/${f}`),
+];
+
+function walk(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true, recursive: true })
+    .filter((e) => e.isFile())
+    .map((e) => `${e.parentPath ?? e.path}/${e.name}`);
+}
+
+function nameAttr(tag) {
+  const m = tag.match(/\sname="([^"]*)"/);
+  return m ? m[1] : null;
+}
+
+for (const file of OFFICE_ASTRO) {
+  const src = fs.readFileSync(file, 'utf8');
+  for (const formMatch of src.matchAll(/<form\b[^>]*>([\s\S]*?)<\/form>/g)) {
+    const body = formMatch[1];
+    const buttonNames = new Set();
+    const nonButtonNames = [];
+    for (const tag of body.matchAll(/<(input|select|textarea|button)\b[^>]*>/gi)) {
+      const name = nameAttr(tag[0]);
+      if (!name) continue;
+      if (tag[1].toLowerCase() === 'button') buttonNames.add(name);
+      else nonButtonNames.push(name);
+    }
+    const seen = new Set();
+    for (const name of nonButtonNames) {
+      if (seen.has(name)) errors.push(`${file}: "${name}" is used on two non-button controls in one form`);
+      seen.add(name);
+    }
+    for (const name of buttonNames) {
+      if (seen.has(name)) errors.push(`${file}: "${name}" is used on both a button and a non-button control in one form`);
+    }
+  }
+}
+
+if (errors.length) {
+  console.error(errors.join('\n'));
+  process.exit(1);
+}
+console.log('office seed ok');

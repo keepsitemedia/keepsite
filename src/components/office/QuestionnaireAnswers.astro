@@ -1,0 +1,20 @@
+---
+interface Props { definition: any; submission: any }
+const { definition, submission } = Astro.props;
+const questions = definition.sections.flatMap((s: any) => s.questions);
+const show = (v: unknown) => (Array.isArray(v) ? v.join(', ') : v == null || v === '' ? '' : String(v));
+---
+<dl>
+  {questions.map((q: any) => {
+    const v = show(submission.answers?.[q.key]);
+    return (
+      <>
+        <dt>{q.label}</dt>
+        <dd class={v ? '' : 'empty'}>{v || 'Skipped'}</dd>
+      </>
+    );
+  })}
+</dl>
+{submission.files?.length > 0 && (
+  <p class="muted">Files: {submission.files.map((f: any) => f.name).join(', ')}</p>
+)}

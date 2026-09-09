@@ -91,6 +91,239 @@ Netlify Forms is automatic — Netlify detects the `inquiry` form on the `/start
 2. Then set up the notification: **Forms → Form notifications → Add notification → Email notification**.
 3. Send to **keepsitemedia@gmail.com**.
 
+## Running the client questionnaires
+
+Three token-gated forms live at `/questionnaire/intro/`, `/questionnaire/brand/`
+and `/questionnaire/build/`. They post to a Netlify Function
+(`netlify/functions/questionnaire.mjs`), which writes the answers to Netlify
+Blobs and emails them as a JSON attachment through [Resend](https://resend.com).
+
+### Environment variables
+
+Set all four in **Netlify → Site configuration → Environment variables**. They
+fail quietly in opposite directions, which is why they are worth checking after
+every secret rotation.
+
+| Variable | What it does | What happens without it |
+|---|---|---|
+| `KEEPSITE_TOKEN_SECRET` | The HMAC secret every questionnaire link is derived from. | Every submission is refused with a 403. The function never fails open. |
+| `RESEND_API_KEY` | Authenticates the notification email. | **The blob is written and nobody is told a submission arrived.** The client sees the thanks page and everything looks fine. |
+| `KEEPSITE_NOTIFY_FROM` | The `from` address on that email. Must be on a domain verified in Resend. | Resend rejects the send, and the same silence as above. |
+| `KEEPSITE_NOTIFY_TO` | Where the JSON attachment is delivered — `keepsitemedia@gmail.com`. | Same. |
+
+`KEEPSITE_TOKEN_SECRET` is also needed locally to mint links. Any long random
+string works; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
+
+Rotating it invalidates every link ever issued, for every client, at once.
+That is the only revocation there is, by design — see the design doc under
+`docs/superpowers/specs/`. Reissue links to anyone mid-questionnaire.
+
+### Minting a client's links
+
+```bash
+KEEPSITE_TOKEN_SECRET=... node scripts/mint-token.mjs lova-content-creation
+```
+
+It prints one URL per form. The slug must be lowercase letters, digits and
+hyphens — it is the client's directory name everywhere else, and the function
+rejects anything else. Send the `intro` link when the agreement is signed, and
+the `brand` and `build` links once their demo is up. The same command is where
+the client's Google Drive photo folder gets created by hand.
+
+### Pulling a submission for the build skills
+
+```bash
+NETLIFY_SITE_ID=... NETLIFY_AUTH_TOKEN=... node scripts/pull-intake.mjs {slug}
+```
+
+This writes whatever the client has submitted into the workspace beside this
+repo:
+
+```
+{slug}/intake/intro.json
+{slug}/intake/brand.json
+{slug}/intake/build.json
+```
+
+plus any logo or brand guide they attached. Pass a second argument to write
+somewhere else. The site ID is on the Netlify site's settings page and the
+token is a personal access token from your Netlify user settings; both stay on
+your machine. The email attachment still arrives and is the backup if the
+store is ever unreachable.
+
+`keepsite-sitemap` reads `brand.json` and `build.json` from that directory and
+refuses to run without them; `intro.json` feeds `client-design-proposals` at
+stage one. The filename matters — the skill looks for exactly those names.
+
+## The office (/office)
+
+A private back office for running clients: pipeline stages, tasks, a
+calendar, each client's questionnaire answers, and data export. Design:
+`docs/superpowers/specs/2026-09-04-client-office-design.md`. Later phases
+add email, meetings, payments and e-signed agreements.
+
+### Who can log in
+
+Netlify Identity users with the `admin` role. Netlify → Identity → invite
+the address, then open the user and add `admin` under Roles. Nothing else
+grants access; a logged-in Identity user without the role is refused.
+Identity itself is enabled, and registration set to invite-only, in steps 1
+and 3 of [Enabling the CMS](#enabling-the-cms-admin).
+
+### Environment variables
+
+| Variable | What it does |
+|---|---|
+| `KEEPSITE_SESSION_SECRET` | Signs the CSRF cookie. Any long random string. Without it every office form post is refused. |
+| `KEEPSITE_TOKEN_SECRET` | Already set for the questionnaires; the office uses it to show each client's questionnaire links. |
+| `RESEND_API_KEY`, `KEEPSITE_NOTIFY_FROM`, `KEEPSITE_NOTIFY_TO` | Already set for the questionnaires. The office sends every client email from `KEEPSITE_NOTIFY_FROM` and the daily digest and meeting copies to `KEEPSITE_NOTIFY_TO`. |
+| `URL` | Set by Netlify. Used in links inside emails; locally it is unset and links point at `https://www.keepsitemedia.com`. |
+| `STRIPE_SECRET_KEY` | Creates customers, Checkout links and subscriptions. Without it the Payments tab shows a banner and every payment button is disabled. Use the test key until the first real client. |
+| `STRIPE_WEBHOOK_SECRET` | Verifies webhook signatures. Without it every webhook is refused with 400 and no payment is ever marked paid. |
+
+### Local development
+
+The office renders on the server, and its store and login are Netlify
+services. Two environment variables stand in for them locally:
+
+```bash
+KEEPSITE_SESSION_SECRET=dev KEEPSITE_TOKEN_SECRET=... npm run dev:office
+```
+
+`dev:office` sets `OFFICE_STORE_DIR=.office-data` (a gitignored directory
+of JSON files in place of Netlify Blobs) and `IDENTITY_URL` pointing at the
+production Identity service, so you log in with your real account. Delete
+`.office-data/` to start over.
+
+### Where the data is
+
+Netlify → Blobs → `office`. Keys are `clients/{slug}.json`,
+`tasks/{slug}/{id}.json`, and so on; `/office/data/` lists every type with
+counts and downloads any of them as JSON or CSV. Questionnaire answers stay
+in the `questionnaires` store and are read from there.
+
+### Inquiries
+
+Every verified `/start/` submission also creates a client at the Inquiry
+stage, through `netlify/functions/submission-created.mjs`. The email
+notification is unchanged. A second inquiry from an email already on file is
+added to that client's notes instead.
+
+### Email
+
+Templates live in Settings → Email templates (seeded from
+`src/data/office/templates.json`). `{{client.firstName}}`, `{{links.intro}}`
+and the rest fill from the client; a template's `fields` are asked for on the
+send screen. Advancing a client to a stage with an `email` opens that
+template's send screen; nothing goes out until you click Send. Every send,
+sent or failed, appears on the client's Emails tab.
+
+### Meetings
+
+Book from the client's Meetings tab. The client and `KEEPSITE_NOTIFY_TO`
+each get a confirmation with a calendar file. Two scheduled functions run:
+
+| Function | Schedule (UTC) | Does |
+|---|---|---|
+| `office-meetings-cron` | every hour | Reminders about 24 hours and about 1 hour before each meeting, to the client and to you. |
+| `office-digest-cron` | `0 13 * * *` | One morning email: overdue and upcoming tasks, meetings today and tomorrow, questionnaires waiting, failed payments, unsigned agreements. Not sent when empty. |
+
+13:00 UTC is 7 a.m. Mountain in summer and 6 a.m. in winter. Change the hour
+in `netlify/functions/office-digest-cron.mjs` in March and November if that
+matters. Netlify shows both functions under Functions → Scheduled.
+
+### Payments
+
+Stripe is the system of record; the office stores IDs and outcomes.
+Entering the Agreement stage creates the Stripe customer. The Payments tab
+makes a deposit or balance link (Stripe Checkout, card and US bank account,
+the method is saved for the monthly) and starts the monthly subscription
+against that saved method. Amounts prefill from `src/data/packages.json`
+and are edited on the form for a discount.
+
+Outcomes arrive through one webhook. In Stripe → Developers → Webhooks add
+an endpoint at
+
+```
+https://www.keepsitemedia.com/.netlify/functions/stripe-webhook
+```
+
+listening to `checkout.session.completed`,
+`checkout.session.async_payment_succeeded`,
+`checkout.session.async_payment_failed`, `checkout.session.expired`,
+`invoice.paid`, `invoice.payment_failed` and
+`customer.subscription.deleted`, and put its signing secret in
+`STRIPE_WEBHOOK_SECRET`. Set the endpoint's API version to the
+`Stripe-Version` pinned in `netlify/functions/lib/office/stripe.mjs`
+so events arrive in the shape the code reads. A paid deposit or balance
+closes the matching task; nothing advances a stage on its own. Failed
+payments show on the dashboard and in the digest; a bank payment shows
+as pending until Stripe confirms it, usually within four business
+days. A Checkout link expires 24 hours after it is created; an expired
+link shows on the Payments tab so the admin can create a new one.
+
+Test and live mode are separate Stripe accounts as far as webhooks go:
+each has its own endpoint and its own signing secret. Going live means
+registering the endpoint a second time in live mode and rotating both
+`STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` together. Before that,
+delete the test client's payment documents (Payments tab, or the store
+under `payments/<slug>/`) so test-mode links and amounts do not sit in
+the CSV totals. Charging the monthly off-session by ACH needs US bank
+account payments turned on in Stripe → Settings → Payment methods.
+
+Give a bookkeeper a read-only role in Stripe rather than an office login;
+`/office/data/` exports the payment documents as CSV for revenue by
+client.
+
+### Agreements
+
+The three package agreements are generated from the docx files (see "What
+doesn't belong in this repo" for regenerating). On a client's Agreements tab,
+pick the template, check Schedule 1 (prefilled from the client and the tier),
+and create the draft. Sign it as Keepsite on the next screen; Send opens the
+agreement email with the client's signing link filled in. The client reads
+the agreement at `/sign/?t=…`, ticks two consents, draws a signature and
+signs, or declines with a reason. Signing links last fourteen days.
+
+Sending closes the "Send agreement" task. When both have signed, the office
+seals a PDF with both signatures and a certificate of completion page, stores
+it in the client's documents with its SHA-256, emails it to the client and to
+`KEEPSITE_NOTIFY_TO`, closes the "Client signs agreement" task, and the
+Payments tab prefills the deposit and balance from Schedule 1. Nothing in an
+agreement can be edited after it is sent; void it and create a new one. If the
+seal ever fails, the tab offers "Seal again" on the completed agreement that
+has no PDF. Signing takes a one-shot lock before it writes; if a submit dies
+between the two, the agreement stays `sent` and no signature can land on it
+again, so void it and create a new one.
+
+The certificate records each signer's name, email, IP address, browser and
+time, the full audit trail, and the document hash. This is the evidence the
+ESIGN Act and UETA look for; it is not legal advice.
+
+#### After deploying
+
+1. Open a test client, create a Presence draft, sign as Keepsite, and send
+   the agreement email to yourself.
+2. Open the link from the email in a private window: read to the end, tick
+   both boxes, draw, sign. Expect the thank-you page, the PDF download to
+   open, and both completion emails with the PDF attached.
+3. On the client's Agreements tab: status `completed`, a hash, a PDF link;
+   both the "Send agreement" and "Client signs agreement" tasks closed; the
+   Payments tab's deposit prefilled from Schedule 1.
+4. Repeat with a second draft and click Decline: the office receives the
+   decline email and the tab shows `declined`.
+5. Confirm `/sign/?t=garbage` is a plain 404 and that
+   `curl -sI https://www.keepsitemedia.com/sign/?t=x | grep -i x-robots-tag`
+   shows `noindex`.
+
+### Documents
+
+A client's Documents tab lists everything on file: sealed agreements and
+signature images, files the admin uploaded, and the logo or brand guide the
+client attached to a questionnaire. Every link streams through the office
+behind the admin login; nothing in Blobs has a public URL. Uploads take one
+file at a time, up to 4 MB, and only uploads can be removed.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:
@@ -122,5 +355,7 @@ Never commit, and never put in a DecapCMS field, any of the following. If it can
 - **Credentials** — API keys, registrar or Netlify logins, Identity invites, `.env` values.
 
 The operating SOP that contains the first three lives outside this repo entirely, in the owner's Drive or a separate private ops repo. `*.docx` and `docs/internal/` are gitignored so those files cannot be added by accident, but gitignore is a convenience and not a control: do not keep them in this working directory.
+
+The office renders agreements from `src/data/office/agreements/*.json`, which `scripts/agreement-from-docx.py` generates from the docx files in `../legal/` (`python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json`, and the same for `search` and `search-plus`). Never edit the JSON by hand; change the docx and regenerate. It needs `python-docx`.
 
 Client-facing add-on rates (for example `$180` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.

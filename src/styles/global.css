@@ -222,6 +222,12 @@ img { max-width: 100%; height: auto; }
 
 /* Forms -------------------------------------------------------- */
 
+/* The honeypot. Global, not scoped to one page: /start/ and all three
+   questionnaire routes render it, and a scoped copy that one of them misses
+   ships a visible "Don't fill this out" box whose answers the function
+   discards as a bot. See scripts/verify.mjs, "the honeypot is hidden". */
+.hidden-field { display: none; }
+
 .field { display: grid; gap: 0.4rem; margin-bottom: var(--space-3); }
 .field > span { font-weight: 600; }
 .field input,
@@ -243,6 +249,34 @@ img { max-width: 100%; height: auto; }
 .field textarea:focus { border-color: var(--color-brand); border-width: 2px; }
 .field textarea { resize: vertical; }
 .field-hint { font-size: var(--step--1); color: var(--color-muted); font-weight: 400; }
+
+/* Questionnaire ------------------------------------------------- */
+
+/* Section fieldsets carry no border of their own — the .group fieldset
+   below draws the only rule, reserved for an actual radio/checkbox group
+   so it doesn't compete with section structure. */
+.questionnaire fieldset { border: 0; padding: 0; margin: 0 0 var(--space-5); }
+.questionnaire legend { font-size: var(--step-1); margin-bottom: var(--space-2); font-weight: 600; }
+.questionnaire .group {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin-bottom: 0; /* .question carries the gap; the section rule's --space-5 is for between sections */
+}
+.questionnaire .group-legend { font-size: var(--step-0); font-weight: 600; padding: 0 var(--space-1); }
+.questionnaire .section-help { color: var(--color-muted); margin-bottom: var(--space-3); }
+.questionnaire .noscript-note {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-brand);
+  border-radius: var(--radius);
+}
+.questionnaire .option { display: flex; gap: var(--space-1); align-items: baseline; font-weight: 400; }
+.questionnaire .option.own { margin-top: var(--space-2); }
+.questionnaire .question { margin-bottom: var(--space-4); }
+/* .question alone carries the between-question gap; .field's own
+   margin-bottom (site-wide, meant for stacked fields) would double it. */
+.questionnaire .question .field { margin-bottom: 0; }
 
 /* Comparison table --------------------------------------------- */
 

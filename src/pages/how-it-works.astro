@@ -58,7 +58,7 @@ const stations = stages.map((stage, i) => {
     decide,
     note,
     tiers: stage.tiers.map((t, n) => ({ name: t.name, body: tiers[n] })),
-    next: i < stages.length - 1 ? `On to ${stages[i + 1].label.toLowerCase()}` : end.cue,
+    next: i < stages.length - 1 ? `On to ${stages[i + 1].label}` : end.cue,
   };
 });
 
@@ -523,8 +523,9 @@ const endStation = {
   }
 
   /* Jargon, defined where it is used. Tab reaches it, so the
-     definition is not hover-only. */
-  .term {
+     definition is not hover-only. Global because the spans arrive via
+     set:html, which never gets Astro's scoping attribute. */
+  :global(.term) {
     position: relative;
     border-radius: 4px;
     padding: 0 0.2em;
@@ -537,7 +538,7 @@ const endStation = {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
   }
-  .term-def {
+  :global(.term-def) {
     position: absolute;
     z-index: 5;
     left: 0;
@@ -560,8 +561,8 @@ const endStation = {
     transition: opacity 140ms ease, transform 140ms ease, visibility 140ms;
     pointer-events: none;
   }
-  .term:hover .term-def,
-  .term:focus .term-def {
+  :global(.term:hover .term-def),
+  :global(.term:focus .term-def) {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
