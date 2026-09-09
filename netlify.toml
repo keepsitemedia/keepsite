@@ -27,6 +27,9 @@
 # Netlify's Chrome adds an API to its deprecation list. Both gated at 1.0 and
 # both failed deploys on that noise, which trains you to ignore the gate. They
 # sit low enough now to absorb the churn and still catch a genuine regression.
+# A route meant to stay out of the index is the other exception: is-crawlable
+# scores 0 on it by design, so its SEO ceiling is below 1.0 and it gates just
+# under that ceiling.
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
 
@@ -86,6 +89,12 @@
       best-practices = 0.9
       seo = 1.0
 
+  # The three questionnaire pages are deliberately noindex, and verify.mjs
+  # asserts they stay that way. That zeroes Lighthouse's is-crawlable audit and
+  # caps their SEO score at 0.92, so a 1.0 gate here can never pass. They are
+  # gated at 0.9 instead: low enough to clear the intended deduction, high
+  # enough that a second one still cancels the deploy. Copying the 1.0 from a
+  # marketing block above is what failed the first deploy of these routes.
   [[plugins.inputs.audits]]
     path = "questionnaire/intro/index.html"
     output_path = "reports/lighthouse-questionnaire-intro.html"
@@ -93,7 +102,7 @@
       performance = 0.95
       accessibility = 1.0
       best-practices = 0.9
-      seo = 1.0
+      seo = 0.9
 
   [[plugins.inputs.audits]]
     path = "questionnaire/brand/index.html"
@@ -102,7 +111,7 @@
       performance = 0.95
       accessibility = 1.0
       best-practices = 0.9
-      seo = 1.0
+      seo = 0.9
 
   [[plugins.inputs.audits]]
     path = "questionnaire/build/index.html"
@@ -111,7 +120,7 @@
       performance = 0.95
       accessibility = 1.0
       best-practices = 0.9
-      seo = 1.0
+      seo = 0.9
 
   [[plugins.inputs.audits]]
     path = "office/login/index.html"
