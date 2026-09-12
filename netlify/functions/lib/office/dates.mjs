@@ -77,3 +77,16 @@ export function formatHours(ms) {
   const hours = Math.round(minutes / 60);
   return `about ${hours} hour${hours === 1 ? '' : 's'}`;
 }
+
+const pad = (n) => String(n).padStart(2, '0');
+const daysIn = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+// Same day of month, clamped to the target month's last day, so a task
+// repeating from the 31st lands on the 28th and not in the month after.
+export function addMonths(ymd, n) {
+  const [y, m, d] = parts(ymd);
+  const total = y * 12 + (m - 1) + n;
+  const ny = Math.floor(total / 12);
+  const nm = (total % 12) + 1;
+  return `${ny}-${pad(nm)}-${pad(Math.min(d, daysIn(ny, nm)))}`;
+}

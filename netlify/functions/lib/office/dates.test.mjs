@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { todayIn, addDays, isYmd, formatYmd, formatTime, toInstant, formatWhen, formatHours } from './dates.mjs';
+import { todayIn, addDays, addMonths, isYmd, formatYmd, formatTime, toInstant, formatWhen, formatHours } from './dates.mjs';
 
 test('todayIn reports the Mountain date, not the UTC one', () => {
   // 05:30 UTC on the 5th is still 23:30 on the 4th in Denver.
@@ -11,6 +11,15 @@ test('addDays crosses month and year ends', () => {
   assert.equal(addDays('2026-09-28', 5), '2026-10-03');
   assert.equal(addDays('2026-12-30', 3), '2027-01-02');
   assert.equal(addDays('2026-03-01', -1), '2026-02-28');
+});
+
+test('addMonths keeps the day of month and clamps to the month end', () => {
+  assert.equal(addMonths('2026-01-15', 1), '2026-02-15');
+  assert.equal(addMonths('2026-01-31', 1), '2026-02-28');
+  assert.equal(addMonths('2028-01-31', 1), '2028-02-29');
+  assert.equal(addMonths('2026-12-10', 1), '2027-01-10');
+  assert.equal(addMonths('2026-03-31', -1), '2026-02-28');
+  assert.equal(addMonths('2026-10-31', 12), '2027-10-31');
 });
 
 test('isYmd accepts real dates only', () => {
