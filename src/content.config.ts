@@ -6,7 +6,7 @@ const work = defineCollection({
   schema: z.object({
     title: z.string(),
     url: z.string().url(),
-    tier: z.enum(['Presence', 'Search', 'Search Plus']),
+    tier: z.enum(['Presence', 'Growth', 'Agile', 'Range']),
     job: z.string(),
     scope: z.array(z.string()).min(2).max(4),
     // A public path such as "/images/acme-salon.png". Not Astro's

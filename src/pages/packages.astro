@@ -5,10 +5,10 @@ import packages from '../data/packages.json';
 import faq from '../data/faq.json';
 
 type Cell = boolean | string;
-type Row = { group: string; feature: string; presence: Cell; search: Cell; searchPlus: Cell };
+type Row = { group: string; feature: string; presence: Cell; growth: Cell; agile: Cell; range: Cell };
 
 const rows = packages.comparison as Row[];
-const groups = ['Build', 'Monthly'].map((name) => ({
+const groups = ['Build', 'Meetings', 'Monthly'].map((name) => ({
   name,
   rows: rows.filter((r) => r.group === name),
 }));
@@ -53,7 +53,7 @@ const packagesJsonLd = {
     '@type': 'Service',
     '@id': `${packagesUrl}#${tier.id}`,
     name: `${tier.name} website package`,
-    description: tier.bestFor,
+    description: tier.sub,
     serviceType: 'Website design and maintenance',
     url: packagesUrl,
     provider: { '@id': businessId },
@@ -99,27 +99,37 @@ const packagesJsonLd = {
 
   <section class="section-tight">
     <div class="container">
-      <h2 class="visually-hidden">The three packages</h2>
-      <div class="grid grid-3">
+      <h2 class="visually-hidden">The four packages</h2>
+      <div class="grid grid-2 tier-grid">
         {packages.tiers.map((tier) => (
           <div class="card tier" id={tier.id}>
             <h3 class="tier-name">{tier.name}</h3>
             <p class="serif tier-line">{tier.line}</p>
+            <p class="tier-sub">{tier.sub}</p>
 
-            <p class="tier-bestfor"><strong>Best for:</strong> {tier.bestFor}</p>
+            <h4 class="tier-h">Who it's for</h4>
+            <p class="tier-who">{tier.who}</p>
+            <p class="tier-feeling muted">&ldquo;{tier.feeling}&rdquo;</p>
 
+            <h4 class="tier-h">What we do</h4>
             <ul class="tier-includes">
-              {tier.cardIncludes.map((line) => <li>{line}</li>)}
+              {tier.weDo.map((line) => <li>{line}</li>)}
+            </ul>
+
+            <h4 class="tier-h">What we don't</h4>
+            <ul class="tier-excludes muted">
+              {tier.weDont.map((line) => <li>{line}</li>)}
             </ul>
 
             <div class="tier-cost">
               <p class="tier-price price">
-                {tier.buildPrice}
+                {tier.quoted && <span class="tier-from">from </span>}{tier.buildPrice}
                 <span class="tier-price-note muted">{tier.buildPriceNote}</span>
               </p>
               <p class="tier-monthly price muted">
-                + {tier.monthlyPrice}/month
+                + {tier.quoted ? 'from ' : ''}{tier.monthlyPrice}/month
               </p>
+              {tier.quoted && <p class="tier-quoted muted">Quoted after one conversation.</p>}
             </div>
 
             <a class="btn tier-cta" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel} &rarr;</a>
@@ -131,10 +141,44 @@ const packagesJsonLd = {
 
   <section class="section section-alt">
     <div class="container">
+      <h2 class="serif">{packages.payment.heading}</h2>
+      <p class="lead">{packages.payment.lead}</p>
+      <div class="grid grid-2 pay-options">
+        {packages.payment.options.map((o) => (
+          <div class="card">
+            <h3>{o.title}</h3>
+            <p>{o.body}</p>
+          </div>
+        ))}
+      </div>
+      <p>{packages.payment.monthlyStarts}</p>
+      <p class="monthly-terms">{packages.payment.terms}</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>{packages.sorter.heading}</h2>
+      <p class="lead">{packages.sorter.lead}</p>
+      <ol class="sorter">
+        {packages.sorter.questions.map((q) => (
+          <li>
+            <p class="sorter-q">{q.q}</p>
+            <ul class="sorter-a">
+              {q.answers.map((a) => <li><span>{a.a}</span> <strong>{a.package}</strong></li>)}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
       <h2 class="serif monthly-heading">{packages.monthly.heading}</h2>
       <p class="lead monthly-lead">{packages.monthly.lead}</p>
 
-      <div class="grid grid-3 monthly-cols">
+      <div class="grid grid-2 monthly-cols">
         {packages.tiers.map((tier) => (
           <div class="monthly-col">
             <h3>{tier.name}</h3>
@@ -147,9 +191,7 @@ const packagesJsonLd = {
       </div>
 
       <p class="monthly-headline">{packages.monthly.headline}</p>
-
       <p class="monthly-closing">{packages.monthly.closing}</p>
-      <p class="monthly-terms">{packages.monthly.subscriptionTerms}</p>
     </div>
   </section>
 
@@ -159,7 +201,7 @@ const packagesJsonLd = {
 
       <div class="table-scroll" role="region" aria-label="Package comparison" tabindex="0">
         <table class="compare">
-          <caption>Everything included in each package, by build and by monthly subscription.</caption>
+          <caption>Everything included in each package: the build, the meetings, and the monthly.</caption>
           <thead>
             <tr>
               <th scope="col">Feature</th>
@@ -169,12 +211,12 @@ const packagesJsonLd = {
           {groups.map((group) => (
             <tbody>
               <tr>
-                <th scope="rowgroup" colspan="4">{group.name}</th>
+                <th scope="rowgroup" colspan="5">{group.name}</th>
               </tr>
               {group.rows.map((row) => (
                 <tr>
                   <th scope="row">{row.feature}</th>
-                  {([row.presence, row.search, row.searchPlus] as Cell[]).map((raw) => {
+                  {([row.presence, row.growth, row.agile, row.range] as Cell[]).map((raw) => {
                     const cell = normalize(raw);
                     return (
                       <td>
@@ -253,9 +295,15 @@ const packagesJsonLd = {
 </BaseLayout>
 
 <style>
+  .tier-grid { align-items: stretch; }
   .tier { display: flex; flex-direction: column; scroll-margin-top: 6rem; }
   .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); }
   .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-3); }
+  .tier-sub { margin-bottom: var(--space-3); }
+  .tier-h { font-size: var(--step-0); margin: var(--space-3) 0 var(--space-0); }
+  .tier-feeling { margin-top: var(--space-1); }
+  .tier-excludes li { list-style: none; }
+  .tier-excludes li::before { content: "\2014  "; }
 
   /* Price sits under the list, on the auto margin, so the three cards
      line their prices and buttons up whatever the list length. */
@@ -273,6 +321,7 @@ const packagesJsonLd = {
   }
   .tier-price-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
   .tier-monthly { font-size: var(--step-1); margin: var(--space-0) 0 0; }
+  .tier-from, .tier-quoted { font-size: var(--step--1); }
 
   .tier-bestfor { font-size: var(--step--1); margin-bottom: var(--space-3); }
 
@@ -320,6 +369,13 @@ const packagesJsonLd = {
 
   .monthly-closing { max-width: var(--maxw-prose); }
   .monthly-terms { max-width: var(--maxw-prose); font-size: var(--step--1); color: var(--color-muted); }
+
+  .pay-options { margin: var(--space-3) 0; }
+
+  .sorter { display: grid; gap: var(--space-3); max-width: var(--maxw-prose); padding-left: 1.25rem; }
+  .sorter-q { font-weight: 600; margin-bottom: var(--space-0); }
+  .sorter-a { list-style: none; padding: 0; display: grid; gap: var(--space-0); }
+  .sorter-a strong { color: var(--color-brand); }
 
   /* Secondary by design: a plain list, no cards, no price emphasis.
      Clients should not have to assemble their own package. */

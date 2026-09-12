@@ -96,12 +96,20 @@ check('private routes are disallowed and unlisted', () => {
 
 section('Copy residue');
 check('no old-model residue', () => {
-  const needles = ['no lock-in', '$0 a month', 'nothing to pay', '$500', '$750', 'snic9004'];
+  const needles = ['no lock-in', '$0 a month', 'nothing to pay', '$500', '$750', 'snic9004', 'search plus', 'search-plus', 'foundational articles', '$1,100', '$1,750', '$2,000'];
   for (const p of PAGES) {
     const h = read(p).toLowerCase();
     for (const n of needles) {
       if (h.includes(n.toLowerCase())) throw new Error(`"${n}" found in ${p}`);
     }
+  }
+});
+// The hourly rate is internal. Add-ons are flat prices or "quoted first";
+// nothing a visitor reads names a rate.
+check('no hourly rate on any page', () => {
+  for (const p of PAGES) {
+    const hit = read(p).match(/per hour|an hour|\/hr\b|hourly|\$90\b|\$75\b/i);
+    if (hit) throw new Error(`"${hit[0]}" in ${p}`);
   }
 });
 // Unanchored "Sam" matches inside "same" and "sameAs"; the boundary is the check.
@@ -130,7 +138,7 @@ check('nothing links a retired route', () => {
 });
 check('prices are the new ones', () => {
   const h = read('packages/index.html');
-  for (const p of ['$1,100', '$55', '$1,750', '$150', '$2,000', '$275']) {
+  for (const p of ['$1,200', '$60', '$1,800', '$160', '$2,100', '$425', '$350']) {
     if (!h.includes(p)) throw new Error('missing price ' + p);
   }
 });
@@ -263,8 +271,8 @@ check('business node is complete and address-free', () => {
 });
 check('Service prices match the rendered prices', () => {
   const services = ld('packages/index.html')[1]['@graph'];
-  const expect = { presence: ['1100.00', '55.00'], search: ['1750.00', '150.00'], 'search-plus': ['2000.00', '275.00'] };
-  if (services.length !== 3) throw new Error('services: ' + services.length);
+  const expect = { presence: ['1200.00', '60.00'], growth: ['1800.00', '160.00'], agile: ['2100.00', '425.00'], range: ['2100.00', '350.00'] };
+  if (services.length !== 4) throw new Error('services: ' + services.length);
   for (const s of services) {
     const id = s['@id'].split('#')[1];
     if (!expect[id]) throw new Error('unknown service id ' + id);

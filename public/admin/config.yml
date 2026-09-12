@@ -146,14 +146,49 @@ collections:
               - { name: "id", label: "ID", widget: "string", required: true, pattern: ['^[a-z0-9-]+$', "Lowercase letters, numbers, and hyphens only"], hint: "Used in links like /start/?tier=search. Changing it breaks existing links." }
               - { name: "name", label: "Name", widget: "string", required: true }
               - { name: "line", label: "One-liner", widget: "string", required: true }
-              - { name: "bestFor", label: "Best for", widget: "text", required: true }
+              - { name: "sub", label: "Sub-line", widget: "string", required: true }
+              - { name: "who", label: "Who it's for", widget: "text", required: true }
+              - { name: "feeling", label: "What they're feeling", widget: "text", required: true, hint: "Rendered in quotes." }
+              - { name: "weDo", label: "What we do", widget: "list", field: { name: "line", label: "Line", widget: "string" } }
+              - { name: "weDont", label: "What we don't", widget: "list", field: { name: "line", label: "Line", widget: "string" } }
               - { name: "buildPrice", label: "Build price", widget: "string", required: true, pattern: ['^\$[1-9][0-9]{0,2}(,[0-9]{3})*$', "A single dollar amount like $1,100. No ranges, no words."] }
               - { name: "buildPriceNote", label: "Build price note", widget: "string", required: true }
               - { name: "monthlyPrice", label: "Monthly price", widget: "string", required: true, pattern: ['^\$[1-9][0-9]{0,2}(,[0-9]{3})*$', "A single dollar amount like $55. No ranges, no words."] }
               - { name: "monthlyPriceNote", label: "Monthly price note", widget: "string", required: true }
-              - { name: "cardIncludes", label: "Card bullets (exactly 5)", widget: "list", required: true, field: { name: "line", label: "Bullet", widget: "string" }, hint: "Five, no more. The table below the cards carries the full detail." }
+              - { name: "quoted", label: "Quoted package", widget: "boolean", default: false, hint: "Range only. Shows 'from' before the prices." }
               - { name: "monthlySummary", label: "What this monthly covers", widget: "list", required: true, field: { name: "line", label: "Line", widget: "string" } }
               - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+          - name: "payment"
+            label: "How you pay"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "lead", label: "Lead", widget: "text", required: true }
+              - name: "options"
+                label: "Options"
+                widget: "list"
+                fields:
+                  - { name: "title", label: "Title", widget: "string", required: true }
+                  - { name: "body", label: "Body", widget: "text", required: true }
+              - { name: "monthlyStarts", label: "When the monthly starts", widget: "string", required: true }
+              - { name: "terms", label: "Subscription terms", widget: "text", required: true }
+          - name: "sorter"
+            label: "Which one is you"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "lead", label: "Lead", widget: "text", required: true }
+              - name: "questions"
+                label: "Questions"
+                widget: "list"
+                fields:
+                  - { name: "q", label: "Question", widget: "string", required: true }
+                  - name: "answers"
+                    label: "Answers"
+                    widget: "list"
+                    fields:
+                      - { name: "a", label: "Answer", widget: "string", required: true }
+                      - { name: "package", label: "Points to", widget: "string", required: true, hint: "A package name, two names, or 'Keep going'." }
           - name: "monthly"
             label: "What the monthly covers"
             widget: "object"
@@ -162,17 +197,17 @@ collections:
               - { name: "lead", label: "Lead", widget: "text", required: true }
               - { name: "headline", label: "Big line", widget: "string", required: true, hint: "The one large line under the lead. Currently: 24 SEO blog posts a year, written and published for you." }
               - { name: "closing", label: "Closing line", widget: "text", required: true }
-              - { name: "subscriptionTerms", label: "Subscription terms", widget: "text", required: true, pattern: ['—[\s\S]*—', "Keep both em dashes; this is approved copy."], hint: "Approved copy. Do not reword without checking the terms actually offered. The two em dashes are deliberate and must survive any edit." }
           - name: "comparison"
             label: "Comparison rows"
             widget: "list"
             required: true
             fields:
-              - { name: "group", label: "Group", widget: "select", options: ["Build", "Monthly"] }
+              - { name: "group", label: "Group", widget: "select", options: ["Build", "Meetings", "Monthly"] }
               - { name: "feature", label: "Feature", widget: "string" }
               - { name: "presence", label: "Presence", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
-              - { name: "search", label: "Search", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
-              - { name: "searchPlus", label: "Search Plus", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
+              - { name: "growth", label: "Growth", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
+              - { name: "agile", label: "Agile", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
+              - { name: "range", label: "Range", widget: "string", hint: "Type true for a check, false for a dash, or free text such as 24 a year." }
           - name: "addOns"
             label: "Add-ons"
             widget: "object"
@@ -183,7 +218,7 @@ collections:
                 widget: "list"
                 fields:
                   - { name: "name", label: "Name", widget: "string" }
-                  - { name: "price", label: "Price", widget: "string", hint: "Free text, e.g. $180 per page, $90 an hour, or Custom quote." }
+                  - { name: "price", label: "Price", widget: "string", hint: "Free text, e.g. $150 per page, Quoted first, or Custom quote. Never an hourly rate." }
                   - { name: "note", label: "What it covers", widget: "text" }
               - { name: "upgradeRule", label: "Upgrade rule", widget: "text", required: true }
           - name: "scopeFaq"
@@ -317,7 +352,7 @@ collections:
     fields:
       - { name: "title", label: "Business name", widget: "string", required: true }
       - { name: "url", label: "Live site URL", widget: "string", required: true, pattern: ['^https://', "Must start with https://"], hint: "Must start with https://" }
-      - { name: "tier", label: "Package", widget: "select", options: ["Presence", "Search", "Search Plus"], required: true }
+      - { name: "tier", label: "Package", widget: "select", options: ["Presence", "Growth", "Agile", "Range"], required: true }
       - { name: "job", label: "What this site is for", widget: "string", required: true, hint: "One line. What job does this site do for the business?" }
       - { name: "scope", label: "Scope (2 to 4 items)", widget: "list", required: true, min: 2, max: 4, field: { name: "item", label: "Item", widget: "string" }, hint: "Two to four items. Fewer or more fails the build." }
       - { name: "screenshot", label: "Screenshot", widget: "string", required: true, hint: "Upload via the media library, so the value is an /images/ path. A public URL will be blocked by the site's CSP. Size it 1200 x 750; anything else is cropped to that ratio." }
