@@ -4,6 +4,7 @@ import { client as action } from './client.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
+import { newContact } from '../contacts.mjs';
 
 const SECRET = 's';
 const make = () => createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
@@ -57,6 +58,21 @@ test('create refuses a bad csrf token, a bad pipeline, and bad fields', async ()
   assert.equal(res.status, 303);
   assert.match(res.headers.get('Location'), /^\/office\/clients\/new\/\?error=/);
   assert.equal((await s.clients.list()).length, 0);
+});
+
+test('create from a contact links the contact to the new client', async () => {
+  const s = make();
+  const c = newContact({ business: 'Lova', owner: 'Sierra', email: 's@example.com', type: 'partner' });
+  await s.contacts.put(c.id, c);
+  const res = await action(post({ op: 'create', csrf, ...good, contact: c.id }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/');
+  assert.equal((await s.contacts.get(c.id)).clientSlug, 'lova');
+});
+
+test('a stale contact id does not stop the client being created', async () => {
+  const s = make();
+  const res = await action(post({ op: 'create', csrf, ...good, contact: '20260912T000000aaaaaa' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/');
 });
 
 test('update edits fields and keeps the slug and stage', async () => {

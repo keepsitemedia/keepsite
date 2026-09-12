@@ -3,6 +3,7 @@ import { store as defaultStore, SLUG, TYPES } from '../store.mjs';
 import { loadPipelines, findPipeline, advance } from '../pipeline.mjs';
 import { validateClient, newClient, applyEdit, clientFields, slugify, uniqueSlug } from '../clients.mjs';
 import { todayIn } from '../dates.mjs';
+import { ID } from '../ids.mjs';
 
 // Errors go back to the form in the query string rather than as a 400 page,
 // so the admin keeps the form and sees what to fix.
@@ -38,6 +39,13 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     // apart from a new client that shares a business name.
     if (!(await s.clients.putIfNew(slug, created))) return redirect(`/office/clients/${slug}/`);
     for (const t of tasks) await s.tasks.put(slug, t.id, t);
+    // The contact is a courtesy link, not a parent: a stale or deleted one
+    // must not stop a client from being created.
+    const contactId = field(data, 'contact');
+    if (ID.test(contactId)) {
+      const linked = await s.contacts.get(contactId);
+      if (linked) await s.contacts.put(contactId, { ...linked, clientSlug: slug, updatedAt: now.toISOString() });
+    }
     return redirect(`/office/clients/${slug}/`);
   }
 
