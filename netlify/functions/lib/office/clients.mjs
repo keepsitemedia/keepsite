@@ -14,8 +14,12 @@ export function slugify(text) {
   return s || 'client';
 }
 
+// Tasks with no client live under this slug in the tasks store, so no
+// client may ever be created at it.
+export const OWN_SLUG = 'office';
+
 export function uniqueSlug(base, taken) {
-  if (!taken.has(base)) return base;
+  if (base !== OWN_SLUG && !taken.has(base)) return base;
   for (let n = 2; ; n += 1) {
     const candidate = `${base.slice(0, 64 - String(n).length - 1)}-${n}`;
     if (!taken.has(candidate)) return candidate;
