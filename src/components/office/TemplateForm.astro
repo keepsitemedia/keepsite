@@ -1,0 +1,41 @@
+---
+// One email template as a form. The same component adds a new one: with no
+// template the id is typed rather than fixed. Fields post as numbered sets
+// (field_key_0, field_label_0, ...) with one blank set at the end, so adding
+// a field is a matter of filling the empty row and saving.
+type Field = { key: string; label: string; default?: string; required?: boolean };
+type Template = { id: string; name: string; subject: string; body: string; fields?: Field[] };
+interface Props { template?: Template; csrf: string; removable?: boolean }
+const { template: t, csrf, removable = false } = Astro.props;
+const rows: Partial<Field>[] = [...(t?.fields ?? []), {}];
+---
+<form method="POST" action="/office/api/settings">
+  <input type="hidden" name="csrf" value={csrf} />
+  <input type="hidden" name="name" value="template" />
+  <div class="row">
+    <label class="field"><span>Name, as the office shows it</span><input name="templateName" value={t?.name ?? ''} required /></label>
+    <label class="field">
+      <span>{t ? 'Id' : 'Id, lowercase letters and hyphens'}</span>
+      <input name="id" value={t?.id ?? ''} readonly={Boolean(t)} pattern="[a-z][a-zA-Z0-9-]{0,31}" placeholder={t ? undefined : 'follow-up'} required />
+    </label>
+  </div>
+  <label class="field"><span>Subject</span><input name="subject" value={t?.subject ?? ''} required /></label>
+  <label class="field"><span>Body, in Markdown</span><textarea name="body" rows="12">{t?.body ?? ''}</textarea></label>
+  <h3>Fields asked for on the send screen</h3>
+  <div class="fields-grid">
+    <span class="head">Key</span><span class="head">Label</span><span class="head"></span><span class="head">Default</span>
+    {rows.map((f, i) => (
+      <>
+        <input name={`field_key_${i}`} value={f.key ?? ''} placeholder={i === rows.length - 1 ? 'new key' : ''} aria-label={`Field ${i + 1} key`} />
+        <input name={`field_label_${i}`} value={f.label ?? ''} placeholder={i === rows.length - 1 ? 'Label' : ''} aria-label={`Field ${i + 1} label`} />
+        <label class="check"><input type="checkbox" name={`field_required_${i}`} checked={Boolean(f.required)} /> required</label>
+        <input name={`field_default_${i}`} value={f.default ?? ''} aria-label={`Field ${i + 1} default`} />
+      </>
+    ))}
+  </div>
+  <p class="field-hint">A field's key is used as <code>{'{{key}}'}</code> in the subject or body. Leave the last row blank unless you are adding one.</p>
+  <div class="form-foot">
+    <button class="btn" name="op" value="save">{t ? 'Save' : 'Add template'}</button>
+    {removable && <button class="link-quiet danger" name="op" value="delete" formnovalidate onclick="return confirm('Remove this template?')">Remove</button>}
+  </div>
+</form>

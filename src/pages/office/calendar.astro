@@ -6,6 +6,7 @@ import MeetingRow from '../../components/office/MeetingRow.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { todayIn, addDays, isYmd, formatYmd } from '../../../netlify/functions/lib/office/dates.mjs';
 import { itemsForDay, monthGrid } from '../../../netlify/functions/lib/office/calendar.mjs';
+import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
 
 // store.mjs and calendar.mjs have no type declarations, so astro check sees
 // their returns as any; these narrow each read to what this page actually
@@ -16,6 +17,7 @@ type Meeting = { id: string; slug: string; title: string; ymd: string; time: str
 type Item = { kind: 'task' | 'meeting'; time: string | null; slug: string; id: string };
 type Cell = { ymd: string; day: number; inMonth: boolean; marked: boolean; today: boolean };
 type Grid = { label: string; prev: string; next: string; weeks: Cell[][] };
+type Pipeline = { stages: { id: string; name: string }[] };
 
 const s = store();
 const today = todayIn();
@@ -32,33 +34,33 @@ for (const m of meetings) marked.add(m.ymd);
 const grid = monthGrid(day, marked, today) as Grid;
 const here = `/office/calendar/?d=${day}`;
 const csrf = Astro.locals.csrf;
+const stageNames = Object.fromEntries(((await loadPipelines(s)) as Pipeline[]).flatMap((p) => p.stages.map((st) => [st.id, st.name])));
+const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'long' }).format(new Date(`${day}T00:00:00Z`));
 ---
 <OfficeLayout title="Calendar">
-  <div class="toolbar">
-    <a class="btn-outline btn-small" href={`/office/calendar/?d=${addDays(day, -1)}`} aria-label="Previous day">‹</a>
-    <h1>{formatYmd(day)}{day === today && <span class="badge">Today</span>}</h1>
-    <a class="btn-outline btn-small" href={`/office/calendar/?d=${addDays(day, 1)}`} aria-label="Next day">›</a>
-    <form method="GET" action="/office/calendar/" class="inline">
-      <input type="date" name="d" value={day} aria-label="Go to date" />
-      <button class="btn-outline btn-small">Go</button>
-    </form>
-    {day !== today && <a href="/office/calendar/">Today</a>}
-  </div>
-
-  <div class="row">
+  <div class="cal">
     <div>
+      <div class="day-head">
+        <a class="arrow" href={`/office/calendar/?d=${addDays(day, -1)}`} aria-label="Previous day">‹</a>
+        <a class="arrow" href={`/office/calendar/?d=${addDays(day, 1)}`} aria-label="Next day">›</a>
+        <h1 class="file-name">{formatYmd(day)}</h1>
+        {day === today ? <span class="chip">Today</span> : <span class="quiet">{weekday} · <a href="/office/calendar/">back to today</a></span>}
+        <form method="GET" action="/office/calendar/" class="toolbar">
+          <input type="date" name="d" value={day} aria-label="Go to date" />
+          <button class="btn-quiet">Go</button>
+        </form>
+      </div>
+
       {items.length === 0 && <p class="empty">Nothing due.</p>}
       {items.length > 0 && (
-        <div class="table-scroll"><table>
-          <thead><tr><th>When</th><th>Client</th><th>What</th><th></th></tr></thead>
-          <tbody>
-            {items.map((i) => i.kind === 'meeting'
-              ? <MeetingRow meeting={i} csrf={csrf} back={here} showClient business={names.get(i.slug)} />
-              : <TaskRow task={i} csrf={csrf} today={today} back={here} showClient business={names.get(i.slug)} />)}
-          </tbody>
-        </table></div>
+        <ul class="ledger">
+          {items.map((i) => i.kind === 'meeting'
+            ? <MeetingRow meeting={i} csrf={csrf} back={here} showClient business={names.get(i.slug)} />
+            : <TaskRow task={i} csrf={csrf} today={today} back={here} showClient business={names.get(i.slug)} stageNames={stageNames} />)}
+        </ul>
       )}
-      <h2>Add a task</h2>
+
+      <h2>Add a task for this day</h2>
       <form method="POST" action="/office/api/task" class="toolbar">
         <input type="hidden" name="csrf" value={csrf} />
         <input type="hidden" name="op" value="add" />
@@ -67,19 +69,19 @@ const csrf = Astro.locals.csrf;
         <select name="slug" aria-label="Client" required>
           {clients.map((c) => <option value={c.slug}>{c.business}</option>)}
         </select>
-        <input name="title" placeholder="Task" required aria-label="Task title" />
+        <input class="grow" name="title" placeholder="What needs doing" required aria-label="Task title" />
         <input type="time" name="time" aria-label="Time" />
-        <button class="btn btn-small">Add</button>
+        <button class="btn">Add</button>
       </form>
     </div>
-    <div>
-      <div class="toolbar">
-        <a href={`/office/calendar/?d=${grid.prev}`} aria-label="Previous month">‹</a>
+    <div class="month-col">
+      <div class="month-head">
+        <a class="arrow small" href={`/office/calendar/?d=${grid.prev}`} aria-label="Previous month">‹</a>
         <strong>{grid.label}</strong>
-        <a href={`/office/calendar/?d=${grid.next}`} aria-label="Next month">›</a>
+        <a class="arrow small" href={`/office/calendar/?d=${grid.next}`} aria-label="Next month">›</a>
       </div>
       <div class="month" role="grid" aria-label={grid.label}>
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => <span class="muted" aria-hidden="true">{d}</span>)}
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => <span class="wd" aria-hidden="true">{d}</span>)}
         {grid.weeks.flat().map((c) => (
           <a
             href={`/office/calendar/?d=${c.ymd}`}

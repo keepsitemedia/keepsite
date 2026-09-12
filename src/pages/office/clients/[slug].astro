@@ -4,6 +4,8 @@ import OfficeLayout from '../../../layouts/OfficeLayout.astro';
 import ClientFields from '../../../components/office/ClientFields.astro';
 import TaskRow from '../../../components/office/TaskRow.astro';
 import MeetingRow from '../../../components/office/MeetingRow.astro';
+import StageRail from '../../../components/office/StageRail.astro';
+import Mark from '../../../components/office/Mark.astro';
 import { store, SLUG } from '../../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines, findPipeline } from '../../../../netlify/functions/lib/office/pipeline.mjs';
 import { loadTemplates } from '../../../../netlify/functions/lib/office/templates.mjs';
@@ -13,6 +15,7 @@ import { dashboardUrl, stripeConfigured } from '../../../../netlify/functions/li
 import { loadAgreementTemplates } from '../../../../netlify/functions/lib/office/agreement-templates.mjs';
 import { defaultFields } from '../../../../netlify/functions/lib/office/agreements.mjs';
 import { listDocuments, formatSize } from '../../../../netlify/functions/lib/office/documents.mjs';
+import { glance } from '../../../../netlify/functions/lib/office/attention.mjs';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
 import { mint } from '../../../../netlify/functions/lib/token.mjs';
 import intro from '../../../data/questionnaires/intro.json';
@@ -23,19 +26,20 @@ import build from '../../../data/questionnaires/build.json';
 // their returns as any; these narrow to what this page actually reads rather
 // than casting the whole store to any.
 type ClientDoc = {
-  business: string; tier: string; pipeline: string; stage: string;
+  business: string; name: string; email: string; phone: string; website: string; tier: string; pipeline: string; stage: string;
   stages: { stage: string; at: string }[];
   dates: { inquiry: string; signed: string | null; launched: string | null };
 };
 type StageRow = { id: string; name: string };
 type PipelineRow = { stages: StageRow[]; questionnaires?: string[] };
-type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null; questionnaire: string | null };
+type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null; questionnaire: string | null; payment: string | null; agreement: string | null };
 type EmailDoc = { id: string; kind: string; template: string | null; to: string[]; subject: string; text: string; sentAt: string; status: string; error: string | null };
 type MeetingDoc = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
 type TemplateRow = { id: string; name: string };
 type PaymentDoc = { id: string; kind: string; amount: number; status: string; description: string; url: string | null; paidAt: string | null; failureReason: string | null; createdAt: string; stripe: { customerId: string | null; checkoutSessionId: string | null; paymentIntentId: string | null; invoiceId: string | null; subscriptionId: string | null } };
 type AgreementDoc = { id: string; template: string; templateName: string; status: string; createdAt: string; sentAt: string | null; completedAt: string | null; hash: string | null; documentKey: string | null; fields: { deposit: number; balance: number }; signers: { client: { status: string; expiresAt: string | null } } };
 type DocumentRow = { name: string; size: number | null; type: string; source: string; uploadedAt: string | null; href: string; removable: boolean };
+type Fact = { label: string; state: 'done' | 'waiting' | 'late' | 'none'; text: string; detail?: string; href?: string };
 
 const slug = Astro.params.slug ?? '';
 if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
@@ -45,21 +49,23 @@ if (!client) return new Response('not found', { status: 404 });
 
 const pipeline = findPipeline(await loadPipelines(s), client.pipeline) as PipelineRow | undefined;
 const stages = pipeline?.stages ?? [];
-const stageIndex = stages.findIndex((st: StageRow) => st.id === client.stage);
-const nextStage = stages[stageIndex + 1];
+const stageNames = Object.fromEntries(stages.map((st: StageRow) => [st.id, st.name]));
 const tasks = ((await s.tasks.list(slug)) as TaskDoc[]).sort((a, b) => a.due.localeCompare(b.due) || (a.time ?? '').localeCompare(b.time ?? ''));
 const open = tasks.filter((t) => !t.done);
 const closed = tasks.filter((t) => t.done);
 const today = todayIn();
 const tab = Astro.url.searchParams.get('tab') ?? 'overview';
 const error = Astro.url.searchParams.get('error');
+const hint = Astro.url.searchParams.get('hint');
 const csrf = Astro.locals.csrf;
 const here = `/office/clients/${slug}/?tab=${tab}`;
 const DEFINITIONS: Record<string, any> = { intro, brand, build };
 const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
 const site = Astro.site?.origin ?? '';
-const forms = tab === 'questionnaires'
-  ? await Promise.all((pipeline?.questionnaires ?? []).map(async (form: string) => {
+const pipelineForms = pipeline?.questionnaires ?? [];
+const wantForms = tab === 'questionnaires' || tab === 'overview';
+const forms = wantForms
+  ? await Promise.all(pipelineForms.map(async (form: string) => {
       const submission = await s.questionnaires.get(slug, form);
       const task = tasks.find((t) => t.questionnaire === form);
       return {
@@ -85,22 +91,22 @@ const sentAtFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denve
 // pipeline questionnaire gets its own button below, the same way
 // meeting-* templates are sent only from their own flows.
 const sendable = tab === 'emails' ? ((await loadTemplates(s)) as TemplateRow[]).filter((t) => !t.id.startsWith('meeting-') && t.id !== 'questionnaire-reminder') : [];
-const questionnaireForms = tab === 'emails' ? (pipeline?.questionnaires ?? []) : [];
 const meetings = tab === 'meetings' ? ((await s.meetings.list(slug)) as MeetingDoc[]).sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`)) : [];
 const upcoming = meetings.filter((m) => m.ymd >= today);
 const past = meetings.filter((m) => m.ymd < today);
-const payments = tab === 'payments' ? ((await s.payments.list(slug)) as PaymentDoc[]).reverse() : [];
+const pipelinePlan = (pipeline as unknown as { payments?: { plan?: string } } | undefined)?.payments?.plan;
+const payments = tab === 'payments' || tab === 'overview' ? ((await s.payments.list(slug)) as PaymentDoc[]).reverse() : [];
 const prices = tierPrices(client.tier) as { build: number; monthly: number } | null;
 const dollars = (cents: number) => (cents / 100).toFixed(2);
 const paidTotal = payments.filter((p) => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
 const subscription = payments.find((p) => p.kind === 'subscription');
 const stripeCustomerId = (client as unknown as { stripeCustomerId: string | null }).stripeCustomerId;
 const stripeOn = stripeConfigured();
-const pipelinePlan = (pipeline as unknown as { payments?: { plan?: string } } | undefined)?.payments?.plan;
 // Loaded on every tab, not just 'agreements': Overview shows the signed date
 // and Payments prefills deposit/balance from the completed agreement.
 const agreements = ((await s.agreements.list(slug)) as AgreementDoc[]).reverse();
 const completedAgreement = agreements.find((a) => a.status === 'completed');
+const agreementOut = agreements.some((a) => a.status === 'sent' || a.status === 'partiallySigned');
 const agreementTemplates = loadAgreementTemplates() as { id: string; name: string }[];
 const defaultTemplateId = ({ Presence: 'presence', Search: 'search', 'Search Plus': 'search-plus' } as Record<string, string>)[client.tier] ?? 'presence';
 const draftFields = defaultFields(client, agreementTemplates.find((t) => t.id === defaultTemplateId) as any) as Record<string, any>;
@@ -109,66 +115,99 @@ const dollarsOf = (cents: number | null) => (cents == null ? '' : (cents / 100).
 // string (see createBack in the action); prefer that over the tier default
 // so a validation error doesn't erase what the admin typed.
 const posted = (name: string) => Astro.url.searchParams.get(name);
-const tabs = [
-  ['overview', 'Overview'],
-  ['tasks', `Tasks (${open.length})`],
-  ...(pipeline?.questionnaires?.length ? [['questionnaires', 'Questionnaires']] : []),
-  ['meetings', 'Meetings'],
-  ...(pipelinePlan ? [['payments', 'Payments']] : []),
-  ['emails', 'Emails'],
-  ['documents', 'Documents'],
-  ['agreements', `Agreements${agreements.some((a) => a.status === 'sent' || a.status === 'partiallySigned') ? ' •' : ''}`],
+const facts = tab === 'overview'
+  ? (glance({ today, tasks, agreements, payments, forms: pipelineForms, submitted: forms.filter((f) => f.submission).map((f) => f.form), plan: Boolean(pipelinePlan) }) as Fact[])
+  : [];
+const markOf = (status: string): Fact['state'] =>
+  ['paid', 'completed', 'signed', 'sent', 'active', 'submitted'].includes(status) ? 'done'
+  : ['failed', 'expired', 'declined', 'voided'].includes(status) ? 'late'
+  : ['pending', 'partiallySigned'].includes(status) ? 'waiting'
+  : 'none';
+const tabs: { id: string; label: string; count?: number; dot?: boolean }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'tasks', label: 'Tasks', count: open.length },
+  ...(pipelineForms.length ? [{ id: 'questionnaires', label: 'Questionnaires' }] : []),
+  { id: 'meetings', label: 'Meetings' },
+  ...(pipelinePlan ? [{ id: 'payments', label: 'Payments' }] : []),
+  { id: 'emails', label: 'Emails' },
+  { id: 'documents', label: 'Documents' },
+  { id: 'agreements', label: 'Agreements', dot: agreementOut },
 ];
+const host = (url: string) => { try { return new URL(url).host; } catch { return url; } };
 ---
 <OfficeLayout title={client.business}>
-  <div class="toolbar">
-    <h1>{client.business}</h1>
-    <span class="badge">{stages[stageIndex]?.name ?? client.stage}</span>
-    {client.tier && <span class="muted">{client.tier}</span>}
+  <div class="page-head">
+    <h1 class="file-name">{client.business}</h1>
+    <span class="sub">{client.tier || 'Tier not decided'}</span>
   </div>
+  <p class="file-line">
+    <span>{client.name}</span>
+    <a href={`mailto:${client.email}`}>{client.email}</a>
+    {client.phone && <span>{client.phone}</span>}
+    {client.website && <a href={client.website}>{host(client.website)}</a>}
+    <span>Inquiry {formatYmd(client.dates.inquiry)}</span>
+  </p>
+
+  <StageRail stages={stages} currentId={client.stage} history={client.stages} advance={{ slug, csrf }} label="Stage" />
+
   {error && <p class="error">{error}</p>}
+  {hint === 'agreement' && <p class="notice notice-ok">Next: create the agreement below, sign it as Keepsite, and Send opens the email with the client's signing link filled in.</p>}
   <nav class="tabs" aria-label="Client sections">
-    {tabs.map(([id, label]) => <a href={`/office/clients/${slug}/?tab=${id}`} aria-current={tab === id ? 'page' : undefined}>{label}</a>)}
+    {tabs.map((t) => (
+      <a href={`/office/clients/${slug}/?tab=${t.id}`} aria-current={tab === t.id ? 'page' : undefined} class:list={{ dot: t.dot }}>
+        {t.label}{t.count ? <span class="count">{t.count}</span> : null}
+      </a>
+    ))}
   </nav>
 
   {tab === 'overview' && (
     <>
-      <h2>Stage</h2>
-      <form method="POST" action="/office/api/stage" class="toolbar">
-        <input type="hidden" name="csrf" value={csrf} />
-        <input type="hidden" name="slug" value={slug} />
-        <select name="stage" aria-label="Stage">
-          {stages.map((st: StageRow) => <option value={st.id} selected={st.id === client.stage}>{st.name}</option>)}
-        </select>
-        <button class="btn btn-small">Set stage</button>
-      </form>
-      {nextStage && (
-        <form method="POST" action="/office/api/stage" class="toolbar">
-          <input type="hidden" name="csrf" value={csrf} />
-          <input type="hidden" name="slug" value={slug} />
-          <input type="hidden" name="stage" value={nextStage.id} />
-          <button class="btn-outline btn-small">Advance to {nextStage.name}</button>
-        </form>
+      <dl class="glance">
+        {facts.map((f) => (
+          <div>
+            <dt>{f.label}</dt>
+            <dd>
+              <Mark state={f.state}>{f.href ? <a href={f.href}>{f.text}</a> : f.text}</Mark>
+              {f.detail && <span class="detail">{f.detail}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <h2>Open tasks <span class="count">{open.length}</span></h2>
+      {open.length === 0 ? <p class="empty">Nothing open.</p> : (
+        <ul class="ledger">{open.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} stageNames={stageNames} />)}</ul>
       )}
-      <p class="muted">
-        Inquiry {formatYmd(client.dates.inquiry)}
-        {completedAgreement && ` · Signed ${formatYmd(todayIn(undefined, new Date(completedAgreement.completedAt!)))}`}
-        {client.dates.launched && ` · Launched ${formatYmd(client.dates.launched)}`}
-      </p>
 
-      <h2>Details</h2>
-      <form method="POST" action="/office/api/client">
-        <input type="hidden" name="csrf" value={csrf} />
-        <input type="hidden" name="op" value="update" />
-        <input type="hidden" name="slug" value={slug} />
-        <ClientFields client={client as unknown as Record<string, string>} />
-        <button class="btn btn-small">Save</button>
-      </form>
-
-      <h2>History</h2>
-      <ul>
-        {client.stages.map((h) => <li>{formatYmd(todayIn(undefined, new Date(h.at)))} · {stages.find((st: StageRow) => st.id === h.stage)?.name ?? h.stage}</li>)}
-      </ul>
+      <details class="fold" open={Boolean(error)}>
+        <summary>Details<span class="sub">edit contact, tier, notes</span></summary>
+        <div class="fold-body">
+          <form method="POST" action="/office/api/client">
+            <input type="hidden" name="csrf" value={csrf} />
+            <input type="hidden" name="op" value="update" />
+            <input type="hidden" name="slug" value={slug} />
+            <ClientFields client={client as unknown as Record<string, string>} />
+            <div class="form-foot"><button class="btn">Save</button></div>
+          </form>
+        </div>
+      </details>
+      <details class="fold">
+        <summary>Stage history<span class="sub">{client.stages.length} {client.stages.length === 1 ? 'entry' : 'entries'}</span></summary>
+        <div class="fold-body">
+          <ul>
+            {client.stages.map((h) => <li>{formatYmd(todayIn(undefined, new Date(h.at)))} · {stages.find((st: StageRow) => st.id === h.stage)?.name ?? h.stage}</li>)}
+          </ul>
+          <form method="POST" action="/office/api/stage" class="toolbar">
+            <input type="hidden" name="csrf" value={csrf} />
+            <input type="hidden" name="slug" value={slug} />
+            <select name="stage" aria-label="Stage">
+              {stages.map((st: StageRow) => <option value={st.id} selected={st.id === client.stage}>{st.name}</option>)}
+            </select>
+            <button class="btn-quiet">Set stage</button>
+            <span class="field-hint">Moving back keeps the tasks already created.</span>
+          </form>
+        </div>
+      </details>
     </>
   )}
 
@@ -179,24 +218,18 @@ const tabs = [
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="op" value="add" />
         <input type="hidden" name="back" value={here} />
-        <input name="title" placeholder="New task" required aria-label="Task title" />
+        <input class="grow" name="title" placeholder="What needs doing" required aria-label="Task title" />
         <input type="date" name="due" value={today} required aria-label="Due date" />
         <input type="time" name="time" aria-label="Time" />
-        <button class="btn btn-small">Add</button>
+        <button class="btn">Add</button>
       </form>
+      <h2>Open <span class="count">{open.length}</span></h2>
       {open.length === 0 && <p class="empty">Nothing open.</p>}
-      {open.length > 0 && (
-        <div class="table-scroll"><table>
-          <thead><tr><th>Due</th><th>Task</th><th></th></tr></thead>
-          <tbody>{open.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</tbody>
-        </table></div>
-      )}
+      {open.length > 0 && <ul class="ledger">{open.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} stageNames={stageNames} />)}</ul>}
       {closed.length > 0 && (
-        <details>
-          <summary>Done ({closed.length})</summary>
-          <div class="table-scroll"><table>
-            <tbody>{closed.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</tbody>
-          </table></div>
+        <details class="fold">
+          <summary>Done<span class="sub">{closed.length}</span></summary>
+          <div class="fold-body"><ul class="ledger">{closed.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} stageNames={stageNames} />)}</ul></div>
         </details>
       )}
     </>
@@ -207,18 +240,21 @@ const tabs = [
       {!secret && <p class="error">KEEPSITE_TOKEN_SECRET is not set, so links cannot be shown.</p>}
       {forms.map((f) => (
         <section>
-          <h2>{f.definition?.title ?? f.form} <span class="badge">{f.status}</span></h2>
+          <h2>{f.definition?.title ?? f.form} <Mark state={f.status === 'submitted' ? 'done' : f.status === 'sent' ? 'waiting' : 'none'} class="count">{f.status}</Mark></h2>
           {f.submission ? (
             <>
-              <p class="muted">Submitted {f.submission.submittedAt.slice(0, 10)} · form version {f.submission.formVersion}</p>
-              <details><summary>Answers</summary><QuestionnaireAnswers definition={f.definition} submission={f.submission} /></details>
+              <p class="quiet">Submitted {f.submission.submittedAt.slice(0, 10)} · form version {f.submission.formVersion}</p>
+              <details class="fold"><summary>Answers</summary><div class="fold-body"><QuestionnaireAnswers definition={f.definition} submission={f.submission} /></div></details>
             </>
           ) : (
             f.link && (
-              <p>
-                Link: <code>{f.link}</code>
-                {f.form === 'brand' && !demoSlugs.has(slug) && <span class="muted"> No demo at public/demo/{slug}, so the form will offer only "A mix of several".</span>}
-              </p>
+              <>
+                <div class="copy-line">
+                  <input value={f.link} readonly aria-label={`${f.form} questionnaire link`} data-copy />
+                  <button type="button" class="btn-quiet" data-copy-button>Copy</button>
+                </div>
+                {f.form === 'brand' && !demoSlugs.has(slug) && <p class="field-hint">No demo at public/demo/{slug}, so the form will offer only "A mix of several".</p>}
+              </>
             )
           )}
         </section>
@@ -229,37 +265,44 @@ const tabs = [
           <ul>{files.map((k) => <li>{k.slice(slug.length + 1)}</li>)}</ul>
         </>
       )}
+      <script is:inline>
+        document.querySelectorAll('[data-copy-button]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var input = b.parentNode.querySelector('[data-copy]');
+            input.select();
+            var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); };
+            if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(done);
+          });
+        });
+      </script>
     </>
   )}
 
   {tab === 'meetings' && (
     <>
+      <h2>Upcoming</h2>
+      {upcoming.length === 0 && <p class="empty">Nothing booked.</p>}
+      {upcoming.length > 0 && <ul class="ledger">{upcoming.map((m) => <MeetingRow meeting={m} csrf={csrf} back={here} />)}</ul>}
       <h2>Book a meeting</h2>
-      <form method="POST" action="/office/api/meeting" class="row">
+      <form method="POST" action="/office/api/meeting" class="sheet">
         <input type="hidden" name="csrf" value={csrf} />
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="op" value="add" />
         <input type="hidden" name="back" value={here} />
-        <label class="field"><span>Title</span><input name="title" required value="Kickoff call" /></label>
-        <label class="field"><span>Date</span><input type="date" name="date" required value={today} /></label>
-        <label class="field"><span>Time (Mountain)</span><input type="time" name="time" required value="10:00" /></label>
-        <label class="field"><span>Minutes</span><input type="number" name="minutes" min="5" max="480" value="30" /></label>
-        <label class="field"><span>Video link</span><input name="link" placeholder="https://" /></label>
-        <label class="field"><span>Notes for the invite</span><input name="notes" /></label>
-        <p><button class="btn btn-small">Book and send confirmation</button></p>
+        <div class="row">
+          <label class="field"><span>Title</span><input name="title" required value="Kickoff call" /></label>
+          <label class="field"><span>Date</span><input type="date" name="date" required value={today} /></label>
+          <label class="field"><span>Time, Mountain</span><input type="time" name="time" required value="10:00" /></label>
+          <label class="field"><span>Minutes</span><input type="number" name="minutes" min="5" max="480" value="30" /></label>
+          <label class="field"><span>Video link</span><input name="link" placeholder="https://" /></label>
+          <label class="field"><span>Notes for the invite</span><input name="notes" /></label>
+        </div>
+        <div class="form-foot"><button class="btn">Book and send confirmation</button><span class="field-hint">The client and you each get a confirmation with a calendar file.</span></div>
       </form>
-      <h2>Upcoming</h2>
-      {upcoming.length === 0 && <p class="empty">Nothing booked.</p>}
-      {upcoming.length > 0 && (
-        <div class="table-scroll"><table>
-          <tbody>{upcoming.map((m) => <MeetingRow meeting={m} csrf={csrf} back={here} />)}</tbody>
-        </table></div>
-      )}
       {past.length > 0 && (
-        <details><summary>Past ({past.length})</summary>
-          <div class="table-scroll"><table>
-            <tbody>{past.map((m) => <MeetingRow meeting={m} csrf={csrf} back={here} />)}</tbody>
-          </table></div>
+        <details class="fold">
+          <summary>Past<span class="sub">{past.length}</span></summary>
+          <div class="fold-body"><ul class="ledger">{past.map((m) => <MeetingRow meeting={m} csrf={csrf} back={here} />)}</ul></div>
         </details>
       )}
     </>
@@ -267,24 +310,25 @@ const tabs = [
 
   {tab === 'emails' && (
     <>
-      {sent && <p><span class="badge">Sent</span></p>}
-      <h2>Send</h2>
-      <p class="toolbar">
-        {sendable.map((t) => <a class="btn-outline btn-small" href={`/office/send/${slug}/${t.id}/`}>{t.name}</a>)}
-        {questionnaireForms.map((form: string) => <a class="btn-outline btn-small" href={`/office/send/${slug}/questionnaire-reminder/?form=${form}`}>{`Remind: ${form}`}</a>)}
-      </p>
-      <h2>Log</h2>
+      {sent && <p class="notice notice-ok">Sent.</p>}
+      <h2>Send an email</h2>
+      <div class="toolbar">
+        {sendable.map((t) => <a class="btn-quiet" href={`/office/send/${slug}/${t.id}/`}>{t.name}</a>)}
+        {pipelineForms.map((form: string) => <a class="btn-quiet" href={`/office/send/${slug}/questionnaire-reminder/?form=${form}`}>Remind: {form}</a>)}
+      </div>
+      <p class="field-hint">Each opens a screen to read and edit before anything goes out. The words live under Settings.</p>
+      <h2>Sent <span class="count">{emails.length}</span></h2>
       {emails.length === 0 && <p class="empty">Nothing sent yet.</p>}
       {emails.length > 0 && (
         <div class="table-scroll"><table>
-          <thead><tr><th>When</th><th>Subject</th><th>Kind</th><th>Status</th></tr></thead>
+          <thead><tr><th>When</th><th>Subject</th><th>Template</th><th>Status</th></tr></thead>
           <tbody>
             {emails.map((e) => (
               <tr>
                 <td>{sentAtFormat.format(new Date(e.sentAt))}</td>
-                <td><details><summary>{e.subject}</summary><pre style="white-space: pre-wrap">{e.text}</pre></details></td>
-                <td>{e.template ?? e.kind}</td>
-                <td class={e.status === 'failed' ? 'overdue' : ''}>{e.status}{e.error && ` · ${e.error}`}</td>
+                <td><details class="fold"><summary>{e.subject}</summary><div class="fold-body"><pre style="white-space: pre-wrap; font: inherit">{e.text}</pre></div></details></td>
+                <td class="quiet">{e.template ?? e.kind}</td>
+                <td><Mark state={e.status === 'failed' ? 'late' : 'done'}>{e.status}</Mark>{e.error && <span class="meta">{e.error}</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -295,18 +339,18 @@ const tabs = [
 
   {tab === 'documents' && (
     <>
-      <h2>Documents</h2>
+      <h2>On file <span class="count">{documents.length}</span></h2>
       {documents.length === 0 && <p class="empty">Nothing on file yet.</p>}
       {documents.length > 0 && (
         <div class="table-scroll"><table>
-          <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Source</th><th>Added</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>From</th><th>Added</th><th></th></tr></thead>
           <tbody>
             {documents.map((d) => (
               <tr>
                 <td><a href={d.href}>{d.name}</a></td>
-                <td class="muted">{d.type}</td>
-                <td>{formatSize(d.size)}</td>
-                <td><span class="badge">{d.source}</span></td>
+                <td class="quiet">{d.type}</td>
+                <td class="num">{formatSize(d.size)}</td>
+                <td class="quiet">{d.source}</td>
                 <td>{d.uploadedAt ? formatYmd(todayIn(undefined, new Date(d.uploadedAt))) : ''}</td>
                 <td>
                   {d.removable && (
@@ -315,7 +359,7 @@ const tabs = [
                       <input type="hidden" name="slug" value={slug} />
                       <input type="hidden" name="op" value="remove" />
                       <input type="hidden" name="name" value={d.name} />
-                      <button class="btn-outline btn-small" onclick="return confirm('Remove this file?')">Remove</button>
+                      <button class="link-quiet danger" onclick="return confirm('Remove this file?')">Remove</button>
                     </form>
                   )}
                 </td>
@@ -325,63 +369,36 @@ const tabs = [
         </table></div>
       )}
 
-      <h2>Upload a file</h2>
-      <p class="muted">One file at a time, up to 4 MB. Sealed agreements and signature images cannot be replaced by an upload.</p>
+      <h2>Add a file</h2>
       <form method="POST" action="/office/api/document" enctype="multipart/form-data" class="upload">
         <input type="hidden" name="csrf" value={csrf} />
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="op" value="upload" />
-        <label>File <input type="file" name="file" required /></label>
+        <label class="field"><span>File, up to 4 MB</span><input type="file" name="file" required /></label>
         <button class="btn">Upload</button>
       </form>
+      <p class="field-hint">Sealed agreements and signature images cannot be replaced by an upload.</p>
     </>
   )}
 
   {tab === 'payments' && pipelinePlan && (
     <>
       {!stripeOn && <p class="error">STRIPE_SECRET_KEY is not set, so nothing here can talk to Stripe.</p>}
-      <h2>Stripe customer</h2>
-      {stripeCustomerId ? (
-        <p><a href={dashboardUrl('customer', stripeCustomerId)}>{stripeCustomerId}</a> in the Stripe dashboard</p>
-      ) : (
-        <form method="POST" action="/office/api/payment" class="inline">
-          <input type="hidden" name="csrf" value={csrf} />
-          <input type="hidden" name="slug" value={slug} />
-          <input type="hidden" name="op" value="customer" />
-          <button class="btn-outline btn-small" disabled={!stripeOn}>Create Stripe customer</button>
-        </form>
-      )}
-
-      <h2>Collect</h2>
-      <p class="field-hint">A link is good for 24 hours; create a new one if it lapses.</p>
-      <div class="row">
-        {(['deposit', 'balance'] as const).map((kind) => (
-          <form method="POST" action="/office/api/payment" class="card">
+      <p class="file-line">
+        {stripeCustomerId ? (
+          <span>Stripe customer <a href={dashboardUrl('customer', stripeCustomerId)}>{stripeCustomerId}</a></span>
+        ) : (
+          <form method="POST" action="/office/api/payment" class="inline">
             <input type="hidden" name="csrf" value={csrf} />
             <input type="hidden" name="slug" value={slug} />
-            <input type="hidden" name="op" value="checkout" />
-            <input type="hidden" name="kind" value={kind} />
-            <h3>{kind === 'deposit' ? 'Deposit link' : 'Balance link'}</h3>
-            <label class="field"><span>Amount (USD)</span><input name="amount" inputmode="decimal" value={completedAgreement ? dollars(kind === 'deposit' ? completedAgreement.fields.deposit : completedAgreement.fields.balance) : prices ? dollars(prices.build / 2) : ''} required /></label>
-            <label class="field"><span>Shown to the client</span><input name="description" value={`${kind === 'deposit' ? 'Deposit' : 'Balance'} for ${client.business} website`} required /></label>
-            <button class="btn btn-small" disabled={!stripeOn}>Create link</button>
+            <input type="hidden" name="op" value="customer" />
+            <span>No Stripe customer yet. </span><button class="link-quiet" disabled={!stripeOn}>Create one</button>
           </form>
-        ))}
-        <form method="POST" action="/office/api/payment" class="card">
-          <input type="hidden" name="csrf" value={csrf} />
-          <input type="hidden" name="slug" value={slug} />
-          <input type="hidden" name="op" value="subscribe" />
-          <h3>Monthly</h3>
-          {subscription && <p class="muted">Subscription {subscription.status}{subscription.stripe.subscriptionId && <> · <a href={dashboardUrl('subscription', subscription.stripe.subscriptionId)}>Stripe</a></>}</p>}
-          <label class="field"><span>Amount per month (USD)</span><input name="amount" inputmode="decimal" value={prices ? dollars(prices.monthly) : ''} required /></label>
-          <label class="field"><span>Shown on the invoice</span><input name="description" value={`${client.tier || 'Keepsite'} monthly`} required /></label>
-          <label class="field"><span>First charge on (blank = today)</span><input type="date" name="start" /></label>
-          <p class="field-hint">Charges the payment method saved by the deposit or balance. A discount is a lower amount here; say so in the description.</p>
-          <button class="btn btn-small" disabled={!stripeOn || Boolean(subscription && subscription.status === 'active')}>Start monthly</button>
-        </form>
-      </div>
+        )}
+        {subscription && <span>Monthly <Mark state={markOf(subscription.status)}>{subscription.status}</Mark>{subscription.stripe.subscriptionId && <> · <a href={dashboardUrl('subscription', subscription.stripe.subscriptionId)}>in Stripe</a></>}</span>}
+      </p>
 
-      <h2>Payments <span class="muted">paid ${dollars(paidTotal)}</span></h2>
+      <h2>Payments <span class="count">paid ${dollars(paidTotal)}</span></h2>
       {payments.length === 0 && <p class="empty">Nothing yet.</p>}
       {payments.length > 0 && (
         <div class="table-scroll"><table>
@@ -390,64 +407,97 @@ const tabs = [
             {payments.map((p) => (
               <tr>
                 <td>{formatYmd(todayIn(undefined, new Date(p.createdAt)))}</td>
-                <td>{p.kind}<div class="muted">{p.description}</div></td>
+                <td>{p.kind}<span class="meta">{p.description}</span></td>
                 <td class="num">${dollars(p.amount)}</td>
-                <td class={p.status === 'failed' || p.status === 'expired' ? 'overdue' : ''}>{p.status}{p.paidAt && ` · ${formatYmd(todayIn(undefined, new Date(p.paidAt)))}`}{p.failureReason && ` · ${p.failureReason}`}</td>
                 <td>
-                  {p.status === 'pending' && p.url && <><a href={p.url}>Checkout link</a> </>}
-                  {p.stripe.paymentIntentId && <><a href={dashboardUrl('payment', p.stripe.paymentIntentId)}>payment</a> </>}
-                  {p.stripe.invoiceId && <><a href={dashboardUrl('invoice', p.stripe.invoiceId)}>invoice</a> </>}
-                  {p.stripe.subscriptionId && <a href={dashboardUrl('subscription', p.stripe.subscriptionId)}>subscription</a>}
+                  <Mark state={markOf(p.status)}>{p.status}{p.paidAt && ` ${formatYmd(todayIn(undefined, new Date(p.paidAt)))}`}</Mark>
+                  {p.failureReason && <span class="meta">{p.failureReason}</span>}
+                </td>
+                <td>
+                  <span class="links">
+                    {p.status === 'pending' && p.url && <a href={p.url}>Checkout link</a>}
+                    {p.stripe.paymentIntentId && <a href={dashboardUrl('payment', p.stripe.paymentIntentId)}>payment</a>}
+                    {p.stripe.invoiceId && <a href={dashboardUrl('invoice', p.stripe.invoiceId)}>invoice</a>}
+                    {p.stripe.subscriptionId && <a href={dashboardUrl('subscription', p.stripe.subscriptionId)}>subscription</a>}
+                  </span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table></div>
       )}
+
+      <h2>Collect</h2>
+      <p class="quiet">A Checkout link is good for 24 hours; create a new one if it lapses. The card or bank account used is saved for the monthly.</p>
+      <div class="sheet-row">
+        {(['deposit', 'balance'] as const).map((kind) => (
+          <form method="POST" action="/office/api/payment" class="sheet">
+            <input type="hidden" name="csrf" value={csrf} />
+            <input type="hidden" name="slug" value={slug} />
+            <input type="hidden" name="op" value="checkout" />
+            <input type="hidden" name="kind" value={kind} />
+            <h3>{kind === 'deposit' ? 'Deposit' : 'Balance'}</h3>
+            <label class="field"><span>Amount, USD</span><input name="amount" inputmode="decimal" value={completedAgreement ? dollars(kind === 'deposit' ? completedAgreement.fields.deposit : completedAgreement.fields.balance) : prices ? dollars(prices.build / 2) : ''} required /></label>
+            <label class="field"><span>Shown to the client</span><input name="description" value={`${kind === 'deposit' ? 'Deposit' : 'Balance'} for ${client.business} website`} required /></label>
+            <button class="btn-quiet" disabled={!stripeOn}>Create {kind} link</button>
+          </form>
+        ))}
+        <form method="POST" action="/office/api/payment" class="sheet">
+          <input type="hidden" name="csrf" value={csrf} />
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="op" value="subscribe" />
+          <h3>Monthly</h3>
+          <label class="field"><span>Amount per month, USD</span><input name="amount" inputmode="decimal" value={prices ? dollars(prices.monthly) : ''} required /></label>
+          <label class="field"><span>Shown on the invoice</span><input name="description" value={`${client.tier || 'Keepsite'} monthly`} required /></label>
+          <label class="field"><span>First charge on</span><input type="date" name="start" /><span class="field-hint">Blank means today. A discount is a lower amount here; say so in the description.</span></label>
+          <button class="btn-quiet" disabled={!stripeOn || Boolean(subscription && subscription.status === 'active')}>Start monthly</button>
+        </form>
+      </div>
     </>
   )}
 
   {tab === 'agreements' && (
     <>
-      <h2>Agreements</h2>
+      <h2>Agreements <span class="count">{agreements.length}</span></h2>
       {agreements.length === 0 && <p class="empty">None yet.</p>}
       {agreements.length > 0 && (
         <div class="table-scroll"><table>
-          <thead><tr><th>Created</th><th>Template</th><th>Status</th><th>Links</th></tr></thead>
+          <thead><tr><th>Created</th><th>Template</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {agreements.map((a) => (
               <tr>
                 <td>{formatYmd(todayIn(undefined, new Date(a.createdAt)))}</td>
                 <td>{a.templateName}</td>
                 <td>
-                  <span class="badge">{a.status}</span>
-                  {a.sentAt && <span class="muted"> · sent {formatYmd(todayIn(undefined, new Date(a.sentAt)))}</span>}
-                  {a.status === 'sent' && a.signers.client.expiresAt && <span class="muted"> · expires {formatYmd(todayIn(undefined, new Date(a.signers.client.expiresAt)))}</span>}
-                  {a.hash && <div class="muted">SHA-256 {a.hash.slice(0, 16)}…</div>}
+                  <Mark state={a.status === 'draft' ? 'none' : a.status === 'sent' ? 'waiting' : markOf(a.status)}>{a.status === 'sent' ? 'out for signature' : a.status}</Mark>
+                  {a.sentAt && <span class="meta">Sent {formatYmd(todayIn(undefined, new Date(a.sentAt)))}{a.status === 'sent' && a.signers.client.expiresAt && `, link expires ${formatYmd(todayIn(undefined, new Date(a.signers.client.expiresAt)))}`}</span>}
+                  {a.hash && <span class="meta">SHA-256 {a.hash.slice(0, 16)}…</span>}
                 </td>
                 <td>
-                  <a href={`/office/agreements/${slug}/${a.id}/document`}>PDF</a>
-                  {a.status === 'draft' && <> · <a href={`/office/agreements/${slug}/${a.id}/sign/`}>Sign and send</a></>}
-                  {(a.status === 'sent' || a.status === 'partiallySigned') && <> · <a href={`/office/send/${slug}/agreement/`}>Resend link</a></>}
-                  {a.status === 'completed' && !a.documentKey && (
-                    <form method="POST" action="/office/api/agreement" class="inline">
-                      <input type="hidden" name="csrf" value={csrf} />
-                      <input type="hidden" name="slug" value={slug} />
-                      <input type="hidden" name="id" value={a.id} />
-                      <input type="hidden" name="op" value="reseal" />
-                      <button class="btn-outline btn-small">Seal again</button>
-                    </form>
-                  )}
-                  {a.status !== 'voided' && (a.status !== 'completed' || !a.documentKey) && (
-                    <form method="POST" action="/office/api/agreement" class="inline">
-                      <input type="hidden" name="csrf" value={csrf} />
-                      <input type="hidden" name="slug" value={slug} />
-                      <input type="hidden" name="id" value={a.id} />
-                      <input type="hidden" name="op" value="void" />
-                      <input type="hidden" name="note" value="voided from the office" />
-                      <button class="btn-outline btn-small" onclick="return confirm('Void this agreement? The client link stops working.')">Void</button>
-                    </form>
-                  )}
+                  <span class="links">
+                    <a href={`/office/agreements/${slug}/${a.id}/document`}>PDF</a>
+                    {a.status === 'draft' && <a class="btn-quiet btn-small" href={`/office/agreements/${slug}/${a.id}/sign/`}>Sign and send</a>}
+                    {(a.status === 'sent' || a.status === 'partiallySigned') && <a href={`/office/send/${slug}/agreement/`}>Resend link</a>}
+                    {a.status === 'completed' && !a.documentKey && (
+                      <form method="POST" action="/office/api/agreement" class="inline">
+                        <input type="hidden" name="csrf" value={csrf} />
+                        <input type="hidden" name="slug" value={slug} />
+                        <input type="hidden" name="id" value={a.id} />
+                        <input type="hidden" name="op" value="reseal" />
+                        <button class="btn-quiet btn-small">Seal again</button>
+                      </form>
+                    )}
+                    {a.status !== 'voided' && (a.status !== 'completed' || !a.documentKey) && (
+                      <form method="POST" action="/office/api/agreement" class="inline">
+                        <input type="hidden" name="csrf" value={csrf} />
+                        <input type="hidden" name="slug" value={slug} />
+                        <input type="hidden" name="id" value={a.id} />
+                        <input type="hidden" name="op" value="void" />
+                        <input type="hidden" name="note" value="voided from the office" />
+                        <button class="link-quiet danger" onclick="return confirm('Void this agreement? The client link stops working.')">Void</button>
+                      </form>
+                    )}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -455,51 +505,59 @@ const tabs = [
         </table></div>
       )}
 
-      <h2>New agreement</h2>
-      <form method="POST" action="/office/api/agreement">
-        <input type="hidden" name="csrf" value={csrf} />
-        <input type="hidden" name="slug" value={slug} />
-        <input type="hidden" name="op" value="create" />
-        <label class="field"><span>Template</span>
-          <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === (posted('template') ?? defaultTemplateId)}>{t.name}</option>)}</select>
-        </label>
-        <p class="field-hint">Amounts below prefill for {client.tier || 'Presence'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
-        <h3>Client</h3>
-        <div class="row">
-          <label class="field"><span>Legal business name</span><input name="legalName" value={posted('legalName') ?? draftFields.legalName} required /></label>
-          <label class="field"><span>Entity type</span><input name="entityType" value={posted('entityType') ?? draftFields.entityType} placeholder="LLC, sole proprietorship, corporation" /></label>
-          <label class="field"><span>Business address</span><input name="address" value={posted('address') ?? draftFields.address} /></label>
-          <label class="field"><span>Signer name</span><input name="signerName" value={posted('signerName') ?? draftFields.signerName} required /></label>
-          <label class="field"><span>Signer title</span><input name="signerTitle" value={posted('signerTitle') ?? draftFields.signerTitle} /></label>
-          <label class="field"><span>Email for notices</span><input type="email" name="email" value={posted('email') ?? draftFields.email} required /></label>
-          <label class="field"><span>Phone</span><input name="phone" value={posted('phone') ?? draftFields.phone} /></label>
+      <details class="fold" open={!agreementOut && !completedAgreement}>
+        <summary>New agreement<span class="sub">{agreementOut ? 'one is already out for signature' : completedAgreement ? 'one is already signed' : 'draft, sign as Keepsite, then send'}</span></summary>
+        <div class="fold-body">
+          <form method="POST" action="/office/api/agreement">
+            <input type="hidden" name="csrf" value={csrf} />
+            <input type="hidden" name="slug" value={slug} />
+            <input type="hidden" name="op" value="create" />
+            <div class="row">
+              <label class="field"><span>Template</span>
+                <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === (posted('template') ?? defaultTemplateId)}>{t.name}</option>)}</select>
+              </label>
+            </div>
+            <p class="field-hint">Amounts below prefill for {client.tier || 'Presence'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
+            <h3>Client</h3>
+            <div class="row">
+              <label class="field"><span>Legal business name</span><input name="legalName" value={posted('legalName') ?? draftFields.legalName} required /></label>
+              <label class="field"><span>Entity type</span><input name="entityType" value={posted('entityType') ?? draftFields.entityType} placeholder="LLC, sole proprietorship, corporation" /></label>
+              <label class="field"><span>Business address</span><input name="address" value={posted('address') ?? draftFields.address} /></label>
+              <label class="field"><span>Signer name</span><input name="signerName" value={posted('signerName') ?? draftFields.signerName} required /></label>
+              <label class="field"><span>Signer title</span><input name="signerTitle" value={posted('signerTitle') ?? draftFields.signerTitle} /></label>
+              <label class="field"><span>Email for notices</span><input type="email" name="email" value={posted('email') ?? draftFields.email} required /></label>
+              <label class="field"><span>Phone</span><input name="phone" value={posted('phone') ?? draftFields.phone} /></label>
+            </div>
+            <h3>Commercial terms, USD</h3>
+            <div class="row">
+              <label class="field"><span>Build fee</span><input name="buildFee" inputmode="decimal" value={posted('buildFee') ?? dollarsOf(draftFields.buildFee)} required /></label>
+              <label class="field"><span>Monthly fee</span><input name="monthlyFee" inputmode="decimal" value={posted('monthlyFee') ?? dollarsOf(draftFields.monthlyFee)} required /></label>
+              <label class="field"><span>Deposit on signing</span><input name="deposit" inputmode="decimal" value={posted('deposit') ?? dollarsOf(draftFields.deposit)} required /></label>
+              <label class="field"><span>Balance on launch</span><input name="balance" inputmode="decimal" value={posted('balance') ?? dollarsOf(draftFields.balance)} required /></label>
+              <label class="field"><span>Pages included</span><input name="pages" type="number" min="1" value={posted('pages') ?? (draftFields.pages ?? '')} required /></label>
+            </div>
+            <details class="fold">
+              <summary>Discount, Exhibit D</summary>
+              <div class="fold-body">
+                <label class="field check"><input type="checkbox" name="discountApplied" checked={posted('discountApplied') === 'on'} /><span>A discount applies; attach Exhibit D</span></label>
+                <div class="row">
+                  <label class="field"><span>Discount or promotion name</span><input name="discount_name" value={posted('discount_name') ?? ''} /></label>
+                  <label class="field"><span>Build fee discount type</span><input name="discount_type" value={posted('discount_type') ?? ''} placeholder="Percentage of Build Fee or Fixed dollar amount" /></label>
+                  <label class="field"><span>Build fee discount amount</span><input name="discount_amount" value={posted('discount_amount') ?? ''} placeholder="10% or $350" /></label>
+                  <label class="field"><span>Adjusted build fee, USD</span><input name="discount_adjustedBuildFee" inputmode="decimal" value={posted('discount_adjustedBuildFee') ?? ''} /></label>
+                  <label class="field"><span>Monthly discount type</span><input name="discount_monthlyType" value={posted('discount_monthlyType') ?? ''} /></label>
+                  <label class="field"><span>Monthly discount amount</span><input name="discount_monthlyAmount" value={posted('discount_monthlyAmount') ?? ''} /></label>
+                  <label class="field"><span>Discounted monthly fee, USD</span><input name="discount_discountedMonthlyFee" inputmode="decimal" value={posted('discount_discountedMonthlyFee') ?? ''} /></label>
+                  <label class="field"><span>Applies for, months</span><input name="discount_months" type="number" min="1" value={posted('discount_months') ?? ''} /></label>
+                </div>
+                <label class="field"><span>Conditions marked</span><input name="discount_conditions" value={posted('discount_conditions') ?? ''} placeholder="Testimonial; portfolio use" /></label>
+                <p class="field-hint">When a discount applies, deposit and balance must add up to the adjusted build fee.</p>
+              </div>
+            </details>
+            <div class="form-foot"><button class="btn">Create draft</button></div>
+          </form>
         </div>
-        <h3>Commercial terms (USD)</h3>
-        <div class="row">
-          <label class="field"><span>Build fee</span><input name="buildFee" inputmode="decimal" value={posted('buildFee') ?? dollarsOf(draftFields.buildFee)} required /></label>
-          <label class="field"><span>Monthly fee</span><input name="monthlyFee" inputmode="decimal" value={posted('monthlyFee') ?? dollarsOf(draftFields.monthlyFee)} required /></label>
-          <label class="field"><span>Deposit on signing</span><input name="deposit" inputmode="decimal" value={posted('deposit') ?? dollarsOf(draftFields.deposit)} required /></label>
-          <label class="field"><span>Balance on launch</span><input name="balance" inputmode="decimal" value={posted('balance') ?? dollarsOf(draftFields.balance)} required /></label>
-          <label class="field"><span>Pages included</span><input name="pages" type="number" min="1" value={posted('pages') ?? (draftFields.pages ?? '')} required /></label>
-        </div>
-        <details>
-          <summary>Discount (Exhibit D)</summary>
-          <label class="field"><span><input type="checkbox" name="discountApplied" checked={posted('discountApplied') === 'on'} /> A discount applies; attach Exhibit D</span></label>
-          <div class="row">
-            <label class="field"><span>Discount or promotion name</span><input name="discount_name" value={posted('discount_name') ?? ''} /></label>
-            <label class="field"><span>Build fee discount type</span><input name="discount_type" value={posted('discount_type') ?? ''} placeholder="Percentage of Build Fee or Fixed dollar amount" /></label>
-            <label class="field"><span>Build fee discount amount</span><input name="discount_amount" value={posted('discount_amount') ?? ''} placeholder="10% or $350" /></label>
-            <label class="field"><span>Adjusted build fee (USD)</span><input name="discount_adjustedBuildFee" inputmode="decimal" value={posted('discount_adjustedBuildFee') ?? ''} /></label>
-            <label class="field"><span>Monthly discount type</span><input name="discount_monthlyType" value={posted('discount_monthlyType') ?? ''} /></label>
-            <label class="field"><span>Monthly discount amount</span><input name="discount_monthlyAmount" value={posted('discount_monthlyAmount') ?? ''} /></label>
-            <label class="field"><span>Discounted monthly fee (USD)</span><input name="discount_discountedMonthlyFee" inputmode="decimal" value={posted('discount_discountedMonthlyFee') ?? ''} /></label>
-            <label class="field"><span>Applies for (months)</span><input name="discount_months" type="number" min="1" value={posted('discount_months') ?? ''} /></label>
-          </div>
-          <label class="field"><span>Conditions marked</span><input name="discount_conditions" value={posted('discount_conditions') ?? ''} placeholder="Testimonial; portfolio use" /></label>
-          <p class="field-hint">When a discount applies, deposit and balance must add up to the adjusted build fee.</p>
-        </details>
-        <p><button class="btn">Create draft</button></p>
-      </form>
+      </details>
     </>
   )}
 </OfficeLayout>

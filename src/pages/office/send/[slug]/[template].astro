@@ -34,17 +34,18 @@ const context = buildContext({ client, admin: Astro.locals.admin, secret, form: 
 const rendered = render(template, context, {}, { keepPrompted: true }) as Rendered;
 const fields = template.fields ?? [];
 const csrf = Astro.locals.csrf;
+const unfilled = rendered.unresolved.filter((u) => !fields.some((f) => f.key === u));
 ---
 <OfficeLayout title={`Send: ${template.name}`}>
-  <div class="toolbar">
+  <div class="page-head">
     <h1>{template.name}</h1>
-    <span class="muted">to {client.name} &lt;{client.email}&gt;</span>
-    <a href={`/office/clients/${slug}/?tab=emails`}>Back to {client.business}</a>
+    <span class="sub">to {client.name} &lt;{client.email}&gt;</span>
+    <div class="actions"><a href={`/office/clients/${slug}/?tab=emails`}>Back to {client.business}</a></div>
   </div>
   {error && <p class="error">{error}</p>}
   {!secret && <p class="error">KEEPSITE_TOKEN_SECRET is not set, so questionnaire links are blank.</p>}
-  {rendered.unresolved.filter((u) => !fields.some((f) => f.key === u)).length > 0 && (
-    <p class="error">Could not fill: {rendered.unresolved.filter((u) => !fields.some((f) => f.key === u)).join(', ')}. Edit them by hand below.</p>
+  {unfilled.length > 0 && (
+    <p class="error">Could not fill: {unfilled.join(', ')}. Edit them by hand below.</p>
   )}
   <form method="POST" action="/office/api/send" id="send" class="send">
     <div>
@@ -57,21 +58,21 @@ const csrf = Astro.locals.csrf;
           <legend>Fill in</legend>
           {fields.map((f) => (
             <label class="field">
-              <span>{f.label}{f.required && <span class="field-hint"> Required</span>}</span>
+              <span>{f.label}{f.required && <span class="field-hint"> · required</span>}</span>
               <input name={`f_${f.key}`} data-prompt={f.key} value={f.default ?? ''} required={f.required} />
             </label>
           ))}
+          <p class="field-hint">Fill these in first: changing one rewrites the subject and body from the template.</p>
         </fieldset>
       )}
       <label class="field"><span>Subject</span><input name="subject" value={rendered.subject} data-original={rendered.subject} required /></label>
-      <label class="field"><span>Body (Markdown)</span><textarea name="body" data-original={rendered.text}>{rendered.text}</textarea></label>
-      <p class="field-hint">Fill in the fields above first: changing one rewrites the subject and body from the template.</p>
+      <label class="field"><span>Body, in Markdown</span><textarea name="body" data-original={rendered.text}>{rendered.text}</textarea></label>
       <button class="btn">Send</button>
     </div>
     <div>
       <h2>Preview</h2>
       <div class="preview" set:html={rendered.html} />
-      <p class="muted">The preview shows the template as loaded; the text on the left is what will be sent.</p>
+      <p class="quiet">The preview shows the template as loaded; the text on the left is what will be sent.</p>
     </div>
   </form>
   <script is:inline>

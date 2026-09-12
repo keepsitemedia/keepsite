@@ -1,78 +1,453 @@
-/* The office is a working screen, not a marketing page: tighter spacing,
-   tabular numbers everywhere, and tables that scroll rather than wrap. */
-.office { font-size: var(--step--1); }
-.office main { padding: var(--space-3) 0 var(--space-5); }
-.office h1 { font-size: var(--step-3); margin: 0 0 var(--space-2); }
-.office h2 { font-size: var(--step-1); margin: var(--space-4) 0 var(--space-2); }
+/* The office is a kept ledger: paper, ink, one green. Hairlines rather than
+   boxes, the traveled path in green, and the single late thing in clay.
+   The tokens alias the site palette under the names of what they stand
+   for, so a rule reads as a decision about the page and not about a hex. */
+.office {
+  --paper: var(--color-bg);
+  --paper-inset: #F5F1E8;
+  --sheet: var(--color-surface);
+  --sand: var(--color-surface-alt);
+  --hairline: rgba(31, 36, 33, 0.14);
+  --hairline-soft: rgba(31, 36, 33, 0.08);
+  --ink: var(--color-ink);
+  --pencil: var(--color-muted);
+  --graphite: #66706B;
+  --faint: #B4BAB6;
+  --green: var(--color-brand);
+  --green-deep: var(--color-brand-deep);
+  --moss: var(--color-brand-tint);
+  --clay: var(--color-accent);
+  --clay-tint: #F6EAE4;
+  --radius-control: 6px;
+  --radius-sheet: 8px;
+  --control-h: 2.25rem;
+
+  font-size: var(--step--1);
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--paper);
+}
+.office main { padding: var(--space-3) 0 var(--space-6); }
+.office p { max-width: 64ch; }
+/* global.css caps lists at the prose measure; these lists are the page. */
+.office .rail, .office .ledger, .office .rail .clients, .office .placeholders, .office .file-line { max-width: none; }
+
+/* Type ---------------------------------------------------------- */
+
+.office h1 { font-size: var(--step-3); margin: 0; letter-spacing: -0.02em; }
+.office h1.file-name {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-optical-sizing: auto;
+  letter-spacing: 0;
+  font-size: var(--step-4);
+  line-height: 1.05;
+}
+/* Every section heading sits on a ruled line, the way a ledger page does. */
+.office h2 {
+  font-size: var(--step-0);
+  margin: var(--space-4) 0 var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--hairline);
+  letter-spacing: -0.01em;
+}
+.office h2:first-child { margin-top: 0; }
+.office h3 { font-size: var(--step--1); margin: 0 0 var(--space-1); letter-spacing: 0; }
+.office .count { color: var(--graphite); font-weight: 400; font-variant-numeric: tabular-nums; }
+.office .muted { color: var(--pencil); }
+.office .quiet { color: var(--graphite); }
+.office .empty { color: var(--graphite); }
+.office .num { text-align: right; font-variant-numeric: tabular-nums; }
+.office code { font-size: 0.9em; background: var(--sand); padding: 0.1em 0.35em; border-radius: 4px; }
+.office a { text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+
+.office .page-head { display: flex; align-items: baseline; gap: var(--space-2); flex-wrap: wrap; margin: 0 0 var(--space-3); }
+.office .page-head .sub { color: var(--graphite); }
+.office .page-head .actions { margin-left: auto; display: flex; gap: var(--space-1); align-items: center; }
+.office .file-line { display: flex; gap: var(--space-2); flex-wrap: wrap; color: var(--graphite); margin: var(--space-1) 0 0; }
+.office .file-line a { color: inherit; }
+
+/* Header -------------------------------------------------------- */
 
 .office-header {
   position: sticky; top: 0; z-index: 10;
-  background: var(--color-brand-deep); color: var(--color-bg);
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
 }
-.office-header .container { display: flex; align-items: center; gap: var(--space-3); padding-top: var(--space-1); padding-bottom: var(--space-1); flex-wrap: wrap; }
-.office-header .brand { color: inherit; font-weight: 600; text-decoration: none; }
-.office-header nav { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-.office-header nav a { color: inherit; text-decoration: none; padding: var(--space-0) var(--space-1); border-radius: 6px; }
-.office-header nav a[aria-current="page"] { background: rgba(255,255,255,0.15); }
-.office-header .who { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); color: var(--color-brand-tint); }
-.office-header .who button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 6px; padding: 0.2rem 0.6rem; cursor: pointer; }
+.office-header .container { display: flex; align-items: center; gap: var(--space-3); min-height: 3rem; }
+.office-header .brand { color: var(--ink); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.office-header .brand span { color: var(--graphite); font-weight: 400; }
+.office-header nav { display: flex; gap: var(--space-1); align-self: stretch; }
+.office-header nav a {
+  display: inline-flex; align-items: center;
+  color: var(--pencil); text-decoration: none;
+  padding: 0 var(--space-1);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.office-header nav a:hover { color: var(--ink); }
+.office-header nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--green); }
+.office-header .who { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); color: var(--graphite); white-space: nowrap; }
+.office-header .who button {
+  background: none; border: 0; padding: 0;
+  font: inherit; color: var(--green); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px;
+}
+@media (max-width: 48rem) {
+  .office-header .container { flex-wrap: wrap; gap: 0 var(--space-2); padding-top: var(--space-1); }
+  .office-header nav { order: 3; width: 100%; overflow-x: auto; gap: var(--space-2); }
+  .office-header nav a { padding: var(--space-1) 0; }
+  .office-header .who span { display: none; }
+}
+
+/* Controls ------------------------------------------------------ */
+
+.office .btn {
+  min-height: var(--control-h);
+  padding: 0 0.75rem;
+  border-radius: var(--radius-control);
+  font-size: inherit;
+  font-weight: 500;
+}
+.office .btn-quiet {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
+  min-height: var(--control-h);
+  padding: 0 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit; font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.office .btn-quiet:hover { border-color: var(--graphite); color: var(--ink); }
+.office .btn-small { min-height: 1.75rem; padding: 0 0.5rem; font-size: 0.92em; }
+.office .btn[disabled], .office .btn-quiet[disabled] { opacity: 0.45; cursor: not-allowed; }
+.office .link-quiet {
+  background: none; border: 0; padding: 0;
+  font: inherit; color: var(--graphite); cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--hairline); text-underline-offset: 0.2em;
+}
+.office .link-quiet:hover { color: var(--green); text-decoration-color: currentColor; }
+.office .danger { color: var(--clay); }
+.office .danger:hover { color: var(--clay); }
+
+.office :is(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea) {
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper-inset);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  min-height: var(--control-h);
+  padding: 0 0.625rem;
+  width: 100%;
+  transition: border-color 120ms ease;
+}
+.office :is(input, select, textarea)::placeholder { color: var(--graphite); }
+.office :is(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea):focus-visible {
+  outline: 2px solid transparent;
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green);
+}
+.office textarea { min-height: 6rem; padding: 0.5rem 0.625rem; line-height: 1.45; resize: vertical; }
+.office select {
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%2366706B' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+}
+.office input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--green); margin: 0; vertical-align: -0.125rem; }
+/* iOS zooms into any control under 16px; on a touch screen the size goes up
+   and nothing else changes. */
+@media (pointer: coarse) {
+  .office :is(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea) { font-size: 16px; }
+}
+
+.office .field { display: grid; gap: 0.25rem; margin-bottom: var(--space-2); }
+.office .field > span { font-weight: 500; font-size: 0.92em; color: var(--pencil); }
+.office .field.check { grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; }
+.office .field.check > span { font-weight: 400; color: var(--ink); font-size: inherit; }
+.office .field-hint { font-size: 0.92em; color: var(--graphite); font-weight: 400; max-width: 64ch; }
+.office fieldset { border: 0; padding: 0; margin: 0 0 var(--space-2); min-width: 0; }
+.office legend { font-weight: 600; padding: 0; margin-bottom: var(--space-1); }
+.office .row { display: grid; gap: 0 var(--space-2); grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.office form.inline { display: inline; }
+.office .toolbar { display: flex; gap: var(--space-1); align-items: center; flex-wrap: wrap; }
+.office .toolbar :is(input, select) { width: auto; }
+.office .toolbar .grow { flex: 1 1 12rem; }
+.office .sheet {
+  background: var(--sheet);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sheet);
+  padding: var(--space-3);
+}
+.office .sheet > h3:first-child { margin-bottom: var(--space-2); }
+.office .sheet-row { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+
+/* Notices are the one place a box is filled with colour, and only the two
+   colours that carry meaning. */
+.office .notice, .office p.error {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--clay);
+  border-radius: var(--radius-control);
+  background: var(--clay-tint);
+  color: var(--clay);
+  margin: 0 0 var(--space-2);
+  max-width: none;
+}
+.office .notice-ok { border-color: var(--moss); background: var(--moss); color: var(--green-deep); }
+
+/* Marks --------------------------------------------------------- */
+
+/* Three states, one shape. Filled green is done, an outline is waiting,
+   filled clay is late or failed; a dashed outline is a thing that has not
+   started. The word beside the mark carries the detail. */
+.office .mark { display: inline-flex; align-items: center; gap: 0.45rem; }
+.office .mark::before {
+  content: ''; flex: none;
+  width: 0.5rem; height: 0.5rem; border-radius: 50%;
+  border: 1.5px solid currentColor;
+}
+.office .mark-done { color: var(--green); }
+.office .mark-done::before { background: currentColor; }
+.office .mark-waiting { color: var(--pencil); }
+.office .mark-late { color: var(--clay); }
+.office .mark-late::before { background: currentColor; }
+.office .mark-none { color: var(--graphite); }
+.office .mark-none::before { border-style: dashed; }
+.office .chip, .office .badge {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--moss);
+  color: var(--green-deep);
+  font-size: 0.88em; font-weight: 500;
+  white-space: nowrap;
+}
+
+/* The rail ------------------------------------------------------ */
+
+/* Every client is somewhere on the same nine-stage path, so the path is
+   drawn once and reused: on the dashboard with names under each stage, on
+   a client page with the dates it passed each stop. The line behind the
+   current stop is the way travelled. */
+.office .rail { list-style: none; margin: var(--space-3) 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.office .rail > li { position: relative; padding: var(--space-2) var(--space-2) 0 0; min-width: 0; }
+.office .rail > li::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--hairline); }
+.office .rail > li.past::before { background: var(--green); }
+.office .rail > li.current::before { background: linear-gradient(to right, var(--green) 50%, var(--hairline) 50%); }
+.office .rail > li::after {
+  content: ''; position: absolute; top: -4px; left: 0;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--faint);
+}
+.office .rail > li.past::after { background: var(--green); border-color: var(--green); }
+.office .rail > li.current::after { background: var(--green); border-color: var(--green); top: -6px; width: 13px; height: 13px; box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--green); }
+.office .rail .name { display: block; font-size: 0.88em; color: var(--graphite); line-height: 1.25; overflow-wrap: break-word; }
+.office .rail > li.current .name { color: var(--ink); font-weight: 600; }
+.office .rail > li.past .name { color: var(--pencil); }
+.office .rail .date { display: block; font-size: 0.82em; color: var(--graphite); font-variant-numeric: tabular-nums; margin-top: 0.125rem; }
+.office .rail .clients { margin: 0.375rem 0 0; padding: 0; list-style: none; }
+.office .rail .clients a { display: block; color: var(--ink); text-decoration: none; padding: 0.125rem 0; }
+.office .rail .clients a:hover { color: var(--green); text-decoration: underline; }
+.office .rail .advance { margin-top: 0.5rem; }
+.office .rail .advance .btn-quiet { white-space: normal; text-align: left; line-height: 1.2; padding: 0.375rem 0.625rem; }
+@media (max-width: 52rem) {
+  .office .rail { grid-auto-flow: row; margin-left: 0.75rem; }
+  .office .rail > li { padding: 0 0 var(--space-2) var(--space-3); }
+  .office .rail > li::before { top: 0; bottom: 0; left: 0; right: auto; width: 1px; height: auto; }
+  .office .rail > li.current::before { background: linear-gradient(to bottom, var(--green) 50%, var(--hairline) 50%); }
+  .office .rail > li::after { top: 0.25rem; left: -4px; }
+  .office .rail > li.current::after { left: -6px; top: 0.125rem; }
+  .office .rail > li:last-child::before { display: none; }
+  .office .rail.board > li.empty { display: none; }
+}
+
+/* The glance: a client's standing in one ruled band. */
+.office .glance {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-3); padding: var(--space-2) 0;
+  border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
+}
+.office .glance dt { font-size: 0.85em; color: var(--graphite); margin-bottom: 0.125rem; }
+.office .glance dd { margin: 0; }
+.office .glance .detail { display: block; color: var(--graphite); font-size: 0.9em; margin-top: 0.125rem; }
+.office .glance a { color: inherit; }
+
+/* Tabs ---------------------------------------------------------- */
+
+.office .tabs { display: flex; gap: var(--space-3); border-bottom: 1px solid var(--hairline); margin: var(--space-3) 0; overflow-x: auto; }
+.office .tabs a {
+  padding: 0.625rem 0; white-space: nowrap;
+  color: var(--pencil); text-decoration: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.office .tabs a:hover { color: var(--ink); }
+.office .tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--green); font-weight: 500; }
+.office .tabs .count { margin-left: 0.3rem; font-size: 0.88em; }
+.office .tabs .dot::after { content: ''; display: inline-block; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--green); margin-left: 0.4rem; vertical-align: 0.1rem; }
+
+/* The ledger: rows of things due -------------------------------- */
+
+.office .ledger { list-style: none; margin: 0; padding: 0; }
+.office .ledger > li {
+  display: grid;
+  grid-template-columns: auto minmax(7rem, max-content) minmax(0, 1fr) auto;
+  gap: 0.25rem var(--space-2);
+  align-items: start;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.office .ledger > li.no-tick { grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr) auto; }
+.office .ledger .when { color: var(--pencil); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.office .ledger .when small { display: block; color: var(--graphite); font-size: 0.88em; }
+.office .ledger .late, .office .ledger .late small { color: var(--clay); }
+.office .ledger .late { font-weight: 600; }
+.office .ledger .what { min-width: 0; }
+.office .ledger .client { color: var(--ink); font-weight: 500; text-decoration: none; }
+.office .ledger .client:hover { color: var(--green); text-decoration: underline; }
+.office .ledger .meta { color: var(--graphite); font-size: 0.92em; }
+.office .ledger .act { display: flex; gap: var(--space-2); align-items: center; justify-self: end; }
+.office .ledger > li.done .what, .office .ledger > li.done .when { color: var(--graphite); }
+.office .ledger > li.done .title { text-decoration: line-through; text-decoration-color: var(--hairline); }
+@media (max-width: 40rem) {
+  .office .ledger > li { grid-template-columns: auto minmax(0, 1fr); }
+  .office .ledger > li.no-tick { grid-template-columns: minmax(0, 1fr); }
+  .office .ledger .when { grid-column: 2; white-space: normal; }
+  .office .ledger > li.no-tick .when { grid-column: 1; }
+  .office .ledger .what { grid-column: 2; }
+  .office .ledger > li.no-tick .what { grid-column: 1; }
+  .office .ledger .act { grid-column: 2; justify-self: start; }
+  .office .ledger > li.no-tick .act { grid-column: 1; }
+}
+
+.office .tick {
+  width: 1.125rem; height: 1.125rem; margin-top: 0.1rem; padding: 0;
+  border-radius: 50%; border: 1.5px solid var(--graphite);
+  background: var(--paper); color: transparent;
+  display: inline-grid; place-items: center;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.office .tick:hover { border-color: var(--green); color: var(--green); }
+.office .tick.on { background: var(--green); border-color: var(--green); color: #FFFFFF; }
+.office .tick.on:hover { background: var(--green-deep); border-color: var(--green-deep); }
+.office .tick svg { width: 0.7rem; height: 0.7rem; display: block; }
+
+/* A row's second action opens a small sheet under the link, one level
+   above the page and no more. */
+.office details.pop { position: relative; display: inline-block; }
+.office details.pop > summary { list-style: none; cursor: pointer; }
+.office details.pop > summary::-webkit-details-marker { display: none; }
+.office details.pop > .pop-sheet {
+  position: absolute; right: 0; top: calc(100% + 0.375rem); z-index: 5;
+  min-width: 17rem;
+  background: var(--sheet); border: 1px solid var(--hairline); border-radius: var(--radius-sheet);
+  padding: var(--space-2);
+  display: grid; gap: var(--space-1);
+}
+.office details.pop .pop-actions { display: flex; gap: var(--space-2); align-items: center; justify-content: space-between; }
+@media (max-width: 40rem) { .office details.pop > .pop-sheet { right: auto; left: 0; } }
+
+/* Folds: a section that is there when wanted. */
+.office details.fold { border-top: 1px solid var(--hairline); }
+.office details.fold:last-of-type { border-bottom: 1px solid var(--hairline); }
+.office details.fold > summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.75rem 0; font-weight: 500;
+}
+.office details.fold > summary::-webkit-details-marker { display: none; }
+.office details.fold > summary::before {
+  content: ''; flex: none;
+  width: 0.4rem; height: 0.4rem; margin-left: 0.125rem;
+  border: solid var(--graphite); border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+.office details.fold[open] > summary::before { transform: rotate(45deg); }
+.office details.fold > summary .sub { color: var(--graphite); font-weight: 400; margin-left: auto; }
+.office details.fold > .fold-body { padding: 0 0 var(--space-3) 1.2rem; }
+
+/* Tables -------------------------------------------------------- */
 
 .office table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.office th, .office td { text-align: left; padding: var(--space-1) var(--space-1); border-bottom: 1px solid var(--color-border); vertical-align: top; }
-.office th { font-weight: 600; color: var(--color-muted); font-size: 0.85em; }
-.office .num { text-align: right; }
+.office th, .office td { text-align: left; padding: 0.625rem 0.75rem 0.625rem 0; border-bottom: 1px solid var(--hairline-soft); vertical-align: top; }
+.office th { font-weight: 500; color: var(--graphite); font-size: 0.9em; padding-top: 0; }
+.office th:last-child, .office td:last-child { padding-right: 0; }
+.office td .links { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.office td .meta { display: block; color: var(--graphite); font-size: 0.92em; }
+.office tr.done td { color: var(--graphite); }
 
-.office .toolbar { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--space-2); }
-.office .btn, .office .btn-outline { padding: 0.45rem 0.9rem; font-size: inherit; }
-.office .btn-small { padding: 0.2rem 0.6rem; font-size: 0.9em; }
-.office form.inline { display: inline; }
-.office .field { margin-bottom: var(--space-2); }
-.office .field input, .office .field select, .office .field textarea { font-size: inherit; }
-.office .row { display: grid; gap: var(--space-2); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+/* Calendar ------------------------------------------------------ */
 
-.office .tabs { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--color-border); margin: var(--space-2) 0; flex-wrap: wrap; }
-.office .tabs a { padding: var(--space-1) var(--space-2); text-decoration: none; color: var(--color-muted); border-bottom: 2px solid transparent; }
-.office .tabs a[aria-current="page"] { color: var(--color-brand); border-bottom-color: var(--color-brand); }
+.office .cal { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: var(--space-5); }
+.office .cal .day-head { display: flex; align-items: center; gap: var(--space-1); margin-bottom: var(--space-3); flex-wrap: wrap; }
+.office .cal .day-head h1 { margin-right: var(--space-1); }
+.office .cal .day-head form { margin-left: auto; }
+.office .month-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-1); }
+.office .month-head strong { font-weight: 500; }
+.office .month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.office .month > * { text-align: center; padding: 0.3rem 0; border-radius: var(--radius-control); text-decoration: none; color: var(--ink); font-variant-numeric: tabular-nums; position: relative; line-height: 1.3; }
+.office .month .wd { color: var(--graphite); font-size: 0.82em; }
+.office .month a:hover { background: var(--sand); }
+.office .month .out { color: var(--faint); }
+.office .month .marked::after { content: ''; position: absolute; left: 50%; bottom: 3px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--green); }
+.office .month [aria-current="date"] { background: var(--ink); color: var(--paper); }
+.office .month [aria-current="date"].marked::after { background: var(--paper); }
+.office .arrow { display: inline-grid; place-items: center; width: var(--control-h); height: var(--control-h); border: 1px solid var(--hairline); border-radius: var(--radius-control); color: var(--pencil); text-decoration: none; background: var(--sheet); font-size: 1.1em; line-height: 1; }
+.office .arrow:hover { border-color: var(--graphite); color: var(--ink); }
+.office .arrow.small { width: 1.75rem; height: 1.75rem; border: 0; background: none; }
+@media (max-width: 52rem) {
+  .office .cal { grid-template-columns: 1fr; gap: var(--space-3); }
+  .office .cal .month-col { order: -1; max-width: 20rem; }
+}
 
-.office .badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--color-brand-tint); color: var(--color-brand); font-size: 0.85em; }
-.office .overdue { color: var(--color-accent); font-weight: 600; }
-.office .done { color: var(--color-muted); text-decoration: line-through; }
-.office .error { color: var(--color-accent); }
-.office .empty { color: var(--color-muted); font-style: italic; }
+/* Settings: the template editor -------------------------------- */
 
-.office .board { display: grid; gap: var(--space-2); grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
-.office .board .col { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-1) var(--space-2); }
-.office .board .col h3 { font-size: 0.9em; color: var(--color-muted); margin: 0 0 var(--space-1); }
-.office .board .col a { display: block; padding: 0.15rem 0; }
+.office .fields-grid { display: grid; grid-template-columns: 9rem minmax(0, 1fr) auto minmax(0, 1fr); gap: 0.5rem; align-items: center; }
+.office .fields-grid .head { font-size: 0.85em; color: var(--graphite); }
+.office .fields-grid label.check { display: flex; align-items: center; gap: 0.375rem; white-space: nowrap; color: var(--pencil); font-size: 0.92em; }
+@media (max-width: 40rem) {
+  .office .fields-grid { grid-template-columns: 1fr 1fr; }
+  .office .fields-grid .head { display: none; }
+}
+.office .placeholders { display: flex; flex-wrap: wrap; gap: 0.375rem; margin: var(--space-1) 0 0; padding: 0; list-style: none; }
+.office .form-foot { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-2); }
+.office .form-foot .link-quiet { margin-left: auto; }
 
-.office .month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; max-width: 22rem; }
-.office .month a, .office .month span { text-align: center; padding: 0.25rem 0; border-radius: 6px; text-decoration: none; }
-.office .month .out { color: var(--color-border); }
-.office .month .marked { font-weight: 600; }
-.office .month .marked::after { content: '•'; display: block; line-height: 0.4; color: var(--color-brand); }
-.office .month [aria-current="date"] { background: var(--color-brand-tint); }
+/* Send, data, login --------------------------------------------- */
 
-.office textarea.json { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 30rem; width: 100%; }
-
-.office .send { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.office .send { display: grid; gap: var(--space-4); grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
 @media (max-width: 60rem) { .office .send { grid-template-columns: 1fr; } }
-.office .send textarea { width: 100%; min-height: 22rem; font-family: inherit; }
-.office .preview { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-2) var(--space-3); }
+.office .send textarea { min-height: 22rem; }
+.office .preview { background: var(--sheet); border: 1px solid var(--hairline); border-radius: var(--radius-sheet); padding: var(--space-2) var(--space-3); }
 .office .preview p { margin: 0 0 var(--space-2); }
+.office textarea.json { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; min-height: 24rem; }
+.office .login { max-width: 22rem; margin: 12vh auto 0; }
+.office .login h1 { margin-bottom: var(--space-3); }
+.office .copy-line { display: flex; gap: var(--space-1); align-items: center; }
+.office .copy-line input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
 
-/* Agreement text reads like a document, not a dashboard. */
+/* Agreements read like documents, not screens ------------------- */
+
 .office .agreement { font-family: var(--font-serif); font-size: 1rem; line-height: 1.5; max-width: 46rem; }
-.office .agreement h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
-.office .agreement .subtitle { margin: 0 0 0.75rem; color: var(--color-muted); }
-.office .agreement h2 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+.office .agreement h1 { font-size: 1.4rem; margin: 0 0 0.25rem; letter-spacing: 0; }
+.office .agreement .subtitle { margin: 0 0 0.75rem; color: var(--pencil); }
+.office .agreement h2 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; border: 0; padding: 0; }
 .office .agreement h2.exhibit { margin-top: 2.5rem; }
 .office .agreement h3 { font-size: 1rem; margin: 1rem 0 0.25rem; }
 .office .agreement table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; font-size: 0.95rem; }
-.office .agreement th, .office .agreement td { border: 1px solid var(--color-border); padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
+.office .agreement th, .office .agreement td { border: 1px solid var(--hairline); padding: 0.375rem 0.5rem; text-align: left; vertical-align: top; color: inherit; font-size: inherit; font-weight: inherit; }
+.office .agreement th { font-weight: 600; }
 .office .agreement .party { margin: 1rem 0; }
-.office .agreement .signature { display: block; max-width: 18rem; height: auto; border-bottom: 1px solid var(--color-ink); }
-.office .scrollbox { max-height: 60vh; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-2) var(--space-3); background: var(--color-surface); }
-.office .pad canvas { display: block; width: 100%; max-width: 28rem; height: 10rem; border: 1px dashed var(--color-border); border-radius: var(--radius); background: #fff; touch-action: none; }
+.office .agreement .signature { display: block; max-width: 18rem; height: auto; border-bottom: 1px solid var(--ink); }
+.office .scrollbox { max-height: 60vh; overflow-y: auto; border: 1px solid var(--hairline); border-radius: var(--radius-sheet); padding: var(--space-2) var(--space-3); background: var(--sheet); }
+.office .pad canvas { display: block; width: 100%; max-width: 28rem; height: 10rem; border: 1px dashed var(--hairline); border-radius: var(--radius-sheet); background: var(--sheet); touch-action: none; }
 
-.office form.upload { display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; }
+.office form.upload { display: flex; gap: var(--space-2); align-items: end; flex-wrap: wrap; }
 .office form.upload input[type="file"] { display: block; margin-top: 0.25rem; }

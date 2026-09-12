@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import seed from '../../../../src/data/office/templates.json' with { type: 'json' };
 import { validateTemplates, loadTemplates, findTemplate, fill, render, toHtml, toSafeHtml, escapeValues, placeholdersIn, KNOWN_PLACEHOLDERS } from './templates.mjs';
+import * as templatesModule from './templates.mjs';
 import { createStore } from './store.mjs';
 import { memoryBackend } from './backends.mjs';
 
@@ -166,4 +167,40 @@ test('escapeValues neutralizes Markdown in the given values and nothing else', (
   const out = escapeValues(body, ['[click me](javascript:alert(1))', 'Lova', 'https://x/sign/1', '']);
   assert.equal(out, 'Hi **there**, welcome \\[click me\\]\\(javascript:alert\\(1\\)\\) from Lova');
   assert.ok(!toSafeHtml(out).includes('href="javascript:'));
+});
+
+test('upsertTemplate adds a new template and replaces one with the same id', () => {
+  const { upsertTemplate } = templatesModule;
+  const base = [{ id: 'hello', name: 'Hello', subject: 'S', body: 'B' }];
+  let out = upsertTemplate(base, { id: 'welcome', name: 'Welcome', subject: 'Hi {{client.firstName}}', body: 'Body', fields: [{ key: 'note', label: 'Note', required: false, default: '' }] });
+  assert.deepEqual(out.errors, []);
+  assert.deepEqual(out.templates.map((t) => t.id), ['hello', 'welcome']);
+  assert.deepEqual(out.templates[1].fields, [{ key: 'note', label: 'Note', default: '' }]);
+  out = upsertTemplate(out.templates, { id: 'hello', name: 'Hello again', subject: 'S2', body: 'B2', fields: [{ key: 'link', label: 'Link', required: true, default: '' }] });
+  assert.deepEqual(out.errors, []);
+  assert.equal(out.templates.length, 2);
+  assert.equal(out.templates[0].name, 'Hello again');
+  assert.deepEqual(out.templates[0].fields, [{ key: 'link', label: 'Link', required: true }]);
+  assert.equal(base[0].name, 'Hello', 'input is not mutated');
+});
+
+test('upsertTemplate refuses a bad id, a missing subject and an unknown placeholder', () => {
+  const { upsertTemplate } = templatesModule;
+  assert.match(upsertTemplate([], { id: 'Bad Id', name: 'x', subject: 's', body: 'b', fields: [] }).errors.join(), /id must be/);
+  assert.match(upsertTemplate([], { id: 'ok', name: 'x', subject: '', body: 'b', fields: [] }).errors.join(), /subject is required/);
+  assert.match(upsertTemplate([], { id: 'ok', name: 'x', subject: 's', body: 'Hi {{client.nickname}}', fields: [] }).errors.join(), /client\.nickname/);
+  assert.deepEqual(upsertTemplate([], { id: 'ok', name: 'x', subject: 's', body: 'Hi {{nick}}', fields: [{ key: 'nick', label: 'Nickname' }] }).errors, []);
+});
+
+test('removeTemplate refuses ids the code or a pipeline stage sends', () => {
+  const { removeTemplate, PROTECTED_TEMPLATES } = templatesModule;
+  const base = [{ id: 'launch', name: 'L', subject: 's', body: 'b' }, { id: 'extra', name: 'E', subject: 's', body: 'b' }, { id: 'meeting-reminder', name: 'M', subject: 's', body: 'b' }];
+  const pipelines = [{ id: 'website', stages: [{ id: 'launch', email: 'launch', tasks: [] }] }];
+  assert.match(removeTemplate(base, 'launch', pipelines).errors.join(), /website.*launch/);
+  assert.match(removeTemplate(base, 'meeting-reminder', pipelines).errors.join(), /sends it/);
+  assert.ok(PROTECTED_TEMPLATES.includes('agreement-completed'));
+  const out = removeTemplate(base, 'extra', pipelines);
+  assert.deepEqual(out.errors, []);
+  assert.deepEqual(out.templates.map((t) => t.id), ['launch', 'meeting-reminder']);
+  assert.match(removeTemplate(base, 'nope', pipelines).errors.join(), /no such template/);
 });

@@ -1,0 +1,45 @@
+---
+// The one drawing of the pipeline. On a client page it carries the dates
+// each stage was reached and the single advance action; on the dashboard it
+// carries the clients standing at each stage.
+import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
+
+type Stage = { id: string; name: string };
+type ClientRow = { slug: string; business: string };
+interface Props {
+  stages: Stage[];
+  currentId?: string;
+  history?: { stage: string; at: string }[];
+  clientsByStage?: Record<string, ClientRow[]>;
+  advance?: { slug: string; csrf: string };
+  label?: string;
+}
+const { stages, currentId, history = [], clientsByStage, advance, label = 'Pipeline' } = Astro.props;
+const currentIndex = stages.findIndex((s) => s.id === currentId);
+const reached = new Map<string, string>();
+for (const h of history) reached.set(h.stage, formatYmd(todayIn(undefined, new Date(h.at))));
+const board = Boolean(clientsByStage);
+---
+<ol class:list={['rail', { board }]} aria-label={label}>
+  {stages.map((st, i) => {
+    const clients = clientsByStage?.[st.id] ?? [];
+    const state = board ? '' : i < currentIndex ? 'past' : i === currentIndex ? 'current' : '';
+    return (
+      <li class:list={[state, { empty: board && clients.length === 0 }]} aria-current={state === 'current' ? 'step' : undefined}>
+        <span class="name">{st.name}{board && clients.length > 0 && <span class="count"> {clients.length}</span>}</span>
+        {!board && reached.has(st.id) && <span class="date">{reached.get(st.id)}</span>}
+        {board && clients.length > 0 && (
+          <ul class="clients">{clients.map((c) => <li><a href={`/office/clients/${c.slug}/`}>{c.business}</a></li>)}</ul>
+        )}
+        {advance && i === currentIndex + 1 && (
+          <form method="POST" action="/office/api/stage" class="advance">
+            <input type="hidden" name="csrf" value={advance.csrf} />
+            <input type="hidden" name="slug" value={advance.slug} />
+            <input type="hidden" name="stage" value={st.id} />
+            <button class="btn-quiet btn-small">Advance</button>
+          </form>
+        )}
+      </li>
+    );
+  })}
+</ol>

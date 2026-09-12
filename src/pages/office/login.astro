@@ -5,20 +5,22 @@ import OfficeLayout from '../../layouts/OfficeLayout.astro';
 // from the query string in the browser.
 ---
 <OfficeLayout title="Log in">
-  <h1>Log in</h1>
-  <p class="error" id="error" hidden>That email and password did not match an admin account.</p>
-  <form method="POST" action="/office/api/login" class="narrow" id="login">
-    <input type="hidden" name="next" value="/office/" />
-    <label class="field">
-      <span>Email</span>
-      <input type="email" name="email" required autocomplete="username" />
-    </label>
-    <label class="field">
-      <span>Password</span>
-      <input type="password" name="password" required autocomplete="current-password" />
-    </label>
-    <button type="submit" class="btn">Log in</button>
-  </form>
+  <div class="login">
+    <h1>Log in</h1>
+    <p class="error" id="error" hidden>That email and password did not match an admin account.</p>
+    <form method="POST" action="/office/api/login" id="login">
+      <input type="hidden" name="next" value="/office/" />
+      <label class="field">
+        <span>Email</span>
+        <input type="email" name="email" required autocomplete="username" />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="password" required autocomplete="current-password" />
+      </label>
+      <button type="submit" class="btn">Log in</button>
+    </form>
+  </div>
   <script is:inline>
     (function () {
       var p = new URLSearchParams(location.search);

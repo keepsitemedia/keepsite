@@ -159,9 +159,16 @@ stage one. The filename matters — the skill looks for exactly those names.
 
 A private back office for running clients: pipeline stages, tasks, a
 calendar, each client's questionnaire answers, and data export. Design:
-`docs/superpowers/specs/2026-09-04-client-office-design.md`. Email,
-meetings, payments and e-signed agreements are part of it too, each with
-its own section below.
+`docs/superpowers/specs/2026-09-04-client-office-design.md`; the visual
+system is in `.interface-design/system.md`. Email, meetings, payments and
+e-signed agreements are part of it too, each with its own section below.
+
+The Today page opens with the pipeline drawn as one rail, then two lists:
+**On you** (open tasks due in the next three days, late ones first) and
+**Waiting on clients** (tasks that wait on a questionnaire, a signature or
+a payment, each with the button that chases it). A client's page has the
+same rail with the dates each stage was reached and the one Advance
+button, then a glance band: agreement, deposit, questionnaires, next task.
 
 ### Setting up, in order
 
@@ -225,7 +232,8 @@ KEEPSITE_SESSION_SECRET=dev KEEPSITE_TOKEN_SECRET=... npm run dev:office
 `dev:office` sets `OFFICE_STORE_DIR=.office-data` (a gitignored directory
 of JSON files in place of Netlify Blobs) and `IDENTITY_URL` pointing at the
 production Identity service, so you log in with your real account. Delete
-`.office-data/` to start over.
+`.office-data/` to start over. Under WSL with the repo on `/mnt/c`, the dev
+server does not see file changes; restart it after editing.
 
 ### Where the data is
 
@@ -243,12 +251,24 @@ added to that client's notes instead.
 
 ### Email
 
-Templates live in Settings → Email templates (seeded from
-`src/data/office/templates.json`). `{{client.firstName}}`, `{{links.intro}}`
-and the rest fill from the client; a template's `fields` are asked for on the
-send screen. Advancing a client to a stage with an `email` opens that
-template's send screen; nothing goes out until you click Send. Every send,
-sent or failed, appears on the client's Emails tab.
+Every email starts from a template under Settings → Emails, seeded from
+`src/data/office/templates.json`. Each one opens into a form: name, subject,
+Markdown body, and the fields the send screen asks for (key, label, whether
+it is required, a default). **Add an email** at the bottom creates a new
+one; it appears as a button on every client's Emails tab, and naming its id
+in a stage's `email` under Pipelines makes it open when a client enters
+that stage. Templates the office sends on its own (meeting and agreement
+notices, the questionnaire reminder) and any a stage names can be edited
+but not removed.
+
+`{{client.firstName}}`, `{{links.intro}}` and the rest fill from the client;
+the full list is under **Placeholders the office fills in**. Advancing a
+client to a stage with an `email` opens that template's send screen;
+nothing goes out until you click Send. The one exception is the Agreement
+stage: its email carries the signing link, which does not exist until an
+agreement has been drafted, signed as Keepsite and sent, so advancing
+lands on the Agreements tab instead and the send happens from there. Every
+send, sent or failed, appears on the client's Emails tab.
 
 ### Meetings
 

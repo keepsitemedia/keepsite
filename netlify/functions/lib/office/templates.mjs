@@ -177,3 +177,45 @@ export function render(template, context, prompted = {}, { keepPrompted = false 
     missing,
   };
 }
+
+// Templates the code sends on its own, without a stage naming them: the
+// editor can change their words but never remove them.
+export const PROTECTED_TEMPLATES = ['meeting-confirmation', 'meeting-reminder', 'meeting-cancelled', 'agreement-completed', 'agreement-declined', 'questionnaire-reminder'];
+
+// A draft from the editor form becomes one template in the list. Fields are
+// stored in the same shape the send screen reads; optional keys are dropped
+// so a stored template looks like the seed, not like a form.
+export function upsertTemplate(templates, draft) {
+  const fields = (draft.fields ?? [])
+    .filter((f) => String(f.key ?? '').trim() || String(f.label ?? '').trim())
+    .map((f) => {
+      const out = { key: String(f.key ?? '').trim(), label: String(f.label ?? '').trim() };
+      if (f.required) out.required = true;
+      else out.default = String(f.default ?? '');
+      return out;
+    });
+  const next = { id: String(draft.id ?? '').trim(), name: String(draft.name ?? '').trim(), subject: String(draft.subject ?? '').trim(), body: String(draft.body ?? '').replace(/\r\n/g, '\n').trim() };
+  if (fields.length) next.fields = fields;
+  const i = templates.findIndex((t) => t.id === next.id);
+  const list = i < 0 ? [...templates, next] : templates.map((t, j) => (j === i ? next : t));
+  const errors = validateTemplates(list);
+  const prompted = new Set(fields.map((f) => f.key));
+  for (const name of placeholdersIn(`${next.subject}\n${next.body}`)) {
+    if (!KNOWN_PLACEHOLDERS.includes(name) && !prompted.has(name)) {
+      errors.push(`{{${name}}} is not a placeholder the office fills in, and there is no field with that key`);
+    }
+  }
+  return { templates: list, errors };
+}
+
+export function removeTemplate(templates, id, pipelines) {
+  const errors = [];
+  if (!templates.some((t) => t.id === id)) return { templates, errors: [`no such template: ${id}`] };
+  if (PROTECTED_TEMPLATES.includes(id)) errors.push(`the office sends it on its own, so "${id}" cannot be removed`);
+  for (const p of pipelines) {
+    for (const st of p.stages) {
+      if (st.email === id) errors.push(`pipeline ${p.id}, stage ${st.id} sends "${id}"`);
+    }
+  }
+  return { templates: errors.length ? templates : templates.filter((t) => t.id !== id), errors };
+}
