@@ -1,43 +1,86 @@
 ---
 export const prerender = false;
 import OfficeLayout from '../../layouts/OfficeLayout.astro';
+import TemplateForm from '../../components/office/TemplateForm.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
-import { loadTemplates } from '../../../netlify/functions/lib/office/templates.mjs';
+import { loadTemplates, KNOWN_PLACEHOLDERS, PROTECTED_TEMPLATES } from '../../../netlify/functions/lib/office/templates.mjs';
+
+type Field = { key: string; label: string; default?: string; required?: boolean };
+type Template = { id: string; name: string; subject: string; body: string; fields?: Field[] };
+type Stage = { id: string; name: string; email?: string };
+type Pipeline = { id: string; name: string; stages: Stage[] };
 
 const s = store();
-const pipelines = await loadPipelines(s);
+const pipelines = (await loadPipelines(s)) as Pipeline[];
 const stored = (await s.settings.get('pipelines')) !== null;
-const templates = await loadTemplates(s);
-const templatesStored = (await s.settings.get('templates')) !== null;
+const templates = (await loadTemplates(s)) as Template[];
 const error = Astro.url.searchParams.get('error');
 const saved = Astro.url.searchParams.get('saved');
+const focus = Astro.url.searchParams.get('template') ?? (saved && saved !== '1' ? saved : '');
+const csrf = Astro.locals.csrf;
+
+// Where each template is sent from, so the editor can say so and refuse to
+// remove one that a stage or the office itself relies on.
+const sentBy = new Map<string, string>();
+for (const p of pipelines) {
+  for (const st of p.stages) {
+    if (st.email) sentBy.set(st.email, `Opens when a client enters ${st.name}`);
+  }
+}
+const OWN: Record<string, string> = {
+  'meeting-confirmation': 'Sent when a meeting is booked',
+  'meeting-reminder': 'Sent before each meeting',
+  'meeting-cancelled': 'Sent when a meeting is cancelled',
+  'agreement-completed': 'Sent when both parties have signed',
+  'agreement-declined': 'Sent to you when a client declines',
+  'questionnaire-reminder': 'Sent from the Remind buttons',
+};
+const useOf = (id: string) => sentBy.get(id) ?? OWN[id] ?? 'Sent by hand from a client’s Emails tab';
+const removable = (id: string) => !sentBy.has(id) && !PROTECTED_TEMPLATES.includes(id);
 ---
 <OfficeLayout title="Settings">
-  <h1>Settings</h1>
-  <h2>Pipelines</h2>
-  <p class="muted">
-    {stored ? 'Edited in the office; the copy in git is the seed.' : 'Showing the seed from src/data/office/pipelines.json. Saving stores a copy here that survives deploys.'}
-    A pipeline is a list of stages; each stage lists the tasks it creates, with <code>due</code> as days after the stage starts, and optionally the <code>email</code> it opens and the <code>questionnaire</code> or <code>payment</code> a task waits on.
-  </p>
+  <div class="page-head"><h1>Settings</h1></div>
   {error && <p class="error">{error}</p>}
-  {saved && <p class="badge">Saved</p>}
-  <form method="POST" action="/office/api/settings">
-    <input type="hidden" name="csrf" value={Astro.locals.csrf} />
-    <input type="hidden" name="name" value="pipelines" />
-    <textarea name="value" class="json" aria-label="Pipelines as JSON" spellcheck="false">{JSON.stringify(pipelines, null, 2)}</textarea>
-    <p><button class="btn btn-small">Save pipelines</button></p>
-  </form>
+  {saved && <p class="notice notice-ok">Saved.</p>}
 
-  <h2>Email templates</h2>
-  <p class="muted">
-    {templatesStored ? 'Edited in the office; the copy in git is the seed.' : 'Showing the seed from src/data/office/templates.json.'}
-    Placeholders like <code>{'{{client.firstName}}'}</code> fill from the client; a template's <code>fields</code> are asked for on the send screen. Bodies are Markdown.
+  <h2>Emails</h2>
+  <p class="quiet">Every email the office sends starts from one of these. The words are yours to change; placeholders such as <code>{'{{client.firstName}}'}</code> fill in from the client when it is sent. Bodies are Markdown.</p>
+  {templates.map((t) => (
+    <details class="fold" id={`template-${t.id}`} open={focus === t.id}>
+      <summary>{t.name}<span class="sub">{useOf(t.id)}</span></summary>
+      <div class="fold-body"><TemplateForm template={t} csrf={csrf} removable={removable(t.id)} /></div>
+    </details>
+  ))}
+  <details class="fold" id="template-new" open={focus === 'new'}>
+    <summary>Add an email</summary>
+    <div class="fold-body">
+      <p class="quiet">A new email appears as a button on every client's Emails tab. To have it go out when a client reaches a stage, name its id in that stage's <code>email</code> under Pipelines.</p>
+      <TemplateForm csrf={csrf} />
+    </div>
+  </details>
+  <details class="fold">
+    <summary>Placeholders the office fills in</summary>
+    <div class="fold-body">
+      <ul class="placeholders">{KNOWN_PLACEHOLDERS.map((p) => <li><code>{`{{${p}}}`}</code></li>)}</ul>
+      <p class="field-hint">Meeting and agreement placeholders fill only in the emails sent from those flows.</p>
+    </div>
+  </details>
+
+  <h2>Pipelines</h2>
+  <p class="quiet">
+    {stored ? 'Edited here; the copy in git is the seed.' : 'Showing the seed from src/data/office/pipelines.json. Saving stores a copy that survives deploys.'}
+    A pipeline is a list of stages; each stage lists the tasks it creates, with <code>due</code> as days after the stage starts, and optionally the <code>email</code> it opens and the <code>questionnaire</code>, <code>agreement</code> or <code>payment</code> a task waits on.
   </p>
-  <form method="POST" action="/office/api/settings">
-    <input type="hidden" name="csrf" value={Astro.locals.csrf} />
-    <input type="hidden" name="name" value="templates" />
-    <textarea name="value" class="json" aria-label="Templates as JSON" spellcheck="false">{JSON.stringify(templates, null, 2)}</textarea>
-    <p><button class="btn btn-small">Save templates</button></p>
-  </form>
+  <details class="fold">
+    <summary>Edit pipelines as JSON</summary>
+    <div class="fold-body">
+      <form method="POST" action="/office/api/settings">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="name" value="pipelines" />
+        <textarea name="value" class="json" aria-label="Pipelines as JSON" spellcheck="false">{JSON.stringify(pipelines, null, 2)}</textarea>
+        <div class="form-foot"><button class="btn">Save pipelines</button></div>
+      </form>
+    </div>
+  </details>
 </OfficeLayout>

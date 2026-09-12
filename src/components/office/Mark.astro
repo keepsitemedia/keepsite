@@ -1,0 +1,7 @@
+---
+// One shape, four states: filled green is done, an outline is waiting,
+// filled clay is late or failed, a dashed outline has not started.
+interface Props { state: 'done' | 'waiting' | 'late' | 'none'; class?: string }
+const { state, class: cls = '' } = Astro.props;
+---
+<span class:list={['mark', `mark-${state}`, cls]}><slot /></span>

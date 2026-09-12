@@ -30,17 +30,19 @@ const csrf = Astro.locals.csrf;
 const error = Astro.url.searchParams.get('error');
 ---
 <OfficeLayout title={`Sign: ${a.templateName}`}>
-  <div class="toolbar">
+  <div class="page-head">
     <h1>{a.templateName}</h1>
-    <span class="badge">{a.status}</span>
-    <a href={`/office/clients/${slug}/?tab=agreements`}>Back</a>
-    <a class="btn-outline btn-small" href={`/office/agreements/${slug}/${id}/document`}>PDF</a>
+    <span class="sub">{a.status}</span>
+    <div class="actions">
+      <a class="btn-quiet btn-small" href={`/office/agreements/${slug}/${id}/document`}>PDF</a>
+      <a href={`/office/clients/${slug}/?tab=agreements`}>Back to agreements</a>
+    </div>
   </div>
   {error && <p class="error">{error}</p>}
   {a.status !== 'draft' ? (
-    <p class="muted">This agreement has already been sent. Void it and create a new one to change Schedule 1.</p>
+    <p class="quiet">This agreement has already been sent. Void it and create a new one to change Schedule 1.</p>
   ) : (
-    <p class="muted">Read it through, sign as Keepsite, and Send opens the agreement email with the client's signing link filled in.</p>
+    <p class="quiet">Read it through, sign as Keepsite, and Send opens the agreement email with the client's signing link filled in.</p>
   )}
   <div class="scrollbox" id="agreement-text"><AgreementBody blocks={blocks} signatures={signatures} /></div>
   {a.status === 'draft' && (
@@ -53,7 +55,7 @@ const error = Astro.url.searchParams.get('error');
       <h2>Sign as Keepsite</h2>
       <div class="pad" data-signature-pad data-target="signature" data-scroll-target="agreement-text">
         <canvas aria-label="Draw your signature"></canvas>
-        <p><button type="button" class="btn-outline btn-small" data-clear>Clear</button></p>
+        <p><button type="button" class="btn-quiet btn-small" data-clear>Clear</button></p>
       </div>
       <p><button type="submit" class="btn" disabled>Sign and send</button></p>
     </form>

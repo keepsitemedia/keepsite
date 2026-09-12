@@ -12,9 +12,12 @@ const pipelines = (await loadPipelines(store())) as PipelineRow[];
 const error = Astro.url.searchParams.get('error');
 ---
 <OfficeLayout title="New client">
-  <h1>New client</h1>
+  <div class="page-head">
+    <h1>New client</h1>
+    <span class="sub">Starts at the first stage of its pipeline, with that stage's tasks.</span>
+  </div>
   {error && <p class="error">{error}</p>}
-  <form method="POST" action="/office/api/client">
+  <form method="POST" action="/office/api/client" class="sheet narrow">
     <input type="hidden" name="csrf" value={Astro.locals.csrf} />
     <input type="hidden" name="op" value="create" />
     <label class="field"><span>Pipeline</span>

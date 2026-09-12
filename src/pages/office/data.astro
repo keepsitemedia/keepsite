@@ -9,10 +9,12 @@ const types = Object.entries(counts);
 const local = Boolean(process.env.OFFICE_STORE_DIR);
 ---
 <OfficeLayout title="Data">
-  <h1>Data</h1>
-  <p class="muted">
-    {local ? `Reading the local file store at ${process.env.OFFICE_STORE_DIR}.` : 'Reading the Netlify Blobs store named office. The Netlify dashboard shows the same keys as raw JSON.'}
-  </p>
+  <div class="page-head">
+    <h1>Data</h1>
+    <span class="sub">
+      {local ? `Reading the local file store at ${process.env.OFFICE_STORE_DIR}.` : 'Reading the Netlify Blobs store named office. The Netlify dashboard shows the same keys as raw JSON.'}
+    </span>
+  </div>
   <div class="table-scroll"><table>
     <thead><tr><th>Type</th><th class="num">Documents</th><th>Download</th></tr></thead>
     <tbody>
@@ -22,13 +24,12 @@ const local = Boolean(process.env.OFFICE_STORE_DIR);
           <td class="num">{n}</td>
           <td>
             {EXPORTABLE.includes(type) ? (
-              <>
+              <span class="links">
                 <a href={`/office/api/export?type=${type}&format=json`}>JSON</a>
-                {' · '}
                 <a href={`/office/api/export?type=${type}&format=csv`}>CSV</a>
-              </>
+              </span>
             ) : (
-              <span class="muted">on each client's Documents tab</span>
+              <span class="quiet">On each client's Documents tab</span>
             )}
           </td>
         </tr>

@@ -23,13 +23,26 @@ async function seeded() {
   return s;
 }
 
-test('advancing writes the stage and its tasks and opens the stage email', async () => {
+test('advancing writes the stage and its tasks; Agreement lands on the agreements tab until one is sent', async () => {
   const s = await seeded();
   const res = await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s, new Date('2026-09-04T16:00:00Z'));
-  assert.equal(res.headers.get('Location'), '/office/send/lova/agreement/');
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=agreements&hint=agreement');
   assert.equal((await s.clients.get('lova')).stage, 'agreement');
   const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();
   assert.deepEqual(titles, ['Client signs agreement', 'Deposit received', 'Reply with recommendation', 'Send agreement']);
+});
+
+test('a stage email that needs no signing link opens the send screen', async () => {
+  const s = await seeded();
+  const res = await stage(post({ csrf, slug: 'lova', stage: 'intro' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/send/lova/intro/');
+});
+
+test('entering Agreement with an agreement already out for signature opens the agreement email', async () => {
+  const s = await seeded();
+  await s.agreements.put('lova', '20260901T120000abcdef', { id: '20260901T120000abcdef', slug: 'lova', status: 'sent', signers: { client: { token: 'x' } } });
+  const res = await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/send/lova/agreement/');
 });
 
 test('a stage without an email, or re-setting the same stage, lands on the client page', async () => {
@@ -41,14 +54,14 @@ test('a stage without an email, or re-setting the same stage, lands on the clien
   assert.equal(again.headers.get('Location'), '/office/clients/lova/');
 });
 
-test('a double-clicked Advance creates the stage tasks once and lands both on the stage email', async () => {
+test('a double-clicked Advance creates the stage tasks once and lands both on the same screen', async () => {
   const s = await seeded();
   const [a, b] = await Promise.all([
     stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s),
     stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s),
   ]);
-  assert.equal(a.headers.get('Location'), '/office/send/lova/agreement/');
-  assert.equal(b.headers.get('Location'), '/office/send/lova/agreement/');
+  assert.equal(a.headers.get('Location'), '/office/clients/lova/?tab=agreements&hint=agreement');
+  assert.equal(b.headers.get('Location'), '/office/clients/lova/?tab=agreements&hint=agreement');
   assert.equal((await s.clients.get('lova')).stage, 'agreement');
   assert.equal((await s.clients.get('lova')).stages.length, 2);
   const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();

@@ -1,33 +1,46 @@
 ---
 import { formatYmd, formatTime } from '../../../netlify/functions/lib/office/dates.mjs';
-interface Props { task: any; csrf: string; today: string; back: string; showClient?: boolean; business?: string }
-const { task: t, csrf, today, back, showClient = false, business = '' } = Astro.props;
-const cls = t.done ? 'done' : t.due < today ? 'overdue' : '';
+import { relative, nudge, waitsOnClient } from '../../../netlify/functions/lib/office/attention.mjs';
+interface Props { task: any; csrf: string; today: string; back: string; showClient?: boolean; business?: string; stageNames?: Record<string, string> }
+const { task: t, csrf, today, back, showClient = false, business = '', stageNames = {} } = Astro.props;
+const late = !t.done && t.due < today;
+const chase = !t.done && waitsOnClient(t) ? nudge(t) : null;
 ---
-<tr>
-  <td class={cls}>{formatYmd(t.due)}{t.time && ` · ${formatTime(t.time)}`}</td>
-  {showClient && <td><a href={`/office/clients/${t.slug}/`}>{business || t.slug}</a></td>}
-  <td class={cls}>{t.title}{t.source === 'pipeline' && <span class="muted"> · {t.stage}</span>}</td>
-  <td>
-    <form method="POST" action="/office/api/task" class="inline">
-      <input type="hidden" name="csrf" value={csrf} />
-      <input type="hidden" name="slug" value={t.slug} />
-      <input type="hidden" name="id" value={t.id} />
-      <input type="hidden" name="back" value={back} />
-      <button class="btn-outline btn-small" name="op" value={t.done ? 'reopen' : 'done'}>{t.done ? 'Reopen' : 'Done'}</button>
-    </form>
-    <details class="inline">
-      <summary class="btn-outline btn-small">Move</summary>
-      <form method="POST" action="/office/api/task" class="inline">
+<li class:list={{ done: t.done }}>
+  <form method="POST" action="/office/api/task" class="inline">
+    <input type="hidden" name="csrf" value={csrf} />
+    <input type="hidden" name="slug" value={t.slug} />
+    <input type="hidden" name="id" value={t.id} />
+    <input type="hidden" name="back" value={back} />
+    <button class:list={['tick', { on: t.done }]} name="op" value={t.done ? 'reopen' : 'done'} aria-label={t.done ? `Reopen: ${t.title}` : `Mark done: ${t.title}`} title={t.done ? 'Reopen' : 'Mark done'}>
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5 5 9l4.5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </form>
+  <span class:list={['when', { late }]}>
+    {formatYmd(t.due)}{t.time && ` · ${formatTime(t.time)}`}
+    {!t.done && t.due !== today && <small>{relative(t.due, today)}</small>}
+  </span>
+  <span class="what">
+    {showClient && <><a class="client" href={`/office/clients/${t.slug}/`}>{business || t.slug}</a> </>}
+    <span class="title">{t.title}</span>
+    {t.source === 'pipeline' && t.stage && <span class="meta"> · {stageNames[t.stage] ?? t.stage}</span>}
+  </span>
+  <span class="act">
+    {chase && <a href={chase.href}>{chase.label}</a>}
+    <details class="pop">
+      <summary class="link-quiet">Move</summary>
+      <form method="POST" action="/office/api/task" class="pop-sheet">
         <input type="hidden" name="csrf" value={csrf} />
         <input type="hidden" name="slug" value={t.slug} />
         <input type="hidden" name="id" value={t.id} />
         <input type="hidden" name="back" value={back} />
-        <input type="date" name="due" value={t.due} required aria-label="New date" />
-        <input type="time" name="time" value={t.time ?? ''} aria-label="Time" />
-        <button class="btn-small" name="op" value="reschedule">Save</button>
-        <button class="btn-small" name="op" value="delete" formnovalidate>Delete</button>
+        <label class="field"><span>New date</span><input type="date" name="due" value={t.due} required /></label>
+        <label class="field"><span>Time</span><input type="time" name="time" value={t.time ?? ''} /></label>
+        <div class="pop-actions">
+          <button class="btn btn-small" name="op" value="reschedule">Save</button>
+          <button class="link-quiet danger" name="op" value="delete" formnovalidate>Delete task</button>
+        </div>
       </form>
     </details>
-  </td>
-</tr>
+  </span>
+</li>

@@ -4,6 +4,8 @@ import { loadPipelines, findPipeline, findStage, advance } from '../pipeline.mjs
 import { todayIn } from '../dates.mjs';
 import { stripeConfigured } from '../stripe.mjs';
 import { ensureCustomer } from '../payments.mjs';
+import { loadTemplates, findTemplate, placeholdersIn } from '../templates.mjs';
+import { latestSent } from '../agreements.mjs';
 
 export async function stage(request, ctx, s = defaultStore(), now = new Date(), fetchFn = fetch) {
   if (request.method !== 'POST') return problem(405, 'POST only');
@@ -44,6 +46,18 @@ export async function stage(request, ctx, s = defaultStore(), now = new Date(), 
   // A stage with an entry email opens the send screen rather than sending:
   // the admin reads it with the client in mind and clicks Send themselves.
   const target = findStage(pipeline, stageId);
-  if (entered && target.email) return redirect(`/office/send/${slug}/${target.email}/`);
+  if (entered && target.email) {
+    // An email that carries the signing link has nothing to carry until an
+    // agreement has been signed as Keepsite and sent; that send opens this
+    // same email with the link filled. Land on the Agreements tab instead.
+    if (await needsAgreementFirst(target.email, slug, s)) return redirect(`/office/clients/${slug}/?tab=agreements&hint=agreement`);
+    return redirect(`/office/send/${slug}/${target.email}/`);
+  }
   return redirect(`/office/clients/${slug}/`);
+}
+
+async function needsAgreementFirst(templateId, slug, s) {
+  const t = findTemplate(await loadTemplates(s), templateId);
+  if (!t || !placeholdersIn(`${t.subject}\n${t.body}`).includes('links.sign')) return false;
+  return !latestSent(await s.agreements.list(slug));
 }

@@ -52,3 +52,34 @@ test('templates are validated and stored under their own name', async () => {
   const bad = await settings(post({ csrf, name: 'templates', value: '[{"id":"x","name":"X","subject":"","body":"b"}]' }), ctx(), s);
   assert.match(decodeURIComponent(bad.headers.get('Location')), /subject/);
 });
+
+test('a template can be saved from the editor form and read back by the send screen', async () => {
+  const s = make();
+  const res = await settings(post({
+    csrf, name: 'template', op: 'save', id: 'welcome', templateName: 'Welcome aboard', subject: 'Welcome, {{client.firstName}}', body: 'Hi {{client.firstName}}\n\n{{note}}',
+    field_key_0: 'note', field_label_0: 'Personal note', field_default_0: '', field_key_1: '', field_label_1: '',
+  }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/settings/?saved=welcome#template-welcome');
+  const stored = await s.settings.get('templates');
+  const t = stored.find((x) => x.id === 'welcome');
+  assert.equal(t.name, 'Welcome aboard');
+  assert.deepEqual(t.fields, [{ key: 'note', label: 'Personal note', default: '' }]);
+  assert.ok(stored.some((x) => x.id === 'meeting-reminder'), 'the seed templates are kept alongside the new one');
+});
+
+test('a template save with an unknown placeholder goes back with the reason', async () => {
+  const s = make();
+  const res = await settings(post({ csrf, name: 'template', op: 'save', id: 'welcome', templateName: 'W', subject: 'S', body: '{{client.nickname}}' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /client\.nickname/);
+  assert.equal(await s.settings.get('templates'), null);
+});
+
+test('a template the pipeline sends cannot be deleted; an unused one can', async () => {
+  const s = make();
+  let res = await settings(post({ csrf, name: 'template', op: 'delete', id: 'launch' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /error=.*launch/);
+  await settings(post({ csrf, name: 'template', op: 'save', id: 'extra', templateName: 'Extra', subject: 'S', body: 'B' }), ctx(), s);
+  res = await settings(post({ csrf, name: 'template', op: 'delete', id: 'extra' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/settings/?saved=1');
+  assert.ok(!(await s.settings.get('templates')).some((x) => x.id === 'extra'));
+});
