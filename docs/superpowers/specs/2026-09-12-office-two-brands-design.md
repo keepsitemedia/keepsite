@@ -236,17 +236,21 @@ work without change. `slugify` and `uniqueSlug` never produce
 `office`, `validateClient` refuses it, and the client action refuses
 it before the slug check.
 
-Task documents gain two fields, null on client tasks:
+Task documents gain three fields, null on client tasks:
 
 - `project`: free text, grouping label, for example "Referral program".
 - `repeat`: `weekly`, `monthly` or null.
+- `nextId`: the id of the successor a finished repeating task created,
+  so a task creates at most one successor in its lifetime; reopening
+  keeps it.
 
 Marking a repeating task done creates the next one with the same
 title, project, time, notes and repeat, due seven days later or the
 same day next month clamped to that month's last day, using the month
 shift the calendar already has. The next task is created in the same
-action before the redirect; a second Done on the same task, replayed,
-does not create another because the task is already done.
+action before the redirect. A replayed Done, or a reopen followed by
+Done, creates nothing more because the finished task already carries
+`nextId`.
 
 Routes: `/office/tasks/`, a page listing open own tasks grouped by
 project with an add form at the top (title, due, time, project,
@@ -289,7 +293,8 @@ Beside each module, `node --test` as today:
 - `guard.test.mjs` and the brand action: cookie parsing and fallback.
 - `contacts.test.mjs`: validation, note prepend, convert linkage.
 - `task.test.mjs`: reserved slug, fields, weekly and monthly next-due
-  including the month-end clamp, no double creation on replay.
+  including the month-end clamp, no double creation on replay, one
+  successor across reopen and re-done.
 - `digest.test.mjs`: one digest per brand with own tasks in each.
 - `check-office.mjs` gains: every pipeline names a known brand; every
   agreement template names a brand and one of its tiers; no seed or

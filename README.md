@@ -320,8 +320,9 @@ clamped to a shorter month's end. Reopening a done task keeps the next
 one, and marking it done again does not create another.
 
 In the store these are ordinary task documents under the reserved slug
-`office`, so the export, the digest and the calendar need nothing
-special. No client can be created at that slug.
+`office`, with `project`, `repeat` and `nextId` fields, so the export,
+the digest and the calendar need nothing special. No client can be
+created at that slug.
 
 ### Payments
 
