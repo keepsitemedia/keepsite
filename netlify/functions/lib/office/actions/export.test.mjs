@@ -38,7 +38,7 @@ test('unknown type or format is 400; POST is 405', async () => {
 // otherwise offers every store collection as a download.
 test('tokens, locks and documents are not exportable types', async () => {
   const s = await make();
-  assert.deepEqual(EXPORTABLE, ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails']);
+  assert.deepEqual(EXPORTABLE, ['clients', 'contacts', 'tasks', 'meetings', 'payments', 'agreements', 'emails']);
   for (const type of ['tokens', 'locks', 'documents', 'settings']) {
     assert.equal((await exportData(get(`type=${type}&format=json`), ctx, s)).status, 400, type);
   }
@@ -47,4 +47,16 @@ test('tokens, locks and documents are not exportable types', async () => {
 test('an inherited-property format name is 400, not a crash', async () => {
   const s = await make();
   assert.equal((await exportData(get('type=clients&format=__proto__'), ctx, s)).status, 400);
+});
+
+test('contacts export as csv with the note log as JSON text', async () => {
+  const s = await make();
+  await s.contacts.put('20260912T000000aaaaaa', { id: '20260912T000000aaaaaa', business: 'Peak', notes: [{ at: '2026-09-12T00:00:00.000Z', text: 'met' }] });
+  const res = await exportData(get('type=contacts&format=csv'), ctx, s);
+  assert.equal(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /^id,business,notes/);
+  assert.match(body, /Peak/);
+  assert.match(body, /"\[{""at""/);
+  assert.ok(EXPORTABLE.includes('contacts'));
 });

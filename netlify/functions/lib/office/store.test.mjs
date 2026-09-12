@@ -50,8 +50,8 @@ test('settings and questionnaires read from their own places', async () => {
   await assert.rejects(() => s.questionnaires.get('lova', 'x/y'), /bad form/);
 });
 
-// The keys are the Data page's rows and the export whitelist's shape; a new
-// store collection that lands here without an export route breaks that page.
+// The keys are the Data page's rows: it renders one row per key here, so a
+// new collection added to counts() with no export route shows a wrong row.
 test('counts every type', async () => {
   const s = make();
   await s.clients.put('lova', { slug: 'lova' });
