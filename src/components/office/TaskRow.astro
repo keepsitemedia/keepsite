@@ -1,10 +1,14 @@
 ---
 import { formatYmd, formatTime } from '../../../netlify/functions/lib/office/dates.mjs';
 import { relative, nudge } from '../../../netlify/functions/lib/office/attention.mjs';
+import { OWN_SLUG } from '../../../netlify/functions/lib/office/clients.mjs';
+import { REPEATS } from '../../../netlify/functions/lib/office/recurrence.mjs';
 interface Props { task: any; csrf: string; today: string; back: string; showClient?: boolean; business?: string; stageNames?: Record<string, string> }
 const { task: t, csrf, today, back, showClient = false, business = '', stageNames = {} } = Astro.props;
 const late = !t.done && t.due < today;
 const chase = t.done ? null : nudge(t);
+const own = t.slug === OWN_SLUG;
+const repeat: string | null = t.repeat ?? null;
 ---
 <li class:list={{ done: t.done }}>
   <form method="POST" action="/office/api/task" class="inline">
@@ -21,9 +25,11 @@ const chase = t.done ? null : nudge(t);
     {!t.done && t.due !== today && <small>{relative(t.due, today)}</small>}
   </span>
   <span class="what">
-    {showClient && <><a class="client" href={`/office/clients/${t.slug}/`}>{business || t.slug}</a> </>}
+    {showClient && own && <span class="client">{t.project || 'Office'}</span>}
+    {showClient && !own && <><a class="client" href={`/office/clients/${t.slug}/`}>{business || t.slug}</a> </>}
     <span class="title">{t.title}</span>
     {t.source === 'pipeline' && t.stage && <span class="meta"> · {stageNames[t.stage] ?? t.stage}</span>}
+    {repeat && <span class="meta"> · {repeat}</span>}
   </span>
   <span class="act">
     {chase && <a href={chase.href}>{chase.label}</a>}
@@ -36,6 +42,12 @@ const chase = t.done ? null : nudge(t);
         <input type="hidden" name="back" value={back} />
         <label class="field"><span>New date</span><input type="date" name="due" value={t.due} required /></label>
         <label class="field"><span>Time</span><input type="time" name="time" value={t.time ?? ''} /></label>
+        <label class="field"><span>Repeat</span>
+          <select name="repeat">
+            <option value="" selected={!repeat}>Does not repeat</option>
+            {REPEATS.map((r) => <option value={r} selected={repeat === r}>{r}</option>)}
+          </select>
+        </label>
         <div class="pop-actions">
           <button class="btn btn-small" name="op" value="reschedule">Save</button>
           <button class="link-quiet danger" name="op" value="delete" formnovalidate>Delete task</button>
