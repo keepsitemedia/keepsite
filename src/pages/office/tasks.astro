@@ -67,7 +67,7 @@ const late = open.filter((t) => t.due < today).length;
   {done.length > 0 && (
     <details class="fold">
       <summary>Done<span class="sub">last {done.length}</span></summary>
-      <div class="fold-body"><ul class="ledger">{done.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</ul></div>
+      <div class="fold-body"><ul class="ledger">{done.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} showClient />)}</ul></div>
     </details>
   )}
 </OfficeLayout>

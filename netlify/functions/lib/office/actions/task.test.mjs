@@ -4,6 +4,7 @@ import { task } from './task.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
+import { newId } from '../ids.mjs';
 
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
@@ -136,4 +137,27 @@ test('reschedule changes repeat only when the form sends it', async () => {
   assert.equal((await s.tasks.get('office', id)).repeat, null);
   const res = await task(post({ csrf, op: 'reschedule', slug: 'office', id, due: '2026-09-16', time: '', repeat: 'yearly' }), ctx(), s);
   assert.equal(res.status, 400);
+});
+
+test('done on a non-repeating task and on a legacy task creates no successor', async () => {
+  const s = await make();
+  await task(post({ csrf, op: 'add', slug: 'lova', title: 'Call about photos', due: '2026-09-10' }), ctx(), s);
+  const [{ id }] = await s.tasks.list('lova');
+  await task(post({ csrf, op: 'done', slug: 'lova', id }), ctx(), s);
+  let list = await s.tasks.list('lova');
+  assert.equal(list.length, 1);
+  assert.equal((await s.tasks.get('lova', id)).nextId, null);
+
+  const legacyId = newId();
+  await s.tasks.put('lova', legacyId, {
+    id: legacyId, slug: 'lova', title: 'old', due: '2026-09-10', time: null, done: false, doneAt: null,
+    source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null, notes: '',
+    createdAt: '2026-09-01T00:00:00.000Z',
+  });
+  await task(post({ csrf, op: 'done', slug: 'lova', id: legacyId }), ctx(), s);
+  list = await s.tasks.list('lova');
+  assert.equal(list.length, 2);
+  const legacy = await s.tasks.get('lova', legacyId);
+  assert.equal(legacy.done, true);
+  assert.equal(list.some((t) => t.id !== id && t.id !== legacyId), false);
 });

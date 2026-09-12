@@ -21,7 +21,7 @@ export function nextTask(task, now = new Date()) {
     time: task.time ?? null,
     done: false,
     doneAt: null,
-    source: task.source ?? 'manual',
+    source: 'manual',
     stage: null,
     questionnaire: null,
     payment: null,

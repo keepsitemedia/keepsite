@@ -42,12 +42,14 @@ const repeat: string | null = t.repeat ?? null;
         <input type="hidden" name="back" value={back} />
         <label class="field"><span>New date</span><input type="date" name="due" value={t.due} required /></label>
         <label class="field"><span>Time</span><input type="time" name="time" value={t.time ?? ''} /></label>
-        <label class="field"><span>Repeat</span>
-          <select name="repeat">
-            <option value="" selected={!repeat}>Does not repeat</option>
-            {REPEATS.map((r) => <option value={r} selected={repeat === r}>{r}</option>)}
-          </select>
-        </label>
+        {own && (
+          <label class="field"><span>Repeat</span>
+            <select name="repeat">
+              <option value="" selected={!repeat}>Does not repeat</option>
+              {REPEATS.map((r) => <option value={r} selected={repeat === r}>{r}</option>)}
+            </select>
+          </label>
+        )}
         <div class="pop-actions">
           <button class="btn btn-small" name="op" value="reschedule">Save</button>
           <button class="link-quiet danger" name="op" value="delete" formnovalidate>Delete task</button>

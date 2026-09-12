@@ -33,6 +33,12 @@ test('nextTask copies what recurs and resets what does not', () => {
   assert.equal(n.done, false);
   assert.equal(n.doneAt, null);
   assert.equal(n.createdAt, NOW.toISOString());
-  for (const k of ['slug', 'title', 'time', 'project', 'repeat', 'notes', 'source']) assert.equal(n[k], base[k], k);
+  for (const k of ['slug', 'title', 'time', 'project', 'repeat', 'notes']) assert.equal(n[k], base[k], k);
   for (const k of ['stage', 'questionnaire', 'payment', 'agreement', 'nextId']) assert.equal(n[k], null, k);
+  assert.equal(n.source, 'manual');
+});
+
+test('a successor is always a manual task, even from a pipeline task', () => {
+  const n = nextTask({ ...base, source: 'pipeline' }, NOW);
+  assert.equal(n.source, 'manual');
 });

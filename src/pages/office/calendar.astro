@@ -67,7 +67,8 @@ const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'lo
         <input type="hidden" name="op" value="add" />
         <input type="hidden" name="back" value={here} />
         <input type="hidden" name="due" value={day} />
-        <select name="slug" aria-label="Client" required>
+        <select name="slug" aria-label="Client or office" required>
+          <option value="" disabled selected>Choose one</option>
           <option value={OWN_SLUG}>Office (no client)</option>
           {clients.map((c) => <option value={c.slug}>{c.business}</option>)}
         </select>
