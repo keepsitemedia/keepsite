@@ -306,6 +306,23 @@ each get a confirmation with a calendar file. Two scheduled functions run:
 in `netlify/functions/office-digest-cron.mjs` in March and November if that
 matters. Netlify shows both functions under Functions → Scheduled.
 
+### Own tasks
+
+Work that belongs to the business and not to a client: business
+development, admin, projects. They live on `/office/tasks/`, grouped by
+a free-text project label, and show up on Today and the Calendar like
+any other task, with the project where the client name would be. The
+calendar's add form has an "Office (no client)" choice for them.
+
+A task can repeat weekly or monthly. Marking it done creates the next
+one, dated from the one just finished, on the same day of the month
+clamped to a shorter month's end. Reopening a done task keeps the next
+one, and marking it done again does not create another.
+
+In the store these are ordinary task documents under the reserved slug
+`office`, so the export, the digest and the calendar need nothing
+special. No client can be created at that slug.
+
 ### Payments
 
 Stripe is the system of record; the office stores IDs and outcomes.
