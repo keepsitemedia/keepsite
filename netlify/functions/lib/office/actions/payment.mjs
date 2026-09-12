@@ -25,10 +25,18 @@ export async function payment(request, ctx, s = defaultStore(), fetchFn = fetch,
   const client = await s.clients.get(slug);
   if (!client) return problem(404, 'no such client');
   const op = field(data, 'op');
-  if (!['customer', 'checkout', 'subscribe'].includes(op)) return problem(400, 'unknown op');
+  if (!['customer', 'checkout', 'subscribe', 'forget-customer'].includes(op)) return problem(400, 'unknown op');
 
   const tab = `/office/clients/${slug}/?tab=payments`;
   const back = (message) => redirect(`${tab}&error=${encodeURIComponent(message)}`);
+  // A customer id belongs to one Stripe mode. After the keys change from
+  // test to live, the saved test id would make every button fail with "No
+  // such customer"; forgetting it lets the next link create a live one.
+  // Nothing in Stripe is touched, so this needs no key.
+  if (op === 'forget-customer') {
+    await s.clients.put(slug, { ...client, stripeCustomerId: null, updatedAt: now.toISOString() });
+    return redirect(tab);
+  }
   if (!stripeConfigured()) return back('STRIPE_SECRET_KEY is not set');
 
   try {

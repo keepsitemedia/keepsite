@@ -30,6 +30,7 @@ collections:
           - { name: "areaServed", label: "Service area", widget: "string", required: true }
           - { name: "priceRange", label: "Price range", widget: "string", required: true, hint: "Search engines only. Dollar signs, e.g. $$" }
           - { name: "googleBusinessProfileUrl", label: "Google Business Profile URL", widget: "string", required: false, hint: "Paste it once the profile is live. It may stay empty. Adding it here puts it in the site's structured data." }
+          - { name: "analyticsId", label: "Google Analytics Measurement ID", widget: "string", required: false, pattern: ['^(G-[A-Z0-9]+)?$', "Looks like G-XXXXXXXXXX, or leave it empty"], hint: "From the GA4 web data stream. Empty means no analytics script on the site." }
           - name: "social"
             label: "Social profiles"
             widget: "list"
@@ -251,6 +252,26 @@ collections:
               - { name: "sub", label: "Subhead", widget: "string", required: true }
               - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
               - { name: "ctaHref", label: "Button link", widget: "string", required: true }
+
+      - name: "privacy"
+        label: "Privacy Page"
+        file: "src/data/privacy.json"
+        fields:
+          - name: "meta"
+            label: "Search listing"
+            widget: "object"
+            fields:
+              - { name: "title", label: "Page title", widget: "string", required: true }
+              - { name: "description", label: "Meta description", widget: "text", required: true }
+          - { name: "heading", label: "Heading", widget: "string", required: true }
+          - { name: "intro", label: "Intro", widget: "text", required: true }
+          - { name: "updated", label: "Last updated", widget: "string", required: true, pattern: ['^\\d{4}-\\d{2}-\\d{2}$', "YYYY-MM-DD"], hint: "Change it whenever the wording changes." }
+          - name: "sections"
+            label: "Sections"
+            widget: "list"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string" }
+              - { name: "body", label: "Paragraphs", widget: "list", field: { name: "p", label: "Paragraph", widget: "text" } }
 
       - name: "faq"
         label: "FAQ"

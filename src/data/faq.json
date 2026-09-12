@@ -56,7 +56,7 @@
         {
           "topic": "search-vs-search-plus",
           "q": "What's the difference between Search and Search Plus?",
-          "a": "Search builds your site around keyword research and keeps 24 articles a year going out. Search Plus adds competitor analysis up front, and through the year we keep watching the search data and updating pages when there's an opening. Search sets the strategy once. Search Plus keeps adjusting it."
+          "a": "Search builds your site around research into what your customers search for, launches with 3 to 5 foundational articles, and adds 6 more through the year. Search Plus starts with competitor analysis as well, launches with 5 to 10 foundational articles, adds 12 more through the year, and we keep watching the search data and updating pages when there's an opening. Search sets the strategy once. Search Plus keeps adjusting it."
         },
         {
           "topic": "change-tiers",
@@ -76,12 +76,12 @@
         {
           "topic": "what-monthly-covers",
           "q": "What does the monthly cover?",
-          "a": "On every package: hosting, routine maintenance, monitoring, minor content updates, and a plain-English recap once a year. On Search and Search Plus it also covers the content and search work, including 24 SEO blog posts a year that we plan, write, edit, and publish for you."
+          "a": "On every package: hosting, routine maintenance, monitoring, minor content updates, and a plain-English recap once a year. On Search and Search Plus it also covers the content and search work, including the articles we plan, write, edit, and publish for you."
         },
         {
           "topic": "monthly-just-hosting",
           "q": "Is the monthly just hosting?",
-          "a": "No. Hosting is one small line item inside it. The rest is maintenance, monitoring, and the updates that keep the site current, plus the ongoing content and search work on Search and Search Plus. On those two, most of the monthly is 24 articles a year and the search work behind them."
+          "a": "No. Hosting is one small line item inside it. The rest is maintenance, monitoring, and the updates that keep the site current, plus the ongoing content and search work on Search and Search Plus. On those two, most of the monthly is the articles and the research behind them."
         },
         {
           "topic": "locked-in",
@@ -91,13 +91,18 @@
         {
           "topic": "if-i-stop",
           "q": "What happens if I stop?",
-          "a": "Your domain is yours and your content is yours, including every blog post we published. We'll help you move them wherever you're going. The site itself comes offline when the subscription ends, so if you're planning a move, tell us and we'll time it so nothing goes dark."
+          "a": "Your domain is yours and your content is yours, including every article we published. We'll help you move them wherever you're going. The site itself comes offline when the subscription ends, so if you're planning a move, tell us and we'll time it so nothing goes dark."
         }
       ]
     },
     {
       "title": "Content and SEO",
       "items": [
+        {
+          "topic": "research-not-ai",
+          "q": "Is this just an AI writing my site?",
+          "a": "No. Before a page is written we find out what your ideal customer actually types into Google, look at who shows up for those searches now and why, and plan the pages and articles that can get you there as early and as high as possible. That research is the product; the writing follows it. We use tools along the way, like anyone who writes for a living, but the strategy, the choices, and the responsibility for the result are ours."
+        },
         {
           "topic": "who-writes-copy",
           "q": "Who writes the copy?",
@@ -110,8 +115,8 @@
         },
         {
           "topic": "blog-posts",
-          "q": "What are the 24 blog posts, exactly?",
-          "a": "Two articles a month on topics we plan against your keywords, which means the questions your customers are already searching. We draft, edit, and publish them. About a week before each one goes out you get an email with the article in it."
+          "q": "What are the articles, exactly?",
+          "a": "Two kinds. Foundational articles go up around launch: 3 to 5 on Search, 5 to 10 on Search Plus. Each one answers a question your customers are already searching, so the site has depth from the first day. Then 6 more a year on Search and 12 on Search Plus, timed to real things: a season, a local event, a vendor or partner you work with, a question that keeps coming up. We draft, edit, and publish them. About a week before each one goes out you get an email with the article in it."
         },
         {
           "topic": "approve-posts",

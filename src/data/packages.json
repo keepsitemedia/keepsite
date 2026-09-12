@@ -33,21 +33,21 @@
       "id": "search",
       "name": "Search",
       "line": "Keep showing up.",
-      "bestFor": "Businesses that want the site built around how customers actually search, without it turning into an SEO project.",
+      "bestFor": "Businesses that want the site built around how their customers actually search, with the research done properly and the strategy set before a word is written.",
       "buildPrice": "$1,750",
       "buildPriceNote": "one-time build",
       "monthlyPrice": "$150",
       "monthlyPriceNote": "per month",
       "cardIncludes": [
         "Everything in Presence",
-        "Keyword research and a search-informed site structure",
+        "Research into what your ideal customer searches for, and a site structure built on it",
         "SEO copy written for your core pages",
-        "24 SEO blog posts a year, written and published for you",
+        "3 to 5 foundational SEO articles around launch, then 6 more through the year",
         "Search Console monitoring and an annual keyword refresh"
       ],
       "monthlySummary": [
         "Everything in the Presence subscription",
-        "24 SEO blog posts a year, written and published for you",
+        "6 SEO articles through the year, tied to real events and the businesses you work with",
         "Search Console and analytics monitoring",
         "An annual keyword refresh and a Google Business Profile check"
       ],
@@ -63,25 +63,25 @@
       "monthlyPrice": "$275",
       "monthlyPriceNote": "per month",
       "cardIncludes": [
-        "Everything in Search",
+        "Everything in Search, researched deeper",
         "Competitor and search-market analysis",
-        "Deeper keyword research based on competitor gaps",
+        "5 to 10 foundational SEO articles around launch, then 12 more through the year",
         "Positioning and copy shaped by what competitors miss",
         "Active optimization through the year"
       ],
       "monthlySummary": [
-        "Everything in the Search subscription",
+        "Everything in the Presence subscription",
+        "12 SEO articles through the year, tied to real events and the businesses you work with",
         "Active review of search performance through the year",
-        "Updates to existing pages when the data points somewhere useful",
-        "Strategic supporting pages when they will help"
+        "Updates to existing pages when the data points somewhere useful"
       ],
       "ctaLabel": "Start with Search Plus"
     }
   ],
   "monthly": {
     "heading": "Keep your site working.",
-    "lead": "Every Keepsite site includes hosting, maintenance, and monitoring. On Search and Search Plus, the monthly is mostly content and search work.",
-    "headline": "24 SEO blog posts a year, written and published for you.",
+    "lead": "Every Keepsite site includes hosting, maintenance, and monitoring. On Search and Search Plus, the monthly is mostly search work: research into what your customers look for, then the writing that follows it.",
+    "headline": "We find out what your customers search for. Then we write to show up for it.",
     "closing": "Every Keepsite site also includes an inquiry page, set up to send straight to your email or your existing CRM.",
     "subscriptionTerms": "Every package runs on a 12-month term from launch and renews a year at a time. You can cancel mid-term with 30 days' notice, but the months left in that term are still due. Either way, your domain and your content are yours — if you ever leave, we'll help you move them."
   },
@@ -116,7 +116,7 @@
     },
     {
       "group": "Build",
-      "feature": "Keyword research and page mapping",
+      "feature": "Research into what your customers search for, and page mapping",
       "presence": "false",
       "search": "true",
       "searchPlus": "true"
@@ -151,10 +151,10 @@
     },
     {
       "group": "Monthly",
-      "feature": "SEO blog posts written and published",
+      "feature": "SEO articles written and published",
       "presence": "false",
-      "search": "24 a year",
-      "searchPlus": "24 a year"
+      "search": "3 to 5 at launch, then 6 a year",
+      "searchPlus": "5 to 10 at launch, then 12 a year"
     },
     {
       "group": "Monthly",
@@ -221,6 +221,7 @@
     "topics": [
       "which-package",
       "search-vs-search-plus",
+      "research-not-ai",
       "what-monthly-covers",
       "who-writes-copy",
       "change-tiers"

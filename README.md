@@ -13,7 +13,7 @@ npm run preview  # serve the production build
 
 ## Editing content
 
-Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
+Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`, `privacy.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
 
 The `/admin` sidebar has two collections. **Site Settings** holds the five page files (Site & Navigation, Home Page, Packages Page, How It Works, FAQ). **Work** is the folder collection you add projects to.
 
@@ -34,6 +34,28 @@ Two other files quote prices as plain copy, and neither updates on its own:
 - `src/data/faq.json` — two answers quote the add-on prices ($90, $180, $270).
 
 Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too.
+
+## Turning on analytics
+
+Google Analytics 4 is off until a Measurement ID is set: `analyticsId` in
+`src/data/site.json`, also editable in `/admin` under Site & Navigation.
+With an id present the layout adds the gtag loader and its config on every
+public page; the content security policy in `netlify.toml` already allows
+Google's tag and collection domains, and `scripts/verify.mjs` adds the two
+tags to its script budget when the id is set. The office and the signing
+page carry no analytics. Google's Analytics terms require a privacy notice
+that names it; `/privacy/`, linked from the footer and edited under
+`privacy.json`, is that notice, and it also covers the inquiry form, the
+questionnaires, e-signing and Stripe. Update its date when its wording
+changes.
+
+The same steps apply to every client site at launch, and the office's
+Launch stage creates an "Install analytics and Search Console" task for it:
+a GA4 property in the client's Google account with Keepsite as an
+administrator, the id in their site, a Search Console domain property
+verified by DNS and linked to GA4, and the website URL on their Google
+Business Profile. Clients on the seeded pipeline stored before this task
+existed do not get it until the pipelines are re-saved under Settings.
 
 ## Turning on the Work page
 
@@ -320,8 +342,24 @@ registering the endpoint a second time in live mode and rotating both
 `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` together. Before that,
 delete the test client's payment documents (Payments tab, or the store
 under `payments/<slug>/`) so test-mode links and amounts do not sit in
-the CSV totals. Charging the monthly off-session by ACH needs US bank
-account payments turned on in Stripe → Settings → Payment methods.
+the CSV totals. Which payment methods Checkout offers is set in Stripe →
+Settings → Payment methods, not in the code; turn on US bank account there
+for ACH, before the deposit is paid, since the monthly charges whatever
+the deposit saved.
+
+**Sales tax.** None is collected: the service is not taxable in Utah, and
+the agreement leaves any tax that does apply to the client. Stripe Tax is
+off in the code; if that ever changes, the Checkout and subscription calls
+in `netlify/functions/lib/office/payments.mjs` are where it goes.
+
+**Switching from test to live keys.** A Stripe customer id belongs to one
+mode. Any client who entered Agreement on the test key has a test id, and
+every payment button on that client fails in live mode. On their Payments
+tab, **Forget** next to the customer id clears it; the next link creates a
+live customer. A test client can be removed entirely with **Delete client**
+under Details on their Overview, which also removes their tasks, meetings,
+payments, agreements, emails and documents. Delete is refused once an
+agreement is signed or a payment is on record; those are records to keep.
 
 Give a bookkeeper a read-only role in Stripe rather than an office login;
 `/office/data/` exports the payment documents as CSV for revenue by

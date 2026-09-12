@@ -21,6 +21,6 @@ export const GET: APIRoute = async ({ url }) => {
     throw e;
   }
   return new Response(bytes, {
-    headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': `inline; filename="agreement-${found.agreement.id}.pdf"`, 'Cache-Control': 'private, no-store' },
+    headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="agreement-${found.agreement.id}.pdf"`, 'Cache-Control': 'private, no-store' },
   });
 };

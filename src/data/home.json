@@ -6,8 +6,14 @@
   "hero": {
     "headline": "Websites for people with other things to do.",
     "sub": "Professional websites built to look good, work hard, and stay off your to-do list.",
-    "primaryCta": { "label": "View Packages", "href": "/packages/" },
-    "secondaryCta": { "label": "Start Your Site", "href": "/start/" }
+    "primaryCta": {
+      "label": "View Packages",
+      "href": "/packages/"
+    },
+    "secondaryCta": {
+      "label": "Start Your Site",
+      "href": "/start/"
+    }
   },
   "problem": {
     "heading": "You don't need another business task.",
@@ -18,7 +24,7 @@
     "beats": [
       {
         "title": "We build it.",
-        "body": "A custom site put together around what your business actually does, and who you want walking in the door."
+        "body": "A custom site put together around what your business actually does, who you want walking in the door, and what those people search for."
       },
       {
         "title": "We keep it working.",
@@ -41,7 +47,7 @@
     "pillars": [
       {
         "title": "Make it useful.",
-        "body": "Every site has a job. We build for that job and leave out the rest."
+        "body": "Every site has a job. We find out how your customers look for it, build for that, and leave out the rest."
       },
       {
         "title": "Keep it simple.",

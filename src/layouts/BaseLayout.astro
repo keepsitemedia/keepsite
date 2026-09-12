@@ -28,6 +28,10 @@ const ogImageUrl = new URL(ogImage, siteUrl).href;
 // site.social is an empty array in JSON, which TypeScript infers as
 // never[]. Type it so .map() over it compiles once entries exist.
 const social = site.social as { name: string; url: string }[];
+// Google Analytics 4 loads only once a Measurement ID is in site.json; the
+// content security policy in netlify.toml already allows Google's tag and
+// collection domains, and scripts/verify.mjs adds the two tags to its budget.
+const analyticsId = /^G-[A-Z0-9]+$/.test(site.analyticsId ?? '') ? site.analyticsId : '';
 const sameAs = [site.googleBusinessProfileUrl, ...social.map((s) => s.url)].filter(Boolean);
 
 const siteJsonLd = {
@@ -83,6 +87,12 @@ const siteJsonLd = {
 
     <script type="application/ld+json" set:html={JSON.stringify(siteJsonLd).replace(/</g, '\\u003c')} is:inline />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} is:inline />}
+    {analyticsId && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`} is:inline></script>
+        <script is:inline set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${analyticsId}');`}></script>
+      </>
+    )}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

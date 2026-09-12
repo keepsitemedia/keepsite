@@ -57,7 +57,7 @@ test('ensureCustomer creates once and reuses', async () => {
   assert.equal(calls.length, 1);
 });
 
-test('createCheckout builds an ACH-and-card session and stores a pending document', async () => {
+test('createCheckout builds a session with the Dashboard payment methods and stores a pending document', async () => {
   const s = await make();
   const { calls, fetchFn } = stripe([{ id: 'cus_1' }, { id: 'cs_1', url: 'https://checkout.stripe.com/c/cs_1', payment_intent: 'pi_1' }]);
   const p = await createCheckout({ client: await s.clients.get('lova'), kind: 'deposit', amount: 87500, description: 'Deposit for Lova' }, s, fetchFn, NOW);
@@ -65,8 +65,8 @@ test('createCheckout builds an ACH-and-card session and stores a pending documen
   assert.equal(calls[1].url, 'https://api.stripe.com/v1/checkout/sessions');
   assert.equal(b.mode, 'payment');
   assert.equal(b.customer, 'cus_1');
-  assert.equal(b['payment_method_types[0]'], 'card');
-  assert.equal(b['payment_method_types[1]'], 'us_bank_account');
+  assert.equal(b['payment_method_types[0]'], undefined, 'payment methods come from the Dashboard');
+  assert.equal(b['automatic_tax[enabled]'], undefined, 'not taxable in Utah');
   assert.equal(b['line_items[0][price_data][unit_amount]'], '87500');
   assert.equal(b['line_items[0][price_data][product_data][name]'], 'Deposit for Lova');
   assert.equal(b['payment_intent_data[setup_future_usage]'], 'off_session');
@@ -101,6 +101,7 @@ test('startSubscription uses the saved bank account, an inline monthly price, an
   assert.equal(b['items[0][price_data][product]'], 'prod_1');
   assert.equal(b['items[0][price_data][unit_amount]'], '15000');
   assert.equal(b['items[0][price_data][recurring][interval]'], 'month');
+  assert.equal(b['automatic_tax[enabled]'], undefined);
   assert.equal(b['metadata[slug]'], 'lova');
   // 2026-10-01 09:00 Mountain (MDT) is 15:00Z.
   assert.equal(b.billing_cycle_anchor, String(Math.floor(Date.parse('2026-10-01T15:00:00Z') / 1000)));

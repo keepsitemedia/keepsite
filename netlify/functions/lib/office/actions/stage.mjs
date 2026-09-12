@@ -4,7 +4,7 @@ import { loadPipelines, findPipeline, findStage, advance } from '../pipeline.mjs
 import { todayIn } from '../dates.mjs';
 import { stripeConfigured } from '../stripe.mjs';
 import { ensureCustomer } from '../payments.mjs';
-import { loadTemplates, findTemplate, placeholdersIn } from '../templates.mjs';
+import { loadTemplates, findTemplate, needsSignLink } from '../templates.mjs';
 import { latestSent } from '../agreements.mjs';
 
 export async function stage(request, ctx, s = defaultStore(), now = new Date(), fetchFn = fetch) {
@@ -58,6 +58,6 @@ export async function stage(request, ctx, s = defaultStore(), now = new Date(), 
 
 async function needsAgreementFirst(templateId, slug, s) {
   const t = findTemplate(await loadTemplates(s), templateId);
-  if (!t || !placeholdersIn(`${t.subject}\n${t.body}`).includes('links.sign')) return false;
+  if (!t || !needsSignLink(t)) return false;
   return !latestSent(await s.agreements.list(slug));
 }

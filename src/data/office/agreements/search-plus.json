@@ -1,7 +1,7 @@
 {
  "id": "search-plus",
  "name": "Search Plus Package",
- "version": "b74f79c4322c",
+ "version": "470496c700aa",
  "defaults": {
   "buildFee": "$2,000",
   "monthlyFee": "$275",
@@ -708,7 +708,7 @@
   },
   {
    "type": "p",
-   "text": "We plan, write, edit, and publish twenty-four (24) SEO blog articles per Term — two (2) a month. Articles are planned against the keyword research in Section 4.5 and adjusted through the year based on the search performance review in Section 8."
+   "text": "We plan, write, edit, and publish SEO articles in two groups. Foundational articles, five (5) to ten (10) of them, are published within sixty (60) days after the Launch Date. A further twelve (12) articles per Term are published through the Term, timed to seasons, local events, and businesses relevant to your customers. Articles are planned against the keyword research in Section 4.5 and adjusted through the year based on the search performance review in Section 8."
   },
   {
    "type": "h3",
@@ -748,7 +748,7 @@
   },
   {
    "type": "p",
-   "text": "Articles run on the monthly schedule. They don't roll over, bank, or accumulate. Articles we didn't publish because you delayed things, service was suspended, or the agreement ended are gone, and they aren't refunded or made up later. The early cancellation fee in Section 3.4 isn't a charge for those articles — it's the fee described there."
+   "text": "Articles run on the schedule in Section 7.3. They don't roll over, bank, or accumulate. Articles we didn't publish because you delayed things, service was suspended, or the agreement ended are gone, and they aren't refunded or made up later. The early cancellation fee in Section 3.4 isn't a charge for those articles — it's the fee described there."
   },
   {
    "type": "h3",
@@ -1273,7 +1273,7 @@
     ],
     [
      "8",
-     "Two (2) SEO blog articles per month — 24 per Term — planned, written, edited, and published"
+     "Five (5) to ten (10) foundational SEO articles within sixty (60) days of launch, then twelve (12) more per Term — planned, written, edited, and published"
     ],
     [
      "9",
@@ -1362,7 +1362,7 @@
      "$90 per hour"
     ],
     [
-     "Extra blog articles beyond 24 per year",
+     "Extra articles beyond the numbers in Section 7.1",
      "$140 per article"
     ],
     [
