@@ -1,7 +1,7 @@
 {
  "id": "search",
  "name": "Search Package",
- "version": "72e28e010e29",
+ "version": "c4d85f868aca",
  "defaults": {
   "buildFee": "$1,750",
   "monthlyFee": "$150",
@@ -700,7 +700,7 @@
   },
   {
    "type": "p",
-   "text": "We plan, write, edit, and publish twenty-four (24) SEO blog articles per Term — two (2) a month. Articles are planned against the keyword research in Section 4.4."
+   "text": "We plan, write, edit, and publish SEO articles in two groups. Foundational articles, three (3) to five (5) of them, are published within sixty (60) days after the Launch Date. A further six (6) articles per Term are published through the Term, timed to seasons, local events, and businesses relevant to your customers. Articles are planned against the keyword research in Section 4.4."
   },
   {
    "type": "h3",
@@ -740,7 +740,7 @@
   },
   {
    "type": "p",
-   "text": "Articles run on the monthly schedule. They don't roll over, bank, or accumulate. Articles we didn't publish because you delayed things, service was suspended, or the agreement ended are gone, and they aren't refunded or made up later. The early cancellation fee in Section 3.4 isn't a charge for those articles — it's the fee described there."
+   "text": "Articles run on the schedule in Section 7.3. They don't roll over, bank, or accumulate. Articles we didn't publish because you delayed things, service was suspended, or the agreement ended are gone, and they aren't refunded or made up later. The early cancellation fee in Section 3.4 isn't a charge for those articles — it's the fee described there."
   },
   {
    "type": "h3",
@@ -1197,7 +1197,7 @@
     ],
     [
      "8",
-     "Two (2) SEO blog articles per month — 24 per Term — planned, written, edited, and published"
+     "Three (3) to five (5) foundational SEO articles within sixty (60) days of launch, then six (6) more per Term — planned, written, edited, and published"
     ],
     [
      "9",
@@ -1265,7 +1265,7 @@
      "$90 per hour"
     ],
     [
-     "Extra blog articles beyond 24 per year",
+     "Extra articles beyond the numbers in Section 7.1",
      "$140 per article"
     ],
     [

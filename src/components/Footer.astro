@@ -33,7 +33,7 @@ const navItems = hasWork
       </address>
     </div>
 
-    <p class="footer-bottom muted">&copy; {year} {site.brand}</p>
+    <p class="footer-bottom muted">&copy; {year} {site.brand} · <a href="/privacy/">Privacy</a></p>
   </div>
 </footer>
 
@@ -71,6 +71,7 @@ const navItems = hasWork
 
   .footer-contact { display: grid; font-style: normal; }
 
+  .footer-bottom a { color: inherit; }
   .footer-bottom {
     margin: var(--space-4) 0 0;
     padding-top: var(--space-3);

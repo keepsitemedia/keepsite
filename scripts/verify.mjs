@@ -34,6 +34,7 @@ const PAGES = [
   'packages/index.html',
   'how-it-works/index.html',
   'faq/index.html',
+  'privacy/index.html',
   'start/index.html',
   'start/thanks/index.html',
   'questionnaire/intro/index.html',
@@ -220,6 +221,9 @@ section('JavaScript budget');
 // token-capture/save-and-resume module script; brand additionally carries
 // its demo index, a third script tag.
 check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
+  // Analytics, when a Measurement ID is set, is two more tags on every page
+  // the layout renders: the gtag loader and its inline config.
+  const analytics = JSON.parse(fs.readFileSync('src/data/site.json', 'utf8')).analyticsId ? 2 : 0;
   const expect = {
     'index.html': 1,
     'packages/index.html': 2,
@@ -227,6 +231,7 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
     // it opens at the top of the viewport, only JS can.
     'how-it-works/index.html': 2,
     'faq/index.html': 2,
+    'privacy/index.html': 1,
     'start/index.html': 2,
     'start/thanks/index.html': 1,
     'questionnaire/intro/index.html': 2,
@@ -240,7 +245,7 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
   for (const [p, n] of Object.entries(expect)) {
     // Count tag occurrences, not lines: the build emits one long line.
     const c = (read(p).match(/<script(?=[\s>])/g) || []).length;
-    if (c !== n) throw new Error(`${p} has ${c} scripts, expected ${n}`);
+    if (c !== n + analytics) throw new Error(`${p} has ${c} scripts, expected ${n + analytics}`);
   }
 });
 

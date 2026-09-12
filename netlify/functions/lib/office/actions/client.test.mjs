@@ -74,3 +74,30 @@ test('update of an unknown client is a 404 and an unknown op a 400', async () =>
   assert.equal((await action(post({ op: 'update', csrf, slug: 'ghost', ...good }), ctx(), s)).status, 404);
   assert.equal((await action(post({ op: 'nope', csrf }), ctx(), s)).status, 400);
 });
+
+test('delete removes the client and everything filed under it, then lands on the list', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.meetings.put('lova', '20260901T120000abcdef', { id: '20260901T120000abcdef', slug: 'lova', title: 'Call' });
+  await s.documents.put('lova', 'logo.png', new Uint8Array([1, 2, 3]), { type: 'image/png' });
+  const res = await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/');
+  assert.equal(await s.clients.get('lova'), null);
+  assert.deepEqual(await s.tasks.list('lova'), []);
+  assert.deepEqual(await s.meetings.list('lova'), []);
+  assert.deepEqual(await s.documents.list('lova'), []);
+});
+
+test('delete refuses a client with a signed agreement or a payment on record', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.agreements.put('lova', '20260901T120000abcdef', { id: '20260901T120000abcdef', slug: 'lova', status: 'completed' });
+  let res = await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /signed agreement/);
+  assert.ok(await s.clients.get('lova'));
+  await s.agreements.remove('lova', '20260901T120000abcdef');
+  await s.payments.put('lova', '20260901T120000abcdeg', { id: '20260901T120000abcdeg', slug: 'lova', kind: 'deposit', status: 'paid' });
+  res = await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /payment on record/);
+  assert.ok(await s.clients.get('lova'));
+});

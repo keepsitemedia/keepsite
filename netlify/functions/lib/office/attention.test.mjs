@@ -37,6 +37,7 @@ test('nudge points at the screen that chases each kind of waiting task', () => {
   assert.deepEqual(nudge(task({ questionnaire: 'brand' })), { href: '/office/send/acme/questionnaire-reminder/?form=brand', label: 'Remind' });
   assert.deepEqual(nudge(task({ agreement: 'completed' })), { href: '/office/send/acme/agreement/', label: 'Resend link' });
   assert.deepEqual(nudge(task({ payment: 'deposit' })), { href: '/office/clients/acme/?tab=payments', label: 'Payments' });
+  assert.deepEqual(nudge(task({ agreement: 'sent' })), { href: '/office/clients/acme/?tab=agreements', label: 'Agreements' });
   assert.equal(nudge(task({})), null);
 });
 

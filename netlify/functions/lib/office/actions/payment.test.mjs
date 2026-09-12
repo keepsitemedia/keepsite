@@ -86,3 +86,13 @@ test('refusals: csrf, unknown client, unknown op, and a missing Stripe key', asy
     process.env.STRIPE_SECRET_KEY = 'sk_test_1';
   }
 });
+
+test('forget-customer clears the Stripe id so the next link creates a fresh customer', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_test' });
+  const res = await payment(post({ csrf, op: 'forget-customer', slug: 'lova' }), ctx(), s, stripe([]), NOW);
+  assert.equal(loc(res), '/office/clients/lova/?tab=payments');
+  assert.equal((await s.clients.get('lova')).stripeCustomerId, null);
+  await payment(post({ csrf, op: 'checkout', slug: 'lova', kind: 'deposit', amount: '875', description: 'Deposit' }), ctx(), s, stripe([{ id: 'cus_live' }, { id: 'cs_2', url: 'https://checkout/cs_2', payment_intent: 'pi_2' }]), NOW);
+  assert.equal((await s.clients.get('lova')).stripeCustomerId, 'cus_live');
+});

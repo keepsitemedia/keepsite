@@ -8,11 +8,28 @@
   "areaServed": "Utah",
   "priceRange": "$$",
   "googleBusinessProfileUrl": "",
+  "analyticsId": "G-13ZF3P8Y7P",
   "social": [],
   "nav": [
-    { "label": "Packages", "href": "/packages/", "cta": false },
-    { "label": "How it works", "href": "/how-it-works/", "cta": false },
-    { "label": "FAQ", "href": "/faq/", "cta": false },
-    { "label": "Start your site", "href": "/start/", "cta": true }
+    {
+      "label": "Packages",
+      "href": "/packages/",
+      "cta": false
+    },
+    {
+      "label": "How it works",
+      "href": "/how-it-works/",
+      "cta": false
+    },
+    {
+      "label": "FAQ",
+      "href": "/faq/",
+      "cta": false
+    },
+    {
+      "label": "Start your site",
+      "href": "/start/",
+      "cta": true
+    }
   ]
 }
