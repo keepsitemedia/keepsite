@@ -1,0 +1,73 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../layouts/OfficeLayout.astro';
+import TaskRow from '../../components/office/TaskRow.astro';
+import { store } from '../../../netlify/functions/lib/office/store.mjs';
+import { todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
+import { OWN_SLUG } from '../../../netlify/functions/lib/office/clients.mjs';
+import { REPEATS } from '../../../netlify/functions/lib/office/recurrence.mjs';
+
+// store.mjs has no type declarations, so astro check sees list() as any;
+// this narrows it to what the page reads.
+type Task = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; doneAt: string | null; project: string | null; repeat: string | null };
+
+const s = store();
+const today = todayIn();
+const here = '/office/tasks/';
+const csrf = Astro.locals.csrf;
+const all = (await s.tasks.list(OWN_SLUG)) as Task[];
+const byDue = (a: Task, b: Task) => a.due.localeCompare(b.due) || (a.time ?? '').localeCompare(b.time ?? '');
+const open = all.filter((t) => !t.done).sort(byDue);
+const done = all.filter((t) => t.done).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? '')).slice(0, 20);
+const groups = new Map<string, Task[]>();
+for (const t of open) {
+  const key = t.project ?? '';
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key)!.push(t);
+}
+// Named projects alphabetically, the unlabelled tasks last.
+const ordered = [...groups.entries()].sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b)));
+const late = open.filter((t) => t.due < today).length;
+---
+<OfficeLayout title="Tasks">
+  <div class="page-head">
+    <h1>Tasks</h1>
+    <span class="sub">Business work with no client behind it.{open.length > 0 && ` ${open.length} open${late ? `, ${late} late` : ''}.`}</span>
+  </div>
+
+  <form method="POST" action="/office/api/task" class="sheet">
+    <input type="hidden" name="csrf" value={csrf} />
+    <input type="hidden" name="op" value="add" />
+    <input type="hidden" name="slug" value={OWN_SLUG} />
+    <input type="hidden" name="back" value={here} />
+    <div class="row">
+      <label class="field"><span>Task</span><input name="title" required /></label>
+      <label class="field"><span>Project</span><input name="project" placeholder="Referral program" /></label>
+      <label class="field"><span>Due</span><input type="date" name="due" value={today} required /></label>
+      <label class="field"><span>Time</span><input type="time" name="time" /></label>
+      <label class="field"><span>Repeat</span>
+        <select name="repeat">
+          <option value="">Does not repeat</option>
+          {REPEATS.map((r) => <option value={r}>{r}</option>)}
+        </select>
+      </label>
+    </div>
+    <label class="field"><span>Notes</span><textarea name="notes" rows="2"></textarea></label>
+    <div class="form-foot"><button type="submit" class="btn">Add task</button></div>
+  </form>
+
+  {open.length === 0 && <p class="empty">Nothing open.</p>}
+  {ordered.map(([project, tasks]) => (
+    <>
+      <h2>{project || 'No project'} <span class="count">{tasks.length}</span></h2>
+      <ul class="ledger">{tasks.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</ul>
+    </>
+  ))}
+
+  {done.length > 0 && (
+    <details class="fold">
+      <summary>Done<span class="sub">last {done.length}</span></summary>
+      <div class="fold-body"><ul class="ledger">{done.map((t) => <TaskRow task={t} csrf={csrf} today={today} back={here} />)}</ul></div>
+    </details>
+  )}
+</OfficeLayout>
