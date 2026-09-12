@@ -51,7 +51,7 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
     await s.tasks.put(slug, id, {
       id, slug, title, due: w.due, time: w.time, done: false, doneAt: null,
       source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null,
-      notes: field(data, 'notes'), project: field(data, 'project') || null, repeat: r.repeat, createdAt: at,
+      notes: field(data, 'notes'), project: field(data, 'project') || null, repeat: r.repeat, nextId: null, createdAt: at,
     });
     return redirect(to);
   }
@@ -62,13 +62,17 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   if (!existing) return problem(404, 'no such task');
 
   if (op === 'done') {
-    // A replayed Done finds the task already done and must not add a
-    // second next task; the chain grows only on the open-to-done edge.
-    const spawn = !existing.done && isRepeat(existing.repeat);
-    await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at });
+    // A replayed Done finds the task already done, and a Reopen-then-Done
+    // finds it still carrying the nextId from the first Done (reopen does
+    // not clear it); either way a successor already exists, so a task
+    // spawns at most once in its lifetime.
+    const spawn = !existing.done && isRepeat(existing.repeat) && !existing.nextId;
     if (spawn) {
       const next = nextTask(existing, now);
+      await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at, nextId: next.id });
       await s.tasks.put(slug, next.id, next);
+    } else {
+      await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at });
     }
   } else if (op === 'reopen') await s.tasks.put(slug, id, { ...existing, done: false, doneAt: null });
   else if (op === 'reschedule') {

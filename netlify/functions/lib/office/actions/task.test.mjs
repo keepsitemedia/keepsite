@@ -108,6 +108,24 @@ test('done on a repeating task creates the next one, once', async () => {
   assert.equal(all.length, 2);
 });
 
+test('reopen then done again does not duplicate the chain link', async () => {
+  const s = await make();
+  await task(post({ csrf, op: 'add', slug: 'office', title: 'Invoices', due: '2026-09-30', repeat: 'monthly' }), ctx(), s);
+  const [{ id }] = await s.tasks.list('office');
+  const at = new Date('2026-10-02T00:00:00Z');
+  await task(post({ csrf, op: 'done', slug: 'office', id }), ctx(), s, at);
+  const original = await s.tasks.get('office', id);
+  await task(post({ csrf, op: 'reopen', slug: 'office', id }), ctx(), s);
+  await task(post({ csrf, op: 'done', slug: 'office', id }), ctx(), s, at);
+  const all = await s.tasks.list('office');
+  assert.equal(all.length, 2);
+  const done = await s.tasks.get('office', id);
+  assert.equal(done.nextId, original.nextId);
+  const successor = all.find((t) => t.id === done.nextId);
+  assert.ok(successor);
+  assert.equal(successor.id, done.nextId);
+});
+
 test('reschedule changes repeat only when the form sends it', async () => {
   const s = await make();
   await task(post({ csrf, op: 'add', slug: 'office', title: 'x', due: '2026-09-15', repeat: 'weekly' }), ctx(), s);

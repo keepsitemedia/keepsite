@@ -29,6 +29,7 @@ export function nextTask(task, now = new Date()) {
     notes: task.notes ?? '',
     project: task.project ?? null,
     repeat: task.repeat,
+    nextId: null,
     createdAt: now.toISOString(),
   };
 }

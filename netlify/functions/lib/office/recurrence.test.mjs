@@ -34,5 +34,5 @@ test('nextTask copies what recurs and resets what does not', () => {
   assert.equal(n.doneAt, null);
   assert.equal(n.createdAt, NOW.toISOString());
   for (const k of ['slug', 'title', 'time', 'project', 'repeat', 'notes', 'source']) assert.equal(n[k], base[k], k);
-  for (const k of ['stage', 'questionnaire', 'payment', 'agreement']) assert.equal(n[k], null, k);
+  for (const k of ['stage', 'questionnaire', 'payment', 'agreement', 'nextId']) assert.equal(n[k], null, k);
 });
