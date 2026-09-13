@@ -4,6 +4,7 @@ import { task } from './task.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
+import { newId } from '../ids.mjs';
 
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
@@ -58,6 +59,31 @@ test('done, reopen, reschedule and delete', async () => {
   const res = await task(post({ csrf, op: 'delete', slug: 'lova', id }), ctx(), s);
   assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=tasks');
   assert.equal(await s.tasks.get('lova', id), null);
+});
+
+// A repeating task rolls forward only while the client is still in the
+// stage that created it, so build-phase check-ins stop at launch and Live
+// tasks run for as long as the client is live.
+test('done on a repeating task creates the next one while the stage matches', async () => {
+  const s = await make();
+  await s.clients.put('lova', { slug: 'lova', business: 'Lova', stage: 'live' });
+  const base = { slug: 'lova', title: 'Strategy meeting', due: '2026-09-15', time: null, done: false, doneAt: null, source: 'pipeline', stage: 'live', questionnaire: null, payment: null, agreement: null, notes: '', createdAt: 'x' };
+  const idA = newId(new Date('2026-09-01T00:00:00Z'));
+  const idB = newId(new Date('2026-09-02T00:00:00Z'));
+  await s.tasks.put('lova', idA, { ...base, id: idA, repeat: 'monthly' });
+  await task(post({ csrf, op: 'done', slug: 'lova', id: idA }), ctx(), s, new Date('2026-09-16T00:00:00Z'));
+  let open = (await s.tasks.list('lova')).filter((t) => !t.done);
+  assert.equal(open.length, 1);
+  assert.equal(open[0].due, '2026-10-15');
+  assert.equal(open[0].repeat, 'monthly');
+  // Replayed done: nothing new.
+  await task(post({ csrf, op: 'done', slug: 'lova', id: idA }), ctx(), s, new Date('2026-09-17T00:00:00Z'));
+  assert.equal((await s.tasks.list('lova')).length, 2);
+  // Stage moved on: the check-in closes and stops.
+  await s.clients.put('lova', { slug: 'lova', business: 'Lova', stage: 'live' });
+  await s.tasks.put('lova', idB, { ...base, id: idB, title: 'Research check-in', stage: 'copy', repeat: 'biweekly' });
+  await task(post({ csrf, op: 'done', slug: 'lova', id: idB }), ctx(), s);
+  assert.equal((await s.tasks.list('lova')).filter((t) => t.title === 'Research check-in').length, 1);
 });
 
 test('an unknown id is 404 and a bad back path falls to the client page', async () => {

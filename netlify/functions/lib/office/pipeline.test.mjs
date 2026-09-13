@@ -31,6 +31,10 @@ test('validatePipelines names what is wrong', () => {
   assert.match(validatePipelines([{ id: 'a', name: 'x', payments: {}, stages: one }]).join(), /payments\.plan is required/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', payments: { plan: '' }, stages: one }]).join(), /payments\.plan is required/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', payments: 'deposit', stages: one }]).join(), /payments\.plan is required/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, tiers: ['Gold'] }] }] }]).join(), /tiers/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, tiers: 'Agile' }] }] }]).join(), /tiers/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, repeat: 'daily' }] }] }]).join(), /repeat/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, tiers: ['Agile'], repeat: 'monthly' }] }] }]).join(), /^$/);
 });
 
 // Every new client starts at pipelines[0].stages[0]; a saved setting with
@@ -107,4 +111,31 @@ test('questionnaire tasks carry the form name and live records the launch date',
 
 test('advance throws on a stage the pipeline does not have', () => {
   assert.throws(() => advance({ client: fresh(), pipeline: website(), stageId: 'nope', today: '2026-09-04', now: NOW }), /unknown stage/);
+});
+
+test('advancing creates only the tasks whose tiers include the client', () => {
+  const pipeline = { id: 'p', name: 'P', stages: [{ id: 's', name: 'S', tasks: [
+    { title: 'Everyone', due: 1 },
+    { title: 'Agile only', due: 2, tiers: ['Agile'], repeat: 'biweekly' },
+    { title: 'Growth and Range', due: 3, tiers: ['Growth', 'Range'] },
+  ] }] };
+  const agile = advance({ client: { ...fresh(), tier: 'Agile' }, pipeline, stageId: 's', today: '2026-09-04', now: NOW });
+  assert.deepEqual(agile.tasks.map((t) => [t.title, t.repeat]), [['Everyone', null], ['Agile only', 'biweekly']]);
+  const range = advance({ client: { ...fresh(), tier: 'Range' }, pipeline, stageId: 's', today: '2026-09-04', now: NOW });
+  assert.deepEqual(range.tasks.map((t) => t.title), ['Everyone', 'Growth and Range']);
+  const undecided = advance({ client: { ...fresh(), tier: '' }, pipeline, stageId: 's', today: '2026-09-04', now: NOW });
+  assert.deepEqual(undecided.tasks.map((t) => t.title), ['Everyone']);
+});
+
+test('the seed gives each tier the meetings the package promises', () => {
+  const p = website();
+  const titles = (tier, stage) => advance({ client: { ...fresh(), tier }, pipeline: p, stageId: stage, today: '2026-09-04', now: NOW }).tasks.map((t) => t.title);
+  assert.ok(titles('Growth', 'agreement').includes('Kickoff call'));
+  assert.ok(!titles('Presence', 'agreement').includes('Kickoff call'));
+  assert.ok(titles('Agile', 'intro').includes('Discovery session'));
+  assert.ok(titles('Agile', 'layouts').includes('Research check-in'));
+  assert.ok(titles('Growth', 'layouts').includes('Stage check-in'));
+  assert.deepEqual(titles('Agile', 'live'), ['Strategy meeting', 'Research and test review', 'Search summary to client', 'Annual recap']);
+  assert.deepEqual(titles('Presence', 'live'), ['Analytics summary to client', 'Annual recap']);
+  assert.deepEqual(titles('Range', 'live'), ['Search summary to client', 'Annual recap']);
 });

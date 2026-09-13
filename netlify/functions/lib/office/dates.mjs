@@ -20,6 +20,13 @@ export function addDays(ymd, n) {
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 }
 
+export function addMonths(ymd, n) {
+  const [y, m, d] = parts(ymd);
+  const first = new Date(Date.UTC(y, m - 1 + n, 1));
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(d, last))).toISOString().slice(0, 10);
+}
+
 export function isYmd(s) {
   if (typeof s !== 'string' || !YMD.test(s)) return false;
   const [y, m, d] = parts(s);

@@ -3,6 +3,8 @@
 import seed from '../../../../src/data/office/pipelines.json' with { type: 'json' };
 import { newId } from './ids.mjs';
 import { addDays } from './dates.mjs';
+import { TIERS } from './clients.mjs';
+import { isRepeat } from './recurrence.mjs';
 
 const KEY = /^[a-z][a-z0-9-]{0,31}$/;
 
@@ -45,6 +47,11 @@ export function validatePipelines(value) {
           errors.push(`${tat}: payment must be "deposit" or "balance"`);
         }
         if (t.agreement !== undefined && !['sent', 'completed'].includes(t.agreement)) errors.push(`${tat}: agreement must be sent or completed`);
+        if (t.tiers !== undefined) {
+          if (!Array.isArray(t.tiers) || t.tiers.length === 0) errors.push(`${tat}: tiers must be a non-empty list`);
+          else for (const name of t.tiers) if (!TIERS.includes(name)) errors.push(`${tat}: tiers names unknown tier "${name}"`);
+        }
+        if (t.repeat !== undefined && !isRepeat(t.repeat)) errors.push(`${tat}: repeat must be weekly, biweekly, monthly, quarterly or yearly`);
       });
     });
   });
@@ -80,8 +87,11 @@ export function advance({ client, pipeline, stageId, today, now = new Date() }) 
     dates,
     updatedAt: at,
   };
+  // A task that names tiers is for those packages only; an undecided tier
+  // gets the tasks every package shares and nothing more.
+  const forTier = (t) => !t.tiers || t.tiers.includes(client.tier);
   const tasks = first
-    ? stage.tasks.map((t) => ({
+    ? stage.tasks.filter(forTier).map((t) => ({
         id: newId(now),
         slug: client.slug,
         title: t.title,
@@ -94,6 +104,7 @@ export function advance({ client, pipeline, stageId, today, now = new Date() }) 
         questionnaire: t.questionnaire ?? null,
         payment: t.payment ?? null,
         agreement: t.agreement ?? null,
+        repeat: t.repeat ?? null,
         notes: '',
         createdAt: at,
       }))
