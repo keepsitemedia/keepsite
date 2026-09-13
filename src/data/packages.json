@@ -99,7 +99,7 @@
         "Everything in Growth",
         "A strategy meeting every month",
         "Research that keeps going as the business changes",
-        "Tests, and the changes that come out of them"
+        "Testing on what works and adapting constantly"
       ],
       "ctaLabel": "Start with Agile"
     },
@@ -137,15 +137,15 @@
   ],
   "payment": {
     "heading": "How you pay.",
-    "lead": "The price is rarely the problem. Paying it all at once is. So you don't have to.",
+    "lead": "Two ways to pay for the build.",
     "options": [
       {
         "title": "Half and half",
-        "body": "Half the build at kickoff, half at launch. This is the standard."
+        "body": "Our standard: half at kickoff, half at launch."
       },
       {
         "title": "Twelve payments",
-        "body": "Spread the build over twelve monthly payments of nine percent of the build price. Available on every package. If the payments stop, the site goes to a holding page until they catch up."
+        "body": "Spread the build over twelve monthly payments of nine percent of the build price. Available on every package."
       }
     ],
     "monthlyStarts": "The monthly fee starts the day your site goes live and is billed automatically.",
@@ -153,7 +153,7 @@
   },
   "sorter": {
     "heading": "Which one is you?",
-    "lead": "Four questions. Answer them and you'll probably know. If not, ask us and we'll say which one, and why not the ones above and below it.",
+    "lead": "Four quick questions. Answer them to get a general idea. If you have questions we're happy to explain why your business would be best served by one package over another.",
     "questions": [
       {
         "q": "Where do your clients come from now, and is that enough?",
