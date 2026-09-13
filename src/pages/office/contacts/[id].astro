@@ -74,7 +74,7 @@ const startParams = new URLSearchParams({
         <input type="hidden" name="csrf" value={csrf} />
         <input type="hidden" name="op" value="delete" />
         <input type="hidden" name="id" value={contact.id} />
-        <button class="link-quiet danger">Delete contact</button>
+        <button class="link-quiet danger" onclick="return confirm('Delete this contact and its notes? This cannot be undone.')">Delete contact</button>
       </form>
     </div>
   </details>
