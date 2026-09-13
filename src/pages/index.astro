@@ -58,7 +58,7 @@ const featuredWork = (await getCollection('work'))
           </a>
         ))}
       </div>
-      <p><a class="link-arrow" href={home.packages.linkHref}>{home.packages.linkLabel} &rarr;</a></p>
+      <p class="tier-more"><a class="link-arrow" href={home.packages.linkHref}>{home.packages.linkLabel} &rarr;</a></p>
     </div>
   </section>
 
@@ -119,12 +119,15 @@ const featuredWork = (await getCollection('work'))
     max-width: none;
   }
 
-  /* Rule-separated rows, not cards: the homepage names the three
-     packages and their promise, and /packages/ does the comparing. */
+  /* Rule-separated rows, not cards: the homepage names the four
+     packages and their promise, and /packages/ does the comparing. Two
+     by two, so no tier sits alone on a row. */
   .tier-lines { margin-top: var(--space-4); }
-  @media (min-width: 900px) {
-    .tier-lines { grid-template-columns: repeat(3, 1fr); }
+  @media (min-width: 720px) {
+    .tier-lines { grid-template-columns: repeat(2, 1fr); column-gap: var(--space-5); }
   }
+  /* The link speaks for all four tiers, so it stands clear of the last one. */
+  .tier-more { margin-top: var(--space-4); }
   .tier-link { display: block; text-decoration: none; color: var(--color-ink); }
   .tier-link h3 { font-size: var(--step-2); margin-bottom: var(--space-0); transition: color 120ms ease; }
   .tier-link:hover h3 { color: var(--color-brand); }
