@@ -32,13 +32,27 @@ test('the token is required, checked, and fails closed when unset', async () => 
   assert.equal((await feed(new Request('https://site.test/office/api/feed'), ctx, s, NOW)).status, 401);
   assert.equal((await feed(get('', { Authorization: `Bearer ${'b'.repeat(43)}` }), ctx, s, NOW)).status, 401);
   assert.equal((await feed(get('', { Authorization: 'Bearer short' }), ctx, s, NOW)).status, 401);
+  const bareToken = await feed(get('', { Authorization: TOKEN }), ctx, s, NOW);
+  assert.equal(bareToken.status, 401);
+  assert.equal(bareToken.headers.get('WWW-Authenticate'), 'Bearer');
   const saved = process.env.KEEPSITE_FEED_TOKEN;
   delete process.env.KEEPSITE_FEED_TOKEN;
   const res = await feed(get(), ctx, s, NOW);
   process.env.KEEPSITE_FEED_TOKEN = saved;
   assert.equal(res.status, 401);
+  assert.equal(res.headers.get('WWW-Authenticate'), 'Bearer');
   assert.equal(await res.text(), '');
-  assert.equal((await feed(new Request('https://site.test/office/api/feed', { method: 'DELETE', headers: { Authorization: `Bearer ${TOKEN}` } }), ctx, s, NOW)).status, 405);
+  const deleted = await feed(new Request('https://site.test/office/api/feed', { method: 'DELETE', headers: { Authorization: `Bearer ${TOKEN}` } }), ctx, s, NOW);
+  assert.equal(deleted.status, 405);
+  assert.equal(deleted.headers.get('Allow'), 'GET, HEAD, POST');
+});
+
+test('HEAD mirrors GET with an empty body', async () => {
+  const { s } = await make();
+  const res = await feed(new Request('https://site.test/office/api/feed', { method: 'HEAD', headers: { Authorization: `Bearer ${TOKEN}` } }), ctx, s, NOW);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('Content-Type'), /application\/json/);
+  assert.equal(await res.text(), '');
 });
 
 test('GET returns the window as JSON with the office headers it owns', async () => {
@@ -84,6 +98,9 @@ test('POST add creates an own task and returns it', async () => {
   assert.match((await bad.json()).error, /title/);
   assert.equal((await feed(post({ op: 'nope' }), ctx, s, NOW)).status, 400);
   assert.equal((await feed(new Request('https://site.test/office/api/feed', { method: 'POST', headers: { Authorization: `Bearer ${TOKEN}` }, body: 'not json' }), ctx, s, NOW)).status, 400);
+  const arrayBody = await feed(post([]), ctx, s, NOW);
+  assert.equal(arrayBody.status, 400);
+  assert.match((await arrayBody.json()).error, /object/);
 });
 
 test('POST done and reopen work on any task by id and spawn like the office', async () => {

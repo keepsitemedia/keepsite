@@ -47,6 +47,18 @@ test('feedItems shapes tasks and meetings, filters the window, and sorts', () =>
   });
 });
 
+test('the window is inclusive of both from and to', () => {
+  const window = { from: '2026-09-10', to: '2026-09-20', brand: null };
+  const tasks = [
+    t({ id: '20260901T000000aaaaa6', title: 'OnFrom', due: '2026-09-10' }),
+    t({ id: '20260901T000000aaaaa7', title: 'OnTo', due: '2026-09-20' }),
+    t({ id: '20260901T000000aaaaa8', title: 'BeforeFrom', due: '2026-09-09' }),
+    t({ id: '20260901T000000aaaaa9', title: 'AfterTo', due: '2026-09-21' }),
+  ];
+  const titles = feedItems({ tasks, meetings: [], clients, window, office }).map((i) => i.title);
+  assert.deepEqual(titles, ['OnFrom', 'OnTo']);
+});
+
 test('a brand filter keeps own tasks and drops the other brand', () => {
   const window = { from: '2026-09-10', to: '2026-09-20', brand: 'lova' };
   const tasks = [t({ id: '20260901T000000aaaaa1' }), t({ id: '20260901T000000aaaaa3', slug: 'office', title: 'Own' })];

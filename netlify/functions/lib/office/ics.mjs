@@ -1,5 +1,6 @@
-// One VEVENT, hand-built: the format is small, and a dependency for it would
-// be the only one in the office that touches nothing else.
+// Hand-built ICS, one invitation or a whole feed window: the format is
+// small, and a dependency for it would be the only one in the office that
+// touches nothing else.
 import { addDays, toInstant } from './dates.mjs';
 
 const stamp = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');

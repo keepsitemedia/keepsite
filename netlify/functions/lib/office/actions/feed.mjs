@@ -13,16 +13,17 @@ import { OWN_SLUG } from '../clients.mjs';
 import { ID } from '../ids.mjs';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store' };
-const json = (status, body) =>
-  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...NO_STORE } });
-const refused = () => new Response(null, { status: 401, headers: NO_STORE });
+const json = (status, body, headers = {}) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...NO_STORE, ...headers } });
+const refused = () => new Response(null, { status: 401, headers: { ...NO_STORE, 'WWW-Authenticate': 'Bearer' } });
 
 function authorized(request) {
   const want = process.env.KEEPSITE_FEED_TOKEN;
-  const given = (request.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!want || !given) return false;
+  // Only the documented scheme authenticates; a bare token or Basic auth is not authorized.
+  const match = /^Bearer\s+(\S+)$/i.exec(request.headers.get('authorization') ?? '');
+  if (!want || !match) return false;
   const a = Buffer.from(want);
-  const b = Buffer.from(given);
+  const b = Buffer.from(match[1]);
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
@@ -35,33 +36,50 @@ async function load(s) {
 }
 
 // The read shape for one task, built the same way the window is so a POST
-// answers with exactly what the next GET would show.
+// answers with exactly what the next GET would show. feedItems drops a task
+// whose client record is gone, so a raw fallback keeps this an item rather
+// than forcing every caller to handle a null.
 function itemFor(task, data, office) {
   const window = { from: task.due, to: task.due, brand: null };
-  return feedItems({ ...data, tasks: [task], meetings: [], window, office }).find((i) => i.id === task.id) ?? null;
+  const found = feedItems({ ...data, tasks: [task], meetings: [], window, office }).find((i) => i.id === task.id);
+  if (found) return found;
+  const own = task.slug === OWN_SLUG;
+  return {
+    kind: 'task', id: task.id, brand: null, slug: task.slug, business: null, title: task.title,
+    due: task.due, time: task.time ?? null, done: Boolean(task.done), waitsOnClient: false,
+    source: task.source ?? 'manual', stage: task.stage ?? null, project: task.project ?? null, repeat: task.repeat ?? null,
+    url: own ? `${office}tasks/` : `${office}clients/${task.slug}/?tab=tasks`,
+  };
 }
 
 export async function feed(request, _ctx, s = defaultStore(), now = new Date()) {
   if (!authorized(request)) return refused();
   const office = `${siteUrl()}/office/`;
 
-  if (request.method === 'GET') {
+  if (request.method === 'GET' || request.method === 'HEAD') {
     const url = new URL(request.url);
     const window = parseWindow({
       from: url.searchParams.get('from') ?? '', to: url.searchParams.get('to') ?? '', brand: url.searchParams.get('brand') ?? '',
     }, todayIn(undefined, now));
-    if (window.error) return json(400, { error: window.error });
-    const items = feedItems({ ...(await load(s)), window, office });
-    if (wantsIcs(request, url)) {
-      return new Response(buildFeedIcs(items, now), { status: 200, headers: { 'Content-Type': 'text/calendar; charset=utf-8', ...NO_STORE } });
+    let res;
+    if (window.error) {
+      res = json(400, { error: window.error });
+    } else {
+      const items = feedItems({ ...(await load(s)), window, office });
+      res = wantsIcs(request, url)
+        ? new Response(buildFeedIcs(items, now), { status: 200, headers: { 'Content-Type': 'text/calendar; charset=utf-8', ...NO_STORE } })
+        : json(200, { generatedAt: now.toISOString(), timezone: TZ, office, items });
     }
-    return json(200, { generatedAt: now.toISOString(), timezone: TZ, office, items });
+    // HEAD gets the GET response's status and headers with no body, per HTTP.
+    return request.method === 'HEAD' ? new Response(null, { status: res.status, headers: res.headers }) : res;
   }
 
-  if (request.method !== 'POST') return json(405, { error: 'GET or POST only' });
+  if (request.method !== 'POST') {
+    return json(405, { error: 'GET or POST only' }, { Allow: 'GET, HEAD, POST' });
+  }
   let body;
   try { body = await request.json(); } catch { return json(400, { error: 'expected a JSON body' }); }
-  if (!body || typeof body !== 'object') return json(400, { error: 'expected a JSON object' });
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return json(400, { error: 'expected a JSON object' });
 
   if (body.op === 'add') {
     const { task, error } = newTask({ ...body, slug: OWN_SLUG }, now);

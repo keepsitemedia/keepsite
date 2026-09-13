@@ -8,13 +8,13 @@ import { addDays, isYmd } from './dates.mjs';
 const BRANDS = ['keepsite', 'lova'];
 
 export function parseWindow({ from, to, brand } = {}, today) {
-  const f = from || addDays(today, -30);
-  const t = to || addDays(today, 90);
-  if (!isYmd(f)) return { error: 'from must be a date' };
-  if (!isYmd(t)) return { error: 'to must be a date' };
-  if (t < f) return { error: 'to must not be before from' };
+  const start = from || addDays(today, -30);
+  const end = to || addDays(today, 90);
+  if (!isYmd(start)) return { error: 'from must be a date' };
+  if (!isYmd(end)) return { error: 'to must be a date' };
+  if (end < start) return { error: 'to must not be before from' };
   if (brand && !BRANDS.includes(brand)) return { error: 'brand must be keepsite or lova' };
-  return { from: f, to: t, brand: brand || null };
+  return { from: start, to: end, brand: brand || null };
 }
 
 // Every client is Keepsite's until the brand field ships; own tasks belong
