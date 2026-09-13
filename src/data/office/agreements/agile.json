@@ -2,7 +2,7 @@
  "id": "agile",
  "name": "Agile Package",
  "tier": "Agile",
- "version": "d09d7df036ce",
+ "version": "72e0294d4795",
  "defaults": {
   "buildFee": "$2,100",
   "monthlyFee": "$425",
@@ -120,12 +120,12 @@
     [
      "Deposit due on signing",
      "{{deposit}} ({{depositPercent}}%)",
-     "50% of the Build Fee"
+     "50% of the Build Fee, or 9% on the twelve-payment plan"
     ],
     [
      "Balance due on Launch Date",
      "{{balance}} ({{balancePercent}}%)",
-     "the remaining 50%"
+     "the remaining 50%, or the remaining eleven payments on the twelve-payment plan"
     ],
     [
      "Pages included in the build (Exhibit A)",
@@ -542,7 +542,7 @@
   },
   {
    "type": "p",
-   "text": "We hold a kickoff call after signing and a check-in every two (2) weeks during the build. After launch, we meet every month under Section 7."
+   "text": "We hold a kickoff call after signing and a check-in every two (2) weeks during the build. After launch, we meet every month under Section 7.1."
   },
   {
    "type": "h3",
@@ -1179,7 +1179,7 @@
     ],
     [
      "1",
-     "Everything in the Growth subscription"
+     "Everything in the Growth subscription, except where this Exhibit says otherwise"
     ],
     [
      "2",

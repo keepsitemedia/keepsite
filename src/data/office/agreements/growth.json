@@ -2,7 +2,7 @@
  "id": "growth",
  "name": "Growth Package",
  "tier": "Growth",
- "version": "978eda7da0e4",
+ "version": "bd91812df7f4",
  "defaults": {
   "buildFee": "$1,800",
   "monthlyFee": "$160",
@@ -120,12 +120,12 @@
     [
      "Deposit due on signing",
      "{{deposit}} ({{depositPercent}}%)",
-     "50% of the Build Fee"
+     "50% of the Build Fee, or 9% on the twelve-payment plan"
     ],
     [
      "Balance due on Launch Date",
      "{{balance}} ({{balancePercent}}%)",
-     "the remaining 50%"
+     "the remaining 50%, or the remaining eleven payments on the twelve-payment plan"
     ],
     [
      "Pages included in the build (Exhibit A)",
@@ -1119,7 +1119,7 @@
     ],
     [
      "1",
-     "Everything in the Presence subscription"
+     "Everything in the Presence subscription, except where this Exhibit says otherwise"
     ],
     [
      "2",

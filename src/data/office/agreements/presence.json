@@ -2,7 +2,7 @@
  "id": "presence",
  "name": "Presence Package",
  "tier": "Presence",
- "version": "9bbb52fb3eb4",
+ "version": "31ef801dae00",
  "defaults": {
   "buildFee": "$1,200",
   "monthlyFee": "$60",
@@ -120,12 +120,12 @@
     [
      "Deposit due on signing",
      "{{deposit}} ({{depositPercent}}%)",
-     "50% of the Build Fee"
+     "50% of the Build Fee, or 9% on the twelve-payment plan"
     ],
     [
      "Balance due on Launch Date",
      "{{balance}} ({{balancePercent}}%)",
-     "the remaining 50%"
+     "the remaining 50%, or the remaining eleven payments on the twelve-payment plan"
     ],
     [
      "Pages included in the build (Exhibit A)",

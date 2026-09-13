@@ -2,7 +2,7 @@
  "id": "range",
  "name": "Range Package",
  "tier": "Range",
- "version": "eb0c8c83ef1a",
+ "version": "d9d9e3c168df",
  "defaults": {
   "buildFee": "$2,100",
   "monthlyFee": "$350",
@@ -120,12 +120,12 @@
     [
      "Deposit due on signing",
      "{{deposit}} ({{depositPercent}}%)",
-     "50% of the Build Fee"
+     "50% of the Build Fee, or 9% on the twelve-payment plan"
     ],
     [
      "Balance due on Launch Date",
      "{{balance}} ({{balancePercent}}%)",
-     "the remaining 50%"
+     "the remaining 50%, or the remaining eleven payments on the twelve-payment plan"
     ],
     [
      "Pages included in the build (Exhibit A)",
@@ -161,7 +161,7 @@
   },
   {
    "type": "p",
-   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, content updates, and search monitoring and updates for every arm for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
+   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, content updates, and search monitoring and updates for every arm of your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
   },
   {
    "type": "h3",
@@ -494,7 +494,7 @@
   },
   {
    "type": "p",
-   "text": "d. Source material and business facts for the pages we're writing, for every arm, delivered by the content lock date in Section 4.9. On this package we write your core page copy; we still need the facts from you;"
+   "text": "d. Source material and business facts for every arm's pages, delivered by the content lock date in Section 4.9. On this package we write your core page copy; we still need the facts from you;"
   },
   {
    "type": "p",
@@ -1168,7 +1168,7 @@
     ],
     [
      "1",
-     "Everything in the Growth subscription, for every arm"
+     "Everything in the Growth subscription, for every arm, except where this Exhibit says otherwise"
     ],
     [
      "2",
@@ -1321,7 +1321,7 @@
     ],
     [
      "Standard Monthly Fee",
-     "as stated in Schedule 1"
+     "as stated in Schedule 1, per month"
     ],
     [
      "Discounted Monthly Fee",
