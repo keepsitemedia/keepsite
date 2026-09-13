@@ -64,7 +64,7 @@ test('a content line over 75 octets folds with a leading space on the continuati
   const first = lines.findIndex((l) => l.startsWith('SUMMARY:'));
   assert.ok(Buffer.byteLength(lines[first], 'utf8') <= 75);
   assert.equal(lines[first + 1][0], ' ');
-  assert.ok(Buffer.byteLength(lines[first + 1], 'utf8') <= 76);
+  assert.ok(Buffer.byteLength(lines[first + 1], 'utf8') <= 75);
   const unfolded = ics.replace(/\r\n /g, '');
   assert.ok(unfolded.includes(`SUMMARY:${longSummary}`));
 });

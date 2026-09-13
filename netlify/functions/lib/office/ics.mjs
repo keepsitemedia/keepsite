@@ -19,7 +19,8 @@ function fold(line) {
   if (bytes.length <= 75) return line;
   const chunks = [];
   for (let i = 0; i < bytes.length; ) {
-    let end = Math.min(i + 75, bytes.length);
+    // The folding space counts toward a continuation line's 75 octets.
+    let end = Math.min(i + (i === 0 ? 75 : 74), bytes.length);
     // Back off a continuation byte (10xxxxxx) so a multi-byte character
     // never ends up split across two chunks.
     while (end < bytes.length && (bytes[end] & 0xc0) === 0x80) end--;
