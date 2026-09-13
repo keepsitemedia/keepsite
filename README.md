@@ -241,6 +241,7 @@ and 3 of [Enabling the CMS](#enabling-the-cms-admin).
 | `URL` | Set by Netlify. Used in links inside emails; locally it is unset and links point at `https://www.keepsitemedia.com`. |
 | `STRIPE_SECRET_KEY` | Creates customers, Checkout links and subscriptions. Without it the Payments tab shows a banner and every payment button is disabled. Use the test key until the first real client. |
 | `STRIPE_WEBHOOK_SECRET` | Verifies webhook signatures. Without it every webhook is refused with 400 and no payment is ever marked paid. |
+| `KEEPSITE_FEED_TOKEN` | Bearer token for the calendar feed at `/office/api/feed`. Any long random string; generate one the way `KEEPSITE_TOKEN_SECRET` is generated. Without it every feed request is refused with 401. |
 
 ### Local development
 
@@ -337,6 +338,21 @@ In the store these are ordinary task documents under the reserved slug
 `office`, with `project`, `repeat` and `nextId` fields, so the export,
 the digest and the calendar need nothing special. No client can be
 created at that slug.
+
+### Calendar feed
+
+`/office/api/feed` is the one office route a machine calls. The family
+calendar at homebase.samnichols.dev reads tasks and meetings from it and
+adds or finishes own tasks through it. It sits outside the login: the
+caller sends `Authorization: Bearer $KEEPSITE_FEED_TOKEN` and nothing
+else, and the token lives only in Netlify and in the caller's own
+secrets, never in a browser.
+
+`GET` takes `from`, `to` (days, default 30 back to 90 ahead) and `brand`,
+and answers JSON, or ICS with `?format=ics`. `POST` takes a JSON body
+with `op` of `add` (an own task: `title`, `due`, optional `time`,
+`project`, `repeat`, `notes`), `done` or `reopen` (an `id`). The full
+contract, with a sample response, is `docs/office-calendar-feed.md`.
 
 ### Payments
 
