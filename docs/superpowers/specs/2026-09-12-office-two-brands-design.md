@@ -257,8 +257,9 @@ project with an add form at the top (title, due, time, project,
 repeat, notes) and a fold of the last twenty done. Today's "On you"
 and the Calendar include own tasks; `TaskRow` shows the project label
 in the client column when `slug` is `office`, and the Move sheet gains
-the repeat select. The task action learns the reserved slug (no client
-lookup for it) and the two fields on `add` and `reschedule`.
+the repeat select on own tasks' rows only. The task action learns the
+reserved slug (no client lookup for it) and the two fields on `add`
+and `reschedule`.
 
 ## Digest and reminders
 
@@ -273,7 +274,7 @@ brand address and copy that brand's notify-to.
 No data rewrite. Missing `brand` reads as Keepsite on clients, tasks
 through their client, payments and agreements. Stored pipelines get a
 brand on the next save under Settings; the seed already has one.
-Missing `project` and `repeat` on tasks read as null.
+Missing `project`, `repeat` and `nextId` on tasks read as null.
 
 ## Testing
 
@@ -307,7 +308,7 @@ The gate stays `npm run gate`.
 
 Each usable when it ships, in this order:
 
-1. **Own tasks.** Reserved slug, two fields, recurrence, the Tasks
+1. **Own tasks.** Reserved slug, three fields, recurrence, the Tasks
    page, row changes.
 2. **Contacts.** Store type, three pages, action, export.
 3. **Brands in the office.** Registry, `brand` on clients, pipelines,
