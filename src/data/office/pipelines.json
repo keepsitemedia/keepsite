@@ -2,26 +2,199 @@
   {
     "id": "website",
     "name": "Website build",
-    "questionnaires": ["intro", "brand", "build"],
-    "payments": { "plan": "deposit-balance-monthly" },
+    "questionnaires": [
+      "intro",
+      "brand",
+      "build"
+    ],
+    "payments": {
+      "plan": "deposit-balance-monthly"
+    },
     "stages": [
-      { "id": "inquiry", "name": "Inquiry",
-        "tasks": [{ "title": "Reply with recommendation", "due": 1 }] },
-      { "id": "agreement", "name": "Agreement", "email": "agreement",
-        "tasks": [{ "title": "Send agreement", "due": 0, "agreement": "sent" }, { "title": "Client signs agreement", "due": 7, "agreement": "completed" }, { "title": "Deposit received", "due": 7, "payment": "deposit" }] },
-      { "id": "intro", "name": "Intro questionnaire", "email": "intro",
-        "tasks": [{ "title": "Intro questionnaire back", "due": 5, "questionnaire": "intro" }] },
-      { "id": "demo", "name": "Demo",
-        "tasks": [{ "title": "Build demo", "due": 5 }, { "title": "Send demo", "due": 5 }] },
-      { "id": "post-demo", "name": "Post-demo questionnaires", "email": "post-demo",
-        "tasks": [{ "title": "Brand questionnaire back", "due": 7, "questionnaire": "brand" }, { "title": "Build questionnaire back", "due": 7, "questionnaire": "build" }] },
-      { "id": "layouts", "name": "Layouts", "email": "layouts",
-        "tasks": [{ "title": "Layouts to client", "due": 10 }, { "title": "Layout changes back", "due": 15 }] },
-      { "id": "copy", "name": "Copy and photos", "email": "copy",
-        "tasks": [{ "title": "Copy in place", "due": 10 }, { "title": "Client review back", "due": 15 }] },
-      { "id": "launch", "name": "Launch", "email": "launch",
-        "tasks": [{ "title": "Balance received", "due": 0, "payment": "balance" }, { "title": "Launch", "due": 3 }, { "title": "Start monthly", "due": 3 }] },
-      { "id": "live", "name": "Live", "tasks": [] }
+      {
+        "id": "inquiry",
+        "name": "Inquiry",
+        "tasks": [
+          {
+            "title": "Reply with recommendation",
+            "due": 1
+          }
+        ]
+      },
+      {
+        "id": "agreement",
+        "name": "Agreement",
+        "email": "agreement",
+        "tasks": [
+          {
+            "title": "Send agreement",
+            "due": 0,
+            "agreement": "sent"
+          },
+          {
+            "title": "Client signs agreement",
+            "due": 7,
+            "agreement": "completed"
+          },
+          {
+            "title": "Deposit received",
+            "due": 7,
+            "payment": "deposit"
+          },
+          {
+            "title": "Kickoff call",
+            "due": 3,
+            "tiers": ["Growth", "Agile", "Range"]
+          }
+        ]
+      },
+      {
+        "id": "intro",
+        "name": "Intro questionnaire",
+        "email": "intro",
+        "tasks": [
+          {
+            "title": "Intro questionnaire back",
+            "due": 5,
+            "questionnaire": "intro"
+          },
+          {
+            "title": "Discovery session",
+            "due": 3,
+            "tiers": ["Agile"]
+          }
+        ]
+      },
+      {
+        "id": "demo",
+        "name": "Demo",
+        "tasks": [
+          {
+            "title": "Build demo",
+            "due": 5
+          },
+          {
+            "title": "Send demo",
+            "due": 5
+          },
+          {
+            "title": "Research check-in",
+            "due": 7,
+            "tiers": ["Agile"],
+            "repeat": "biweekly"
+          }
+        ]
+      },
+      {
+        "id": "post-demo",
+        "name": "Post-demo questionnaires",
+        "email": "post-demo",
+        "tasks": [
+          {
+            "title": "Brand questionnaire back",
+            "due": 7,
+            "questionnaire": "brand"
+          },
+          {
+            "title": "Build questionnaire back",
+            "due": 7,
+            "questionnaire": "build"
+          },
+          {
+            "title": "Research check-in",
+            "due": 7,
+            "tiers": ["Agile"],
+            "repeat": "biweekly"
+          }
+        ]
+      },
+      {
+        "id": "layouts",
+        "name": "Layouts",
+        "email": "layouts",
+        "tasks": [
+          {
+            "title": "Layouts to client",
+            "due": 10
+          },
+          {
+            "title": "Layout changes back",
+            "due": 15
+          },
+          {
+            "title": "Stage check-in",
+            "due": 5,
+            "tiers": ["Growth", "Range"]
+          },
+          {
+            "title": "Research check-in",
+            "due": 7,
+            "tiers": ["Agile"],
+            "repeat": "biweekly"
+          }
+        ]
+      },
+      {
+        "id": "copy",
+        "name": "Copy and photos",
+        "email": "copy",
+        "tasks": [
+          {
+            "title": "Copy in place",
+            "due": 10
+          },
+          {
+            "title": "Client review back",
+            "due": 15
+          },
+          {
+            "title": "Stage check-in",
+            "due": 5,
+            "tiers": ["Growth", "Range"]
+          },
+          {
+            "title": "Research check-in",
+            "due": 7,
+            "tiers": ["Agile"],
+            "repeat": "biweekly"
+          }
+        ]
+      },
+      {
+        "id": "launch",
+        "name": "Launch",
+        "email": "launch",
+        "tasks": [
+          {
+            "title": "Balance received",
+            "due": 0,
+            "payment": "balance"
+          },
+          {
+            "title": "Install analytics and Search Console",
+            "due": 2
+          },
+          {
+            "title": "Launch",
+            "due": 3
+          },
+          {
+            "title": "Start monthly",
+            "due": 3
+          }
+        ]
+      },
+      {
+        "id": "live",
+        "name": "Live",
+        "tasks": [
+          { "title": "Strategy meeting", "due": 30, "tiers": ["Agile"], "repeat": "monthly" },
+          { "title": "Research and test review", "due": 30, "tiers": ["Agile"], "repeat": "monthly" },
+          { "title": "Search summary to client", "due": 90, "tiers": ["Growth", "Agile", "Range"], "repeat": "quarterly" },
+          { "title": "Analytics summary to client", "due": 90, "tiers": ["Presence"], "repeat": "quarterly" },
+          { "title": "Annual recap", "due": 365, "repeat": "yearly" }
+        ]
+      }
     ]
   }
 ]

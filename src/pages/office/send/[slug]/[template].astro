@@ -2,7 +2,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { loadTemplates, findTemplate, render } from '../../../../../netlify/functions/lib/office/templates.mjs';
+import { loadTemplates, findTemplate, render, needsSignLink } from '../../../../../netlify/functions/lib/office/templates.mjs';
 import { buildContext } from '../../../../../netlify/functions/lib/office/context.mjs';
 import { latestSent } from '../../../../../netlify/functions/lib/office/agreements.mjs';
 
@@ -24,6 +24,10 @@ const form = Astro.url.searchParams.get('form') ?? '';
 const error = Astro.url.searchParams.get('error');
 const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
 const agreements = await s.agreements.list(slug);
+// The signing link exists only once an agreement is out for signature; the
+// Agreements tab is where that happens, and its Sign and send opens this
+// same screen with the link filled.
+if (needsSignLink(template) && !latestSent(agreements as any[])) return Astro.redirect(`/office/clients/${slug}/?tab=agreements&hint=agreement`);
 // buildContext's meeting and agreement have no default, so TS infers them
 // required even though the function treats a missing key the same as undefined.
 const context = buildContext({ client, admin: Astro.locals.admin, secret, form: /^[a-z]+$/.test(form) ? form : undefined, meeting: undefined, agreement: latestSent(agreements as any[]) });

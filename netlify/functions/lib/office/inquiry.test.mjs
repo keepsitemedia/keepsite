@@ -8,7 +8,7 @@ const make = () => createStore({ office: memoryBackend(), questionnaires: memory
 const NOW = new Date('2026-09-04T16:00:00Z');
 const data = {
   name: 'Sierra', email: 'Sierra@Example.com', business: 'Lova Content Creation',
-  website: 'https://lova.example', package: 'Search', about: 'Content for creators.', notes: 'Soon please',
+  website: 'https://lova.example', package: 'Growth', about: 'Content for creators.', notes: 'Soon please',
 };
 
 test('a new inquiry becomes a client at the first stage with its tasks', async () => {
@@ -17,7 +17,7 @@ test('a new inquiry becomes a client at the first stage with its tasks', async (
   assert.deepEqual(r, { slug: 'lova-content-creation', created: true });
   const c = await s.clients.get('lova-content-creation');
   assert.equal(c.stage, 'inquiry');
-  assert.equal(c.tier, 'Search');
+  assert.equal(c.tier, 'Growth');
   assert.equal(c.email, 'Sierra@Example.com');
   assert.match(c.notes, /Content for creators\./);
   assert.match(c.notes, /Soon please/);

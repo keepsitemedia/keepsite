@@ -13,7 +13,7 @@ npm run preview  # serve the production build
 
 ## Editing content
 
-Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
+Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`, `privacy.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
 
 The `/admin` sidebar has two collections. **Site Settings** holds the five page files (Site & Navigation, Home Page, Packages Page, How It Works, FAQ). **Work** is the folder collection you add projects to.
 
@@ -26,14 +26,36 @@ npm run dev    # terminal 2: starts Astro on :4321
 
 Then open `http://localhost:4321/admin/`. `local_backend: true` in `public/admin/config.yml` makes the CMS read and write your working tree instead of the repo, so you can try an edit, see it in `npm run dev`, and throw it away with `git checkout src/`.
 
-**Tier prices live in one place.** `src/data/packages.json` is the only source for the three tier prices. Editing one there updates the package cards, the homepage tier strip, the monthly section (for monthly prices), and the JSON-LD `Offer` search engines read, all together.
+**Tier prices live in one place.** `src/data/packages.json` is the only source for the four tier prices. Editing one there updates the package cards, the homepage tier strip, the monthly section (for monthly prices), and the JSON-LD `Offer` search engines read, all together.
 
 Two other files quote prices as plain copy, and neither updates on its own:
 
-- `src/data/home.json` — the meta description mentions the starting price ("Packages from $1,100"), which renders into the homepage `<meta name="description">` and `og:description`.
-- `src/data/faq.json` — two answers quote the add-on prices ($90, $180, $270).
+- `src/data/home.json` — the meta description mentions the starting price ("Packages from $1,200").
+- `src/data/faq.json` — answers quote the add-on prices ($60, $150, $225) and Range's floor ($2,100, $350).
 
-Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too.
+Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too. Add-on prices are flat or "Quoted first". The verifier fails the build if any page states an hourly rate.
+
+## Turning on analytics
+
+Google Analytics 4 is off until a Measurement ID is set: `analyticsId` in
+`src/data/site.json`, also editable in `/admin` under Site & Navigation.
+With an id present the layout adds the gtag loader and its config on every
+public page; the content security policy in `netlify.toml` already allows
+Google's tag and collection domains, and `scripts/verify.mjs` adds the two
+tags to its script budget when the id is set. The office and the signing
+page carry no analytics. Google's Analytics terms require a privacy notice
+that names it; `/privacy/`, linked from the footer and edited under
+`privacy.json`, is that notice, and it also covers the inquiry form, the
+questionnaires, e-signing and Stripe. Update its date when its wording
+changes.
+
+The same steps apply to every client site at launch, and the office's
+Launch stage creates an "Install analytics and Search Console" task for it:
+a GA4 property in the client's Google account with Keepsite as an
+administrator, the id in their site, a Search Console domain property
+verified by DNS and linked to GA4, and the website URL on their Google
+Business Profile. Clients on the seeded pipeline stored before this task
+existed do not get it until the pipelines are re-saved under Settings.
 
 ## Turning on the Work page
 
@@ -169,6 +191,13 @@ The Today page opens with the pipeline drawn as one rail, then two lists:
 a payment, each with the button that chases it). A client's page has the
 same rail with the dates each stage was reached and the one Advance
 button, then a glance band: agreement, deposit, questionnaires, next task.
+
+Pipeline tasks can name the packages they apply to and a repeat (weekly,
+every two weeks, monthly, quarterly, yearly). Advancing a client creates
+only the tasks for their tier; marking a repeating task done creates the
+next one while the client is still in that task's stage, which is how
+Agile's check-ins stop at launch and its monthly strategy meeting keeps
+going.
 
 ### Setting up, in order
 
@@ -320,8 +349,24 @@ registering the endpoint a second time in live mode and rotating both
 `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` together. Before that,
 delete the test client's payment documents (Payments tab, or the store
 under `payments/<slug>/`) so test-mode links and amounts do not sit in
-the CSV totals. Charging the monthly off-session by ACH needs US bank
-account payments turned on in Stripe → Settings → Payment methods.
+the CSV totals. Which payment methods Checkout offers is set in Stripe →
+Settings → Payment methods, not in the code; turn on US bank account there
+for ACH, before the deposit is paid, since the monthly charges whatever
+the deposit saved.
+
+**Sales tax.** None is collected: the service is not taxable in Utah, and
+the agreement leaves any tax that does apply to the client. Stripe Tax is
+off in the code; if that ever changes, the Checkout and subscription calls
+in `netlify/functions/lib/office/payments.mjs` are where it goes.
+
+**Switching from test to live keys.** A Stripe customer id belongs to one
+mode. Any client who entered Agreement on the test key has a test id, and
+every payment button on that client fails in live mode. On their Payments
+tab, **Forget** next to the customer id clears it; the next link creates a
+live customer. A test client can be removed entirely with **Delete client**
+under Details on their Overview, which also removes their tasks, meetings,
+payments, agreements, emails and documents. Delete is refused once an
+agreement is signed or a payment is on record; those are records to keep.
 
 Give a bookkeeper a read-only role in Stripe rather than an office login;
 `/office/data/` exports the payment documents as CSV for revenue by
@@ -329,13 +374,21 @@ client.
 
 ### Agreements
 
-The three package agreements are generated from the docx files (see "What
-doesn't belong in this repo" for regenerating). On a client's Agreements tab,
-pick the template, check Schedule 1 (prefilled from the client and the tier),
-and create the draft. Sign it as Keepsite on the next screen; Send opens the
-agreement email with the client's signing link filled in. The client reads
-the agreement at `/sign/?t=…`, ticks two consents, draws a signature and
-signs, or declines with a reason. Signing links last fourteen days.
+The four package agreements (Presence, Growth, Agile, Range) are generated
+from the docx files (see "What doesn't belong in this repo" for
+regenerating). On a client's Agreements tab, pick the template, check
+Schedule 1 (prefilled from the client and the tier), and create the draft.
+Sign it as Keepsite on the next screen; Send opens the agreement email with
+the client's signing link filled in. The client reads the agreement at
+`/sign/?t=…`, ticks two consents, draws a signature and signs, or declines
+with a reason. Signing links last fourteen days.
+
+`search.json` and `search-plus.json` are retired: they still render and seal
+agreements created against them, never appear in the template picker, and
+are never regenerated. Schedule 1 carries a payment plan (half and half, or
+twelve monthly payments; the deposit and balance rows must still add up)
+and, on Range, the list of business arms, which the create form prompts
+for.
 
 Sending closes the "Send agreement" task. When both have signed, the office
 seals a PDF with both signatures and a certificate of completion page, stores
@@ -408,6 +461,12 @@ Never commit, and never put in a DecapCMS field, any of the following. If it can
 
 The operating SOP that contains the first three lives outside this repo entirely, in the owner's Drive or a separate private ops repo. `*.docx` and `docs/internal/` are gitignored so those files cannot be added by accident, but gitignore is a convenience and not a control: do not keep them in this working directory.
 
-The office renders agreements from `src/data/office/agreements/*.json`, which `scripts/agreement-from-docx.py` generates from the docx files in `../legal/` (`python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json`, and the same for `search` and `search-plus`). Never edit the JSON by hand; change the docx and regenerate. It needs `python-docx`.
+The office renders agreements from `src/data/office/agreements/*.json`, which `scripts/agreement-from-docx.py` generates from the docx files in `../legal/`:
 
-Client-facing add-on rates (for example `$180` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.
+```
+python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json
+```
+
+and the same for `growth`, `agile` and `range`. The docx are written by `../legal/tools/make-agreements.py` from the Search Plus docx in `../legal/`; edit that script, not the docx, then regenerate the docx. Separately, never edit the JSON by hand; change the docx and regenerate the JSON. It needs `python-docx`.
+
+Client-facing add-on rates (for example `$150` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.

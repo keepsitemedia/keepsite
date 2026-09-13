@@ -30,6 +30,7 @@ export function nudge(t) {
   if (t.questionnaire) return { href: `/office/send/${t.slug}/questionnaire-reminder/?form=${t.questionnaire}`, label: 'Remind' };
   if (t.agreement === 'completed') return { href: `/office/send/${t.slug}/agreement/`, label: 'Resend link' };
   if (t.payment) return { href: `/office/clients/${t.slug}/?tab=payments`, label: 'Payments' };
+  if (t.agreement === 'sent') return { href: `/office/clients/${t.slug}/?tab=agreements`, label: 'Agreements' };
   return null;
 }
 

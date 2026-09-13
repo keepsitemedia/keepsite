@@ -69,8 +69,13 @@ const titles: Record<string, string> = { sign: `Sign: ${a.templateName}`, signed
       {view.state === 'signed' && (
         <>
           <h1>Thank you</h1>
-          <p class="lead">Your signature is recorded{a.status === 'completed' ? ', and both parties have signed. The signed copy with its certificate of completion is on its way to your email.' : '.'}</p>
-          <p><a class="btn" href={`/sign/document?t=${encodeURIComponent(t)}`}>Download the PDF</a></p>
+          <p class="lead">Your signature is recorded.</p>
+          {a.status === 'completed' ? (
+            <p>Both parties have signed. The signed copy, with its certificate of completion, is on its way to <strong>{a.signers.client.email}</strong>. If it has not arrived in a few minutes, check your spam folder or write to <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+          ) : (
+            <p>Once {site.brand} has countersigned, the signed copy with its certificate of completion will be emailed to <strong>{a.signers.client.email}</strong>.</p>
+          )}
+          <p><a class="btn" href={`/sign/document?t=${encodeURIComponent(t)}`} download>Download the PDF now</a></p>
         </>
       )}
       {view.state === 'sign' && (

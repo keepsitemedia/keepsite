@@ -50,7 +50,10 @@ export async function createCheckout({ client, kind, amount, description }, s, f
   const session = await stripeRequest('POST', '/checkout/sessions', {
     mode: 'payment',
     customer: customerId,
-    payment_method_types: ['card', 'us_bank_account'],
+    // Payment methods come from Stripe → Settings → Payment methods, so
+    // bank payments can be switched on or off without a deploy. No tax:
+    // the service is not taxable in Utah, and the agreement leaves any tax
+    // that does apply to the client.
     line_items: [{ price_data: { currency: 'usd', unit_amount: amount, product_data: { name: description } }, quantity: 1 }],
     // The method used here is what the monthly will charge later.
     payment_intent_data: { setup_future_usage: 'off_session', metadata: { slug: client.slug, kind } },
@@ -172,7 +175,8 @@ export async function applyEvent(event, s, now = new Date(), fetchFn = fetch) {
       await save(doc, { stripe });
       return { handled: true, slug, change: `${doc.kind} pending` };
     }
-    await save(doc, { status: 'paid', paidAt: at, failureReason: null, stripe });
+    // What was charged, so the office's totals match Stripe's.
+    await save(doc, { status: 'paid', paidAt: at, failureReason: null, stripe, amount: object.amount_total ?? doc.amount });
     await markPaymentTasks(slug, doc.kind, s, now);
     return { handled: true, slug, change: `${doc.kind} paid` };
   }

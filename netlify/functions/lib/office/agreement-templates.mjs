@@ -2,27 +2,36 @@
 // block lists are generated from it by scripts/agreement-from-docx.py and
 // rendered to HTML for reading and to PDF for the record.
 import presence from '../../../../src/data/office/agreements/presence.json' with { type: 'json' };
+import growth from '../../../../src/data/office/agreements/growth.json' with { type: 'json' };
+import agile from '../../../../src/data/office/agreements/agile.json' with { type: 'json' };
+import range from '../../../../src/data/office/agreements/range.json' with { type: 'json' };
 import search from '../../../../src/data/office/agreements/search.json' with { type: 'json' };
 import searchPlus from '../../../../src/data/office/agreements/search-plus.json' with { type: 'json' };
+import { TIERS } from './clients.mjs';
 
-const TEMPLATES = [presence, search, searchPlus];
+// Retired templates render and seal the agreements already created against
+// them; they are never offered for a new draft and never regenerated.
+export const RETIRED = new Set(['search', 'search-plus']);
+const CURRENT = [presence, growth, agile, range];
+const ALL = [...CURRENT, search, searchPlus];
 const BLOCK_TYPES = new Set(['title', 'subtitle', 'h1', 'h2', 'h3', 'p', 'table', 'signatures']);
 const PLACEHOLDER = /\{\{([a-zA-Z.]+)\}\}/g;
 
 export const PLACEHOLDERS = [
   'legalName', 'entityType', 'address', 'signerName', 'signerTitle', 'email', 'phone',
-  'buildFee', 'monthlyFee', 'deposit', 'depositPercent', 'balance', 'balancePercent', 'pages', 'discountApplied',
+  'buildFee', 'monthlyFee', 'paymentPlan', 'deposit', 'depositPercent', 'balance', 'balancePercent', 'pages', 'discountApplied', 'arms',
   'discount.name', 'discount.type', 'discount.amount', 'discount.adjustedBuildFee',
   'discount.monthlyType', 'discount.monthlyAmount', 'discount.discountedMonthlyFee', 'discount.months', 'discount.conditions',
 ];
 
-export const loadAgreementTemplates = () => TEMPLATES;
-export const findAgreementTemplate = (id) => TEMPLATES.find((t) => t.id === id);
+export const loadAgreementTemplates = () => CURRENT;
+export const findAgreementTemplate = (id) => ALL.find((t) => t.id === id);
 
 export function validateAgreementTemplate(t) {
   const errors = [];
   if (!t || typeof t !== 'object') return ['template is not an object'];
   for (const k of ['id', 'name', 'version']) if (!t[k]) errors.push(`${k} is required`);
+  if (!RETIRED.has(t.id) && !TIERS.includes(t.tier)) errors.push(`tier must be one of ${TIERS.join(', ')}`);
   if (!t.defaults || typeof t.defaults !== 'object') errors.push('defaults must be an object');
   if (!Array.isArray(t.blocks)) return [...errors, 'blocks must be a list'];
   let signatures = 0;
@@ -57,6 +66,7 @@ export function fieldValues(fields) {
     legalName: text(fields.legalName), entityType: text(fields.entityType), address: text(fields.address),
     signerName: text(fields.signerName), signerTitle: text(fields.signerTitle), email: text(fields.email), phone: text(fields.phone),
     buildFee: money(fields.buildFee), monthlyFee: money(fields.monthlyFee),
+    paymentPlan: text(fields.paymentPlan), arms: text(fields.arms),
     deposit: money(fields.deposit), depositPercent: percent(fields.deposit, effectiveBuild),
     balance: money(fields.balance), balancePercent: percent(fields.balance, effectiveBuild),
     pages: text(fields.pages),

@@ -1,10 +1,11 @@
 {
- "id": "search",
- "name": "Search Package",
- "version": "c4d85f868aca",
+ "id": "growth",
+ "name": "Growth Package",
+ "tier": "Growth",
+ "version": "bd91812df7f4",
  "defaults": {
-  "buildFee": "$1,750",
-  "monthlyFee": "$150",
+  "buildFee": "$1,800",
+  "monthlyFee": "$160",
   "pages": 8
  },
  "blocks": [
@@ -14,11 +15,11 @@
   },
   {
    "type": "subtitle",
-   "text": "Search Package"
+   "text": "Growth Package"
   },
   {
    "type": "subtitle",
-   "text": "Keepsite Media — Website Design, Development, Hosting, Maintenance, and Search Content"
+   "text": "Keepsite Media — Website Design, Development, Hosting, Maintenance, and Search"
   },
   {
    "type": "p",
@@ -112,14 +113,19 @@
      "—"
     ],
     [
+     "Payment plan (Section 2.1)",
+     "{{paymentPlan}}",
+     "Half and half"
+    ],
+    [
      "Deposit due on signing",
      "{{deposit}} ({{depositPercent}}%)",
-     "50% of the Build Fee"
+     "50% of the Build Fee, or 9% on the twelve-payment plan"
     ],
     [
      "Balance due on Launch Date",
      "{{balance}} ({{balancePercent}}%)",
-     "the remaining 50%"
+     "the remaining 50%, or the remaining eleven payments on the twelve-payment plan"
     ],
     [
      "Pages included in the build (Exhibit A)",
@@ -147,7 +153,7 @@
   },
   {
    "type": "p",
-   "text": "We design, build, and launch your website. Exhibit A lists exactly what's included. The build is finished when your site is live on your domain and we've sent you the launch notice described in Section 4.10."
+   "text": "We design, build, and launch your website. Exhibit A lists exactly what's included. The build is finished when your site is live on your domain and we've sent you the launch notice described in Section 4.11."
   },
   {
    "type": "h3",
@@ -155,7 +161,7 @@
   },
   {
    "type": "p",
-   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, content updates, and the blog program for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
+   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, content updates, search monitoring, and updates tied to your search goals for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
   },
   {
    "type": "h3",
@@ -183,11 +189,23 @@
   },
   {
    "type": "p",
-   "text": "The build costs one thousand seven hundred fifty dollars ($1,750), less any discount in Exhibit D. Schedule 1 sets your deposit and your balance; if those rows are blank, it's half on signing and half on the Launch Date. We start work once the deposit clears."
+   "text": "The build costs one thousand eight hundred dollars ($1,800), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
   },
   {
    "type": "p",
-   "text": "Your deposit is non-refundable once we've started, except as described in Section 3.7."
+   "text": "a. Half and half. Half on signing and half on the Launch Date. This is what applies if the payment plan row in Schedule 1 is blank."
+  },
+  {
+   "type": "p",
+   "text": "b. Twelve monthly payments. Nine percent (9%) of the build fee on signing, then the same amount on the same day of each of the next eleven (11) months. That adds up to one hundred eight percent (108%) of the build fee; the extra is the cost of spreading it. The build fee is still owed in full whatever happens to this agreement, and Section 3.7 says what you owe if you cancel before launch."
+  },
+  {
+   "type": "p",
+   "text": "We start work once the first payment clears. Your first payment is non-refundable once we've started, except as described in Section 3.7."
+  },
+  {
+   "type": "p",
+   "text": "Holding page. On the twelve-payment plan, if a payment is more than ten (10) days late we can replace your live site with a holding page, after giving you seven (7) days' written notice and a chance to pay. The site comes back when the missed payments are made. The monthly fee keeps running while the holding page is up."
   },
   {
    "type": "h3",
@@ -195,7 +213,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription costs one hundred fifty dollars ($150) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
+   "text": "The subscription costs one hundred sixty dollars ($160) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
   },
   {
    "type": "h3",
@@ -319,7 +337,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription can't be paused or put on hold after launch. If you need to stop, cancel and start again later at whatever our prices are then. This doesn't limit our right to put a pre-launch build on hold under Section 4.8."
+   "text": "The subscription can't be paused or put on hold after launch. If you need to stop, cancel and start again later at whatever our prices are then. This doesn't limit our right to put a pre-launch build on hold under Section 4.9."
   },
   {
    "type": "h3",
@@ -343,7 +361,7 @@
   },
   {
    "type": "p",
-   "text": "If you cancel before the Launch Date, you owe your deposit plus a fair share of the rest of the build fee covering the work already done, including keyword research and copywriting. If we cancel before launch for any reason other than you breaking the agreement, we refund your deposit minus the value of the work we've done."
+   "text": "If you cancel before the Launch Date, you owe your deposit or first payment plus a fair share of the rest of the build fee covering the work already done, including search research and copywriting. If we cancel before launch for any reason other than you breaking the agreement, we refund what you've paid minus the value of the work we've done."
   },
   {
    "type": "h3",
@@ -359,7 +377,7 @@
   },
   {
    "type": "p",
-   "text": "b. Your site's text and images, every blog article we published for you, the keyword research, your customer inquiry data (Section 10.2), and everything listed in Section 9.2, all in ordinary portable formats; and"
+   "text": "b. Your site's text and images, the search research, your customer inquiry data (Section 9.2), and everything listed in Section 8.2, all in ordinary portable formats; and"
   },
   {
    "type": "p",
@@ -375,7 +393,7 @@
   },
   {
    "type": "p",
-   "text": "A few third-party pieces don't transfer. Some fonts, plugins, or services are licensed to us rather than to you. We'll name every one of them in the summary above so you can license them directly. See Section 9.4."
+   "text": "A few third-party pieces don't transfer. Some fonts, plugins, or services are licensed to us rather than to you. We'll name every one of them in the summary above so you can license them directly. See Section 8.4."
   },
   {
    "type": "p",
@@ -399,7 +417,7 @@
   },
   {
    "type": "p",
-   "text": "d. Your domain stays yours no matter what (Section 9.5), and we hand back admin access to your accounts (Section 9.7)."
+   "text": "d. Your domain stays yours no matter what (Section 8.5), and we hand back admin access to your accounts (Section 8.7)."
   },
   {
    "type": "h3",
@@ -407,7 +425,7 @@
   },
   {
    "type": "p",
-   "text": "On the day cancellation takes effect, everything you've accrued is immediately due, including any early cancellation fee under Section 3.4 and any discount added back under Section 2.8. Also, your access to the monthly services stops and the content schedule ends, and fees you've already paid aren't refunded or prorated."
+   "text": "On the day cancellation takes effect, everything you've accrued is immediately due, including any early cancellation fee under Section 3.4 and any discount added back under Section 2.8. Also, your access to the monthly services stops and the search work ends, and fees you've already paid aren't refunded or prorated."
   },
   {
    "type": "h2",
@@ -448,7 +466,7 @@
   },
   {
    "type": "p",
-   "text": "Each stage includes one (1) round of changes, limited to that stage. A stage closes when you approve it in writing, or when Section 4.8 says it's approved because we didn't hear back. Once a stage closes, reopening it costs extra — see Section 4.9 and Exhibit C."
+   "text": "Each stage includes one (1) round of changes, limited to that stage. A stage closes when you approve it in writing, or when Section 4.9 says it's approved because we didn't hear back. Once a stage closes, reopening it costs extra — see Section 4.10 and Exhibit C."
   },
   {
    "type": "p",
@@ -476,7 +494,7 @@
   },
   {
    "type": "p",
-   "text": "d. Source material and business facts for the pages we're writing, delivered by the content lock date in Section 4.7. On this package we write your core page copy; we still need the facts from you;"
+   "text": "d. Source material and business facts for the pages we're writing, delivered by the content lock date in Section 4.8. On this package we write your core page copy; we still need the facts from you;"
   },
   {
    "type": "p",
@@ -484,7 +502,7 @@
   },
   {
    "type": "p",
-   "text": "f. An answer at each of the three stage gates, inside the window in Section 4.8."
+   "text": "f. An answer at each of the three stage gates, inside the window in Section 4.9."
   },
   {
    "type": "h3",
@@ -492,19 +510,27 @@
   },
   {
    "type": "p",
-   "text": "We aim to launch two (2) to three (3) weeks after Stage One starts. That's an estimate, not a promise. How fast you respond at each stage is the biggest variable — delays on your side push the schedule out without changing what you pay."
+   "text": "We aim to launch four (4) to six (6) weeks after kickoff. That's an estimate, not a promise. How fast you respond at each stage is the biggest variable — delays on your side push the schedule out without changing what you pay."
   },
   {
    "type": "h3",
-   "text": "4.4 Keyword research and site structure"
+   "text": "4.4 Search research and site structure"
   },
   {
    "type": "p",
-   "text": "Alongside Stage One, we research the terms your customers actually search for, and we use that to shape your site's structure and page map. The page map that comes out of this sets what we build in Stage Two."
+   "text": "Alongside Stage One, we study the actual search results for the searches you want to win: what shows up now, why, and what it would take to be there. We use that to shape your site's structure and page map. The page map that comes out of this sets what we build in Stage Two."
   },
   {
    "type": "h3",
-   "text": "4.5 Stage One — Style"
+   "text": "4.5 Meetings"
+  },
+  {
+   "type": "p",
+   "text": "We hold a kickoff call after signing and a check-in at each of the three stages. There are no other standing meetings; everything else runs on the questionnaires and email."
+  },
+  {
+   "type": "h3",
+   "text": "4.6 Stage One — Style"
   },
   {
    "type": "p",
@@ -520,11 +546,11 @@
   },
   {
    "type": "p",
-   "text": "Who owns what. You'll own the site we build for you, including its code — Section 9.2 covers that. The house design directions themselves stay part of our library and we keep using them for other clients, which is what makes them possible to offer at this price."
+   "text": "Who owns what. You'll own the site we build for you, including its code — Section 8.2 covers that. The house design directions themselves stay part of our library and we keep using them for other clients, which is what makes them possible to offer at this price."
   },
   {
    "type": "h3",
-   "text": "4.6 Stage Two — Function"
+   "text": "4.7 Stage Two — Function"
   },
   {
    "type": "p",
@@ -560,11 +586,11 @@
   },
   {
    "type": "h3",
-   "text": "4.7 Stage Three — Copy and Photography"
+   "text": "4.8 Stage Three — Copy and Photography"
   },
   {
    "type": "p",
-   "text": "Content lock. Your final copy and photographs are due at the end of Stage Three, and we'll confirm that date in writing. Anything you send after the lock date, or anything you swap out after already sending it, is a change under Exhibit C rather than part of the build."
+   "text": "Content lock. Your final copy and photographs are due at the start of Stage Three, and we'll confirm that date in writing. Anything you send after the lock date, or anything you swap out after already sending it, is a change under Exhibit C rather than part of the build."
   },
   {
    "type": "p",
@@ -576,11 +602,11 @@
   },
   {
    "type": "p",
-   "text": "It does not cover: replacing copy or photographs you already sent, a different design direction, changes to the page set or layouts you approved at Stage Two, or new pages. Those reopen a closed stage — see Section 4.9."
+   "text": "It does not cover: replacing copy or photographs you already sent, a different design direction, changes to the page set or layouts you approved at Stage Two, or new pages. Those reopen a closed stage — see Section 4.10."
   },
   {
    "type": "h3",
-   "text": "4.8 Approving things, and what happens if you go quiet"
+   "text": "4.9 Approving things, and what happens if you go quiet"
   },
   {
    "type": "p",
@@ -588,15 +614,15 @@
   },
   {
    "type": "h3",
-   "text": "4.9 Reopening a closed stage"
+   "text": "4.10 Reopening a closed stage"
   },
   {
    "type": "p",
-   "text": "You can ask to reopen a closed stage any time before launch. We'll quote the work in writing first and won't start until you approve the quote. Reopening is billed at the Exhibit C rates, and it resets the schedule for that stage and every stage after it."
+   "text": "You can ask to reopen a closed stage any time before launch. We'll quote the work in writing first and won't start until you approve the quote. Reopening resets the schedule for that stage and every stage after it."
   },
   {
    "type": "h3",
-   "text": "4.10 Launch"
+   "text": "4.11 Launch"
   },
   {
    "type": "p",
@@ -604,7 +630,7 @@
   },
   {
    "type": "h3",
-   "text": "4.11 Getting the facts right"
+   "text": "4.12 Getting the facts right"
   },
   {
    "type": "p",
@@ -636,7 +662,7 @@
   },
   {
    "type": "p",
-   "text": "Small updates are offered on a fair-use basis. If your requests regularly run past four (4) requests or two (2) hours a month, we'll tell you, and we'll either agree on an hourly arrangement under Exhibit C or move you to a package that covers the volume."
+   "text": "Small updates are offered on a fair-use basis. If your requests regularly run past four (4) a month, we'll tell you, and we'll either bill the extras at the Exhibit C price or move you to a package that covers the volume."
   },
   {
    "type": "h3",
@@ -692,95 +718,51 @@
   },
   {
    "type": "h2",
-   "text": "7. Blog Content"
+   "text": "7. Search Monitoring and Updates"
   },
   {
    "type": "h3",
-   "text": "7.1 How many articles"
+   "text": "7.1 What's included"
   },
   {
    "type": "p",
-   "text": "We plan, write, edit, and publish SEO articles in two groups. Foundational articles, three (3) to five (5) of them, are published within sixty (60) days after the Launch Date. A further six (6) articles per Term are published through the Term, timed to seasons, local events, and businesses relevant to your customers. Articles are planned against the keyword research in Section 4.4."
+   "text": "Growth includes full on-page technical setup, analytics installation, Google Search Console setup and ongoing monitoring, Google Business Profile connection, and a yearly refresh of the search research."
   },
   {
    "type": "h3",
-   "text": "7.2 What an article is"
+   "text": "7.2 Updates tied to your goals"
   },
   {
    "type": "p",
-   "text": "Every article is original, written for your business, and as long as the topic warrants — usually 800 to 1,400 words — with on-page SEO elements, internal links, and an image where one helps."
+   "text": "Through the Term we watch how the site performs for the searches we built it around, and we update existing pages — copy, headings, metadata, internal linking, structure — when the data points somewhere useful. The goals are the ones set in Section 4.4; we don't reinvent the strategy through the year."
   },
   {
    "type": "h3",
-   "text": "7.3 Scheduling"
+   "text": "7.3 Changing pages without asking first"
   },
   {
    "type": "p",
-   "text": "We run the editorial calendar and the publishing schedule. Articles start going out the month after your Launch Date unless we agree otherwise."
+   "text": "We can change existing page copy, headings, metadata, and structure without checking with you first, when it's work under this Section. We won't change your pricing, service descriptions, claims, credentials, or contact details without your written approval. We'll summarize any meaningful page changes in the reporting under Section 7.4."
   },
   {
    "type": "h3",
-   "text": "7.4 Your review"
+   "text": "7.4 Reporting"
   },
   {
    "type": "p",
-   "text": "We email you each article about one (1) week before it's scheduled to publish. You don't have to approve it. If we don't hear back, it publishes on schedule. What we need from you is a flag on anything factually wrong about your business, and we'll fix that before it goes out."
+   "text": "Every three (3) months you're subscribed, we send you a plain-English summary of how the site performed against its search goals and what we changed. Once every twelve (12) months it also covers the maintenance we did that year. There's no dashboard and nothing for you to log into."
   },
   {
    "type": "h3",
-   "text": "7.5 Rewrites"
+   "text": "7.5 What isn't included"
   },
   {
    "type": "p",
-   "text": "Fixing facts is included. Rewrites you want for preference reasons, past one (1) revision pass per article, are billed under Exhibit C."
+   "text": "Ongoing strategy meetings, research beyond the plan set at the start, A/B testing, and pages you ask for aren't part of Growth. Ongoing strategy is the Agile package; pages you ask for are priced in Exhibit C."
   },
   {
    "type": "h3",
-   "text": "7.6 Articles you don't use"
-  },
-  {
-   "type": "p",
-   "text": "Articles run on the schedule in Section 7.3. They don't roll over, bank, or accumulate. Articles we didn't publish because you delayed things, service was suspended, or the agreement ended are gone, and they aren't refunded or made up later. The early cancellation fee in Section 3.4 isn't a charge for those articles — it's the fee described there."
-  },
-  {
-   "type": "h3",
-   "text": "7.7 Who owns the articles"
-  },
-  {
-   "type": "p",
-   "text": "Once you've paid the monthly fee for the month an article published in, that article is yours. It stays yours after this agreement ends, and Section 3.8 covers how we hand everything over."
-  },
-  {
-   "type": "h2",
-   "text": "8. Search Monitoring and Reporting"
-  },
-  {
-   "type": "h3",
-   "text": "8.1 What's included"
-  },
-  {
-   "type": "p",
-   "text": "Search includes full on-page technical SEO setup, analytics installation, Google Search Console setup and ongoing monitoring, Google Business Profile connection, a yearly keyword refresh, and a yearly Google Business Profile check."
-  },
-  {
-   "type": "h3",
-   "text": "8.2 Yearly recap"
-  },
-  {
-   "type": "p",
-   "text": "Once every twelve (12) months you're subscribed, we'll send you a plain-English recap covering how the site performed, what we published, and what maintenance we did."
-  },
-  {
-   "type": "h3",
-   "text": "8.3 What isn't included"
-  },
-  {
-   "type": "p",
-   "text": "Competitor and search-market analysis, competitor-gap keyword research, and active optimization of your existing pages through the year aren't part of Search. They're in Search Plus."
-  },
-  {
-   "type": "h3",
-   "text": "8.4 No ranking promise"
+   "text": "7.6 No ranking promise"
   },
   {
    "type": "p",
@@ -788,7 +770,7 @@
   },
   {
    "type": "h3",
-   "text": "8.5 What we won't do"
+   "text": "7.7 What we won't do"
   },
   {
    "type": "p",
@@ -796,11 +778,11 @@
   },
   {
    "type": "h2",
-   "text": "9. Who Owns What"
+   "text": "8. Who Owns What"
   },
   {
    "type": "h3",
-   "text": "9.1 Your materials"
+   "text": "8.1 Your materials"
   },
   {
    "type": "p",
@@ -808,23 +790,23 @@
   },
   {
    "type": "h3",
-   "text": "9.2 What you own"
+   "text": "8.2 What you own"
   },
   {
    "type": "p",
-   "text": "Once you've paid the build fee and anything else due, you own everything we made for you: the website source code, the finished page designs, the page structure, the written page copy, the keyword research, the published blog articles, and the written content. We call all of that the \"Deliverables.\" You own it outright — there's no license to maintain and no restriction on what you do with it. It stays yours after this agreement ends, and Section 3.8 covers how we hand it over."
+   "text": "Once you've paid the build fee and anything else due, you own everything we made for you: the website source code, the finished page designs, the page structure, the written page copy, the search research, and the written content. We call all of that the \"Deliverables.\" You own it outright — there's no license to maintain and no restriction on what you do with it. It stays yours after this agreement ends, and Section 3.8 covers how we hand it over."
   },
   {
    "type": "h3",
-   "text": "9.3 What we keep"
+   "text": "8.3 What we keep"
   },
   {
    "type": "p",
-   "text": "We keep the right to reuse the components, patterns, templates, tooling, workflows, and know-how we used while building your site, on other projects and for other clients, without asking you. Reusing our own techniques is how we build quickly and price the way we do. It takes nothing away from what you own under Section 9.2 and doesn't limit anything you do with your site."
+   "text": "We keep the right to reuse the components, patterns, templates, tooling, workflows, and know-how we used while building your site, on other projects and for other clients, without asking you. Reusing our own techniques is how we build quickly and price the way we do. It takes nothing away from what you own under Section 8.2 and doesn't limit anything you do with your site."
   },
   {
    "type": "h3",
-   "text": "9.4 Third-party pieces"
+   "text": "8.4 Third-party pieces"
   },
   {
    "type": "p",
@@ -832,7 +814,7 @@
   },
   {
    "type": "h3",
-   "text": "9.5 Your domain"
+   "text": "8.5 Your domain"
   },
   {
    "type": "p",
@@ -840,15 +822,15 @@
   },
   {
    "type": "h3",
-   "text": "9.6 Showing the work"
+   "text": "8.6 Showing the work"
   },
   {
    "type": "p",
-   "text": "We may show your website, screenshots of it, and a description of the work in our portfolio, case studies, and marketing, and put a small credit line and link in your site's footer."
+   "text": "We may show your website, screenshots of it, and a description of the work in our portfolio, case studies, and marketing, and put a small credit line and link in your site's footer. Ask in writing and we'll take the footer credit off, or keep the site out of our portfolio altogether."
   },
   {
    "type": "h3",
-   "text": "9.7 Your accounts"
+   "text": "8.7 Your accounts"
   },
   {
    "type": "p",
@@ -856,11 +838,11 @@
   },
   {
    "type": "h2",
-   "text": "10. Confidentiality and Your Customers' Data"
+   "text": "9. Confidentiality and Your Customers' Data"
   },
   {
    "type": "h3",
-   "text": "10.1 Keeping things confidential"
+   "text": "9.1 Keeping things confidential"
   },
   {
    "type": "p",
@@ -868,7 +850,7 @@
   },
   {
    "type": "h3",
-   "text": "10.2 Your customers' data"
+   "text": "9.2 Your customers' data"
   },
   {
    "type": "p",
@@ -880,11 +862,11 @@
   },
   {
    "type": "h2",
-   "text": "11. Promises, Disclaimers, and Liability"
+   "text": "10. Promises, Disclaimers, and Liability"
   },
   {
    "type": "h3",
-   "text": "11.1 What we both promise"
+   "text": "10.1 What we both promise"
   },
   {
    "type": "p",
@@ -892,7 +874,7 @@
   },
   {
    "type": "h3",
-   "text": "11.2 What you promise"
+   "text": "10.2 What you promise"
   },
   {
    "type": "p",
@@ -900,7 +882,7 @@
   },
   {
    "type": "h3",
-   "text": "11.3 What we promise"
+   "text": "10.3 What we promise"
   },
   {
    "type": "p",
@@ -908,7 +890,7 @@
   },
   {
    "type": "h3",
-   "text": "11.4 Disclaimer"
+   "text": "10.4 Disclaimer"
   },
   {
    "type": "p",
@@ -916,7 +898,7 @@
   },
   {
    "type": "h3",
-   "text": "11.5 Limit on liability"
+   "text": "10.5 Limit on liability"
   },
   {
    "type": "p",
@@ -924,19 +906,19 @@
   },
   {
    "type": "h3",
-   "text": "11.6 Covering each other's claims"
+   "text": "10.6 Covering each other's claims"
   },
   {
    "type": "p",
-   "text": "Client will defend, indemnify, and hold Keepsite harmless from any third-party claim arising out of Client Materials, Client's business, Client's products or services, factual inaccuracies you didn't correct under Section 7.4, or Client's breach of Section 11.2. Keepsite will defend, indemnify, and hold Client harmless from any third-party claim that the Deliverables, excluding Client Materials, infringe that third party's intellectual property rights."
+   "text": "Client will defend, indemnify, and hold Keepsite harmless from any third-party claim arising out of Client Materials, Client's business, Client's products or services, or Client's breach of Section 10.2. Keepsite will defend, indemnify, and hold Client harmless from any third-party claim that the Deliverables, excluding Client Materials, infringe that third party's intellectual property rights."
   },
   {
    "type": "h2",
-   "text": "12. Everything Else"
+   "text": "11. Everything Else"
   },
   {
    "type": "h3",
-   "text": "12.1 We're a contractor"
+   "text": "11.1 We're a contractor"
   },
   {
    "type": "p",
@@ -944,7 +926,7 @@
   },
   {
    "type": "h3",
-   "text": "12.2 Subcontractors"
+   "text": "11.2 Subcontractors"
   },
   {
    "type": "p",
@@ -952,7 +934,7 @@
   },
   {
    "type": "h3",
-   "text": "12.3 Don't hire our people"
+   "text": "11.3 Don't hire our people"
   },
   {
    "type": "p",
@@ -960,7 +942,7 @@
   },
   {
    "type": "h3",
-   "text": "12.4 Things outside our control"
+   "text": "11.4 Things outside our control"
   },
   {
    "type": "p",
@@ -968,7 +950,7 @@
   },
   {
    "type": "h3",
-   "text": "12.5 Handing this agreement to someone else"
+   "text": "11.5 Handing this agreement to someone else"
   },
   {
    "type": "p",
@@ -976,7 +958,7 @@
   },
   {
    "type": "h3",
-   "text": "12.6 Notices"
+   "text": "11.6 Notices"
   },
   {
    "type": "p",
@@ -984,7 +966,7 @@
   },
   {
    "type": "h3",
-   "text": "12.7 Which state's law applies, and where disputes go"
+   "text": "11.7 Which state's law applies, and where disputes go"
   },
   {
    "type": "p",
@@ -992,7 +974,7 @@
   },
   {
    "type": "h3",
-   "text": "12.8 Working it out first"
+   "text": "11.8 Working it out first"
   },
   {
    "type": "p",
@@ -1000,7 +982,7 @@
   },
   {
    "type": "h3",
-   "text": "12.9 Legal fees"
+   "text": "11.9 Legal fees"
   },
   {
    "type": "p",
@@ -1008,7 +990,7 @@
   },
   {
    "type": "h3",
-   "text": "12.10 If one part fails"
+   "text": "11.10 If one part fails"
   },
   {
    "type": "p",
@@ -1016,7 +998,7 @@
   },
   {
    "type": "h3",
-   "text": "12.11 Letting something slide"
+   "text": "11.11 Letting something slide"
   },
   {
    "type": "p",
@@ -1024,7 +1006,7 @@
   },
   {
    "type": "h3",
-   "text": "12.12 This is the whole agreement"
+   "text": "11.12 This is the whole agreement"
   },
   {
    "type": "p",
@@ -1032,15 +1014,15 @@
   },
   {
    "type": "h3",
-   "text": "12.13 What outlives the agreement"
+   "text": "11.13 What outlives the agreement"
   },
   {
    "type": "p",
-   "text": "Sections 2 (for amounts owed), 3.4, 3.8, 3.9, 3.10, 7.7, 9, 10, 11, and 12 keep applying after this agreement ends."
+   "text": "Sections 2 (for amounts owed), 3.4, 3.8, 3.9, 3.10, 8, 9, 10, and 11 keep applying after this agreement ends."
   },
   {
    "type": "h3",
-   "text": "12.14 Signing"
+   "text": "11.14 Signing"
   },
   {
    "type": "p",
@@ -1073,11 +1055,11 @@
   },
   {
    "type": "h1",
-   "text": "EXHIBIT A — Search Build Scope"
+   "text": "EXHIBIT A — Growth Build Scope"
   },
   {
    "type": "p",
-   "text": "One-time build fee: $1,750"
+   "text": "One-time build fee: $1,800"
   },
   {
    "type": "table",
@@ -1092,73 +1074,41 @@
     ],
     [
      "2",
-     "Custom website design and build, mobile-first"
+     "Search-result research for the searches Client wants to win (Section 4.4)"
     ],
     [
      "3",
-     "The number of pages stated in Schedule 1 (default eight; page map from Section 4.4; the page set is fixed on approval at Stage Two)"
+     "A page map built from that research; the number of pages stated in Schedule 1 (default eight; the page set is fixed on approval at Stage Two)"
     ],
     [
      "4",
-     "Keyword research and a search-informed site structure and page map"
+     "Copy for the core pages written by Keepsite around the research, after one call to set tone"
     ],
     [
      "5",
-     "SEO copy written by Keepsite for Client's core pages"
+     "Full on-page technical SEO setup — title tags, meta descriptions, headings, schema, internal linking, sitemap, indexability"
     ],
     [
      "6",
-     "Full on-page technical SEO setup — title tags, meta descriptions, headings, schema markup, sitemap, indexability, internal linking, mobile responsiveness, page speed fundamentals"
+     "Google Search Console setup"
     ],
     [
      "7",
-     "Google Analytics and Google Search Console setup"
-    ],
-    [
-     "8",
-     "Google Business Profile connection and social profile links"
-    ],
-    [
-     "9",
-     "Blog architecture built and configured for the ongoing content program"
-    ],
-    [
-     "10",
-     "Inquiry page and form routed to Client's email address or existing CRM (simple embed)"
-    ],
-    [
-     "11",
-     "SSL certificate and DNS configuration"
-    ],
-    [
-     "12",
-     "One (1) tone-setting call with Client"
-    ],
-    [
-     "13",
-     "Pre-launch testing across current major browsers and mobile devices"
-    ],
-    [
-     "14",
-     "Selection from four (4) house design directions at Stage One"
-    ],
-    [
-     "15",
-     "One (1) round of changes at each of the three build stages"
+     "A kickoff call and a check-in at each stage (Section 4.5)"
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Not included in the build: competitor and search-market analysis, competitor-gap keyword research, e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, paid advertising management, and pages beyond the approved page map."
+   "text": "Not included in the build: ongoing strategy, A/B testing, e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, paid advertising management, and pages beyond the approved page map."
   },
   {
    "type": "h1",
-   "text": "EXHIBIT B — Search Monthly Services"
+   "text": "EXHIBIT B — Growth Monthly Services"
   },
   {
    "type": "p",
-   "text": "Monthly subscription fee: $150 per month"
+   "text": "Monthly subscription fee: $160 per month"
   },
   {
    "type": "table",
@@ -1169,65 +1119,37 @@
     ],
     [
      "1",
-     "Everything in the Presence subscription"
+     "Everything in the Presence subscription, except where this Exhibit says otherwise"
     ],
     [
      "2",
-     "Website hosting"
+     "Small content updates on a fair-use basis (Section 5.1)"
     ],
     [
      "3",
-     "Routine maintenance — platform, dependency, and security updates"
-    ],
-    [
-     "4",
-     "Uptime and error monitoring"
-    ],
-    [
-     "5",
-     "Minor content updates as defined in Section 5.1"
-    ],
-    [
-     "6",
-     "SSL certificate renewal and management"
-    ],
-    [
-     "7",
-     "Backups per Section 6.4"
-    ],
-    [
-     "8",
-     "Three (3) to five (5) foundational SEO articles within sixty (60) days of launch, then six (6) more per Term — planned, written, edited, and published"
-    ],
-    [
-     "9",
      "Google Search Console and analytics monitoring"
     ],
     [
-     "10",
-     "Email support with the response times in Section 5.2"
+     "4",
+     "Updates to existing pages tied to the search goals (Section 7.2)"
     ],
     [
-     "#",
-     "Included once per Term"
+     "5",
+     "A plain-English summary every three (3) months against the search goals (Section 7.4)"
     ],
     [
-     "11",
-     "Annual keyword refresh"
+     "6",
+     "A yearly refresh of the search research"
     ],
     [
-     "12",
-     "Annual Google Business Profile check"
-    ],
-    [
-     "13",
-     "A plain-English performance and maintenance recap"
+     "7",
+     "A yearly Google Business Profile check"
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Not included in the monthly: new pages, redesigns, competitor analysis, competitor-gap keyword research, active optimization of existing pages through the year, and any work listed in Exhibit C."
+   "text": "Not included in the monthly: ongoing strategy meetings, research beyond the plan set at the start, A/B tests, pages Client asks for, redesigns, paid advertising management, and any work listed in Exhibit C."
   },
   {
    "type": "h1",
@@ -1238,49 +1160,45 @@
    "rows": [
     [
      "Service",
-     "Rate"
+     "Price"
+    ],
+    [
+     "Extra change request",
+     "$60 per request — beyond what the monthly covers; Client sends the copy or the photo, Keepsite makes the change"
     ],
     [
      "Additional standard page",
-     "$180 per page — uses the existing site style and Client-supplied copy; no new keyword research"
+     "$150 per page — uses the existing site style and Client-supplied copy; no new research"
     ],
     [
-     "Additional SEO page",
-     "$270 per page — a new search-informed service or location page"
+     "Additional search page",
+     "$225 per page — Growth, Agile, and Range only; a new research-informed service or location page"
     ],
     [
-     "Full copy development",
-     "$90 per hour — for material beyond the core pages included in the build"
+     "Copy written from scratch",
+     "Quoted in writing before work starts — for when there is no source material to work from"
     ],
     [
      "Advanced integration",
-     "$90 per hour, quoted first — booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed"
-    ],
-    [
-     "Additional article revision pass",
-     "$90 per hour"
+     "Quoted in writing before work starts — booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed"
     ],
     [
      "Additional round of changes, or reopening a closed stage",
-     "$90 per hour"
+     "Quoted in writing before work starts (Section 4.10)"
     ],
     [
-     "Extra articles beyond the numbers in Section 7.1",
-     "$140 per article"
+     "Migration to another provider",
+     "Quoted in writing before work starts — for Keepsite to configure a new host, move DNS, and test. The source code export itself is free under Section 3.8."
     ],
     [
      "Major website expansion",
      "Custom quote — new service lines, large content migrations, or anything that materially changes the original scope"
-    ],
-    [
-     "Migration to another provider",
-     "$90 per hour — for Keepsite to configure a new host, move DNS, and test. The source code export itself is free under Section 3.8."
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Upgrade rule. If what Client needs is more strategy rather than more pages, Keepsite will recommend moving Client to the package that covers it rather than selling it piece by piece."
+   "text": "Upgrade rule. If what Client needs is more strategy rather than more pages, Keepsite will recommend moving Client to the package that covers it rather than selling it piece by piece. Additional search pages are available on the Growth, Agile, and Range packages only."
   },
   {
    "type": "p",
@@ -1322,7 +1240,7 @@
     ],
     [
      "Standard Build Fee",
-     "$1,750"
+     "$1,800"
     ],
     [
      "Adjusted Build Fee",
@@ -1354,7 +1272,7 @@
     ],
     [
      "Standard Monthly Fee",
-     "$150 per month"
+     "$160 per month"
     ],
     [
      "Discounted Monthly Fee",

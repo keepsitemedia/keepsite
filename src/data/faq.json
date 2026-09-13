@@ -1,155 +1,62 @@
 {
   "meta": {
     "title": "FAQ | Keepsite Media",
-    "description": "What's included, what the monthly covers, how long it takes, and what we need from you."
+    "description": "Which package, what the monthly covers, how you can pay, how long it takes, and what we need from you."
   },
   "intro": "The questions people ask most, answered straight. If yours isn't here, ask us on the Start page and we'll answer it.",
   "groups": [
     {
       "title": "Getting started",
       "items": [
-        {
-          "topic": "how-to-start",
-          "q": "How do we start?",
-          "a": "Fill out the form on the Start page. Tell us what your business does and which package you're leaning toward, or say you're not sure. We'll reply within one business day with a recommendation and what it would cost."
-        },
-        {
-          "topic": "how-long",
-          "q": "How long does a site take?",
-          "a": "We aim to launch two to three weeks after stage one starts, on every package. The biggest variable is how quickly you reply at each stage."
-        },
-        {
-          "topic": "what-we-need",
-          "q": "What do you need from me?",
-          "a": "Accurate information about your business, a pick from the four directions we show you, and your photos and logo. On Presence you also supply the copy. On Search and Search Plus there's one call so we get your tone right. Then a reply at each of the three stages. That's the whole list."
-        },
-        {
-          "topic": "do-we-meet",
-          "q": "Do we have to meet?",
-          "a": "Only on Search and Search Plus, and only once. Everything else runs on the questionnaires and email. If you'd rather talk something through at any point we're happy to, but we won't put a standing meeting on your calendar."
-        },
-        {
-          "topic": "the-stages",
-          "q": "How does the build actually work?",
-          "a": "Three stages. First we send one page with four different home page designs on it, and you pick the direction that fits your business. Then we lay out every page so you can see what the site has before there's any copy in it. Then your words and photos go in and you take a final look. Each stage gets signed off before the next one starts."
-        },
-        {
-          "topic": "why-placeholder",
-          "q": "Why is the text nonsense in the design stage?",
-          "a": "Because stage two is about the shape of the site, not the wording. If we dropped in stand-in headlines and stock photos, you'd spend the review reacting to words nobody has written yet. Lorem ipsum, the standard placeholder text, keeps you looking at the page. Your words and photos go in at stage three."
-        },
-        {
-          "topic": "how-many-changes",
-          "q": "How many rounds of changes do I get?",
-          "a": "One at each stage, three in total. That covers a style you don't like, a page we laid out wrong, and anything off in the finished site. Going back to reopen a stage you already approved is billed at $90 an hour. Closing them one at a time is what keeps the build at a fixed price."
-        }
+        { "topic": "how-to-start", "q": "How do we start?", "a": "Fill out the form on the Start page. Tell us what your business does and which package you're leaning toward, or say you're not sure. We reply within one business day with one recommendation and what it would cost." },
+        { "topic": "how-long", "q": "How long does a site take?", "a": "Most sites launch four to six weeks after kickoff. The biggest variable is how quickly you reply at each stage. Range depends on how many arms the business has, and the quote says how long." },
+        { "topic": "what-we-need", "q": "What do you need from me?", "a": "Accurate information about your business, a pick from the four directions we show you, and your photos and logo. On Presence you also supply the copy. From Growth up, we write it, after one call to get your tone right." },
+        { "topic": "do-we-meet", "q": "Do we have to meet?", "a": "Not on Presence. Growth and Range get a kickoff call and a check-in at each stage. Agile gets a check-in every two weeks during the build and a strategy meeting every month after launch. Nothing else is a meeting unless you want it to be." },
+        { "topic": "how-build-works", "q": "How does the build actually work?", "a": "Three stages. First we send one page with four different home page designs on it, and you pick the direction that fits your business. Then we lay out every page in placeholder text so you can check the site has everything it needs. Then the words and photos go in, you send your changes in one go, and we launch." },
+        { "topic": "placeholder-text", "q": "Why is the text nonsense in the layout stage?", "a": "Because stage two is about the shape of the site, not the wording. If we dropped in stand-in headlines and stock photos, you'd spend the review reacting to words that aren't written yet. Outlined boxes and placeholder text keep the question simple: does the site have every page it needs?" },
+        { "topic": "rounds-of-changes", "q": "How many rounds of changes do I get?", "a": "One at each stage, three in total. That covers a style you don't like, a page we laid out wrong, and anything off in the finished site. Reopening a stage after it's closed is quoted in writing before we start." }
       ]
     },
     {
-      "title": "Packages and pricing",
+      "title": "Picking a package",
       "items": [
-        {
-          "topic": "which-package",
-          "q": "Which package is right for me?",
-          "a": "If people already know about you and just need somewhere to land, Presence is the one. If you want customers to find you through Google, start at Search. Search Plus is for businesses that want us working the site through the year. If you're not sure, tell us what your business does and we'll tell you which one we'd pick."
-        },
-        {
-          "topic": "search-vs-search-plus",
-          "q": "What's the difference between Search and Search Plus?",
-          "a": "Search builds your site around keyword research and keeps 24 articles a year going out. Search Plus adds competitor analysis up front, and through the year we keep watching the search data and updating pages when there's an opening. Search sets the strategy once. Search Plus keeps adjusting it."
-        },
-        {
-          "topic": "change-tiers",
-          "q": "Can I change tiers later?",
-          "a": "Yes. Moving up is common and easy: we quote the difference in build work and your monthly moves to the new tier. Moving down is fine too, at the end of your current term."
-        },
-        {
-          "topic": "no-monthly-plan",
-          "q": "Do you build sites without a monthly plan?",
-          "a": "No. A site nobody maintains slowly stops being useful, and keeping it useful is the thing we actually sell. Every Keepsite build comes with a subscription that keeps it hosted, monitored, and current."
-        }
+        { "topic": "which-package", "q": "Which package is right for me?", "a": "If people already find you and just need somewhere to land, Presence. If you want customers to find you through Google and can say in a few words what they'd search, Growth. If your offering is new or still taking shape and nobody is searching for it in a tidy phrase yet, Agile. If you're really several businesses under one roof, Range. Tell us on the Start page and we'll say which one, and why not the ones either side of it." },
+        { "topic": "why-agile-costs-more", "q": "Why does Agile cost more than Growth?", "a": "It isn't the same build. There's no search playbook for what you do yet, so more research goes into every page, we test where it matters, and we build the site so we can change the strategy later without tearing out what works. Then we stay in it with you, with a meeting every month. The price is more of us, not a penalty for being unusual." },
+        { "topic": "why-range-no-price", "q": "Why doesn't Range have a fixed price?", "a": "Because it's several businesses in one, and we price each arm on its own. We publish the floor, from $2,100 to build and from $350 a month, and quote the rest after one conversation." },
+        { "topic": "start-small-move-up", "q": "Can I start with Presence and move up later?", "a": "Yes. But moving to Growth means restructuring the site around the research, not adding a page, so it's a real piece of work. If you're likely to want search within a year, start on Growth. Moving down happens at your renewal date." },
+        { "topic": "no-monthly", "q": "Do you build sites without a monthly plan?", "a": "No. A site nobody maintains slowly stops being useful, and keeping it useful is the thing we actually sell. Every build comes with the monthly that keeps it running." },
+        { "topic": "cheaper-option", "q": "Someone else is much cheaper with nothing up front. What's the difference?", "a": "Usually that's a template from a portfolio, edited to fit you, on a shared platform. Ours is designed for your business from scratch, and from Growth up the whole structure comes from research into the searches you want to win. If a template is all you need, that's a fine option and we'll say so." }
       ]
     },
     {
-      "title": "The monthly subscription",
+      "title": "Paying",
       "items": [
-        {
-          "topic": "what-monthly-covers",
-          "q": "What does the monthly cover?",
-          "a": "On every package: hosting, routine maintenance, monitoring, minor content updates, and a plain-English recap once a year. On Search and Search Plus it also covers the content and search work, including 24 SEO blog posts a year that we plan, write, edit, and publish for you."
-        },
-        {
-          "topic": "monthly-just-hosting",
-          "q": "Is the monthly just hosting?",
-          "a": "No. Hosting is one small line item inside it. The rest is maintenance, monitoring, and the updates that keep the site current, plus the ongoing content and search work on Search and Search Plus. On those two, most of the monthly is 24 articles a year and the search work behind them."
-        },
-        {
-          "topic": "locked-in",
-          "q": "Am I locked into a contract?",
-          "a": "Every package runs on a 12-month term from launch and renews a year at a time unless you tell us otherwise before it ends. You can cancel mid-term with 30 days' notice, but the months left in that term are still due. The 12 months exist because the work is planned as a year, not because we want to hold on to you."
-        },
-        {
-          "topic": "if-i-stop",
-          "q": "What happens if I stop?",
-          "a": "Your domain is yours and your content is yours, including every blog post we published. We'll help you move them wherever you're going. The site itself comes offline when the subscription ends, so if you're planning a move, tell us and we'll time it so nothing goes dark."
-        }
+        { "topic": "what-monthly-covers", "q": "What does the monthly cover?", "a": "On every package: hosting, maintenance, monitoring, the changes you send us, and a plain-English summary every quarter. Presence includes one change a month. Growth adds search monitoring and updates to pages tied to your search goals. Agile adds a strategy meeting every month, ongoing research, and tests. Range is scoped per arm in the quote." },
+        { "topic": "just-hosting", "q": "Is the monthly just hosting?", "a": "No. Hosting is one small line inside it. The rest is maintenance, monitoring, the changes you send, and from Growth up, the search work that keeps the site showing up." },
+        { "topic": "pay-over-time", "q": "Can I pay over time?", "a": "Yes. The standard is half the build at kickoff and half at launch. Or spread the build over twelve monthly payments of nine percent of the build price, on any package. The monthly fee starts the day the site goes live." },
+        { "topic": "locked-in", "q": "Am I locked into a contract?", "a": "Every package runs on a 12-month term from launch and renews a year at a time unless you tell us otherwise before it ends. You can cancel mid-term with 30 days' notice, but the months left in that term are still due. The 12 months exist because the work is planned as a year, not because we want to hold on to you." },
+        { "topic": "if-i-stop", "q": "What happens if I stop?", "a": "Your domain is yours and your content is yours. We'll help you move them wherever you're going. The site itself comes offline at the end of the term, and we hand over the code." }
       ]
     },
     {
-      "title": "Content and SEO",
+      "title": "The work",
       "items": [
-        {
-          "topic": "who-writes-copy",
-          "q": "Who writes the copy?",
-          "a": "On Presence, you provide the words and we edit and place them. On Search and Search Plus, we write the copy for your core pages around the keywords we find. Either way you supply the facts: what you do, where, for whom, and what's true about the business."
-        },
-        {
-          "topic": "no-copy",
-          "q": "What if I don't have copy?",
-          "a": "On Search and Search Plus that's already covered, because writing the core pages is part of the build. On Presence, if there's nothing to work from, we can develop the copy as an add-on at $90 an hour, or you can move up to Search where it's included."
-        },
-        {
-          "topic": "blog-posts",
-          "q": "What are the 24 blog posts, exactly?",
-          "a": "Two articles a month on topics we plan against your keywords, which means the questions your customers are already searching. We draft, edit, and publish them. About a week before each one goes out you get an email with the article in it."
-        },
-        {
-          "topic": "approve-posts",
-          "q": "Do I have to approve every post?",
-          "a": "No. You get each article about a week ahead so you can catch anything inaccurate. If we don't hear back, it publishes on schedule. Reading them is optional. Correcting them is the part that matters."
-        }
+        { "topic": "ai-writing", "q": "Is this just an AI writing my site?", "a": "No. From Growth up, before a page is written we study what your ideal customer actually types into Google, look at who shows up for those searches now and why, and plan the site around it. Then we write to that plan, in your tone, after a call with you. Tools help us move faster. The judgment is ours." },
+        { "topic": "who-writes-copy", "q": "Who writes the copy?", "a": "On Presence, you provide the words and we edit and place them. From Growth up, we write the copy for your core pages around the research. Either way you see it before it goes live." },
+        { "topic": "no-copy", "q": "What if I don't have copy?", "a": "From Growth up that's already covered, because writing the core pages is part of the build. On Presence, if there's nothing to work from, we can write it from scratch and quote that in writing first, or you can move up to Growth." },
+        { "topic": "switch-tools", "q": "Do I have to switch off the tools I already use?", "a": "No. We build around what's working: your booking link, your inquiry email, your Instagram, your CRM. Nothing gets ripped out." },
+        { "topic": "edit-myself", "q": "Can I update the site myself?", "a": "No, and that's on purpose. You send us the copy or the photo, we make the change. Nothing to learn, nothing to break. Presence includes one change a month; the others cover a few." },
+        { "topic": "burned-before", "q": "I've been burned by a web guy before.", "a": "Fair. Tell us what happened. Then we'll tell you exactly what we deliver, at each of the three stages, and when. Everything is written down in the agreement before any money moves, including what isn't included." }
       ]
     },
     {
-      "title": "Working with us",
+      "title": "Extras and ownership",
       "items": [
-        {
-          "topic": "changes-myself",
-          "q": "Can I make changes myself?",
-          "a": "You can, but you don't have to, and most people don't. Send us what you want changed and it's handled as part of your monthly. If you'd rather edit some sections yourself, we can set that up."
-        },
-        {
-          "topic": "new-page",
-          "q": "What if I need a new page?",
-          "a": "A standard page is $180. A search-informed page, on Search or Search Plus, is $270. If what you need is more strategy rather than more pages, we'll move you to the package that covers it instead of selling it piece by piece."
-        },
-        {
-          "topic": "domain-owner",
-          "q": "Who owns my domain?",
-          "a": "You do. It's registered in your name, on your account, and it stays yours no matter what happens with us. If you don't have one yet, we'll walk you through buying it."
-        },
-        {
-          "topic": "business-types",
-          "q": "What kinds of businesses do you work with?",
-          "a": "Local service businesses, trades, salons, studios, clinics, shops, and independent professionals, mostly around Utah. If your customers find you through Google, Instagram, or a referral, this is built for you."
-        }
+        { "topic": "new-page", "q": "What if I need a new page?", "a": "A standard page is $150. A research-informed search page, on Growth, Agile or Range, is $225. An extra change beyond what your monthly covers is $60. If what you need is more strategy rather than more pages, we'll move you to the package that covers it instead of selling it piece by piece." },
+        { "topic": "domain", "q": "Who owns my domain?", "a": "You do. It's registered in your name, on your account, and it stays yours no matter what happens with us. If you don't have one yet, we'll walk you through buying it." },
+        { "topic": "business-types", "q": "What kinds of businesses do you work with?", "a": "Local service businesses, trades, salons, studios, clinics, shops, rental companies, and independent professionals, mostly around Utah. If your customers find you in person, we can give them somewhere to land. If they find you on Google, we can make sure they do." }
       ]
     }
   ],
-  "closing": {
-    "heading": "Keep your business moving.",
-    "sub": "We'll take care of the website.",
-    "ctaLabel": "Start your site",
-    "ctaHref": "/start/"
-  }
+  "closing": { "heading": "Keep your business moving.", "sub": "We'll take care of the website.", "ctaLabel": "Start your site", "ctaHref": "/start/" }
 }

@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "title": "Privacy | Keepsite Media",
+    "description": "What keepsitemedia.com collects, why, who it goes to, and what you can do about it."
+  },
+  "heading": "Privacy",
+  "intro": "This is what keepsitemedia.com collects, why, who else handles it, and what you can ask us to do with it. It is written to be read, not skimmed past.",
+  "updated": "2026-09-12",
+  "sections": [
+    {
+      "heading": "What we collect, and why",
+      "body": [
+        "The Start form asks for your name, your email address, your business, and whatever you choose to tell us. We use it to reply to you and, if you go ahead, to run your project. It arrives in our email and goes into our client records.",
+        "The questionnaires collect your answers and any files you attach, such as a logo or a brand guide. We use them to design and build your site, and nothing else.",
+        "When you sign an agreement online, we record your name, your email address, the time, the address your connection came from, the browser you used, and the signature you draw. That record is what makes an electronic signature hold up, and it appears on the certificate page of the signed PDF you receive.",
+        "Payments run through Stripe. We never see your card or bank details. Stripe tells us whether a payment went through and gives us a reference number, and Stripe's own privacy policy covers its payment pages.",
+        "Email we send you goes from our own address, delivered through Resend, an email delivery service. It sees the message and the address it went to."
+      ]
+    },
+    {
+      "heading": "Analytics",
+      "body": [
+        "We use Google Analytics 4 to see which pages get visited, roughly where visitors are, and how they arrived, so we know what on the site is useful. It sets cookies on your browser, with names beginning _ga, and sends page views and a coarse location to Google. It does not tell us who you are, and we do not connect it to anything that does.",
+        "If you would rather not be counted, Google's browser add-on turns Google Analytics off for every site, and blocking cookies for this site does the same here. Google explains what it does with the data at policies.google.com/technologies/partner-sites."
+      ]
+    },
+    {
+      "heading": "Hosting",
+      "body": [
+        "The site is hosted by Netlify, which keeps ordinary server logs, including the address your connection came from, for a short period for security and to keep the service running."
+      ]
+    },
+    {
+      "heading": "Who else sees it",
+      "body": [
+        "The services named above: Google, Stripe, Resend, and Netlify, each for the job described. We do not sell anything we collect, share it with advertisers, or pass it to anyone else, except when the law requires it."
+      ]
+    },
+    {
+      "heading": "How long we keep it",
+      "body": [
+        "Inquiries and project records stay for as long as we are working together and for a reasonable period after, so we can pick up where we left off. Signed agreements and payment records stay for as long as the law requires us to keep them."
+      ]
+    },
+    {
+      "heading": "Your choices",
+      "body": [
+        "Write to us and we will tell you what we hold about you, correct it, or delete it, apart from the records we are required to keep. The same address works for any question this page did not answer."
+      ]
+    }
+  ]
+}

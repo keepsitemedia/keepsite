@@ -1,5 +1,5 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
-import { store as defaultStore, SLUG } from '../store.mjs';
+import { store as defaultStore, SLUG, TYPES } from '../store.mjs';
 import { loadPipelines, findPipeline, advance } from '../pipeline.mjs';
 import { validateClient, newClient, applyEdit, clientFields, slugify, uniqueSlug } from '../clients.mjs';
 import { todayIn } from '../dates.mjs';
@@ -46,10 +46,31 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     if (!SLUG.test(slug)) return problem(400, 'bad slug');
     const existing = await s.clients.get(slug);
     if (!existing) return problem(404, 'no such client');
-    const errors = validateClient(fields);
+    const errors = validateClient(fields, existing);
     if (errors.length) return back(`/office/clients/${slug}/`, errors);
     await s.clients.put(slug, applyEdit(existing, fields, now));
     return redirect(`/office/clients/${slug}/`);
+  }
+
+  if (op === 'delete') {
+    const slug = field(data, 'slug');
+    if (!SLUG.test(slug)) return problem(400, 'bad slug');
+    const existing = await s.clients.get(slug);
+    if (!existing) return problem(404, 'no such client');
+    // A signed agreement is a legal record and a payment is a financial one;
+    // both outlive the relationship. Delete is for leads and test clients.
+    const keeps = [];
+    if ((await s.agreements.list(slug)).some((a) => a.status === 'completed')) keeps.push('a signed agreement');
+    if ((await s.payments.list(slug)).some((p) => p.status === 'paid' || (p.kind === 'subscription' && p.status === 'active'))) keeps.push('a payment on record');
+    if (keeps.length) return back(`/office/clients/${slug}/`, [`this client has ${keeps.join(' and ')}, which must be kept; move them to Live or leave them as they are`]);
+    for (const type of TYPES) {
+      for (const doc of await s[type].list(slug)) await s[type].remove(slug, doc.id);
+    }
+    for (const meta of await s.documents.list(slug)) {
+      if (meta?.name) await s.documents.remove(slug, meta.name);
+    }
+    await s.clients.remove(slug);
+    return redirect('/office/clients/');
   }
 
   return problem(400, 'unknown op');

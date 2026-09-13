@@ -1,33 +1,29 @@
 {
   "meta": {
     "title": "How it works | Keepsite Media",
-    "description": "Three stages, three decisions, one round of changes at each. Here's exactly what building a site with Keepsite looks like, and what we need from you."
+    "description": "Three stages, three decisions, one round of changes at each. What building a site with Keepsite looks like, how long it takes, and what we need from you."
   },
   "heading": "How it works",
   "lead": "You've already made the decision to hand this off. What's left is three decisions, and we bring you each one when it's ready.",
+  "timeline": "Most sites launch four to six weeks after kickoff. The biggest variable is how quickly you reply at each stage.",
   "steps": [
-    {
-      "title": "Tell us about your business.",
-      "body": "Eight questions, and most of them you can answer off the top of your head. That is everything we need to put four designs in front of you."
-    },
-    {
-      "title": "Pick a direction.",
-      "body": "We send you one page with four different home page designs on it. You pick the direction that looks like your business, then answer the two questionnaires that follow — one on your brand and the demo, one to drive the build. Each is one pass, not a back-and-forth. On Search and Search Plus, keyword research runs at the same time and shapes what comes next."
-    },
-    {
-      "title": "We lay out every page.",
-      "body": "You see every page the site will have, and how each one is put together. The words and photos come later."
-    },
-    {
-      "title": "We add your words and photos.",
-      "body": "Your copy and photos go into the layouts you approved. You look it over, send your changes in one go, and we launch."
-    },
-    {
-      "title": "We keep it working.",
-      "body": "Hosting, maintenance, monitoring, and the annual recap. On Search and Search Plus, the articles keep going out too."
-    }
+    { "title": "Tell us about your business.", "body": "Eight questions, most of which you can answer off the top of your head. On Growth, Agile and Range there's a kickoff call too, so we hear it in your words." },
+    { "title": "Pick a direction.", "body": "We send you one page with four different home page designs on it. You pick the one that looks like your business, then answer two short questionnaires: one on your brand, one to drive the build. From Growth up, research into what your customers search for runs at the same time and shapes what comes next." },
+    { "title": "We lay out every page.", "body": "You see every page the site will have and how each one is put together. The words and photos come later." },
+    { "title": "We add the words and photos.", "body": "Your copy on Presence, ours from Growth up. You look it over, send your changes in one go, and we launch." },
+    { "title": "We keep it working.", "body": "Hosting, maintenance, monitoring, and a summary every quarter. From Growth up, we keep watching search and adjusting. On Agile, we keep meeting." }
   ],
   "pullLine": "Keep it simple.",
+  "meetings": {
+    "heading": "How often we talk",
+    "lead": "No standing meetings on Presence. The others get exactly the ones the work needs.",
+    "items": [
+      { "name": "Presence", "body": "None scheduled. Everything runs on the questionnaires and email." },
+      { "name": "Growth", "body": "A kickoff call, and a check-in at each stage." },
+      { "name": "Agile", "body": "A kickoff, a check-in every two weeks during the build, and a strategy meeting every month after launch." },
+      { "name": "Range", "body": "A kickoff call, and a check-in at each stage." }
+    ]
+  },
   "stages": {
     "heading": "The three stages",
     "lead": "Each stage settles one question before the next one starts.",
@@ -35,28 +31,17 @@
       {
         "label": "Stage 1",
         "title": "Style",
-        "see": "One page you scroll through, with four different home page designs on it. It is there to show you a look, not a finished site: nothing on it is wired up, and none of it is about your business yet.",
+        "see": "One page you scroll through, with four different home page designs on it. It's there to show you a look, not a finished site: nothing on it is wired up, and none of it is about your business yet.",
         "decide": "Which one looks like your business.",
-        "note": "You're picking a direction, not a final design. From there we fit it to your business, your colors, your photos. On Search and Search Plus, keyword research is already running in the background.",
+        "note": "You're picking a direction, not a final design. From there we fit it to your business, your colors, your photos.",
         "tiers": [
-          {
-            "name": "Presence",
-            "body": "Pick a direction and this stage is done."
-          },
-          {
-            "name": "Search",
-            "body": "The research is already under way, so by stage two we know which pages you need."
-          },
-          {
-            "name": "Search Plus",
-            "body": "The same research, plus a look at what your competitors rank for and where they are thin."
-          }
+          { "name": "Presence", "body": "Pick a direction and this stage is done." },
+          { "name": "Growth", "body": "While you're choosing, we're studying the search results you want to win. By stage two we know which pages you need." },
+          { "name": "Agile", "body": "We start with longer discovery about where the business is going, then research where the obvious data doesn't exist. The search strategy gets invented here." },
+          { "name": "Range", "body": "The same research as Growth, run for every arm of the business." }
         ],
         "terms": [
-          {
-            "term": "Keyword research",
-            "body": "Finding the words your customers actually type into Google, so the site gets built around them. Search and Search Plus only."
-          }
+          { "term": "search strategy", "body": "The plan for which searches your site should show up for, and which pages will do it. Growth, Agile and Range only." }
         ]
       },
       {
@@ -66,55 +51,30 @@
         "decide": "Whether the site has every page you need.",
         "note": "The placeholder text is on purpose. If we filled it in with real words, you'd read them instead of looking at the page, and they aren't written yet.",
         "tiers": [
-          {
-            "name": "Presence",
-            "body": "The pages you asked for, in the order that makes sense for them."
-          },
-          {
-            "name": "Search",
-            "body": "The page list comes out of the keyword research, so there are usually service or location pages you had not thought to ask for."
-          },
-          {
-            "name": "Search Plus",
-            "body": "The same, plus pages aimed at the gaps your competitors leave open."
-          }
+          { "name": "Presence", "body": "The pages you asked for, in the order that makes sense for them." },
+          { "name": "Growth", "body": "The page list comes out of the research, so there are usually service or location pages you hadn't thought to ask for." },
+          { "name": "Agile", "body": "More research shapes each page, and the site is built so the strategy can be swapped later without breaking what works." },
+          { "name": "Range", "body": "One section per arm, structured so the arms don't compete with each other on Google." }
         ],
         "terms": [
-          {
-            "term": "Layout",
-            "body": "The shape of a page: what goes where, and in what order. The floor plan before the furniture."
-          }
+          { "term": "Layout", "body": "The shape of a page: what goes where, and in what order. The floor plan before the furniture." }
         ]
       },
       {
         "label": "Stage 3",
         "title": "Copy and photos",
-        "see": "The finished site, with your words and images in place.",
+        "see": "The finished site, with the words and images in place.",
         "decide": "That it's ready to go live.",
         "note": "Your photos, and your copy if you're on Presence, are due before this stage starts. After that it's one last look, then we launch.",
         "tiers": [
-          {
-            "name": "Presence",
-            "body": "You send us your words. We edit them and put them in place."
-          },
-          {
-            "name": "Search",
-            "body": "We write your core pages around your keywords. There is one call first, so we get your tone right."
-          },
-          {
-            "name": "Search Plus",
-            "body": "The same call and the same writing, shaped by what your competitors leave out."
-          }
+          { "name": "Presence", "body": "You send us your words. We edit them and put them in place." },
+          { "name": "Growth", "body": "We write your core pages around the research. There's one call first, so we get your tone right." },
+          { "name": "Agile", "body": "The same call and the same writing, plus an A/B test where there's a real question to answer." },
+          { "name": "Range", "body": "The same writing, for every arm." }
         ],
         "terms": [
-          {
-            "term": "Copy",
-            "body": "The words on your website. Headlines, page text, button labels, all of it. Nothing to do with copying anything."
-          },
-          {
-            "term": "Go live",
-            "body": "Your site moves off our preview link and onto your real web address, where customers can find it."
-          }
+          { "term": "Copy", "body": "The words on your website. Headlines, page text, button labels, all of it. Nothing to do with copying anything." },
+          { "term": "A/B test", "body": "Two versions of a page shown to different visitors, so the numbers decide which one stays." }
         ]
       }
     ],
@@ -124,35 +84,20 @@
       "title": "Your site goes live.",
       "body": "That was the last decision. From here the site is ours to keep running, with hosting, maintenance, and monitoring on every package.",
       "tiers": [
-        {
-          "name": "Presence",
-          "body": "Hosting, maintenance, monitoring, minor content updates, and a plain-English recap once a year."
-        },
-        {
-          "name": "Search",
-          "body": "All of that, plus 24 SEO blog posts a year and Search Console monitoring."
-        },
-        {
-          "name": "Search Plus",
-          "body": "All of that, plus active work on the site through the year as the numbers come in."
-        }
+        { "name": "Presence", "body": "Hosting, maintenance, monitoring, one change a month, and a plain-English summary every quarter." },
+        { "name": "Growth", "body": "All of that, plus search monitoring and updates tied to your search goals." },
+        { "name": "Agile", "body": "All of that, plus a strategy meeting every month, ongoing research, and tests." },
+        { "name": "Range", "body": "Growth's after-launch work, for every arm." }
       ],
       "terms": [
-        {
-          "term": "Monitoring",
-          "body": "We watch the site for outages, broken pages, and errors, so problems get caught before you notice them."
-        },
-        {
-          "term": "SEO",
-          "body": "Search engine optimization: the work that helps your pages turn up when someone searches for what you do."
-        }
+        { "term": "Monitoring", "body": "We watch the site for outages, broken pages, and errors, so problems get caught before you notice them." }
       ]
     },
     "tiersLabel": "What changes by package"
   },
   "changes": {
     "heading": "One round of changes at every stage.",
-    "body": "Changes cost the least while the site is still rough, so that's where we put them. If none of the four directions works, we show you more. If a page is laid out wrong, we redo it while it's still empty. The last round is for the finished site, once your words and photos are in."
+    "body": "Changes cost the least while the site is still rough, so that's where we put them. If none of the four directions works, we show you more. If a page is laid out wrong, we redo it while it's still empty. The last round is for the finished site, once the words and photos are in."
   },
   "needFromYou": {
     "heading": "What we need from you",
@@ -160,8 +105,7 @@
       "Accurate information about your business: what you do, where, for whom, your hours, and anything a customer would ask.",
       "A pick from the four directions we show you at stage one.",
       "Your photos and logo, and your copy if you're on Presence, by the start of stage three.",
-      "One call, on Search and Search Plus, so we get your tone right.",
-      "A reply at each stage, and when a scheduled article needs a correction or something about the business changes."
+      "A reply at each stage. On Growth, Agile and Range, the calls listed above."
     ]
   },
   "wontHaveTo": {
@@ -169,16 +113,11 @@
     "items": [
       "No web-building homework.",
       "No blank page to stare at.",
-      "No standing meetings.",
       "No logging into anything.",
+      "No switching off the tools you already use.",
       "No decisions about hosting, plugins, or platforms."
     ]
   },
   "signature": null,
-  "closing": {
-    "heading": "Keep your business moving.",
-    "sub": "We'll take care of the website.",
-    "ctaLabel": "Start your site",
-    "ctaHref": "/start/"
-  }
+  "closing": { "heading": "Keep your business moving.", "sub": "We'll take care of the website.", "ctaLabel": "Start your site", "ctaHref": "/start/" }
 }

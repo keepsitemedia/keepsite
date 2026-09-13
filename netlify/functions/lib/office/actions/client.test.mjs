@@ -12,7 +12,7 @@ const post = (fields) => {
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
   return new Request('https://site.test/office/api/client', { method: 'POST', body: d });
 };
-const good = { name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search', pipeline: 'website' };
+const good = { name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Growth', pipeline: 'website' };
 
 let csrf;
 test.before(() => { process.env.KEEPSITE_SESSION_SECRET = SECRET; csrf = mintCsrf(SECRET); });
@@ -69,8 +69,44 @@ test('update edits fields and keeps the slug and stage', async () => {
   assert.equal(c.stage, 'inquiry');
 });
 
+test('update keeps a stored retired tier but refuses a different retired one', async () => {
+  const s = await make();
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search', pipeline: 'website', stage: 'inquiry', stages: [], dates: {}, createdAt: 'x' });
+  let res = await action(post({ csrf, op: 'update', slug: 'lova', name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/');
+  res = await action(post({ csrf, op: 'update', slug: 'lova', name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search Plus' }), ctx(), s);
+  assert.match(res.headers.get('Location'), /error=.*tier/);
+});
+
 test('update of an unknown client is a 404 and an unknown op a 400', async () => {
   const s = make();
   assert.equal((await action(post({ op: 'update', csrf, slug: 'ghost', ...good }), ctx(), s)).status, 404);
   assert.equal((await action(post({ op: 'nope', csrf }), ctx(), s)).status, 400);
+});
+
+test('delete removes the client and everything filed under it, then lands on the list', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.meetings.put('lova', '20260901T120000abcdef', { id: '20260901T120000abcdef', slug: 'lova', title: 'Call' });
+  await s.documents.put('lova', 'logo.png', new Uint8Array([1, 2, 3]), { type: 'image/png' });
+  const res = await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/');
+  assert.equal(await s.clients.get('lova'), null);
+  assert.deepEqual(await s.tasks.list('lova'), []);
+  assert.deepEqual(await s.meetings.list('lova'), []);
+  assert.deepEqual(await s.documents.list('lova'), []);
+});
+
+test('delete refuses a client with a signed agreement or a payment on record', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.agreements.put('lova', '20260901T120000abcdef', { id: '20260901T120000abcdef', slug: 'lova', status: 'completed' });
+  let res = await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /signed agreement/);
+  assert.ok(await s.clients.get('lova'));
+  await s.agreements.remove('lova', '20260901T120000abcdef');
+  await s.payments.put('lova', '20260901T120000abcdeg', { id: '20260901T120000abcdeg', slug: 'lova', kind: 'deposit', status: 'paid' });
+  res = await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.match(decodeURIComponent(res.headers.get('Location')), /payment on record/);
+  assert.ok(await s.clients.get('lova'));
 });

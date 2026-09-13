@@ -1,10 +1,11 @@
 {
  "id": "presence",
  "name": "Presence Package",
- "version": "c4cede8f257e",
+ "tier": "Presence",
+ "version": "31ef801dae00",
  "defaults": {
-  "buildFee": "$1,100",
-  "monthlyFee": "$55",
+  "buildFee": "$1,200",
+  "monthlyFee": "$60",
   "pages": 5
  },
  "blocks": [
@@ -112,14 +113,19 @@
      "—"
     ],
     [
+     "Payment plan (Section 2.1)",
+     "{{paymentPlan}}",
+     "Half and half"
+    ],
+    [
      "Deposit due on signing",
      "{{deposit}} ({{depositPercent}}%)",
-     "50% of the Build Fee"
+     "50% of the Build Fee, or 9% on the twelve-payment plan"
     ],
     [
      "Balance due on Launch Date",
      "{{balance}} ({{balancePercent}}%)",
-     "the remaining 50%"
+     "the remaining 50%, or the remaining eleven payments on the twelve-payment plan"
     ],
     [
      "Pages included in the build (Exhibit A)",
@@ -155,7 +161,7 @@
   },
   {
    "type": "p",
-   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, and content updates for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
+   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, and one content change a month for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
   },
   {
    "type": "h3",
@@ -183,11 +189,23 @@
   },
   {
    "type": "p",
-   "text": "The build costs one thousand one hundred dollars ($1,100), less any discount in Exhibit D. Schedule 1 sets your deposit and your balance; if those rows are blank, it's half on signing and half on the Launch Date. We start work once the deposit clears."
+   "text": "The build costs one thousand two hundred dollars ($1,200), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
   },
   {
    "type": "p",
-   "text": "Your deposit is non-refundable once we've started, except as described in Section 3.7."
+   "text": "a. Half and half. Half on signing and half on the Launch Date. This is what applies if the payment plan row in Schedule 1 is blank."
+  },
+  {
+   "type": "p",
+   "text": "b. Twelve monthly payments. Nine percent (9%) of the build fee on signing, then the same amount on the same day of each of the next eleven (11) months. That adds up to one hundred eight percent (108%) of the build fee; the extra is the cost of spreading it. The build fee is still owed in full whatever happens to this agreement, and Section 3.7 says what you owe if you cancel before launch."
+  },
+  {
+   "type": "p",
+   "text": "We start work once the first payment clears. Your first payment is non-refundable once we've started, except as described in Section 3.7."
+  },
+  {
+   "type": "p",
+   "text": "Holding page. On the twelve-payment plan, if a payment is more than ten (10) days late we can replace your live site with a holding page, after giving you seven (7) days' written notice and a chance to pay. The site comes back when the missed payments are made. The monthly fee keeps running while the holding page is up."
   },
   {
    "type": "h3",
@@ -195,7 +213,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription costs fifty-five dollars ($55) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
+   "text": "The subscription costs sixty dollars ($60) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
   },
   {
    "type": "h3",
@@ -343,7 +361,7 @@
   },
   {
    "type": "p",
-   "text": "If you cancel before the Launch Date, you owe your deposit plus a fair share of the rest of the build fee covering the work already done, including design and copy work. If we cancel before launch for any reason other than you breaking the agreement, we refund your deposit minus the value of the work we've done."
+   "text": "If you cancel before the Launch Date, you owe your deposit or first payment plus a fair share of the rest of the build fee covering the work already done, including design and copy work. If we cancel before launch for any reason other than you breaking the agreement, we refund what you've paid minus the value of the work we've done."
   },
   {
    "type": "h3",
@@ -476,7 +494,7 @@
   },
   {
    "type": "p",
-   "text": "d. All the written copy for the site, delivered by the content lock date in Section 4.6. On Presence, you supply the words and we edit and place them. If you don't have source material, we can write it under Exhibit C or you can move up to the Search package;"
+   "text": "d. All the written copy for the site, delivered by the content lock date in Section 4.6. On Presence, you supply the words and we edit and place them. If you don't have source material, we can write it under Exhibit C or you can move up to the Growth package;"
   },
   {
    "type": "p",
@@ -492,7 +510,7 @@
   },
   {
    "type": "p",
-   "text": "We aim to launch two (2) to three (3) weeks after Stage One starts. That's an estimate, not a promise. How fast you respond at each stage is the biggest variable — delays on your side push the schedule out without changing what you pay."
+   "text": "We aim to launch four (4) to six (6) weeks after kickoff. That's an estimate, not a promise. How fast you respond at each stage is the biggest variable — delays on your side push the schedule out without changing what you pay."
   },
   {
    "type": "h3",
@@ -584,7 +602,7 @@
   },
   {
    "type": "p",
-   "text": "You can ask to reopen a closed stage any time before launch. We'll quote the work in writing first and won't start until you approve the quote. Reopening is billed at the Exhibit C rates, and it resets the schedule for that stage and every stage after it."
+   "text": "You can ask to reopen a closed stage any time before launch. We'll quote the work in writing first and won't start until you approve the quote. Reopening resets the schedule for that stage and every stage after it."
   },
   {
    "type": "h3",
@@ -612,7 +630,7 @@
   },
   {
    "type": "p",
-   "text": "Your monthly fee covers small content updates — text edits, swapping an image, changing hours or contact details, adding or removing a staff member or a service line, and similar changes that don't need a new page template, new design work, or a whole new page. Email us the request; there's no login for you to learn."
+   "text": "Your monthly fee covers one (1) change request a month: text edits, swapping an image, changing hours or contact details, adding or removing a staff member or a service line, and similar changes that don't need a new page template, new design work, or a whole new page. Email us the request; there's no login for you to learn. Requests past the one included are billed at the Exhibit C price."
   },
   {
    "type": "h3",
@@ -628,7 +646,7 @@
   },
   {
    "type": "p",
-   "text": "Small updates are offered on a fair-use basis. If your requests regularly run past four (4) requests or two (2) hours a month, we'll tell you, and we'll either agree on an hourly arrangement under Exhibit C or move you to a package that covers the volume."
+   "text": "One included request a month is the plan. If a single request is really several changes, we'll say so and count it accordingly, or bill the extras at the Exhibit C price."
   },
   {
    "type": "h3",
@@ -684,7 +702,7 @@
   },
   {
    "type": "h2",
-   "text": "7. Search, Analytics, and Reporting"
+   "text": "7. Analytics and Reporting"
   },
   {
    "type": "h3",
@@ -692,23 +710,23 @@
   },
   {
    "type": "p",
-   "text": "Presence includes basic technical SEO setup — title tags, meta descriptions, sitemap, indexability, mobile responsiveness, and page speed fundamentals — plus analytics installation and hooking up your Google Business Profile and social links."
+   "text": "Presence includes basic technical setup — title tags, meta descriptions, sitemap, indexability, mobile responsiveness, and page speed fundamentals — plus analytics installation and hooking up your Google Business Profile and social links."
   },
   {
    "type": "h3",
-   "text": "7.2 What isn't"
+   "text": "7.2 Quarterly summary"
   },
   {
    "type": "p",
-   "text": "Keyword research, SEO copywriting, blog content, Search Console monitoring, and ongoing search optimization aren't part of Presence. They're in the Search and Search Plus packages."
+   "text": "Every three (3) months you're subscribed, we send you a plain-English summary of how the site performed and what we changed. Once every twelve (12) months it also covers the maintenance we did that year. There's no dashboard and nothing for you to log into."
   },
   {
    "type": "h3",
-   "text": "7.3 Yearly recap"
+   "text": "7.3 What isn't"
   },
   {
    "type": "p",
-   "text": "Once every twelve (12) months you're subscribed, we'll send you a plain-English recap of how the site performed and what maintenance we did."
+   "text": "Search research, search strategy, advice on what to write or post, Search Console monitoring, and ongoing search work aren't part of Presence. They're in the Growth, Agile, and Range packages."
   },
   {
    "type": "h3",
@@ -776,7 +794,7 @@
   },
   {
    "type": "p",
-   "text": "Your Google Business Profile, Google Analytics, and any other connected accounts are yours, set up in your name wherever the platform allows it. We hold admin access only while this agreement is running, and we hand it back when it ends."
+   "text": "Your Google Business Profile, Google Analytics, Google Search Console, and any other connected accounts are yours, set up in your name wherever the platform allows it. We hold admin access only while this agreement is running, and we hand it back when it ends."
   },
   {
    "type": "h2",
@@ -836,7 +854,7 @@
   },
   {
    "type": "p",
-   "text": "EXCEPT AS EXPRESSLY STATED IN THIS AGREEMENT, THE SERVICES AND THE WEBSITE ARE PROVIDED \"AS IS,\" AND KEEPSITE DISCLAIMS ALL OTHER WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT."
+   "text": "EXCEPT AS EXPRESSLY STATED IN THIS AGREEMENT, THE SERVICES AND THE WEBSITE ARE PROVIDED \"AS IS,\" AND KEEPSITE DISCLAIMS ALL OTHER WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. NO SEARCH PERFORMANCE OUTCOME IS WARRANTED."
   },
   {
    "type": "h3",
@@ -844,7 +862,7 @@
   },
   {
    "type": "p",
-   "text": "NEITHER PARTY IS LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR LOST PROFITS, LOST REVENUE, LOST DATA, OR LOST BUSINESS OPPORTUNITY, EVEN IF ADVISED OF THE POSSIBILITY. KEEPSITE'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT WILL NOT EXCEED THE AMOUNTS CLIENT PAID TO KEEPSITE IN THE TWELVE (12) MONTHS PRECEDING THE EVENT GIVING RISE TO THE CLAIM. These limits don't apply to what you owe us, to either side's indemnification obligations, or to gross negligence, willful misconduct, or fraud."
+   "text": "NEITHER PARTY IS LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR LOST PROFITS, LOST REVENUE, LOST DATA, LOST RANKINGS, OR LOST BUSINESS OPPORTUNITY, EVEN IF ADVISED OF THE POSSIBILITY. KEEPSITE'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT WILL NOT EXCEED THE AMOUNTS CLIENT PAID TO KEEPSITE IN THE TWELVE (12) MONTHS PRECEDING THE EVENT GIVING RISE TO THE CLAIM. These limits don't apply to what you owe us, to either side's indemnification obligations, or to gross negligence, willful misconduct, or fraud."
   },
   {
    "type": "h3",
@@ -1001,7 +1019,7 @@
   },
   {
    "type": "p",
-   "text": "One-time build fee: $1,100"
+   "text": "One-time build fee: $1,200"
   },
   {
    "type": "table",
@@ -1052,13 +1070,13 @@
     ],
     [
      "11",
-     "One (1) round of changes at each of the three build stages"
+     "One (1) round of changes at each of the three stages"
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Not included in the build: keyword research, SEO copywriting, copy written from scratch, competitor analysis, blog content, e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, and copywriting for pages beyond the page count above."
+   "text": "Not included in the build: search research, SEO copywriting, copy written from scratch, competitor analysis, e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, paid advertising management, and pages beyond the approved page map."
   },
   {
    "type": "h1",
@@ -1066,7 +1084,7 @@
   },
   {
    "type": "p",
-   "text": "Monthly subscription fee: $55 per month"
+   "text": "Monthly subscription fee: $60 per month"
   },
   {
    "type": "table",
@@ -1089,7 +1107,7 @@
     ],
     [
      "4",
-     "Minor content updates as defined in Section 5.1"
+     "One (1) change request a month as defined in Section 5.1"
     ],
     [
      "5",
@@ -1105,13 +1123,13 @@
     ],
     [
      "8",
-     "A plain-English performance and maintenance recap once every twelve (12) months"
+     "A plain-English summary every three (3) months (Section 7.2)"
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Not included in the monthly: new pages, redesigns, SEO blog posts, keyword research, Search Console monitoring, ongoing search optimization, and any work listed in Exhibit C."
+   "text": "Not included in the monthly: new pages, redesigns, search research, Search Console monitoring, ongoing search work, and any work listed in Exhibit C."
   },
   {
    "type": "h1",
@@ -1122,37 +1140,45 @@
    "rows": [
     [
      "Service",
-     "Rate"
+     "Price"
+    ],
+    [
+     "Extra change request",
+     "$60 per request — beyond what the monthly covers; Client sends the copy or the photo, Keepsite makes the change"
     ],
     [
      "Additional standard page",
-     "$180 per page — uses the existing site style and Client-supplied copy; no new keyword research"
+     "$150 per page — uses the existing site style and Client-supplied copy; no new research"
     ],
     [
-     "Full copy development",
-     "$90 per hour — for when there is no source material and messaging must be written from scratch"
+     "Additional search page",
+     "$225 per page — Growth, Agile, and Range only; a new research-informed service or location page"
+    ],
+    [
+     "Copy written from scratch",
+     "Quoted in writing before work starts — for when there is no source material to work from"
     ],
     [
      "Advanced integration",
-     "$90 per hour, quoted first — booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed"
+     "Quoted in writing before work starts — booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed"
     ],
     [
      "Additional round of changes, or reopening a closed stage",
-     "$90 per hour"
+     "Quoted in writing before work starts (Section 4.8)"
+    ],
+    [
+     "Migration to another provider",
+     "Quoted in writing before work starts — for Keepsite to configure a new host, move DNS, and test. The source code export itself is free under Section 3.8."
     ],
     [
      "Major website expansion",
      "Custom quote — new service lines, large content migrations, or anything that materially changes the original scope"
-    ],
-    [
-     "Migration to another provider",
-     "$90 per hour — for Keepsite to configure a new host, move DNS, and test. The source code export itself is free under Section 3.8."
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Upgrade rule. If what Client needs is more strategy rather than more pages, Keepsite will recommend moving Client to the package that covers it rather than selling it piece by piece. Additional SEO pages are available on the Search and Search Plus packages only."
+   "text": "Upgrade rule. If what Client needs is more strategy rather than more pages, Keepsite will recommend moving Client to the package that covers it rather than selling it piece by piece. Additional search pages are available on the Growth, Agile, and Range packages only."
   },
   {
    "type": "p",
@@ -1194,7 +1220,7 @@
     ],
     [
      "Standard Build Fee",
-     "$1,100"
+     "$1,200"
     ],
     [
      "Adjusted Build Fee",
@@ -1226,7 +1252,7 @@
     ],
     [
      "Standard Monthly Fee",
-     "$55 per month"
+     "$60 per month"
     ],
     [
      "Discounted Monthly Fee",

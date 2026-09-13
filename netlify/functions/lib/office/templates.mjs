@@ -53,6 +53,11 @@ export async function loadTemplates(store) {
 
 export const findTemplate = (templates, id) => templates.find((t) => t.id === id);
 
+// An email that carries the client's signing link has nothing to carry until
+// an agreement is out for signature; every screen that could open it checks
+// this first and sends the admin to the Agreements tab instead.
+export const needsSignLink = (template) => placeholdersIn(`${template.subject}\n${template.body}`).includes('links.sign');
+
 export const placeholdersIn = (source) =>
   [...new Set([...String(source).matchAll(PLACEHOLDER)].map((m) => m[1]))];
 

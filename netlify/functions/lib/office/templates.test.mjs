@@ -192,6 +192,15 @@ test('upsertTemplate refuses a bad id, a missing subject and an unknown placehol
   assert.deepEqual(upsertTemplate([], { id: 'ok', name: 'x', subject: 's', body: 'Hi {{nick}}', fields: [{ key: 'nick', label: 'Nickname' }] }).errors, []);
 });
 
+test('needsSignLink is true only for templates that carry the signing link', () => {
+  const { needsSignLink } = templatesModule;
+  assert.equal(needsSignLink({ subject: 'S', body: 'Sign: {{links.sign}}' }), true);
+  assert.equal(needsSignLink({ subject: '{{ links.sign }}', body: 'b' }), true);
+  assert.equal(needsSignLink({ subject: 'S', body: '{{links.intro}} {{agreement.name}}' }), false);
+  assert.equal(needsSignLink(seed.find((t) => t.id === 'agreement')), true);
+  assert.equal(needsSignLink(seed.find((t) => t.id === 'intro')), false);
+});
+
 test('removeTemplate refuses ids the code or a pipeline stage sends', () => {
   const { removeTemplate, PROTECTED_TEMPLATES } = templatesModule;
   const base = [{ id: 'launch', name: 'L', subject: 's', body: 'b' }, { id: 'extra', name: 'E', subject: 's', body: 'b' }, { id: 'meeting-reminder', name: 'M', subject: 's', body: 'b' }];

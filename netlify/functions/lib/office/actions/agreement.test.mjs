@@ -9,7 +9,7 @@ import { mintCsrf } from '../session.mjs';
 
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
-  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', phone: '', address: '', tier: 'Search' });
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', phone: '', address: '', tier: 'Growth' });
   return s;
 };
 const post = (fields, headers = {}) => {
@@ -32,9 +32,9 @@ const ctx = () => ({ admin: { email: 'me@x' }, csrf });
 const NOW = new Date('2026-09-08T16:00:00Z');
 const loc = (res) => decodeURIComponent(res.headers.get('Location'));
 const createFields = {
-  csrf, op: 'create', slug: 'lova', template: 'search',
+  csrf, op: 'create', slug: 'lova', template: 'growth',
   legalName: 'Lova Content Creation LLC', entityType: 'LLC', address: '1 Main St', signerName: 'Sierra Lee', signerTitle: 'Owner', email: 's@example.com', phone: '(801) 555-0100',
-  buildFee: '1750', monthlyFee: '150', deposit: '875', balance: '875', pages: '8',
+  buildFee: '1800', monthlyFee: '160', deposit: '900', balance: '900', pages: '8',
 };
 
 test('create stores a draft with cents and redirects to the admin signing page', async () => {
@@ -43,8 +43,8 @@ test('create stores a draft with cents and redirects to the admin signing page',
   const [a] = await s.agreements.list('lova');
   assert.equal(loc(res), `/office/agreements/lova/${a.id}/sign/`);
   assert.equal(a.status, 'draft');
-  assert.equal(a.fields.buildFee, 175000);
-  assert.equal(a.fields.deposit, 87500);
+  assert.equal(a.fields.buildFee, 180000);
+  assert.equal(a.fields.deposit, 90000);
   assert.equal(a.fields.pages, 8);
   assert.equal(a.fields.discountApplied, false);
   assert.equal(a.signers.client.email, 's@example.com');
@@ -63,6 +63,7 @@ test('create with a discount stores Exhibit D values', async () => {
 test('create validates', async () => {
   const s = await make();
   assert.match(loc(await agreement(post({ ...createFields, template: 'nope' }), ctx(), s, mail, NOW)), /error=unknown template/);
+  assert.match(loc(await agreement(post({ ...createFields, template: 'search-plus' }), ctx(), s, mail, NOW)), /error=unknown template/);
   assert.match(loc(await agreement(post({ ...createFields, legalName: '' }), ctx(), s, mail, NOW)), /error=legal business name/);
   assert.match(loc(await agreement(post({ ...createFields, email: 'bad' }), ctx(), s, mail, NOW)), /error=email/);
   assert.match(loc(await agreement(post({ ...createFields, deposit: 'abc' }), ctx(), s, mail, NOW)), /error=deposit/);
@@ -84,7 +85,22 @@ test('a rejected create carries the typed fields back on the redirect', async ()
   const loc2 = loc(await agreement(post({ ...createFields, legalName: '' }), ctx(), s, mail, NOW));
   assert.match(loc2, /legalName=/);
   assert.match(loc2, /signerName=Sierra\+Lee/);
-  assert.match(loc2, /buildFee=1750/);
+  assert.match(loc2, /buildFee=1800/);
+});
+
+test('create stores the payment plan and the arms, and refuses an unknown plan', async () => {
+  const s = await make();
+  await agreement(post({ ...createFields, template: 'range', paymentPlan: 'Twelve monthly payments', arms: 'Tents\nTables (ongoing strategy)', buildFee: '3000', deposit: '270', balance: '2730', pages: '16' }), ctx(), s, mail, NOW);
+  const [a] = await s.agreements.list('lova');
+  assert.equal(a.fields.paymentPlan, 'Twelve monthly payments');
+  assert.equal(a.fields.arms, 'Tents\nTables (ongoing strategy)');
+  assert.equal(a.fields.deposit, 27000);
+  const s2 = await make();
+  assert.match(loc(await agreement(post({ ...createFields, paymentPlan: 'Yearly' }), ctx(), s2, mail, NOW)), /error=payment plan/);
+  await agreement(post(createFields), ctx(), s2, mail, NOW);
+  const [b] = await s2.agreements.list('lova');
+  assert.equal(b.fields.paymentPlan, 'Half and half');
+  assert.equal(b.fields.arms, '');
 });
 
 test('send signs as Keepsite and lands on the agreement email; void marks voided', async () => {

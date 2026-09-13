@@ -8,12 +8,12 @@ import StageRail from '../../../components/office/StageRail.astro';
 import Mark from '../../../components/office/Mark.astro';
 import { store, SLUG } from '../../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines, findPipeline } from '../../../../netlify/functions/lib/office/pipeline.mjs';
-import { loadTemplates } from '../../../../netlify/functions/lib/office/templates.mjs';
+import { loadTemplates, needsSignLink } from '../../../../netlify/functions/lib/office/templates.mjs';
 import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
 import { tierPrices } from '../../../../netlify/functions/lib/office/payments.mjs';
 import { dashboardUrl, stripeConfigured } from '../../../../netlify/functions/lib/office/stripe.mjs';
 import { loadAgreementTemplates } from '../../../../netlify/functions/lib/office/agreement-templates.mjs';
-import { defaultFields } from '../../../../netlify/functions/lib/office/agreements.mjs';
+import { defaultFields, PLANS } from '../../../../netlify/functions/lib/office/agreements.mjs';
 import { listDocuments, formatSize } from '../../../../netlify/functions/lib/office/documents.mjs';
 import { glance } from '../../../../netlify/functions/lib/office/attention.mjs';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
@@ -35,7 +35,7 @@ type PipelineRow = { stages: StageRow[]; questionnaires?: string[] };
 type TaskDoc = { id: string; slug: string; title: string; due: string; time: string | null; done: boolean; source: string; stage: string | null; questionnaire: string | null; payment: string | null; agreement: string | null };
 type EmailDoc = { id: string; kind: string; template: string | null; to: string[]; subject: string; text: string; sentAt: string; status: string; error: string | null };
 type MeetingDoc = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
-type TemplateRow = { id: string; name: string };
+type TemplateRow = { id: string; name: string; subject: string; body: string };
 type PaymentDoc = { id: string; kind: string; amount: number; status: string; description: string; url: string | null; paidAt: string | null; failureReason: string | null; createdAt: string; stripe: { customerId: string | null; checkoutSessionId: string | null; paymentIntentId: string | null; invoiceId: string | null; subscriptionId: string | null } };
 type AgreementDoc = { id: string; template: string; templateName: string; status: string; createdAt: string; sentAt: string | null; completedAt: string | null; hash: string | null; documentKey: string | null; fields: { deposit: number; balance: number }; signers: { client: { status: string; expiresAt: string | null } } };
 type DocumentRow = { name: string; size: number | null; type: string; source: string; uploadedAt: string | null; href: string; removable: boolean };
@@ -90,7 +90,7 @@ const sentAtFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denve
 // The bare questionnaire-reminder template is never sent as-is: each
 // pipeline questionnaire gets its own button below, the same way
 // meeting-* templates are sent only from their own flows.
-const sendable = tab === 'emails' ? ((await loadTemplates(s)) as TemplateRow[]).filter((t) => !t.id.startsWith('meeting-') && t.id !== 'questionnaire-reminder') : [];
+const allSendable = tab === 'emails' ? ((await loadTemplates(s)) as TemplateRow[]).filter((t) => !t.id.startsWith('meeting-') && t.id !== 'questionnaire-reminder') : [];
 const meetings = tab === 'meetings' ? ((await s.meetings.list(slug)) as MeetingDoc[]).sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`)) : [];
 const upcoming = meetings.filter((m) => m.ymd >= today);
 const past = meetings.filter((m) => m.ymd < today);
@@ -107,8 +107,12 @@ const stripeOn = stripeConfigured();
 const agreements = ((await s.agreements.list(slug)) as AgreementDoc[]).reverse();
 const completedAgreement = agreements.find((a) => a.status === 'completed');
 const agreementOut = agreements.some((a) => a.status === 'sent' || a.status === 'partiallySigned');
-const agreementTemplates = loadAgreementTemplates() as { id: string; name: string }[];
-const defaultTemplateId = ({ Presence: 'presence', Search: 'search', 'Search Plus': 'search-plus' } as Record<string, string>)[client.tier] ?? 'presence';
+// Emails that carry the signing link are offered only while there is one to
+// carry; before that, the Agreements tab is the way to send them.
+const sendable = allSendable.filter((t) => agreementOut || !needsSignLink(t));
+const heldBack = allSendable.filter((t) => !agreementOut && needsSignLink(t));
+const agreementTemplates = loadAgreementTemplates() as { id: string; name: string; tier: string }[];
+const defaultTemplateId = agreementTemplates.find((t) => t.tier === client.tier)?.id ?? 'presence';
 const draftFields = defaultFields(client, agreementTemplates.find((t) => t.id === defaultTemplateId) as any) as Record<string, any>;
 const dollarsOf = (cents: number | null) => (cents == null ? '' : (cents / 100).toFixed(2));
 // A rejected create redirects back with every posted field on the query
@@ -188,6 +192,13 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
             <input type="hidden" name="slug" value={slug} />
             <ClientFields client={client as unknown as Record<string, string>} />
             <div class="form-foot"><button class="btn">Save</button></div>
+          </form>
+          <form method="POST" action="/office/api/client" class="form-foot">
+            <input type="hidden" name="csrf" value={csrf} />
+            <input type="hidden" name="op" value="delete" />
+            <input type="hidden" name="slug" value={slug} />
+            <button class="link-quiet danger" onclick={`return confirm('Delete ${client.business.replace(/'/g, "\\'")} and everything filed under them? This cannot be undone.')`}>Delete client</button>
+            <span class="field-hint">Refused once an agreement is signed or a payment is on record.</span>
           </form>
         </div>
       </details>
@@ -316,7 +327,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
         {sendable.map((t) => <a class="btn-quiet" href={`/office/send/${slug}/${t.id}/`}>{t.name}</a>)}
         {pipelineForms.map((form: string) => <a class="btn-quiet" href={`/office/send/${slug}/questionnaire-reminder/?form=${form}`}>Remind: {form}</a>)}
       </div>
-      <p class="field-hint">Each opens a screen to read and edit before anything goes out. The words live under Settings.</p>
+      <p class="field-hint">Each opens a screen to read and edit before anything goes out. The words live under Settings.{heldBack.length > 0 && <> {heldBack.map((t) => t.name).join(' and ')} carries the signing link, so it is sent from the <a href={`/office/clients/${slug}/?tab=agreements`}>Agreements tab</a> once a draft is signed.</>}</p>
       <h2>Sent <span class="count">{emails.length}</span></h2>
       {emails.length === 0 && <p class="empty">Nothing sent yet.</p>}
       {emails.length > 0 && (
@@ -384,9 +395,17 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
   {tab === 'payments' && pipelinePlan && (
     <>
       {!stripeOn && <p class="error">STRIPE_SECRET_KEY is not set, so nothing here can talk to Stripe.</p>}
-      <p class="file-line">
+      <div class="file-line">
         {stripeCustomerId ? (
           <span>Stripe customer <a href={dashboardUrl('customer', stripeCustomerId)}>{stripeCustomerId}</a></span>
+        ) : null}
+        {stripeCustomerId ? (
+          <form method="POST" action="/office/api/payment" class="inline">
+            <input type="hidden" name="csrf" value={csrf} />
+            <input type="hidden" name="slug" value={slug} />
+            <input type="hidden" name="op" value="forget-customer" />
+            <button class="link-quiet" onclick="return confirm('Forget this Stripe customer? Do this after switching from test to live keys; the next payment link creates a new customer.')">Forget</button>
+          </form>
         ) : (
           <form method="POST" action="/office/api/payment" class="inline">
             <input type="hidden" name="csrf" value={csrf} />
@@ -396,7 +415,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
           </form>
         )}
         {subscription && <span>Monthly <Mark state={markOf(subscription.status)}>{subscription.status}</Mark>{subscription.stripe.subscriptionId && <> · <a href={dashboardUrl('subscription', subscription.stripe.subscriptionId)}>in Stripe</a></>}</span>}
-      </p>
+      </div>
 
       <h2>Payments <span class="count">paid ${dollars(paidTotal)}</span></h2>
       {payments.length === 0 && <p class="empty">Nothing yet.</p>}
@@ -517,7 +536,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
                 <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === (posted('template') ?? defaultTemplateId)}>{t.name}</option>)}</select>
               </label>
             </div>
-            <p class="field-hint">Amounts below prefill for {client.tier || 'Presence'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
+            <p class="field-hint">Amounts below prefill for {client.tier || 'the template'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
             <h3>Client</h3>
             <div class="row">
               <label class="field"><span>Legal business name</span><input name="legalName" value={posted('legalName') ?? draftFields.legalName} required /></label>
@@ -532,10 +551,17 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
             <div class="row">
               <label class="field"><span>Build fee</span><input name="buildFee" inputmode="decimal" value={posted('buildFee') ?? dollarsOf(draftFields.buildFee)} required /></label>
               <label class="field"><span>Monthly fee</span><input name="monthlyFee" inputmode="decimal" value={posted('monthlyFee') ?? dollarsOf(draftFields.monthlyFee)} required /></label>
+              <label class="field"><span>Payment plan</span>
+                <select name="paymentPlan">
+                  {PLANS.map((p) => <option value={p} selected={p === (posted('paymentPlan') ?? draftFields.paymentPlan)}>{p}</option>)}
+                </select>
+              </label>
               <label class="field"><span>Deposit on signing</span><input name="deposit" inputmode="decimal" value={posted('deposit') ?? dollarsOf(draftFields.deposit)} required /></label>
               <label class="field"><span>Balance on launch</span><input name="balance" inputmode="decimal" value={posted('balance') ?? dollarsOf(draftFields.balance)} required /></label>
               <label class="field"><span>Pages included</span><input name="pages" type="number" min="1" value={posted('pages') ?? (draftFields.pages ?? '')} required /></label>
             </div>
+            <p class="field-hint">On the twelve-payment plan the deposit is the first payment, nine percent of the build fee, and the balance is the remaining eleven.</p>
+            <label class="field"><span>Business arms covered (Range only)</span><textarea name="arms" rows="4" placeholder="One arm per line. Add (ongoing strategy) after an arm the quote includes it for.">{posted('arms') ?? draftFields.arms}</textarea></label>
             <details class="fold">
               <summary>Discount, Exhibit D</summary>
               <div class="fold-body">

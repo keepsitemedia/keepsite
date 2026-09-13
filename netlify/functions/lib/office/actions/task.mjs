@@ -2,6 +2,7 @@ import { readForm, redirect, problem, field, checkCsrf, safeNext, CSRF_REFUSED }
 import { store as defaultStore, SLUG } from '../store.mjs';
 import { newId, ID } from '../ids.mjs';
 import { isYmd, isHhmm } from '../dates.mjs';
+import { isRepeat, nextTask } from '../recurrence.mjs';
 
 const when = (data) => {
   const due = field(data, 'due');
@@ -19,7 +20,8 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
 
   const slug = field(data, 'slug');
   if (!SLUG.test(slug)) return problem(400, 'bad slug');
-  if (!(await s.clients.get(slug))) return problem(404, 'no such client');
+  const client = await s.clients.get(slug);
+  if (!client) return problem(404, 'no such client');
   // A `back` that safeNext would rewrite is one we did not issue; fall to
   // the client page rather than the dashboard.
   const back = field(data, 'back');
@@ -35,7 +37,7 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
     const id = newId(now);
     await s.tasks.put(slug, id, {
       id, slug, title, due: w.due, time: w.time, done: false, doneAt: null,
-      source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null,
+      source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null, repeat: null,
       notes: field(data, 'notes'), createdAt: at,
     });
     return redirect(to);
@@ -46,8 +48,15 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   const existing = await s.tasks.get(slug, id);
   if (!existing) return problem(404, 'no such task');
 
-  if (op === 'done') await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at });
-  else if (op === 'reopen') await s.tasks.put(slug, id, { ...existing, done: false, doneAt: null });
+  if (op === 'done') {
+    if (!existing.done) {
+      await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at });
+      if (isRepeat(existing.repeat) && existing.stage === client.stage) {
+        const next = nextTask(existing, now);
+        await s.tasks.put(slug, next.id, next);
+      }
+    }
+  } else if (op === 'reopen') await s.tasks.put(slug, id, { ...existing, done: false, doneAt: null });
   else if (op === 'reschedule') {
     const w = when(data);
     if (w.error) return problem(400, w.error);

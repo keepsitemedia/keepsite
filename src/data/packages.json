@@ -1,218 +1,222 @@
 {
   "meta": {
     "title": "Packages | Keepsite Media",
-    "description": "Three website packages, each a one-time build plus a monthly subscription. Prices, what's included, and what the monthly covers."
+    "description": "Four website packages, each a one-time build plus a monthly fee that keeps the site working. Prices, what's included, what isn't, and how you can pay."
   },
-  "intro": "Three packages. Each one is a one-time build plus a monthly subscription that keeps the site working. Everything the monthly covers is spelled out below.",
+  "intro": "Four packages. Each one is a custom site we build, then keep running. The difference between them is how much search work goes into the build and how often we talk afterward. We'll tell you which one fits, and we'll tell you when the smaller one is enough.",
   "tiers": [
     {
       "id": "presence",
       "name": "Presence",
-      "line": "Be there when people look.",
-      "bestFor": "Businesses that get most of their work through Instagram, referrals, and word of mouth, and need a professional place to send people.",
-      "buildPrice": "$1,100",
-      "buildPriceNote": "one-time build",
-      "monthlyPrice": "$55",
-      "monthlyPriceNote": "per month",
-      "cardIncludes": [
-        "A custom website, built mobile-first",
-        "Basic technical SEO and analytics setup",
-        "Google Business Profile and social links connected",
-        "An inquiry page that sends straight to your email",
-        "Hosting, maintenance, and monitoring every month"
+      "line": "A site you never have to think about.",
+      "sub": "For businesses that already find clients in person, by word of mouth, or on social, and want a professional home for them.",
+      "who": "You're busy. People already find you through referrals, events, Instagram, or the sign out front. You don't care about Google and don't need to. You just want a site that looks as good as your work does, and you never want to learn a website builder.",
+      "feeling": "People find me fine. But when they land on my site, or my Instagram link goes nowhere, it undercuts me. I've meant to fix it for a year.",
+      "weDo": [
+        "Design and build a custom site around what you do and who walks in the door",
+        "Host it, maintain it, and watch it for problems",
+        "Make a change when you ask, once a month, from the copy or photo you send",
+        "Send a plain-English summary every quarter, so you can see what's working",
+        "Keep the tools you already use. We build around them"
       ],
+      "weDont": [
+        "Search strategy or research into what people type into Google",
+        "Advice on what to write or post",
+        "A login for you. You send us the change, we make it"
+      ],
+      "buildPrice": "$1,200",
+      "buildPriceNote": "one-time build",
+      "monthlyPrice": "$60",
+      "monthlyPriceNote": "per month",
+      "quoted": false,
       "monthlySummary": [
-        "Hosting and routine maintenance",
-        "Monitoring, so problems get caught before you notice them",
-        "Minor content updates",
-        "A plain-English recap once a year"
+        "Hosting, maintenance and monitoring",
+        "One change a month from the copy or photos you send",
+        "A plain-English summary every quarter",
+        "Email support"
       ],
       "ctaLabel": "Start with Presence"
     },
     {
-      "id": "search",
-      "name": "Search",
-      "line": "Keep showing up.",
-      "bestFor": "Businesses that want the site built around how customers actually search, without it turning into an SEO project.",
-      "buildPrice": "$1,750",
+      "id": "growth",
+      "name": "Growth",
+      "line": "Get found by people who are already searching.",
+      "sub": "For businesses ready to bring in clients from search. We study the results you want to win and build your site to reach them.",
+      "who": "What you're doing works, but it isn't enough. You know people are typing what you do into Google, and you want to be the one they find. You can name the searches you wish you showed up in, and you're ready for calls from strangers.",
+      "feeling": "I know people are searching for this. I want to be the one they find.",
+      "weDo": [
+        "Study the actual search results for the searches you want to win",
+        "Build your site's page list from that research, so the structure itself is built to show up",
+        "Write the words on your core pages around it, after one call to get your tone right",
+        "Host it, maintain it, and watch how it performs in search",
+        "Update pages when the numbers point somewhere useful, and send you a summary every quarter",
+        "A kickoff call, and a check-in at each stage"
+      ],
+      "weDont": [
+        "Reinvent what you sell or who buys it. Growth assumes you know",
+        "Ongoing strategy meetings. The strategy is set at the start and built into the site",
+        "Paid advertising"
+      ],
+      "buildPrice": "$1,800",
       "buildPriceNote": "one-time build",
-      "monthlyPrice": "$150",
+      "monthlyPrice": "$160",
       "monthlyPriceNote": "per month",
-      "cardIncludes": [
-        "Everything in Presence",
-        "Keyword research and a search-informed site structure",
-        "SEO copy written for your core pages",
-        "24 SEO blog posts a year, written and published for you",
-        "Search Console monitoring and an annual keyword refresh"
-      ],
+      "quoted": false,
       "monthlySummary": [
-        "Everything in the Presence subscription",
-        "24 SEO blog posts a year, written and published for you",
-        "Search Console and analytics monitoring",
-        "An annual keyword refresh and a Google Business Profile check"
+        "Everything in Presence",
+        "Search monitoring",
+        "Updates to pages and structure tied to your search goals",
+        "A summary every quarter, tied to those goals"
       ],
-      "ctaLabel": "Start with Search"
+      "ctaLabel": "Start with Growth"
     },
     {
-      "id": "search-plus",
-      "name": "Search Plus",
-      "line": "Keep growing.",
-      "bestFor": "Businesses that want us watching what is working and improving the site through the year, not just at launch.",
-      "buildPrice": "$2,000",
+      "id": "agile",
+      "name": "Agile",
+      "line": "Still figuring it out? We'll build as you go.",
+      "sub": "For new or evolving offerings where the search strategy has to be invented. We research, meet often, and change the site as you change.",
+      "who": "Your offering is new, unusual, or still taking shape. Nobody is typing a tidy phrase for it yet, so there's no playbook to follow. You need someone who'll stay in it with you while the business finds its shape.",
+      "feeling": "I know there's demand, but I'm not sure how people would look for me. My business is still changing.",
+      "weDo": [
+        "Longer discovery about what the business is and where it's going",
+        "Research where the obvious data doesn't exist, and a page list built from it",
+        "A heavier build: more research shaping each page, tests where there's a real question to answer",
+        "A site engineered so the search strategy can be swapped later without breaking what works",
+        "A check-in every two weeks during the build, then a strategy meeting every month",
+        "Ongoing research, tests, and changes to the site as the strategy and the business evolve"
+      ],
+      "weDont": [
+        "Set it and forget it. Agile is a relationship, not a launch",
+        "Make business decisions for you. We bring the research, you decide",
+        "Advertising outside of search"
+      ],
+      "buildPrice": "$2,100",
       "buildPriceNote": "one-time build",
-      "monthlyPrice": "$275",
+      "monthlyPrice": "$425",
       "monthlyPriceNote": "per month",
-      "cardIncludes": [
-        "Everything in Search",
-        "Competitor and search-market analysis",
-        "Deeper keyword research based on competitor gaps",
-        "Positioning and copy shaped by what competitors miss",
-        "Active optimization through the year"
-      ],
+      "quoted": false,
       "monthlySummary": [
-        "Everything in the Search subscription",
-        "Active review of search performance through the year",
-        "Updates to existing pages when the data points somewhere useful",
-        "Strategic supporting pages when they will help"
+        "Everything in Growth",
+        "A strategy meeting every month",
+        "Research that keeps going as the business changes",
+        "Tests, and the changes that come out of them"
       ],
-      "ctaLabel": "Start with Search Plus"
+      "ctaLabel": "Start with Agile"
+    },
+    {
+      "id": "range",
+      "name": "Range",
+      "line": "More than one business under one roof.",
+      "sub": "For rental companies, multi-service businesses, and anyone with a catalog. Search strategy for every line, pages to match.",
+      "who": "You do a lot of things, and your site only tells people about a few. Every division wants its own page and its own customers. You're really several businesses in one, and you want to show up for all of them.",
+      "feeling": "We do a lot. Our site only shows a fraction of it.",
+      "weDo": [
+        "Growth-level search research for every arm of the business",
+        "A large, well-organized site with a section for each arm and its own path to customers",
+        "A structure that keeps the arms from competing with each other on Google",
+        "Host it, maintain it, and watch every arm's search performance",
+        "A kickoff call, and a check-in at each stage"
+      ],
+      "weDont": [
+        "Treat you as one business. Range is scoped per arm, and priced the same way",
+        "Publish a fixed price. We publish the floor and quote the rest after one conversation"
+      ],
+      "buildPrice": "$2,100",
+      "buildPriceNote": "from, quoted",
+      "monthlyPrice": "$350",
+      "monthlyPriceNote": "from, quoted",
+      "quoted": true,
+      "monthlySummary": [
+        "Everything in Growth, for every arm",
+        "Search monitoring per arm",
+        "Updates tied to each arm's search goals",
+        "Scoped in your quote"
+      ],
+      "ctaLabel": "Talk about Range"
     }
   ],
+  "payment": {
+    "heading": "How you pay.",
+    "lead": "The price is rarely the problem. Paying it all at once is. So you don't have to.",
+    "options": [
+      {
+        "title": "Half and half",
+        "body": "Half the build at kickoff, half at launch. This is the standard."
+      },
+      {
+        "title": "Twelve payments",
+        "body": "Spread the build over twelve monthly payments of nine percent of the build price. Available on every package. If the payments stop, the site goes to a holding page until they catch up."
+      }
+    ],
+    "monthlyStarts": "The monthly fee starts the day your site goes live and is billed automatically.",
+    "terms": "Every package runs on a 12-month term from launch and renews a year at a time. You can cancel mid-term with 30 days' notice, but the months left in that term are still due. Your domain and your content are yours either way, and if you ever leave, we'll help you move them."
+  },
+  "sorter": {
+    "heading": "Which one is you?",
+    "lead": "Four questions. Answer them and you'll probably know. If not, ask us and we'll say which one, and why not the ones above and below it.",
+    "questions": [
+      {
+        "q": "Where do your clients come from now, and is that enough?",
+        "answers": [
+          { "a": "Enough.", "package": "Presence" },
+          { "a": "Not enough.", "package": "Keep going" }
+        ]
+      },
+      {
+        "q": "If someone searched for you on Google, what would they type?",
+        "answers": [
+          { "a": "You can say it in a few words.", "package": "Growth or Range" },
+          { "a": "It depends, or you're not sure.", "package": "Agile" }
+        ]
+      },
+      {
+        "q": "How many different things do you sell, to how many kinds of customers?",
+        "answers": [
+          { "a": "One or two.", "package": "Growth or Agile" },
+          { "a": "Many.", "package": "Range" }
+        ]
+      },
+      {
+        "q": "How involved do you want to be after launch?",
+        "answers": [
+          { "a": "As little as possible.", "package": "Presence or Growth" },
+          { "a": "I want a partner in it.", "package": "Agile" }
+        ]
+      }
+    ]
+  },
   "monthly": {
     "heading": "Keep your site working.",
-    "lead": "Every Keepsite site includes hosting, maintenance, and monitoring. On Search and Search Plus, the monthly is mostly content and search work.",
-    "headline": "24 SEO blog posts a year, written and published for you.",
-    "closing": "Every Keepsite site also includes an inquiry page, set up to send straight to your email or your existing CRM.",
-    "subscriptionTerms": "Every package runs on a 12-month term from launch and renews a year at a time. You can cancel mid-term with 30 days' notice, but the months left in that term are still due. Either way, your domain and your content are yours — if you ever leave, we'll help you move them."
+    "lead": "Every package includes hosting, maintenance, and monitoring, so the site keeps doing its job without becoming yours. From Growth up, the monthly is mostly search work.",
+    "headline": "We find out what your customers search for. Then we build the site to be the answer.",
+    "closing": "Every Keepsite site also includes an inquiry page, set up to send straight to your email or the tools you already use."
   },
   "comparison": [
-    {
-      "group": "Build",
-      "feature": "Custom website design and build",
-      "presence": "true",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Build",
-      "feature": "Mobile optimization",
-      "presence": "true",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Build",
-      "feature": "Technical SEO setup",
-      "presence": "Basic",
-      "search": "Full on-page setup",
-      "searchPlus": "Full on-page setup"
-    },
-    {
-      "group": "Build",
-      "feature": "Google Business Profile and social links connected",
-      "presence": "true",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Build",
-      "feature": "Keyword research and page mapping",
-      "presence": "false",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Build",
-      "feature": "Copy for your core pages",
-      "presence": "We edit and place yours",
-      "search": "We write it around your keywords",
-      "searchPlus": "We write it around your keywords and your competitors"
-    },
-    {
-      "group": "Build",
-      "feature": "Competitor and search-market analysis",
-      "presence": "false",
-      "search": "false",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Monthly",
-      "feature": "Hosting, maintenance, and monitoring",
-      "presence": "true",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Monthly",
-      "feature": "Minor content updates",
-      "presence": "true",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Monthly",
-      "feature": "SEO blog posts written and published",
-      "presence": "false",
-      "search": "24 a year",
-      "searchPlus": "24 a year"
-    },
-    {
-      "group": "Monthly",
-      "feature": "Search Console and analytics monitoring",
-      "presence": "false",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Monthly",
-      "feature": "Annual keyword refresh",
-      "presence": "false",
-      "search": "true",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Monthly",
-      "feature": "Active optimization through the year",
-      "presence": "false",
-      "search": "false",
-      "searchPlus": "true"
-    },
-    {
-      "group": "Monthly",
-      "feature": "Annual recap in plain English",
-      "presence": "true",
-      "search": "true",
-      "searchPlus": "true"
-    }
+    { "group": "Build", "feature": "Custom design and build, mobile-first", "presence": "true", "growth": "true", "agile": "true", "range": "true" },
+    { "group": "Build", "feature": "Research into what your customers search for", "presence": "false", "growth": "Search results you want to win", "agile": "Invented where the data doesn't exist", "range": "Per arm" },
+    { "group": "Build", "feature": "Page list built from that research", "presence": "false", "growth": "true", "agile": "true", "range": "One section per arm" },
+    { "group": "Build", "feature": "Copy for your core pages", "presence": "We edit and place yours", "growth": "We write it around the research", "agile": "We write it, and test it", "range": "We write it, per arm" },
+    { "group": "Build", "feature": "A/B tests during the build", "presence": "false", "growth": "false", "agile": "true", "range": "false" },
+    { "group": "Build", "feature": "Built so the search strategy can be swapped later", "presence": "false", "growth": "false", "agile": "true", "range": "false" },
+    { "group": "Meetings", "feature": "Kickoff call", "presence": "false", "growth": "true", "agile": "true", "range": "true" },
+    { "group": "Meetings", "feature": "Check-ins during the build", "presence": "false", "growth": "One per stage", "agile": "Every two weeks", "range": "One per stage" },
+    { "group": "Meetings", "feature": "Strategy meetings after launch", "presence": "false", "growth": "false", "agile": "Monthly", "range": "false" },
+    { "group": "Monthly", "feature": "Hosting, maintenance, and monitoring", "presence": "true", "growth": "true", "agile": "true", "range": "true" },
+    { "group": "Monthly", "feature": "Changes from the copy or photos you send", "presence": "One a month", "growth": "true", "agile": "true", "range": "true" },
+    { "group": "Monthly", "feature": "Search monitoring", "presence": "false", "growth": "true", "agile": "true", "range": "Per arm" },
+    { "group": "Monthly", "feature": "Updates tied to your search goals", "presence": "false", "growth": "true", "agile": "true", "range": "Per arm" },
+    { "group": "Monthly", "feature": "Ongoing research and tests", "presence": "false", "growth": "false", "agile": "true", "range": "false" },
+    { "group": "Monthly", "feature": "Plain-English summary", "presence": "Quarterly", "growth": "Quarterly", "agile": "Quarterly", "range": "Quarterly" }
   ],
   "addOns": {
     "heading": "If you need something extra.",
     "items": [
-      {
-        "name": "Additional standard page",
-        "price": "$180 per page",
-        "note": "Uses your existing site style and your copy. No new keyword research."
-      },
-      {
-        "name": "Additional SEO page",
-        "price": "$270 per page",
-        "note": "Search and Search Plus only. A new search-informed service or location page."
-      },
-      {
-        "name": "Full copy development",
-        "price": "$90 an hour",
-        "note": "For when there isn't source material to work from and the messaging has to be written from scratch."
-      },
-      {
-        "name": "Advanced integration",
-        "price": "$90 an hour, quoted first",
-        "note": "Booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed."
-      },
-      {
-        "name": "Major website expansion",
-        "price": "Custom quote",
-        "note": "New service lines, large content migrations, or anything that really changes the original scope."
-      }
+      { "name": "Extra change request", "price": "$60 per request", "note": "Beyond what your monthly covers. You send the copy or the photo, we make the change." },
+      { "name": "Additional standard page", "price": "$150 per page", "note": "Uses your existing site style and your copy. No new research." },
+      { "name": "Additional search page", "price": "$225 per page", "note": "Growth, Agile and Range. A new research-informed service or location page." },
+      { "name": "Copy written from scratch", "price": "Quoted first", "note": "For when there isn't source material to work from. We tell you the price in writing before we start." },
+      { "name": "Integrations and custom work", "price": "Quoted first", "note": "Booking platforms, multi-step forms, custom routing, or CRM work beyond a simple embed." },
+      { "name": "Major expansion", "price": "Custom quote", "note": "New service lines, large content migrations, or anything that really changes the original scope." }
     ],
     "upgradeRule": "If what you need is more strategy rather than more pages, we'll move you to the package that covers it instead of selling it piece by piece."
   },
@@ -220,10 +224,10 @@
     "heading": "Questions about scope",
     "topics": [
       "which-package",
-      "search-vs-search-plus",
+      "why-agile-costs-more",
+      "why-range-no-price",
       "what-monthly-covers",
-      "who-writes-copy",
-      "change-tiers"
+      "start-small-move-up"
     ],
     "moreLabel": "More questions",
     "moreHref": "/faq/"
