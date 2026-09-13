@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildIcs } from './ics.mjs';
+import { buildIcs, buildFeedIcs } from './ics.mjs';
 
 const base = {
   uid: 'm1@keepsitemedia.com',
@@ -53,4 +53,22 @@ test('a CANCEL method carries its sequence and STATUS:CANCELLED', () => {
   assert.ok(lines.includes('METHOD:CANCEL'));
   assert.ok(lines.includes('SEQUENCE:2'));
   assert.ok(lines.includes('STATUS:CANCELLED'));
+});
+
+test('buildFeedIcs writes all-day and timed events for a whole window', () => {
+  const now = new Date('2026-09-13T15:00:00Z');
+  const items = [
+    { kind: 'task', id: 'a1', business: null, title: 'Post', due: '2026-09-19', time: null, done: false, url: 'https://x/office/tasks/' },
+    { kind: 'task', id: 'a2', business: 'Acme', title: 'Call', due: '2026-09-19', time: '09:00', done: true, url: 'https://x/office/clients/acme/?tab=tasks' },
+    { kind: 'meeting', id: 'b1', business: 'Acme', title: 'Kickoff', ymd: '2026-09-20', time: '10:00', minutes: 45, url: 'https://x/office/clients/acme/?tab=meetings' },
+  ];
+  const ics = buildFeedIcs(items, now);
+  assert.match(ics, /^BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-\/\/Keepsite Media\/\/Office\/\/EN\r\n/);
+  assert.doesNotMatch(ics, /METHOD:/);
+  assert.equal((ics.match(/BEGIN:VEVENT/g) ?? []).length, 3);
+  assert.match(ics, /UID:a1@keepsitemedia.com\r\nDTSTAMP:20260913T150000Z\r\nDTSTART;VALUE=DATE:20260919\r\nDTEND;VALUE=DATE:20260920\r\nSUMMARY:Post\r\n/);
+  assert.match(ics, /UID:a2@keepsitemedia.com\r\n[^]*?DTSTART:20260919T150000Z\r\nDTEND:20260919T153000Z\r\nSUMMARY:Acme: Call\r\nSTATUS:COMPLETED\r\n/);
+  assert.match(ics, /UID:b1@keepsitemedia.com\r\n[^]*?DTSTART:20260920T160000Z\r\nDTEND:20260920T164500Z\r\nSUMMARY:Acme: Kickoff\r\n/);
+  assert.match(ics, /URL:https:\/\/x\/office\/tasks\/\r\n/);
+  assert.match(ics, /END:VCALENDAR\r\n$/);
 });
