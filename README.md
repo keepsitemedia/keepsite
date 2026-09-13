@@ -57,6 +57,21 @@ verified by DNS and linked to GA4, and the website URL on their Google
 Business Profile. Clients on the seeded pipeline stored before this task
 existed do not get it until the pipelines are re-saved under Settings.
 
+## Brand assets
+
+The logo source is `docs/brand/keepsitelogo.png`, the Canva export. Three
+files derive from it and are committed, so a build never touches it:
+
+- `public/og-default.png`, the share card, from `npm run og`.
+- `public/apple-touch-icon.png`, the stripe block at 180px, from `npm run icons`.
+- `public/favicon.svg`, the stripe block, edited by hand.
+
+The site's faces are Arial and Georgia, which ship with Windows, macOS and
+iOS, with Arimo and Gelasio self-hosted as metric-identical fallbacks for
+Android and Linux, and Montserrat for labels. All three fallbacks are SIL
+OFL through fontsource. `scripts/verify.mjs` fails the build if a stylesheet
+still names the retired faces or palette.
+
 ## Turning on the Work page
 
 `/work/`, its nav item, the homepage strip, and the sitemap entry are all generated from the `work` content collection, which is empty at launch. They appear on the next deploy after the first entry exists. Nothing needs a code change.
