@@ -192,6 +192,13 @@ a payment, each with the button that chases it). A client's page has the
 same rail with the dates each stage was reached and the one Advance
 button, then a glance band: agreement, deposit, questionnaires, next task.
 
+Pipeline tasks can name the packages they apply to and a repeat (weekly,
+every two weeks, monthly, quarterly, yearly). Advancing a client creates
+only the tasks for their tier; marking a repeating task done creates the
+next one while the client is still in that task's stage, which is how
+Agile's check-ins stop at launch and its monthly strategy meeting keeps
+going.
+
 ### Setting up, in order
 
 Once per site. The detail for each step is in the section named beside it;
@@ -367,13 +374,21 @@ client.
 
 ### Agreements
 
-The three package agreements are generated from the docx files (see "What
-doesn't belong in this repo" for regenerating). On a client's Agreements tab,
-pick the template, check Schedule 1 (prefilled from the client and the tier),
-and create the draft. Sign it as Keepsite on the next screen; Send opens the
-agreement email with the client's signing link filled in. The client reads
-the agreement at `/sign/?t=…`, ticks two consents, draws a signature and
-signs, or declines with a reason. Signing links last fourteen days.
+The four package agreements (Presence, Growth, Agile, Range) are generated
+from the docx files (see "What doesn't belong in this repo" for
+regenerating). On a client's Agreements tab, pick the template, check
+Schedule 1 (prefilled from the client and the tier), and create the draft.
+Sign it as Keepsite on the next screen; Send opens the agreement email with
+the client's signing link filled in. The client reads the agreement at
+`/sign/?t=…`, ticks two consents, draws a signature and signs, or declines
+with a reason. Signing links last fourteen days.
+
+`search.json` and `search-plus.json` are retired: they still render and seal
+agreements created against them, never appear in the template picker, and
+are never regenerated. Schedule 1 carries a payment plan (half and half, or
+twelve monthly payments; the deposit and balance rows must still add up)
+and, on Range, the list of business arms, which the create form prompts
+for.
 
 Sending closes the "Send agreement" task. When both have signed, the office
 seals a PDF with both signatures and a certificate of completion page, stores
@@ -446,6 +461,12 @@ Never commit, and never put in a DecapCMS field, any of the following. If it can
 
 The operating SOP that contains the first three lives outside this repo entirely, in the owner's Drive or a separate private ops repo. `*.docx` and `docs/internal/` are gitignored so those files cannot be added by accident, but gitignore is a convenience and not a control: do not keep them in this working directory.
 
-The office renders agreements from `src/data/office/agreements/*.json`, which `scripts/agreement-from-docx.py` generates from the docx files in `../legal/` (`python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json`, and the same for `search` and `search-plus`). Never edit the JSON by hand; change the docx and regenerate. It needs `python-docx`.
+The office renders agreements from `src/data/office/agreements/*.json`, which `scripts/agreement-from-docx.py` generates from the docx files in `../legal/`:
+
+```
+python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json
+```
+
+and the same for `growth`, `agile` and `range`. The docx are written by `../legal/tools/make-agreements.py` from the Search Plus docx in `../legal/`; edit that script, not the docx, then regenerate. Never edit the JSON by hand; change the docx and regenerate. It needs `python-docx`.
 
 Client-facing add-on rates (for example `$180` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.
