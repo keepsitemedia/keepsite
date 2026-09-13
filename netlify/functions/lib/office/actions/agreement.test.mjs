@@ -63,6 +63,7 @@ test('create with a discount stores Exhibit D values', async () => {
 test('create validates', async () => {
   const s = await make();
   assert.match(loc(await agreement(post({ ...createFields, template: 'nope' }), ctx(), s, mail, NOW)), /error=unknown template/);
+  assert.match(loc(await agreement(post({ ...createFields, template: 'search-plus' }), ctx(), s, mail, NOW)), /error=unknown template/);
   assert.match(loc(await agreement(post({ ...createFields, legalName: '' }), ctx(), s, mail, NOW)), /error=legal business name/);
   assert.match(loc(await agreement(post({ ...createFields, email: 'bad' }), ctx(), s, mail, NOW)), /error=email/);
   assert.match(loc(await agreement(post({ ...createFields, deposit: 'abc' }), ctx(), s, mail, NOW)), /error=deposit/);

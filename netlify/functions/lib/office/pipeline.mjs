@@ -52,6 +52,10 @@ export function validatePipelines(value) {
           else for (const name of t.tiers) if (!TIERS.includes(name)) errors.push(`${tat}: tiers names unknown tier "${name}"`);
         }
         if (t.repeat !== undefined && !isRepeat(t.repeat)) errors.push(`${tat}: repeat must be weekly, biweekly, monthly, quarterly or yearly`);
+        // hooks.mjs, payments.mjs and agreements.mjs close these three task
+        // kinds without rolling a repeat forward, so combining them would
+        // silently drop the repeat after the first completion.
+        if (t.repeat !== undefined && (t.questionnaire || t.payment || t.agreement)) errors.push(`${tat}: a repeating task cannot also wait on a questionnaire, payment or agreement`);
       });
     });
   });

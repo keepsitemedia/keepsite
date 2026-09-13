@@ -35,6 +35,7 @@ test('validatePipelines names what is wrong', () => {
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, tiers: 'Agile' }] }] }]).join(), /tiers/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, repeat: 'daily' }] }] }]).join(), /repeat/);
   assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, tiers: ['Agile'], repeat: 'monthly' }] }] }]).join(), /^$/);
+  assert.match(validatePipelines([{ id: 'a', name: 'x', stages: [{ id: 's', name: 'S', tasks: [{ title: 't', due: 1, repeat: 'monthly', payment: 'deposit' }] }] }]).join(), /repeating task/);
 });
 
 // Every new client starts at pipelines[0].stages[0]; a saved setting with

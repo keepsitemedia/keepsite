@@ -2,7 +2,7 @@
  "id": "range",
  "name": "Range Package",
  "tier": "Range",
- "version": "d9d9e3c168df",
+ "version": "0e368b745c7e",
  "defaults": {
   "buildFee": "$2,100",
   "monthlyFee": "$350",
@@ -1100,6 +1100,10 @@
   {
    "type": "table",
    "rows": [
+    [
+     "Arms",
+     "Listed one per line"
+    ],
     [
      "Business arms covered",
      "{{arms}}"

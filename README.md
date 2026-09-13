@@ -467,6 +467,6 @@ The office renders agreements from `src/data/office/agreements/*.json`, which `s
 python3 scripts/agreement-from-docx.py ../legal/presence-agreement.docx presence > src/data/office/agreements/presence.json
 ```
 
-and the same for `growth`, `agile` and `range`. The docx are written by `../legal/tools/make-agreements.py` from the Search Plus docx in `../legal/`; edit that script, not the docx, then regenerate. Never edit the JSON by hand; change the docx and regenerate. It needs `python-docx`.
+and the same for `growth`, `agile` and `range`. The docx are written by `../legal/tools/make-agreements.py` from the Search Plus docx in `../legal/`; edit that script, not the docx, then regenerate the docx. Separately, never edit the JSON by hand; change the docx and regenerate the JSON. It needs `python-docx`.
 
-Client-facing add-on rates (for example `$180` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.
+Client-facing add-on rates (for example `$150` for an additional standard page) are published on `/packages/` and are fine to have in the repo. The internal cost basis behind them is not.
