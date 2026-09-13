@@ -15,8 +15,8 @@
   --faint: #B4BAB6;
   --green: var(--color-brand);
   --green-deep: var(--color-brand-deep);
-  --moss: var(--color-brand-tint);
-  --clay: var(--color-accent);
+  --moss: #E6EFE9;
+  --clay: #A24A26;
   --clay-tint: #F6EAE4;
   --radius-control: 6px;
   --radius-sheet: 8px;
@@ -27,6 +27,8 @@
   color: var(--ink);
   background: var(--paper);
 }
+/* The site's stripe and rule are marketing ornament; the ledger stays plain. */
+.office :is(h1, h2)::before { content: none; }
 .office main { padding: var(--space-3) 0 var(--space-6); }
 .office p { max-width: 64ch; }
 /* global.css caps lists at the prose measure; these lists are the page. */

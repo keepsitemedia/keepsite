@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import Logo from './Logo.astro';
 import site from '../data/site.json';
 
 const path = Astro.url.pathname;
@@ -18,7 +19,7 @@ const navItems = hasWork
 ---
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/">{site.brand}</a>
+    <Logo variant="compact" />
     <nav aria-label="Primary">
       {navItems.map((item) => (
         <a
@@ -32,12 +33,13 @@ const navItems = hasWork
 </header>
 
 <style>
+  /* The logo's heavy rule is the header's bottom edge. */
   .site-header {
     position: sticky;
     top: 0;
     z-index: 10;
     background: var(--color-bg);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 3px solid var(--color-ink);
   }
   .header-inner {
     display: flex;
@@ -48,43 +50,34 @@ const navItems = hasWork
     padding-top: var(--space-2);
     padding-bottom: var(--space-2);
   }
-  .brand {
-    font-weight: 600;
-    font-size: var(--step-1);
-    letter-spacing: -0.02em;
-    text-decoration: none;
-    color: var(--color-ink);
-  }
   nav { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-  .nav-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    color: var(--color-ink);
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 120ms ease;
-  }
-  .nav-link:hover { color: var(--color-brand); }
-  /* Clay, use one: the underline on the current nav item. */
-  .nav-link[aria-current="page"] {
-    color: var(--color-brand);
-    text-decoration: underline;
-    text-decoration-color: var(--color-accent);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.35em;
-  }
+  .nav-link,
   .nav-cta {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .nav-link { color: var(--color-ink); transition: color 120ms ease; }
+  .nav-link:hover { color: var(--color-brand); }
+  .nav-link[aria-current="page"] {
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-decoration-color: var(--color-brand);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.4em;
+  }
+  .nav-cta {
     padding: 0.5rem 1.1rem;
     border-radius: var(--radius);
-    background: var(--color-brand);
+    background: var(--color-ink);
     color: #FFFFFF;
-    font-weight: 600;
-    text-decoration: none;
     transition: background-color 120ms ease;
   }
-  .nav-cta:hover { background: var(--color-brand-deep); color: #FFFFFF; }
+  .nav-cta:hover { background: var(--color-brand); color: #FFFFFF; }
 </style>

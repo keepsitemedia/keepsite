@@ -59,13 +59,10 @@ the gate's own output in B4.
   400 ms RTT: **CLS 0, zero layout-shift entries.** Not one shift was recorded
   at any point in the load, which is what the preloaded woff2 is there to buy.
 
-**Not proven: the `size-adjust` numbers themselves.** The fallback face declares
-`src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans')`. This
-Linux container has none of the three, so `Instrument Sans Fallback` resolved to
-`status: "error"` and the fallback measurement fell through to Chrome's default
-sans. The 70 px block-height delta measured with fonts blocked is that
-substitution, not evidence about `size-adjust: 106.5%`. Validating the metric
-overrides needs a machine where Arial exists. It is B7.
+**Superseded by the 2026-09-13 rebrand.** There is no metric-fallback face
+any more: the sans is Arial with Arimo, its metric-identical clone, as the
+self-hosted fallback, so no `size-adjust` exists to validate. B7 now checks
+which fonts a machine with Arial requests.
 
 ### A3. axe-core, seven routes, two viewports
 
@@ -271,18 +268,10 @@ merges the nine items Task 6.4 left open.
   `/admin`.** See **D1** before you do: it is expected to fail, and this is the
   check that confirms it.
 
-- [ ] **B7. Font metrics on a machine that has Arial.** Throttle to Slow 3G,
-  disable cache, reload `/`, watch the hero. Expect no visible reflow when
-  Instrument Sans swaps in.
-
-  If text jumps: block `/_astro/*.woff2` in the Network tab, screenshot the
-  hero, unblock, reload, screenshot again, compare line widths. The current
-  values in `src/styles/global.css` are `size-adjust: 106.5%`,
-  `ascent-override: 91.1%`, `descent-override: 23.5%`. Widen or narrow
-  `size-adjust` until the screenshots match, then re-derive the other two
-  overrides as `0.970 / size-adjust` and `0.250 / size-adjust`. Owner
-  follow-up: edit those three values in `src/styles/global.css`, using the
-  re-derivation method above.
+- [ ] **B7. Fonts on a machine that has Arial.** Open the Network tab, reload
+  `/`, filter by `woff2`. Expect exactly one font request, Montserrat. Arimo
+  and Gelasio load only on Android and Linux, where Arial and Georgia are
+  missing; they are metric-identical, so no reflow either way.
 
 - [ ] **B8. Netlify Forms re-detection.** The `inquiry` form appears under the
   site's **Forms** tab after this build. Detection is build-time. If it is
@@ -515,7 +504,7 @@ re-runs it against production); `npm run gate` 20/20.
 **Pending the preview:** header delivery, the `/admin` exact-path CSP block,
 cache headers, the Lighthouse plugin's own gate, Decap booting, Netlify Forms
 re-detection, live submission, the two-screen band question, and the
-`size-adjust` validation.
+font-request check in B7.
 
 **Pending production:** the domain flip, DevTools Lighthouse, axe DevTools,
 redirects, security headers, Rich Results, a real screen reader, share-card

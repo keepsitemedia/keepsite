@@ -1,48 +1,35 @@
-/* ---------------------------------------------------------------
-   Metric-matched fallback for Instrument Sans.
-
-   Declared before the real face so it is in place on first paint.
-   Derived from Instrument Sans (upem 1000, hhea ascent 970,
-   descent -250, lineGap 0) against Arial (upem 2048, ascent 1854,
-   descent -434). size-adjust matches frequency-weighted lowercase
-   advance widths: Instrument Sans 508.5/1000em vs Arial 477.4/1000em,
-   so 508.5 / 477.4 = 1.065. The ascent and descent overrides are
-   expressed against the already-scaled em, so they are the target
-   ratios divided by size-adjust: 0.970 / 1.065 = 0.911 and
-   0.250 / 1.065 = 0.235.
-
-   Liberation Sans is metrically identical to Arial; Helvetica Neue
-   is close enough that the same numbers hold.
-
-   Task 9.2 validates these with a CLS check. If CLS is not 0,
-   adjust size-adjust first, then re-derive the two overrides.
-   --------------------------------------------------------------- */
-@font-face {
-  font-family: 'Instrument Sans Fallback';
-  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
-  size-adjust: 106.5%;
-  ascent-override: 91.1%;
-  descent-override: 23.5%;
-  line-gap-override: 0%;
-  font-display: swap;
-}
-
 :root {
-  /* Color */
-  --color-bg: #FBF9F4;           /* warm off-white */
+  /* Color. The logo's three stripes and its black, on white. Rust is the
+     only stripe that clears 4.5:1 on white, so it is the only colored text;
+     slate, mustard and copper are fills and never sit under white text. */
+  --color-bg: #FFFFFF;
   --color-surface: #FFFFFF;      /* cards, form fields */
-  --color-surface-alt: #F2EEE4;  /* warm sand, alternating bands */
-  --color-ink: #1F2421;          /* body text */
-  --color-muted: #55605B;        /* secondary text */
-  --color-brand: #1F5C43;        /* Keep Green: links, buttons, active nav */
-  --color-brand-deep: #16302A;   /* closing CTA band, footer */
-  --color-brand-tint: #E6EFE9;   /* tier badges, subtle fills */
-  --color-accent: #A24A26;       /* Clay. At most twice per page. */
-  --color-border: #E4DFD2;
+  --color-surface-alt: #F7F5F1;  /* alternating bands, footer */
+  --color-ink: #111111;          /* text, primary buttons, the closing band, the rule */
+  --color-muted: #5A5A5A;        /* secondary text */
+  --color-brand: #B8512C;        /* rust: links, active nav, serif accents, hovers */
+  --color-brand-deep: #8F3E22;   /* link hover */
+  --color-slate: #628997;
+  --color-mustard: #DFAA3F;      /* always with ink text on it */
+  --color-mustard-deep: #C9962F; /* mustard button hover */
+  --color-copper: #D1884B;       /* "media" in the logo and the Range tier bar. Never text. */
+  --color-border: #E3DED6;
 
-  /* Type */
-  --font-sans: 'Instrument Sans Variable', 'Instrument Sans Fallback', Arial, sans-serif;
-  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+  /* The stripe block, drawn as hard gradient stops so one token serves the
+     hero mark, the closing band and the logo. */
+  --stripe: linear-gradient(
+    to bottom,
+    var(--color-slate) 0 33.34%,
+    var(--color-mustard) 33.34% 66.67%,
+    var(--color-brand) 66.67% 100%
+  );
+
+  /* Type. The system face first, its metric-identical open clone second, so
+     a machine with Arial and Georgia fetches nothing and the layout is the
+     same either way. */
+  --font-sans: Arial, 'Arimo', 'Liberation Sans', Helvetica, sans-serif;
+  --font-serif: Georgia, 'Gelasio', 'Times New Roman', serif;
+  --font-label: 'Montserrat', Arial, 'Arimo', sans-serif;
   --step--1: 0.9375rem;
   --step-0: 1.0625rem;
   --step-1: 1.125rem;
@@ -82,21 +69,20 @@ html {
 }
 
 /* No background here on purpose: html carries it, and it propagates to the
-   canvas. An opaque body would paint over BackgroundShapes, which sits at
-   z-index -1 and therefore behind every in-flow block background. */
+   canvas. */
 body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--step-0);
-  line-height: 1.65;
+  line-height: 1.6;
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3 {
   margin: 0 0 var(--space-2);
-  font-weight: 600;
-  line-height: 1.1;
+  font-weight: 700;
+  line-height: 1.05;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
@@ -105,7 +91,31 @@ h2 { font-size: var(--step-3); }
 h3 { font-size: var(--step-2); }
 p { margin: 0 0 var(--space-2); max-width: var(--maxw-prose); }
 ul, ol { max-width: var(--maxw-prose); }
-strong { font-weight: 600; }
+strong { font-weight: 700; }
+
+/* The logo's two devices are the whole ornament system. The stripe block
+   opens every page above its h1 and the closing band above its heading;
+   the heavy rule sits above every other section heading. Both are
+   pseudo-elements so no page has to carry markup for them. */
+h1::before,
+.section-deep h2::before {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 32px;
+  margin-bottom: var(--space-3);
+  background: var(--stripe);
+}
+h2::before {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 3px;
+  margin-bottom: var(--space-2);
+  background: var(--color-ink);
+}
+.center :is(h1, h2)::before { margin-inline: auto; }
+.visually-hidden::before { content: none; }
 
 a {
   color: var(--color-brand);
@@ -122,7 +132,7 @@ img { max-width: 100%; height: auto; }
 .section { padding: var(--section-y) 0; }
 .section-tight { padding: var(--space-5) 0; }
 .section-alt { background: var(--color-surface-alt); }
-.section-deep { background: var(--color-brand-deep); color: var(--color-bg); }
+.section-deep { background: var(--color-ink); color: var(--color-bg); }
 .section-deep h1,
 .section-deep h2,
 .section-deep h3,
@@ -136,16 +146,25 @@ img { max-width: 100%; height: auto; }
 .center p { margin-inline: auto; }
 .muted { color: var(--color-muted); }
 .lead { font-size: var(--step-2); max-width: var(--maxw-lead); color: var(--color-muted); }
-.section-deep .lead { color: var(--color-brand-tint); }
+.section-deep .lead { color: rgba(255, 255, 255, 0.8); }
 
-/* Two families sitewide, no italics. font-optical-sizing is the browser
-   default; it is written out because Newsreader's opsz axis is the
-   reason the serif holds up from 18px to 44px. */
+/* Three roles, one per part of the logo. The label is the tagline's
+   Montserrat, caps and tracked; buttons and nav links take it too. The
+   serif is the logo's "media", and the only italic on the site. */
+.label {
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
 .serif {
   font-family: var(--font-serif);
+  font-style: italic;
   font-weight: 400;
   letter-spacing: 0;
-  font-optical-sizing: auto;
+  color: var(--color-brand);
 }
 .price { font-variant-numeric: tabular-nums; }
 
@@ -171,32 +190,30 @@ img { max-width: 100%; height: auto; }
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0.85rem 1.6rem;
-  border: 0;
+  padding: 0.9rem 1.5rem;
+  border: 2px solid var(--color-ink);
   border-radius: var(--radius);
-  background: var(--color-brand);
+  background: var(--color-ink);
   color: #FFFFFF;
-  font: inherit;
-  font-weight: 600;
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
   transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
-.btn:hover { background: var(--color-brand-deep); color: #FFFFFF; }
+.btn:hover { background: var(--color-brand); border-color: var(--color-brand); color: #FFFFFF; }
 
-.btn-outline {
-  background: transparent;
-  color: var(--color-brand);
-  border: 1.5px solid var(--color-brand);
-}
-.btn-outline:hover {
-  background: var(--color-brand-tint);
-  color: var(--color-brand-deep);
-  border-color: var(--color-brand-deep);
-}
+.btn-outline { background: transparent; color: var(--color-ink); }
+.btn-outline:hover { background: var(--color-ink); border-color: var(--color-ink); color: #FFFFFF; }
 
-.section-deep .btn { background: var(--color-bg); color: var(--color-brand-deep); }
-.section-deep .btn:hover { background: #FFFFFF; color: var(--color-brand-deep); }
+/* Mustard on the black band: the one place the third stripe carries a
+   control. Ink text on it is 10:1. */
+.section-deep .btn { background: var(--color-mustard); border-color: var(--color-mustard); color: var(--color-ink); }
+.section-deep .btn:hover { background: var(--color-mustard-deep); border-color: var(--color-mustard-deep); color: var(--color-ink); }
 
 /* Secondary action: a text link with a thick underline, not an
    outline button. Two solid-looking buttons read as two equal
@@ -204,7 +221,7 @@ img { max-width: 100%; height: auto; }
 .link-arrow {
   display: inline-block;
   color: var(--color-brand);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 0.25em;
@@ -350,14 +367,14 @@ img { max-width: 100%; height: auto; }
   overflow: visible;
   clip-path: none;
   border-radius: var(--radius);
-  background: var(--color-brand-deep);
+  background: var(--color-ink);
   color: #FFFFFF;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
 }
 
-/* Two-tone focus ring. Ink on bg is 14.98:1 and bg on green is
-   7.47:1, so at least one ring is always visible. The transparent
+/* Two-tone focus ring. Ink on white is 18.9:1 and white on ink the
+   same, so at least one ring is always visible. The transparent
    outline keeps an indicator in Windows High Contrast. */
 :focus-visible {
   outline: 2px solid transparent;
@@ -365,7 +382,7 @@ img { max-width: 100%; height: auto; }
   box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-ink);
 }
 .section-alt :focus-visible { box-shadow: 0 0 0 2px var(--color-surface-alt), 0 0 0 4px var(--color-ink); }
-.section-deep :focus-visible { box-shadow: 0 0 0 2px var(--color-brand-deep), 0 0 0 4px var(--color-bg); }
+.section-deep :focus-visible { box-shadow: 0 0 0 2px var(--color-ink), 0 0 0 4px var(--color-bg); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

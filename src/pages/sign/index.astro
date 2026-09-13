@@ -2,11 +2,11 @@
 export const prerender = false;
 import '../../styles/global.css';
 import '../../styles/office.css';
-import '@fontsource-variable/newsreader/opsz.css';
-// office.css's body text is set in the sans family; OfficeLayout carries
-// this import for every other office page, and this page has no layout to
-// inherit it from.
-import '@fontsource-variable/instrument-sans/wght.css';
+// OfficeLayout carries these imports for every other office page, and this
+// page has no layout to inherit them from.
+import '@fontsource/arimo/latin-400.css';
+import '@fontsource/arimo/latin-700.css';
+import '@fontsource/gelasio/latin-400.css';
 import AgreementBody from '../../components/office/AgreementBody.astro';
 import site from '../../data/site.json';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';

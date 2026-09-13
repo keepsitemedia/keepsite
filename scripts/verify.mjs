@@ -53,7 +53,7 @@ const numeric = (s) => Number(String(s).replace(/[^0-9]/g, ''));
 
 section('Routes');
 check('every expected route is emitted', () => {
-  for (const p of [...PAGES, 'robots.txt', 'sitemap-index.xml', 'og-default.png', 'favicon.svg']) {
+  for (const p of [...PAGES, 'robots.txt', 'sitemap-index.xml', 'og-default.png', 'favicon.svg', 'apple-touch-icon.png']) {
     if (!fs.existsSync(path.join('dist', p))) throw new Error('missing ' + p);
   }
 });
@@ -292,25 +292,53 @@ check('FAQPage lives only on /faq/', () => {
 });
 
 section('Fonts');
-// The preload sits in the HTML and the @font-face in an externalized
-// stylesheet, so the hash has to agree across both files.
-check('the preload and the stylesheet request the same file', () => {
-  const SANS = /\/_astro\/instrument-sans-latin-wght-normal\.[A-Za-z0-9_-]+\.woff2/g;
+// Montserrat is the one face every visitor downloads (Arial and Georgia are
+// system faces; Arimo and Gelasio only load where those are missing). The
+// preload sits in the HTML and the @font-face either in an externalized
+// stylesheet or, when the chunk is small enough for Astro to inline it, in a
+// <style> in the same HTML, so both places are searched and the hash has to
+// agree between the preload and the declaration.
+const styles = (p) => {
+  const html = read(p);
+  const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
+    read(m[1].replace(/^\//, ''))
+  );
+  const inline = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+  return { html, css: [...sheets, ...inline] };
+};
+check('the preload and the declaration request the same file', () => {
+  const PRELOAD = /<link rel="preload" href="(\/_astro\/montserrat-latin-700-normal\.[A-Za-z0-9_-]+\.woff2)"/g;
+  const DECL = /url\((\/_astro\/montserrat-latin-700-normal\.[A-Za-z0-9_-]+\.woff2)\)/g;
   for (const p of PAGES) {
-    const html = read(p);
-    const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
-      read(m[1].replace(/^\//, ''))
-    );
-    if (!sheets.length) throw new Error(p + ' links no stylesheet');
-    const inHtml = new Set(html.match(SANS) || []);
-    const inCss = new Set(sheets.flatMap((c) => c.match(SANS) || []));
-    if (inHtml.size !== 1) throw new Error(`${p} preloads ${inHtml.size} sans assets`);
-    if (inCss.size !== 1) throw new Error(`${p} stylesheets declare ${inCss.size} sans assets`);
-    const [preloaded] = [...inHtml];
-    const [declared] = [...inCss];
-    if (preloaded !== declared) throw new Error(`${p} preloads ${preloaded} but loads ${declared}`);
-    for (const s of [html, ...sheets]) {
+    const { html, css } = styles(p);
+    if (!css.length) throw new Error(p + ' has no stylesheet');
+    const preloaded = new Set([...html.matchAll(PRELOAD)].map((m) => m[1]));
+    const declared = new Set(css.flatMap((c) => [...c.matchAll(DECL)].map((m) => m[1])));
+    if (preloaded.size !== 1) throw new Error(`${p} preloads ${preloaded.size} label assets`);
+    if (declared.size !== 1) throw new Error(`${p} declares ${declared.size} label assets`);
+    const [a] = [...preloaded];
+    const [b] = [...declared];
+    if (a !== b) throw new Error(`${p} preloads ${a} but loads ${b}`);
+    for (const s of [html, ...css]) {
       if (s.includes('fonts.googleapis.com')) throw new Error(p + ' uses a third-party font origin');
+    }
+  }
+});
+check('the retired faces are gone from every stylesheet', () => {
+  for (const p of PAGES) {
+    for (const s of styles(p).css) {
+      for (const face of ['Instrument Sans', 'Newsreader']) {
+        if (s.includes(face)) throw new Error(`${p} still declares ${face}`);
+      }
+    }
+  }
+});
+check('the retired palette is gone from every stylesheet', () => {
+  for (const p of PAGES) {
+    for (const s of styles(p).css) {
+      for (const hex of ['#1F5C43', '#16302A', '#E6EFE9', '#A24A26', '#FBF9F4']) {
+        if (s.toUpperCase().includes(hex)) throw new Error(`${p} still uses ${hex}`);
+      }
     }
   }
 });

@@ -338,9 +338,9 @@ const endStation = {
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: var(--color-brand-tint);
-    color: var(--color-brand);
-    font-weight: 600;
+    background: var(--color-mustard);
+    color: var(--color-ink);
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
   .steps h3 { font-size: var(--step-1); margin-bottom: var(--space-0); }
@@ -434,10 +434,10 @@ const endStation = {
   /* Open station: bigger, haloed. This is the "you are here". */
   .stage:has(> .stage-input:checked) .stage-dot {
     transform: scale(1.35);
-    box-shadow: 0 0 0 5px var(--color-brand-tint);
+    box-shadow: 0 0 0 5px rgba(184, 81, 44, 0.18);
   }
-  .stage-end .stage-dot { border-color: var(--color-accent); background: var(--color-accent); }
-  .stage-end:has(> .stage-input:checked) .stage-dot { box-shadow: 0 0 0 5px rgba(162, 74, 38, 0.16); }
+  .stage-end .stage-dot { border-color: var(--color-ink); background: var(--color-ink); }
+  .stage-end:has(> .stage-input:checked) .stage-dot { box-shadow: 0 0 0 5px rgba(17, 17, 17, 0.14); }
 
   /* Open station also lifts onto a white card, off the sand band. */
   .stage-box {
@@ -496,10 +496,10 @@ const endStation = {
   }
   .head-caret svg { width: 20px; height: 20px; }
   .stage:has(> .stage-input:checked) .head-caret { transform: rotate(180deg); color: var(--color-brand); }
-  .stage-end:has(> .stage-input:checked) .head-caret { color: var(--color-accent); }
+  .stage-end:has(> .stage-input:checked) .head-caret { color: var(--color-ink); }
 
   .stage:has(> .stage-input:checked) .stage-num { color: var(--color-brand); }
-  .stage-end:has(> .stage-input:checked) .stage-num { color: var(--color-accent); }
+  .stage-end:has(> .stage-input:checked) .stage-num { color: var(--color-ink); }
 
   .stage-title {
     color: var(--color-muted);
@@ -594,7 +594,7 @@ const endStation = {
     position: relative;
     border-radius: 4px;
     padding: 0 0.2em;
-    background: var(--color-brand-tint);
+    background: var(--color-surface-alt);
     color: var(--color-brand-deep);
     font-weight: 600;
     text-decoration: underline dotted;
@@ -612,7 +612,7 @@ const endStation = {
     max-width: min(19rem, 62vw);
     padding: 0.6rem 0.75rem;
     border-radius: var(--radius);
-    background: var(--color-brand-deep);
+    background: var(--color-ink);
     color: var(--color-bg);
     font-size: var(--step--1);
     font-weight: 400;
