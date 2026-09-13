@@ -58,8 +58,11 @@ test('edit, note and delete', async () => {
 
 test('bad and unknown ids, unknown op, missing csrf', async () => {
   const s = make();
+  const id = idFrom(await action(post({ csrf, op: 'create', ...good }), ctx(), s));
   assert.equal((await action(post({ csrf, op: 'edit', id: '../x', ...good }), ctx(), s)).status, 400);
   assert.equal((await action(post({ csrf, op: 'note', id: '20260912T000000aaaaaa', text: 'x' }), ctx(), s)).status, 404);
-  assert.equal((await action(post({ csrf, op: 'nope' }), ctx(), s)).status, 400);
+  const unknown = await action(post({ csrf, op: 'nope', id }), ctx(), s);
+  assert.equal(unknown.status, 400);
+  assert.match(await unknown.text(), /unknown op/);
   assert.equal((await action(post({ op: 'create', ...good }), ctx(), s)).status, 403);
 });

@@ -13,6 +13,7 @@ const id = Astro.params.id ?? '';
 if (!ID.test(id)) return new Response('bad id', { status: 400 });
 const contact = (await store().contacts.get(id)) as Contact | null;
 if (!contact) return new Response('no such contact', { status: 404 });
+const notes = contact.notes ?? [];
 const csrf = Astro.locals.csrf;
 const error = Astro.url.searchParams.get('error');
 const label = TYPE_LABELS as unknown as Record<string, string>;
@@ -40,7 +41,7 @@ const startParams = new URLSearchParams({
     {!contact.email && !contact.phone && !contact.website && <span class="quiet">No contact details.</span>}
   </p>
 
-  <h2>Notes <span class="count">{contact.notes.length}</span></h2>
+  <h2>Notes <span class="count">{notes.length}</span></h2>
   <form method="POST" action="/office/api/contact" class="toolbar">
     <input type="hidden" name="csrf" value={csrf} />
     <input type="hidden" name="op" value="note" />
@@ -48,10 +49,10 @@ const startParams = new URLSearchParams({
     <input class="grow" name="text" placeholder="What happened" required aria-label="Note" />
     <button class="btn">Add note</button>
   </form>
-  {contact.notes.length === 0 && <p class="empty">Nothing recorded yet.</p>}
-  {contact.notes.length > 0 && (
+  {notes.length === 0 && <p class="empty">Nothing recorded yet.</p>}
+  {notes.length > 0 && (
     <ul class="ledger">
-      {contact.notes.map((n) => (
+      {notes.map((n) => (
         <li class="no-tick">
           <span class="when">{day(n.at)}</span>
           <span class="what">{n.text}</span>

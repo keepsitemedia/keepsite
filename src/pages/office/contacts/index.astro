@@ -18,6 +18,7 @@ const all = (await store().contacts.list()) as Contact[];
 const contacts = all
   .filter((c) => !filter || c.type === filter)
   .sort((a, b) => (lastNoteAt(a) ?? '').localeCompare(lastNoteAt(b) ?? '') || a.business.localeCompare(b.business));
+const noun = (filter ? label[filter].toLowerCase() : 'contact') + (contacts.length === 1 ? '' : 's');
 // The note's calendar day in the owner's zone, not UTC's, so an evening
 // note reads as that evening.
 const dayOf = (iso: string) => todayIn(undefined, new Date(iso));
@@ -29,7 +30,7 @@ const ago = (iso: string) => {
 <OfficeLayout title="Contacts">
   <div class="page-head">
     <h1>Contacts</h1>
-    <span class="sub">{contacts.length}{filter ? ` ${label[filter].toLowerCase()}` : ''}, longest since a note first</span>
+    <span class="sub">{contacts.length} {noun}, longest since a note first</span>
     <div class="actions"><a class="btn" href="/office/contacts/new/">New contact</a></div>
   </div>
   <nav class="tabs" aria-label="Type">

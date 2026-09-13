@@ -71,6 +71,11 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     if ((await s.agreements.list(slug)).some((a) => a.status === 'completed')) keeps.push('a signed agreement');
     if ((await s.payments.list(slug)).some((p) => p.status === 'paid' || (p.kind === 'subscription' && p.status === 'active'))) keeps.push('a payment on record');
     if (keeps.length) return back(`/office/clients/${slug}/`, [`this client has ${keeps.join(' and ')}, which must be kept; move them to Live or leave them as they are`]);
+    // A contact's clientSlug is a link, not an owner; the client going away
+    // must return the contact to "Start a client", not leave a dead link.
+    for (const c of await s.contacts.list()) {
+      if (c.clientSlug === slug) await s.contacts.put(c.id, { ...c, clientSlug: null, updatedAt: now.toISOString() });
+    }
     for (const type of TYPES) {
       for (const doc of await s[type].list(slug)) await s[type].remove(slug, doc.id);
     }

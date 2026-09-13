@@ -1,6 +1,6 @@
 // People the businesses have relationships with who are not clients. A
-// contact carries no pipeline, no money and no email; its point is the
-// note log, so the owner can see when they last talked to someone.
+// contact carries no pipeline and no money, and sends no email; its point
+// is the note log, so the owner can see when they last talked to someone.
 import { EMAIL } from './clients.mjs';
 import { newId } from './ids.mjs';
 

@@ -75,6 +75,17 @@ test('a stale contact id does not stop the client being created', async () => {
   assert.equal(res.headers.get('Location'), '/office/clients/lova/');
 });
 
+test('deleting a client clears the clientSlug of its linked contact', async () => {
+  const s = make();
+  const c = newContact({ business: 'Lova', owner: 'Sierra', email: 's@example.com', type: 'partner' });
+  await s.contacts.put(c.id, c);
+  await action(post({ op: 'create', csrf, ...good, contact: c.id }), ctx(), s);
+  assert.equal((await s.contacts.get(c.id)).clientSlug, 'lova');
+  await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+  assert.equal((await s.contacts.get(c.id)).clientSlug, null);
+  assert.equal(await s.clients.get('lova'), null);
+});
+
 test('update edits fields and keeps the slug and stage', async () => {
   const s = make();
   await action(post({ op: 'create', csrf, ...good }), ctx(), s);

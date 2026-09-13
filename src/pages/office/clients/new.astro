@@ -9,8 +9,8 @@ import { loadPipelines } from '../../../../netlify/functions/lib/office/pipeline
 // return as any; this narrows it to what the select below reads.
 type PipelineRow = { id: string; name: string };
 const pipelines = (await loadPipelines(store())) as PipelineRow[];
-const error = Astro.url.searchParams.get('error');
 const q = Astro.url.searchParams;
+const error = q.get('error');
 const contactId = q.get('contact') ?? '';
 const prefill = Object.fromEntries(['name', 'business', 'email', 'phone', 'website'].map((k) => [k, q.get(k) ?? '']));
 ---
