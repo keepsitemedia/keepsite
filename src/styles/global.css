@@ -62,6 +62,9 @@
 html {
   background: var(--color-bg);
   -webkit-text-size-adjust: 100%;
+  /* Nothing on a phone should pan sideways. clip, not hidden: hidden would
+     make the viewport a scroll container and break the sticky header. */
+  overflow-x: clip;
 }
 
 /* WCAG 2.3.3: smooth scroll is opt-in, never unconditional. */
@@ -78,6 +81,8 @@ body {
   line-height: 1.6;
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+  /* A bare URL in the privacy copy is wider than a 320px phone. */
+  overflow-wrap: break-word;
 }
 
 h1, h2, h3 {
@@ -273,7 +278,9 @@ img { max-width: 100%; height: auto; }
 /* Section fieldsets carry no border of their own — the .group fieldset
    below draws the only rule, reserved for an actual radio/checkbox group
    so it doesn't compete with section structure. */
-.questionnaire fieldset { border: 0; padding: 0; margin: 0 0 var(--space-5); }
+/* min-width: 0 undoes the browser default of min-content, which at 320px
+   pushed the "Something else" row past the viewport and every field with it. */
+.questionnaire fieldset { border: 0; padding: 0; margin: 0 0 var(--space-5); min-width: 0; }
 .questionnaire legend { font-size: var(--step-1); margin-bottom: var(--space-2); font-weight: 600; }
 .questionnaire .group {
   border: 1.5px solid var(--color-border);
@@ -291,6 +298,7 @@ img { max-width: 100%; height: auto; }
 }
 .questionnaire .option { display: flex; gap: var(--space-1); align-items: baseline; font-weight: 400; }
 .questionnaire .option.own { margin-top: var(--space-2); }
+.questionnaire .option.own input { flex: 1 1 8rem; min-width: 0; width: auto; }
 .questionnaire .question { margin-bottom: var(--space-4); }
 /* .question alone carries the between-question gap; .field's own
    margin-bottom (site-wide, meant for stacked fields) would double it. */
@@ -298,7 +306,10 @@ img { max-width: 100%; height: auto; }
 
 /* Comparison table --------------------------------------------- */
 
-.table-scroll { overflow-x: auto; }
+/* contain: paint keeps the table's overflow inside the wrapper. Without it
+   Chrome adds the table's full width to the document's scrollable area,
+   which lets a phone pan sideways on /packages/. */
+.table-scroll { overflow-x: auto; contain: paint; }
 .compare {
   width: 100%;
   min-width: 640px;

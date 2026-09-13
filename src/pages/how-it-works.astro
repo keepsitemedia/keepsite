@@ -279,6 +279,25 @@ const endStation = {
   // the browser scrolls wherever it likes.
   (function () {
     var header = document.querySelector('.site-header');
+
+    // A definition opens to the right of its term. On a phone a term near
+    // the right edge would push its definition off screen, so measure when
+    // it shows and hang it from the right edge instead.
+    document.querySelectorAll('.term').forEach(function (term) {
+      var def = term.querySelector('.term-def');
+      if (!def) return;
+      var place = function () {
+        def.style.left = '';
+        def.style.right = '';
+        if (def.getBoundingClientRect().right > window.innerWidth - 8) {
+          def.style.left = 'auto';
+          def.style.right = '0';
+        }
+      };
+      term.addEventListener('mouseenter', place);
+      term.addEventListener('focus', place);
+    });
+
     var close = function (input) {
       // No change event fires for a scripted uncheck, so closing never scrolls.
       input.checked = false;
@@ -609,7 +628,7 @@ const endStation = {
     left: 0;
     bottom: calc(100% + 0.5rem);
     width: max-content;
-    max-width: min(19rem, 62vw);
+    max-width: min(19rem, calc(100vw - 2rem));
     padding: 0.6rem 0.75rem;
     border-radius: var(--radius);
     background: var(--color-ink);
