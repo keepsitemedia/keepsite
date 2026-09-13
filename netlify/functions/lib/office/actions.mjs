@@ -13,5 +13,6 @@ import { meeting } from './actions/meeting.mjs';
 import { payment } from './actions/payment.mjs';
 import { agreement } from './actions/agreement.mjs';
 import { document } from './actions/document.mjs';
+import { feed } from './actions/feed.mjs';
 
-export const actions = { __proto__: null, login, logout, client, contact, stage, task, settings, export: exportData, send, meeting, payment, agreement, document };
+export const actions = { __proto__: null, login, logout, client, contact, stage, task, settings, export: exportData, send, meeting, payment, agreement, document, feed };
