@@ -1,9 +1,10 @@
 import { readForm, redirect, problem, field, checkCsrf, safeNext, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
-import { newId, ID } from '../ids.mjs';
+import { ID } from '../ids.mjs';
 import { isYmd, isHhmm } from '../dates.mjs';
 import { OWN_SLUG } from '../clients.mjs';
-import { isRepeat, nextTask } from '../recurrence.mjs';
+import { isRepeat } from '../recurrence.mjs';
+import { newTask, finishTask } from '../tasks.mjs';
 
 const when = (data) => {
   const due = field(data, 'due');
@@ -38,21 +39,14 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   const home = own ? '/office/tasks/' : `/office/clients/${slug}/?tab=tasks`;
   const to = safeNext(back) === back ? back : home;
   const op = field(data, 'op');
-  const at = now.toISOString();
 
   if (op === 'add') {
-    const title = field(data, 'title');
-    if (!title) return problem(400, 'title is required');
-    const w = when(data);
-    if (w.error) return problem(400, w.error);
-    const r = repeatOf(data);
-    if (r.error) return problem(400, r.error);
-    const id = newId(now);
-    await s.tasks.put(slug, id, {
-      id, slug, title, due: w.due, time: w.time, done: false, doneAt: null,
-      source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null,
-      notes: field(data, 'notes'), project: field(data, 'project') || null, repeat: r.repeat, nextId: null, createdAt: at,
-    });
+    const { task: doc, error } = newTask({
+      slug, title: field(data, 'title'), due: field(data, 'due'), time: field(data, 'time'),
+      project: field(data, 'project'), repeat: field(data, 'repeat'), notes: field(data, 'notes'),
+    }, now);
+    if (error) return problem(400, error);
+    await s.tasks.put(slug, doc.id, doc);
     return redirect(to);
   }
 
@@ -62,18 +56,9 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   if (!existing) return problem(404, 'no such task');
 
   if (op === 'done') {
-    // A replayed Done finds the task already done, and a Reopen-then-Done
-    // finds it still carrying the nextId from the first Done (reopen does
-    // not clear it); either way a successor already exists, so a task
-    // spawns at most once in its lifetime.
-    const spawn = !existing.done && isRepeat(existing.repeat) && !existing.nextId;
-    if (spawn) {
-      const next = nextTask(existing, now);
-      await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at, nextId: next.id });
-      await s.tasks.put(slug, next.id, next);
-    } else {
-      await s.tasks.put(slug, id, { ...existing, done: true, doneAt: at });
-    }
+    const { finished, next } = finishTask(existing, now);
+    await s.tasks.put(slug, id, finished);
+    if (next) await s.tasks.put(slug, next.id, next);
   } else if (op === 'reopen') await s.tasks.put(slug, id, { ...existing, done: false, doneAt: null });
   else if (op === 'reschedule') {
     const w = when(data);
