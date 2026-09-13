@@ -44,7 +44,7 @@ const removable = (id: string) => !sentBy.has(id) && !PROTECTED_TEMPLATES.includ
   {error && <p class="error">{error}</p>}
   {saved && <p class="notice notice-ok">Saved.</p>}
 
-  <h2>Emails</h2>
+  <h2>Emails <a class="btn-quiet btn-small add-link" href="/office/settings/?template=new#template-new">Add an email</a></h2>
   <p class="quiet">Every email the office sends starts from one of these. The words are yours to change; placeholders such as <code>{'{{client.firstName}}'}</code> fill in from the client when it is sent. Bodies are Markdown.</p>
   {templates.map((t) => (
     <details class="fold" id={`template-${t.id}`} open={focus === t.id}>
@@ -84,3 +84,7 @@ const removable = (id: string) => !sentBy.has(id) && !PROTECTED_TEMPLATES.includ
     </div>
   </details>
 </OfficeLayout>
+
+<style>
+  .add-link { margin-left: var(--space-2); font-weight: 500; vertical-align: middle; }
+</style>
