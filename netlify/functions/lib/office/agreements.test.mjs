@@ -42,6 +42,20 @@ test('defaultFields prefill Schedule 1 from the client and the tier', () => {
   assert.equal(other.pages, 5);
 });
 
+test('defaultFields prefills from the tier when it matches the template, and carries the plan and arms', () => {
+  const growthClient = { ...client, tier: 'Growth' };
+  const f = defaultFields(growthClient, findAgreementTemplate('growth'));
+  assert.equal(f.buildFee, 180000);
+  assert.equal(f.monthlyFee, 16000);
+  assert.equal(f.paymentPlan, 'Half and half');
+  assert.equal(f.arms, '');
+  const r = defaultFields({ ...client, tier: 'Range' }, findAgreementTemplate('range'));
+  assert.equal(r.buildFee, 210000);
+  assert.equal(r.pages, 16);
+  const mismatch = defaultFields({ ...client, tier: 'Presence' }, findAgreementTemplate('growth'));
+  assert.equal(mismatch.buildFee, 180000);
+});
+
 test('createAgreement stores a draft with both signers named', async () => {
   const s = await make();
   const a = await createAgreement({ client, templateId: 'search', fields: defaultFields(client, findAgreementTemplate('search'))}, s, NOW);

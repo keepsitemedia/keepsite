@@ -87,6 +87,21 @@ test('a rejected create carries the typed fields back on the redirect', async ()
   assert.match(loc2, /buildFee=1800/);
 });
 
+test('create stores the payment plan and the arms, and refuses an unknown plan', async () => {
+  const s = await make();
+  await agreement(post({ ...createFields, template: 'range', paymentPlan: 'Twelve monthly payments', arms: 'Tents\nTables (ongoing strategy)', buildFee: '3000', deposit: '270', balance: '2730', pages: '16' }), ctx(), s, mail, NOW);
+  const [a] = await s.agreements.list('lova');
+  assert.equal(a.fields.paymentPlan, 'Twelve monthly payments');
+  assert.equal(a.fields.arms, 'Tents\nTables (ongoing strategy)');
+  assert.equal(a.fields.deposit, 27000);
+  const s2 = await make();
+  assert.match(loc(await agreement(post({ ...createFields, paymentPlan: 'Yearly' }), ctx(), s2, mail, NOW)), /error=payment plan/);
+  await agreement(post(createFields), ctx(), s2, mail, NOW);
+  const [b] = await s2.agreements.list('lova');
+  assert.equal(b.fields.paymentPlan, 'Half and half');
+  assert.equal(b.fields.arms, '');
+});
+
 test('send signs as Keepsite and lands on the agreement email; void marks voided', async () => {
   const s = await make();
   await agreement(post(createFields), ctx(), s, mail, NOW);

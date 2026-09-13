@@ -3,7 +3,7 @@ import { store as defaultStore, SLUG } from '../store.mjs';
 import { ID } from '../ids.mjs';
 import { EMAIL } from '../clients.mjs';
 import { findAgreementTemplate } from '../agreement-templates.mjs';
-import { createAgreement, sendAgreement, voidAgreement, sealAgreement } from '../agreements.mjs';
+import { createAgreement, sendAgreement, voidAgreement, sealAgreement, PLANS } from '../agreements.mjs';
 import { clientIp, userAgentOf } from '../sign.mjs';
 import { dollarsToCents } from './payment.mjs';
 
@@ -15,6 +15,11 @@ const DISCOUNT_TEXT = ['name', 'type', 'amount', 'monthlyType', 'monthlyAmount',
 export function fieldsFromForm(data) {
   const errors = [];
   const f = Object.fromEntries(TEXT.map((k) => [k, field(data, k)]));
+  // The plan is a Schedule 1 choice; the deposit and balance rows still have
+  // to add up, so the admin types the first payment and the remainder.
+  f.paymentPlan = field(data, 'paymentPlan') || PLANS[0];
+  if (!PLANS.includes(f.paymentPlan)) errors.push(`payment plan must be ${PLANS.join(' or ')}`);
+  f.arms = String(data.get('arms') ?? '').replace(/\r\n/g, '\n').trim();
   if (!f.legalName) errors.push('legal business name is required');
   if (!f.signerName) errors.push('signer name is required');
   if (!EMAIL.test(f.email)) errors.push('email does not look like an address');

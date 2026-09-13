@@ -11,19 +11,19 @@ import { buildContext } from './context.mjs';
 import { loadTemplates, findTemplate, render } from './templates.mjs';
 import { sendMail, logFailure } from './mail.mjs';
 
-const TIER_FOR_TEMPLATE = { __proto__: null, presence: 'Presence', search: 'Search', 'search-plus': 'Search Plus' };
 const money = (s) => Math.round(Number(String(s).replace(/[^0-9.]/g, '')) * 100);
 
+export const PLANS = ['Half and half', 'Twelve monthly payments'];
+
 export function defaultFields(client, template) {
-  const tier = TIER_FOR_TEMPLATE[template.id];
-  const prices = client.tier === tier ? tierPrices(client.tier) : null;
+  const prices = client.tier === template.tier ? tierPrices(client.tier) : null;
   const buildFee = prices?.build ?? money(template.defaults.buildFee);
   const monthlyFee = prices?.monthly ?? money(template.defaults.monthlyFee);
   return {
     legalName: client.business ?? '', entityType: '', address: client.address ?? '',
     signerName: client.name ?? '', signerTitle: '', email: client.email ?? '', phone: client.phone ?? '',
-    buildFee, monthlyFee, deposit: Math.round(buildFee / 2), balance: buildFee - Math.round(buildFee / 2),
-    pages: template.defaults.pages ?? null, discountApplied: false,
+    buildFee, monthlyFee, paymentPlan: PLANS[0], deposit: Math.round(buildFee / 2), balance: buildFee - Math.round(buildFee / 2),
+    pages: template.defaults.pages ?? null, arms: '', discountApplied: false,
     discount: { name: '', type: '', amount: '', adjustedBuildFee: null, monthlyType: '', monthlyAmount: '', discountedMonthlyFee: null, months: null, conditions: '' },
   };
 }
