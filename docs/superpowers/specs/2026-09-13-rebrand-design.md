@@ -31,12 +31,13 @@ The whole site follows from those four parts. The office (`/office/`) is out of 
 | `--color-brand-deep` | `#8F3E22` | link hover | 7.3:1 |
 | `--color-slate` | `#628997` | fills only | 3.8:1, fails text |
 | `--color-mustard` | `#DFAA3F` | fills only, always with black text on it | 2.1:1, fails text; black on it 10:1 |
-| `--color-copper` | `#D1884B` | "media" in the logo, Range tier bar | 2.9:1, fails text at every size |
+| `--color-copper` | `#D1884B` | Range tier bar | 2.9:1, fails text at every size |
+| `--color-copper-deep` | `#966236` | "media" in the header and footer lockup | 5.1:1; 4.7:1 on the band |
 | `--color-border` | `#E3DED6` | hairlines | |
 
 Rules:
 
-- Slate, mustard, and copper never carry text and never sit under white text.
+- Slate, mustard, and copper never carry text and never sit under white text. The lockup's "media" uses copper-deep because Lighthouse's contrast audit does not know the logotype exemption and the Netlify build gates on it.
 - Rust is the only colored text. It replaces every use of the old green and clay.
 - `--color-brand-tint` and `--color-accent` are removed. Anything that used them is listed in section 6.
 
@@ -61,7 +62,7 @@ Three roles, one per part of the logo.
 
 **`src/components/Logo.astro`**, HTML and CSS, not SVG text, so the wordmark uses the page's font stack and reads as text to assistive tech. Two variants by prop:
 
-- `compact` (header): stripe block, "Keepsite" in `--font-sans` 700, "media" in `--font-serif` italic copper on the same baseline. One line, about 28px tall.
+- `compact` (header): stripe block, "Keepsite" in `--font-sans` 700, "media" in `--font-serif` italic copper-deep on the same baseline. One line, about 28px tall.
 - `full` (footer): stripe block and wordmark, the heavy rule under the wordmark, "media" right-aligned beneath the rule, and the tagline in `.label` under everything.
 
 The stripe block is an inline SVG of three rects. The link text for both variants is "Keepsite Media, home".
