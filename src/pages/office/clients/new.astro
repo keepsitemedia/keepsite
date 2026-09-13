@@ -10,6 +10,9 @@ import { loadPipelines } from '../../../../netlify/functions/lib/office/pipeline
 type PipelineRow = { id: string; name: string };
 const pipelines = (await loadPipelines(store())) as PipelineRow[];
 const error = Astro.url.searchParams.get('error');
+const q = Astro.url.searchParams;
+const contactId = q.get('contact') ?? '';
+const prefill = Object.fromEntries(['name', 'business', 'email', 'phone', 'website'].map((k) => [k, q.get(k) ?? '']));
 ---
 <OfficeLayout title="New client">
   <div class="page-head">
@@ -20,10 +23,11 @@ const error = Astro.url.searchParams.get('error');
   <form method="POST" action="/office/api/client" class="sheet narrow">
     <input type="hidden" name="csrf" value={Astro.locals.csrf} />
     <input type="hidden" name="op" value="create" />
+    {contactId && <input type="hidden" name="contact" value={contactId} />}
     <label class="field"><span>Pipeline</span>
       <select name="pipeline">{pipelines.map((p) => <option value={p.id}>{p.name}</option>)}</select>
     </label>
-    <ClientFields />
+    <ClientFields client={prefill} />
     <button type="submit" class="btn">Create client</button>
   </form>
 </OfficeLayout>
