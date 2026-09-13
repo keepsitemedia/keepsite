@@ -63,3 +63,9 @@ test('sign paths are public and get the office headers', () => {
   assert.deepEqual(decide('/sign/api/submit', { ok: false, cookies: [] }), { kind: 'public' });
   assert.deepEqual(decide('/signup', { ok: false, cookies: [] }), { kind: 'skip' });
 });
+
+test('the calendar feed is public to the middleware and checks its own token', () => {
+  assert.equal(isPublic('/office/api/feed'), true);
+  assert.equal(decide('/office/api/feed', { ok: false }).kind, 'public');
+  assert.equal(isPublic('/office/api/feedx'), false);
+});

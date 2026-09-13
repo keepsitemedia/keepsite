@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import { store } from '../../../../netlify/functions/lib/office/store.mjs';
+import { CONTACT_TYPES, TYPE_LABELS, lastNoteAt } from '../../../../netlify/functions/lib/office/contacts.mjs';
+import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
+import { daysBetween } from '../../../../netlify/functions/lib/office/attention.mjs';
+
+// store.mjs has no type declarations; this narrows list() to what the
+// table reads.
+type Contact = { id: string; business: string; owner: string; type: string; notes: { at: string; text: string }[]; clientSlug: string | null };
+
+const label = TYPE_LABELS as unknown as Record<string, string>;
+const wanted = Astro.url.searchParams.get('type') ?? '';
+const filter = CONTACT_TYPES.includes(wanted) ? wanted : '';
+const today = todayIn();
+const all = (await store().contacts.list()) as Contact[];
+const contacts = all
+  .filter((c) => !filter || c.type === filter)
+  .sort((a, b) => (lastNoteAt(a) ?? '').localeCompare(lastNoteAt(b) ?? '') || a.business.localeCompare(b.business));
+const noun = (filter ? label[filter].toLowerCase() : 'contact') + (contacts.length === 1 ? '' : 's');
+// The note's calendar day in the owner's zone, not UTC's, so an evening
+// note reads as that evening.
+const dayOf = (iso: string) => todayIn(undefined, new Date(iso));
+const ago = (iso: string) => {
+  const d = daysBetween(dayOf(iso), today);
+  return d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
+};
+---
+<OfficeLayout title="Contacts">
+  <div class="page-head">
+    <h1>Contacts</h1>
+    <span class="sub">{contacts.length} {noun}, longest since a note first</span>
+    <div class="actions"><a class="btn" href="/office/contacts/new/">New contact</a></div>
+  </div>
+  <nav class="tabs" aria-label="Type">
+    <a href="/office/contacts/" aria-current={filter ? undefined : 'page'}>All</a>
+    {CONTACT_TYPES.map((t) => <a href={`/office/contacts/?type=${t}`} aria-current={filter === t ? 'page' : undefined}>{label[t]}</a>)}
+  </nav>
+  {contacts.length === 0 ? (
+    <p class="empty">No contacts{filter ? ' of this type' : ' yet'}.</p>
+  ) : (
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Business</th><th>Owner</th><th>Type</th><th>Last note</th><th>Client</th></tr></thead>
+        <tbody>
+          {contacts.map((c) => {
+            const at = lastNoteAt(c);
+            return (
+              <tr>
+                <td><a href={`/office/contacts/${c.id}/`}>{c.business}</a></td>
+                <td>{c.owner}</td>
+                <td>{label[c.type] ?? c.type}</td>
+                <td>{at ? <>{formatYmd(dayOf(at))} <span class="meta">{ago(at)}</span></> : <span class="quiet">Never</span>}</td>
+                <td>{c.clientSlug ? <a href={`/office/clients/${c.clientSlug}/`}>Client page</a> : <span class="quiet">Not a client</span>}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  )}
+</OfficeLayout>

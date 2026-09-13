@@ -19,8 +19,10 @@ export function nextDue(ymd, repeat) {
   return STEP[repeat](ymd);
 }
 
+// The successor starts its own chain: nextId is what the finished task uses
+// to remember it spawned once, so the copy must not inherit that memory.
 export function nextTask(task, now = new Date()) {
-  return { ...task, id: newId(now), due: nextDue(task.due, task.repeat), done: false, doneAt: null, createdAt: now.toISOString() };
+  return { ...task, id: newId(now), due: nextDue(task.due, task.repeat), done: false, doneAt: null, nextId: null, createdAt: now.toISOString() };
 }
 
 const LABEL = { weekly: 'weekly', biweekly: 'every two weeks', monthly: 'monthly', quarterly: 'quarterly', yearly: 'yearly' };

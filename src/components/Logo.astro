@@ -1,0 +1,102 @@
+---
+// The logo lockup in HTML and CSS rather than SVG text, so the wordmark
+// sets in the page's own font stack (Arial where installed, Arimo where
+// not) and reads as text to assistive tech. Compact is the header; full
+// adds the heavy rule, "media" under it, and the tagline for the footer.
+import site from '../data/site.json';
+
+interface Props {
+  variant?: 'compact' | 'full';
+}
+const { variant = 'compact' } = Astro.props;
+// The logo sets the tagline without its full stop.
+const tagline = site.tagline.replace(/\.$/, '');
+---
+{variant === 'compact' ? (
+  <a class="logo logo-compact" href="/" aria-label={`${site.brand}, home`}>
+    <span class="logo-mark" aria-hidden="true"></span>
+    <span class="logo-word" aria-hidden="true">Keepsite</span>
+    <span class="logo-media" aria-hidden="true">media</span>
+  </a>
+) : (
+  <div class="logo logo-full">
+    <a class="logo-link" href="/" aria-label={`${site.brand}, home`}>
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="logo-word" aria-hidden="true">Keepsite</span>
+    </a>
+    <span class="logo-rule" aria-hidden="true"><span class="logo-media">media</span></span>
+    <p class="logo-tagline label">{tagline}</p>
+  </div>
+)}
+
+<style>
+  .logo { color: var(--color-ink); text-decoration: none; }
+  .logo-mark {
+    display: inline-block;
+    width: 0.75em;
+    height: 1em;
+    background: var(--stripe);
+  }
+  .logo-word {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .logo-media {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--color-copper-deep);
+    line-height: 1;
+  }
+
+  /* Header: one line, mark and wordmark on a shared baseline. */
+  .logo-compact {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3em;
+    font-size: 1.6rem;
+  }
+  .logo-compact .logo-mark { align-self: center; }
+  .logo-compact .logo-media { font-size: 0.72em; }
+
+  /* Footer: the full lockup. The column is sized by the wordmark alone
+     (the tagline is width 0 with min-width 100%, so it wraps to fit rather
+     than widening the lockup), which puts the rule under "Keepsite" and
+     "media" under "site", with its ascenders crossing the rule, as in the
+     logo. */
+  .logo-full {
+    display: inline-grid;
+    grid-template-columns: max-content;
+    font-size: 3rem;
+  }
+  .logo-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+    padding-bottom: 0.1em;
+    color: inherit;
+    text-decoration: none;
+  }
+  .logo-link .logo-mark { align-self: center; }
+  .logo-rule {
+    display: block;
+    border-top: 0.1em solid var(--color-ink);
+    text-align: right;
+  }
+  .logo-full .logo-media {
+    display: inline-block;
+    position: relative;
+    top: -0.3em;
+    padding-right: 0.25em;
+    font-size: 0.75em;
+  }
+  .logo-tagline {
+    width: 0;
+    min-width: 100%;
+    margin: 0.25em 0 0;
+    max-width: none;
+    font-size: 0.75rem;
+  }
+</style>

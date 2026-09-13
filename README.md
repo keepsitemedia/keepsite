@@ -57,6 +57,21 @@ verified by DNS and linked to GA4, and the website URL on their Google
 Business Profile. Clients on the seeded pipeline stored before this task
 existed do not get it until the pipelines are re-saved under Settings.
 
+## Brand assets
+
+The logo source is `docs/brand/keepsitelogo.png`, the Canva export. Three
+files derive from it and are committed, so a build never touches it:
+
+- `public/og-default.png`, the share card, from `npm run og`.
+- `public/apple-touch-icon.png`, the stripe block at 180px, from `npm run icons`.
+- `public/favicon.svg`, the stripe block, edited by hand.
+
+The site's faces are Arial and Georgia, which ship with Windows, macOS and
+iOS, with Arimo and Gelasio self-hosted as metric-identical fallbacks for
+Android and Linux, and Montserrat for labels. All three fallbacks are SIL
+OFL through fontsource. `scripts/verify.mjs` fails the build if a stylesheet
+still names the retired faces or palette.
+
 ## Turning on the Work page
 
 `/work/`, its nav item, the homepage strip, and the sitemap entry are all generated from the `work` content collection, which is empty at launch. They appear on the next deploy after the first entry exists. Nothing needs a code change.
@@ -248,6 +263,7 @@ and 3 of [Enabling the CMS](#enabling-the-cms-admin).
 | `URL` | Set by Netlify. Used in links inside emails; locally it is unset and links point at `https://www.keepsitemedia.com`. |
 | `STRIPE_SECRET_KEY` | Creates customers, Checkout links and subscriptions. Without it the Payments tab shows a banner and every payment button is disabled. Use the test key until the first real client. |
 | `STRIPE_WEBHOOK_SECRET` | Verifies webhook signatures. Without it every webhook is refused with 400 and no payment is ever marked paid. |
+| `KEEPSITE_FEED_TOKEN` | Bearer token for the calendar feed at `/office/api/feed`. Any long random string; generate one the way `KEEPSITE_TOKEN_SECRET` is generated. Without it every feed request is refused with 401. |
 
 ### Local development
 
@@ -277,6 +293,20 @@ Every verified `/start/` submission also creates a client at the Inquiry
 stage, through `netlify/functions/submission-created.mjs`. The email
 notification is unchanged. A second inquiry from an email already on file is
 added to that client's notes instead.
+
+### Contacts
+
+`/office/contacts/` is for people you work with who are not clients:
+partners, referral sources, vendors, anyone with a relationship worth
+remembering. A contact has a business, an owner, contact details, a
+type and a log of dated notes. The list sorts by the last note, oldest
+first, so the relationships going quiet are at the top; the type links
+filter it.
+
+"Start a client" on a contact opens the new-client form filled in from
+the contact, and once the client exists the contact links to its page.
+Contacts send no email, create no tasks and appear nowhere else; they
+export from the Data page like everything else, under `contacts`.
 
 ### Email
 
@@ -312,6 +342,40 @@ each get a confirmation with a calendar file. Two scheduled functions run:
 13:00 UTC is 7 a.m. Mountain in summer and 6 a.m. in winter. Change the hour
 in `netlify/functions/office-digest-cron.mjs` in March and November if that
 matters. Netlify shows both functions under Functions → Scheduled.
+
+### Own tasks
+
+Work that belongs to the business and not to a client: business
+development, admin, projects. They live on `/office/tasks/`, grouped by
+a free-text project label, and show up on Today and the Calendar like
+any other task, with the project where the client name would be. The
+calendar's add form has an "Office (no client)" choice for them.
+
+A task can repeat weekly, every two weeks, monthly, quarterly or
+yearly. Marking it done creates the next one, dated from the one just
+finished, on the same day of the month clamped to a shorter month's
+end. Reopening a done task keeps the next
+one, and marking it done again does not create another.
+
+In the store these are ordinary task documents under the reserved slug
+`office`, with `project`, `repeat` and `nextId` fields, so the export,
+the digest and the calendar need nothing special. No client can be
+created at that slug.
+
+### Calendar feed
+
+`/office/api/feed` is the one office route a machine calls. The family
+calendar at homebase.samnichols.dev reads tasks and meetings from it and
+adds or finishes own tasks through it. It sits outside the login: the
+caller sends `Authorization: Bearer $KEEPSITE_FEED_TOKEN` and nothing
+else, and the token lives only in Netlify and in the caller's own
+secrets, never in a browser.
+
+`GET` takes `from`, `to` (days, default 30 back to 90 ahead) and `brand`,
+and answers JSON, or ICS with `?format=ics`. `POST` takes a JSON body
+with `op` of `add` (an own task: `title`, `due`, optional `time`,
+`project`, `repeat`, `notes`), `done` or `reopen` (an `id`). The full
+contract, with a sample response, is `docs/office-calendar-feed.md`.
 
 ### Payments
 

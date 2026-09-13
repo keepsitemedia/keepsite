@@ -137,6 +137,17 @@ test('a broken agreements store logs a failure but does not stop the digest from
   }
 });
 
+test('own tasks are named Office, with their project when they have one', () => {
+  const tasks = [
+    t('office', today, { title: 'Send invoices', project: 'Admin' }),
+    t('office', today, { title: 'Read the mail' }),
+  ];
+  const d = buildDigest({ clients, tasks, meetings: [], submitted: new Set(), today, now });
+  assert.match(d.text, /- Office, Admin: Send invoices/);
+  assert.match(d.text, /- Office: Read the mail/);
+  assert.doesNotMatch(d.text, /- office:/);
+});
+
 test('without KEEPSITE_NOTIFY_TO a non-empty digest is logged as failed, not skipped', async () => {
   process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x';
   try {

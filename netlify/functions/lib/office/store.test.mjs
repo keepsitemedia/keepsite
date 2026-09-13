@@ -50,15 +50,15 @@ test('settings and questionnaires read from their own places', async () => {
   await assert.rejects(() => s.questionnaires.get('lova', 'x/y'), /bad form/);
 });
 
-// The keys are the Data page's rows and the export whitelist's shape; a new
-// store collection that lands here without an export route breaks that page.
+// The keys are the Data page's rows: it renders one row per key here, so a
+// new collection added to counts() with no export route shows a wrong row.
 test('counts every type', async () => {
   const s = make();
   await s.clients.put('lova', { slug: 'lova' });
   await s.tasks.put('lova', newId(), { title: 't' });
-  assert.deepEqual(Object.keys(await s.counts()), ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails', 'documents']);
+  assert.deepEqual(Object.keys(await s.counts()), ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails', 'documents', 'contacts']);
   assert.deepEqual(await s.counts(), {
-    clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0, documents: 0,
+    clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0, documents: 0, contacts: 0,
   });
 });
 
@@ -202,4 +202,19 @@ test('a lock name can carry a slug, a stage id and a timestamp', async () => {
   const name = `stage-${'a'.repeat(64)}-${'b'.repeat(32)}-20260904160000000`;
   assert.equal(await s.locks.acquire(name), true);
   assert.equal(await s.locks.acquire(name), false);
+});
+
+test('contacts are keyed by id, list in creation order and are counted', async () => {
+  const s = make();
+  const a = newId(new Date('2026-09-12T10:00:00Z'));
+  const b = newId(new Date('2026-09-12T10:00:01Z'));
+  await s.contacts.put(b, { id: b, business: 'Second' });
+  await s.contacts.put(a, { id: a, business: 'First' });
+  assert.deepEqual((await s.contacts.list()).map((c) => c.business), ['First', 'Second']);
+  assert.deepEqual(await s.contacts.get(a), { id: a, business: 'First' });
+  assert.equal(await s.contacts.get(newId()), null);
+  assert.equal((await s.counts()).contacts, 2);
+  await s.contacts.remove(a);
+  assert.equal(await s.contacts.count(), 1);
+  await assert.rejects(() => s.contacts.get('../x'), /bad id/);
 });

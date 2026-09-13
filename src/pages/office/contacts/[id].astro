@@ -1,0 +1,82 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import ContactFields from '../../../components/office/ContactFields.astro';
+import { store } from '../../../../netlify/functions/lib/office/store.mjs';
+import { ID } from '../../../../netlify/functions/lib/office/ids.mjs';
+import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dates.mjs';
+import { TYPE_LABELS } from '../../../../netlify/functions/lib/office/contacts.mjs';
+
+type Contact = { id: string; business: string; owner: string; email: string; phone: string; website: string; type: string; notes: { at: string; text: string }[]; clientSlug: string | null };
+
+const id = Astro.params.id ?? '';
+if (!ID.test(id)) return new Response('bad id', { status: 400 });
+const contact = (await store().contacts.get(id)) as Contact | null;
+if (!contact) return new Response('no such contact', { status: 404 });
+const notes = contact.notes ?? [];
+const csrf = Astro.locals.csrf;
+const error = Astro.url.searchParams.get('error');
+const label = TYPE_LABELS as unknown as Record<string, string>;
+const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
+const startParams = new URLSearchParams({
+  contact: contact.id, name: contact.owner, business: contact.business, email: contact.email, phone: contact.phone, website: contact.website,
+});
+---
+<OfficeLayout title={contact.business}>
+  <div class="page-head">
+    <h1 class="file-name">{contact.business}</h1>
+    <span class="sub">{label[contact.type] ?? contact.type}{contact.owner && ` · ${contact.owner}`}</span>
+    <div class="actions">
+      {contact.clientSlug
+        ? <a class="btn-quiet" href={`/office/clients/${contact.clientSlug}/`}>Client page</a>
+        : <a class="btn-quiet" href={`/office/clients/new/?${startParams}`}>Start a client</a>}
+    </div>
+  </div>
+  {error && <p class="error">{error}</p>}
+
+  <p class="copy-line">
+    {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
+    {contact.phone && <span>{contact.phone}</span>}
+    {contact.website && <a href={contact.website}>{contact.website}</a>}
+    {!contact.email && !contact.phone && !contact.website && <span class="quiet">No contact details.</span>}
+  </p>
+
+  <h2>Notes <span class="count">{notes.length}</span></h2>
+  <form method="POST" action="/office/api/contact" class="toolbar">
+    <input type="hidden" name="csrf" value={csrf} />
+    <input type="hidden" name="op" value="note" />
+    <input type="hidden" name="id" value={contact.id} />
+    <input class="grow" name="text" placeholder="What happened" required aria-label="Note" />
+    <button class="btn">Add note</button>
+  </form>
+  {notes.length === 0 && <p class="empty">Nothing recorded yet.</p>}
+  {notes.length > 0 && (
+    <ul class="ledger">
+      {notes.map((n) => (
+        <li class="no-tick">
+          <span class="when">{day(n.at)}</span>
+          <span class="what">{n.text}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+
+  <details class="fold">
+    <summary>Details<span class="sub">edit or delete</span></summary>
+    <div class="fold-body">
+      <form method="POST" action="/office/api/contact" class="sheet narrow">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="op" value="edit" />
+        <input type="hidden" name="id" value={contact.id} />
+        <ContactFields contact={contact as unknown as Record<string, string>} />
+        <button type="submit" class="btn">Save</button>
+      </form>
+      <form method="POST" action="/office/api/contact" class="inline">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="op" value="delete" />
+        <input type="hidden" name="id" value={contact.id} />
+        <button class="link-quiet danger" onclick="return confirm('Delete this contact and its notes? This cannot be undone.')">Delete contact</button>
+      </form>
+    </div>
+  </details>
+</OfficeLayout>

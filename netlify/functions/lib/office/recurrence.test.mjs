@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { REPEATS, isRepeat, nextDue, nextTask, repeatLabel } from './recurrence.mjs';
+import { ID } from './ids.mjs';
 
 const NOW = new Date('2026-09-20T16:00:00Z');
 const task = {
@@ -28,6 +29,7 @@ test('nextDue steps from the due date, not from today', () => {
 
 test('nextTask copies the task forward with a fresh id and an open state', () => {
   const n = nextTask(task, NOW);
+  assert.match(n.id, ID);
   assert.notEqual(n.id, task.id);
   assert.equal(n.due, '2026-10-15');
   assert.equal(n.done, false);
@@ -38,6 +40,12 @@ test('nextTask copies the task forward with a fresh id and an open state', () =>
   assert.equal(n.stage, 'live');
   assert.equal(n.repeat, 'monthly');
   assert.equal(n.source, 'pipeline');
+});
+
+test('nextTask starts a fresh chain even when the finished task remembers a successor', () => {
+  const n = nextTask({ ...task, nextId: '20260912T020750aaaaaa', project: 'Admin' }, NOW);
+  assert.equal(n.nextId, null);
+  assert.equal(n.project, 'Admin');
 });
 
 test('repeatLabel reads like a sentence', () => {

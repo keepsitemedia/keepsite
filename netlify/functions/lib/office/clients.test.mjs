@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, uniqueSlug, validateClient, newClient, applyEdit, TIERS, isRetiredTier } from './clients.mjs';
+import { slugify, uniqueSlug, validateClient, newClient, applyEdit, TIERS, OWN_SLUG, isRetiredTier } from './clients.mjs';
 
 const NOW = new Date('2026-09-04T16:00:00Z');
 const good = { name: 'Sierra', business: 'Lova Content Creation', email: 'sierra@example.com', tier: 'Growth' };
@@ -61,6 +61,13 @@ test('newClient honours a given slug and applyEdit changes only editable fields'
   assert.equal(e.stage, 'inquiry');
   assert.equal(e.phone, '555');
   assert.equal(e.updatedAt, later.toISOString());
+});
+
+test('the own-tasks slug is never handed to a client', () => {
+  assert.equal(OWN_SLUG, 'office');
+  assert.equal(uniqueSlug('office', new Set()), 'office-2');
+  assert.equal(uniqueSlug('office', new Set(['office-2'])), 'office-3');
+  assert.equal(slugify('Office'), 'office');
 });
 
 test('TIERS matches packages.json', async () => {

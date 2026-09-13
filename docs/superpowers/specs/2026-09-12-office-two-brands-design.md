@@ -236,25 +236,31 @@ work without change. `slugify` and `uniqueSlug` never produce
 `office`, `validateClient` refuses it, and the client action refuses
 it before the slug check.
 
-Task documents gain two fields, null on client tasks:
+Task documents gain three fields, null on client tasks:
 
 - `project`: free text, grouping label, for example "Referral program".
-- `repeat`: `weekly`, `monthly` or null.
+- `repeat`: `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly` or null,
+  the vocabulary pipeline tasks already use.
+- `nextId`: the id of the successor a finished repeating task created,
+  so a task creates at most one successor in its lifetime; reopening
+  keeps it.
 
 Marking a repeating task done creates the next one with the same
 title, project, time, notes and repeat, due seven days later or the
 same day next month clamped to that month's last day, using the month
 shift the calendar already has. The next task is created in the same
-action before the redirect; a second Done on the same task, replayed,
-does not create another because the task is already done.
+action before the redirect. A replayed Done, or a reopen followed by
+Done, creates nothing more because the finished task already carries
+`nextId`.
 
 Routes: `/office/tasks/`, a page listing open own tasks grouped by
 project with an add form at the top (title, due, time, project,
 repeat, notes) and a fold of the last twenty done. Today's "On you"
 and the Calendar include own tasks; `TaskRow` shows the project label
 in the client column when `slug` is `office`, and the Move sheet gains
-the repeat select. The task action learns the reserved slug (no client
-lookup for it) and the two fields on `add` and `reschedule`.
+the repeat select on own tasks' rows only. The task action learns the
+reserved slug (no client lookup for it) and the two fields on `add`
+and `reschedule`.
 
 ## Digest and reminders
 
@@ -269,7 +275,7 @@ brand address and copy that brand's notify-to.
 No data rewrite. Missing `brand` reads as Keepsite on clients, tasks
 through their client, payments and agreements. Stored pipelines get a
 brand on the next save under Settings; the seed already has one.
-Missing `project` and `repeat` on tasks read as null.
+Missing `project`, `repeat` and `nextId` on tasks read as null.
 
 ## Testing
 
@@ -288,8 +294,9 @@ Beside each module, `node --test` as today:
   brand's hostname.
 - `guard.test.mjs` and the brand action: cookie parsing and fallback.
 - `contacts.test.mjs`: validation, note prepend, convert linkage.
-- `task.test.mjs`: reserved slug, fields, weekly and monthly next-due
-  including the month-end clamp, no double creation on replay.
+- `task.test.mjs`: reserved slug, fields, next-due for the five repeat
+  kinds including the month-end clamp, no double creation on replay, one
+  successor across reopen and re-done.
 - `digest.test.mjs`: one digest per brand with own tasks in each.
 - `check-office.mjs` gains: every pipeline names a known brand; every
   agreement template names a brand and one of its tiers; no seed or
@@ -302,7 +309,7 @@ The gate stays `npm run gate`.
 
 Each usable when it ships, in this order:
 
-1. **Own tasks.** Reserved slug, two fields, recurrence, the Tasks
+1. **Own tasks.** Reserved slug, three fields, recurrence, the Tasks
    page, row changes.
 2. **Contacts.** Store type, three pages, action, export.
 3. **Brands in the office.** Registry, `brand` on clients, pipelines,

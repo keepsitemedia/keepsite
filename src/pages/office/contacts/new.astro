@@ -1,0 +1,19 @@
+---
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import ContactFields from '../../../components/office/ContactFields.astro';
+const error = Astro.url.searchParams.get('error');
+---
+<OfficeLayout title="New contact">
+  <div class="page-head">
+    <h1>New contact</h1>
+    <span class="sub">Someone you work with who is not a client.</span>
+  </div>
+  {error && <p class="error">{error}</p>}
+  <form method="POST" action="/office/api/contact" class="sheet narrow">
+    <input type="hidden" name="csrf" value={Astro.locals.csrf} />
+    <input type="hidden" name="op" value="create" />
+    <ContactFields />
+    <button type="submit" class="btn">Create contact</button>
+  </form>
+</OfficeLayout>

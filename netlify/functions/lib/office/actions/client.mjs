@@ -3,6 +3,7 @@ import { store as defaultStore, SLUG, TYPES } from '../store.mjs';
 import { loadPipelines, findPipeline, advance } from '../pipeline.mjs';
 import { validateClient, newClient, applyEdit, clientFields, slugify, uniqueSlug } from '../clients.mjs';
 import { todayIn } from '../dates.mjs';
+import { ID } from '../ids.mjs';
 
 // Errors go back to the form in the query string rather than as a 400 page,
 // so the admin keeps the form and sees what to fix.
@@ -38,6 +39,13 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     // apart from a new client that shares a business name.
     if (!(await s.clients.putIfNew(slug, created))) return redirect(`/office/clients/${slug}/`);
     for (const t of tasks) await s.tasks.put(slug, t.id, t);
+    // The contact is a courtesy link, not a parent: a stale or deleted one
+    // must not stop a client from being created.
+    const contactId = field(data, 'contact');
+    if (ID.test(contactId)) {
+      const linked = await s.contacts.get(contactId);
+      if (linked) await s.contacts.put(contactId, { ...linked, clientSlug: slug, updatedAt: now.toISOString() });
+    }
     return redirect(`/office/clients/${slug}/`);
   }
 
@@ -63,6 +71,11 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     if ((await s.agreements.list(slug)).some((a) => a.status === 'completed')) keeps.push('a signed agreement');
     if ((await s.payments.list(slug)).some((p) => p.status === 'paid' || (p.kind === 'subscription' && p.status === 'active'))) keeps.push('a payment on record');
     if (keeps.length) return back(`/office/clients/${slug}/`, [`this client has ${keeps.join(' and ')}, which must be kept; move them to Live or leave them as they are`]);
+    // A contact's clientSlug is a link, not an owner; the client going away
+    // must return the contact to "Start a client", not leave a dead link.
+    for (const c of await s.contacts.list()) {
+      if (c.clientSlug === slug) await s.contacts.put(c.id, { ...c, clientSlug: null, updatedAt: now.toISOString() });
+    }
     for (const type of TYPES) {
       for (const doc of await s[type].list(slug)) await s[type].remove(slug, doc.id);
     }

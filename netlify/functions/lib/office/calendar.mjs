@@ -1,4 +1,4 @@
-import { addDays } from './dates.mjs';
+import { addDays, addMonths } from './dates.mjs';
 
 const byTime = (a, b) => {
   if (a.time === b.time) return 0;
@@ -19,18 +19,8 @@ const pad = (n) => String(n).padStart(2, '0');
 const ymdOf = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
 const daysIn = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
-// Same day of month in the neighbouring month, clamped to its last day, so
-// paging from the 31st never skips a month.
-function shiftMonth(y, m, d, delta) {
-  let ny = y;
-  let nm = m + delta;
-  if (nm < 1) { nm = 12; ny -= 1; }
-  if (nm > 12) { nm = 1; ny += 1; }
-  return ymdOf(ny, nm, Math.min(d, daysIn(ny, nm)));
-}
-
 export function monthGrid(ymd, marked, today) {
-  const [y, m, d] = ymd.split('-').map(Number);
+  const [y, m] = ymd.split('-').map(Number);
   const first = ymdOf(y, m, 1);
   const startOffset = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
   const total = daysIn(y, m);
@@ -49,7 +39,7 @@ export function monthGrid(ymd, marked, today) {
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
   const label = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', year: 'numeric' })
     .format(new Date(Date.UTC(y, m - 1, 1)));
-  return { label, prev: shiftMonth(y, m, d, -1), next: shiftMonth(y, m, d, 1), weeks };
+  return { label, prev: addMonths(ymd, -1), next: addMonths(ymd, 1), weeks };
 }
 
 export function dueBucket(task, today) {

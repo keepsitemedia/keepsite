@@ -7,37 +7,40 @@ import { dueBucket } from './calendar.mjs';
 import { logFailure, sendAdminCopy } from './mail.mjs';
 import { siteUrl } from './context.mjs';
 import { expireAgreements } from './agreements.mjs';
+import { OWN_SLUG } from './clients.mjs';
 
 const DAY = 86400e3;
 const money = (cents) => `$${(cents / 100).toFixed(2)}`;
 
 export function buildDigest({ clients, tasks, meetings, submitted, agreements = [], payments = [], today, now }) {
   const name = new Map(clients.map((c) => [c.slug, c.business]));
-  const who = (slug) => name.get(slug) ?? slug;
+  const who = (doc) => (doc.slug === OWN_SLUG
+    ? `Office${doc.project ? `, ${doc.project}` : ''}`
+    : name.get(doc.slug) ?? doc.slug);
   const open = tasks.filter((t) => !t.done).sort((a, b) => a.due.localeCompare(b.due) || (a.time ?? '').localeCompare(b.time ?? ''));
-  const line = (t) => `${who(t.slug)}: ${t.title}${t.time ? ` at ${formatTime(t.time)}` : ''}${t.due === today ? '' : ` (${formatYmd(t.due)})`}`;
+  const line = (t) => `${who(t)}: ${t.title}${t.time ? ` at ${formatTime(t.time)}` : ''}${t.due === today ? '' : ` (${formatYmd(t.due)})`}`;
   const bucket = (b) => open.filter((t) => dueBucket(t, today) === b).map(line);
 
   const tomorrow = addDays(today, 1);
   const meetingLines = meetings
     .filter((m) => m.ymd === today || m.ymd === tomorrow)
     .sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`))
-    .map((m) => `${who(m.slug)}: ${m.title}, ${formatYmd(m.ymd)} at ${formatTime(m.time)}`);
+    .map((m) => `${who(m)}: ${m.title}, ${formatYmd(m.ymd)} at ${formatTime(m.time)}`);
 
   const nudgeAfter = addDays(today, -3);
   const waiting = open
     .filter((t) => t.questionnaire && t.due <= nudgeAfter && !submitted.has(`${t.slug}/${t.questionnaire}`))
-    .map((t) => `${who(t.slug)}: ${t.questionnaire}, due ${formatYmd(t.due)} — nudge: ${siteUrl()}/office/send/${t.slug}/questionnaire-reminder/?form=${t.questionnaire}`);
+    .map((t) => `${who(t)}: ${t.questionnaire}, due ${formatYmd(t.due)} — nudge: ${siteUrl()}/office/send/${t.slug}/questionnaire-reminder/?form=${t.questionnaire}`);
 
   const failed = payments
     .filter((p) => p.status === 'failed')
-    .map((p) => `${who(p.slug)}: ${p.kind} ${money(p.amount)}${p.failureReason ? `, ${p.failureReason}` : ''}`);
+    .map((p) => `${who(p)}: ${p.kind} ${money(p.amount)}${p.failureReason ? `, ${p.failureReason}` : ''}`);
 
   const unsigned = agreements
     .filter((a) => a.status === 'sent' && now - new Date(a.sentAt) > 5 * DAY)
     // sentAt is an instant; slicing it would read UTC's calendar day, a day
     // ahead of Mountain evenings, so go through todayIn for the reader's zone.
-    .map((a) => `${who(a.slug)}: sent ${formatYmd(todayIn(undefined, new Date(a.sentAt)))}`);
+    .map((a) => `${who(a)}: sent ${formatYmd(todayIn(undefined, new Date(a.sentAt)))}`);
 
   const sections = [
     ['Overdue', bucket('overdue')],

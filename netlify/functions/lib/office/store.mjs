@@ -137,6 +137,13 @@ export function createStore({ office, questionnaires }) {
       async get(token) { return readJSON(office, `tokens/${assertToken(token)}.json`); },
       async put(token, ref) { return writeJSON(office, `tokens/${assertToken(token)}.json`, ref); },
     },
+    contacts: {
+      async get(id) { return readJSON(office, `contacts/${assertId(id)}.json`); },
+      async put(id, doc) { return writeJSON(office, `contacts/${assertId(id)}.json`, doc); },
+      async remove(id) { return office.remove(`contacts/${assertId(id)}.json`); },
+      async list() { return readAll(office, 'contacts/'); },
+      async count() { return (await office.list('contacts/')).length; },
+    },
     // A lock is a key that can be created once. There is no release: an
     // agreement is sealed once and a client enters a stage for the first
     // time once, so the lock's name carries what identifies that one event
@@ -148,6 +155,7 @@ export function createStore({ office, questionnaires }) {
       const out = { clients: await s.clients.count() };
       for (const t of TYPES) out[t] = await s[t].count();
       out.documents = await s.documents.count();
+      out.contacts = await s.contacts.count();
       return out;
     },
   };

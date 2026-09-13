@@ -1,0 +1,19 @@
+---
+import { CONTACT_TYPES, TYPE_LABELS } from '../../../netlify/functions/lib/office/contacts.mjs';
+interface Props { contact?: Record<string, string> }
+const c = Astro.props.contact ?? {};
+// __proto__: null in TYPE_LABELS defeats a direct cast; go through unknown.
+const label = TYPE_LABELS as unknown as Record<string, string>;
+---
+<div class="row">
+  <label class="field"><span>Business</span><input name="business" required value={c.business ?? ''} /></label>
+  <label class="field"><span>Owner</span><input name="owner" value={c.owner ?? ''} /></label>
+  <label class="field"><span>Type</span>
+    <select name="type">
+      {CONTACT_TYPES.map((t) => <option value={t} selected={(c.type ?? 'partner') === t}>{label[t]}</option>)}
+    </select>
+  </label>
+  <label class="field"><span>Email</span><input type="email" name="email" value={c.email ?? ''} /></label>
+  <label class="field"><span>Phone</span><input name="phone" value={c.phone ?? ''} /></label>
+  <label class="field"><span>Website</span><input name="website" value={c.website ?? ''} placeholder="https://" /></label>
+</div>

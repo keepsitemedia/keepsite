@@ -11,7 +11,7 @@ const FORMATS = {
 
 // The Data page offers a download for exactly these; a store collection that
 // is not here (documents, tokens, locks) has no export and no link.
-export const EXPORTABLE = ['clients', ...TYPES];
+export const EXPORTABLE = ['clients', 'contacts', ...TYPES];
 
 // A GET behind the guard; nothing is written, so no CSRF token is needed.
 export async function exportData(request, _ctx, s = defaultStore(), now = new Date()) {
@@ -20,7 +20,9 @@ export async function exportData(request, _ctx, s = defaultStore(), now = new Da
   const type = url.searchParams.get('type') ?? '';
   const format = FORMATS[url.searchParams.get('format') ?? ''];
   if (!format || !EXPORTABLE.includes(type)) return problem(400, 'unknown type or format');
-  const rows = type === 'clients' ? await s.clients.list() : await s[type].listAll();
+  const rows = type === 'clients' ? await s.clients.list()
+    : type === 'contacts' ? await s.contacts.list()
+    : await s[type].listAll();
   const name = `${type}-${todayIn(undefined, now)}.${url.searchParams.get('format')}`;
   return new Response(format.body(rows), {
     status: 200,

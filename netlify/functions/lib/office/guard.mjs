@@ -22,7 +22,10 @@ export const OFFICE_HEADERS = {
 };
 
 export const isOffice = (pathname) => /^\/office(\/|$)/.test(pathname);
-export const isPublic = (pathname) => pathname === '/office/login/' || pathname === '/office/api/login';
+// The calendar feed authenticates with its own bearer token, so the session
+// guard steps aside for it the way it does for the login route.
+export const isPublic = (pathname) =>
+  pathname === '/office/login/' || pathname === '/office/api/login' || pathname === '/office/api/feed';
 export const isApi = (pathname) => pathname.startsWith('/office/api/');
 // The client signing page: no session, so it never reaches requireAdmin,
 // but it still needs the office response headers (CSP, no-store, noindex).

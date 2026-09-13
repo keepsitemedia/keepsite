@@ -1,8 +1,9 @@
 ---
 import '../styles/global.css';
 import '../styles/office.css';
-import '@fontsource-variable/instrument-sans/wght.css';
-import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource/arimo/latin-400.css';
+import '@fontsource/arimo/latin-700.css';
+import '@fontsource/gelasio/latin-400.css';
 
 interface Props { title: string }
 const { title } = Astro.props;
@@ -11,6 +12,8 @@ const admin = Astro.locals.admin;
 const nav = [
   { label: 'Today', href: '/office/' },
   { label: 'Clients', href: '/office/clients/' },
+  { label: 'Contacts', href: '/office/contacts/' },
+  { label: 'Tasks', href: '/office/tasks/' },
   { label: 'Calendar', href: '/office/calendar/' },
   { label: 'Settings', href: '/office/settings/' },
   { label: 'Data', href: '/office/data/' },
