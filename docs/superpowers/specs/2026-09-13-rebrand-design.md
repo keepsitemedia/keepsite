@@ -50,7 +50,7 @@ Three roles, one per part of the logo.
 | `--font-serif` | `Georgia, 'Gelasio', 'Times New Roman', serif` | 400 italic | the `.serif` accent |
 | `--font-label` | `'Montserrat', Arial, 'Arimo', sans-serif` | 700 | buttons, nav links, eyebrows, footer tagline |
 
-- Arimo and Gelasio are the metric-compatible open clones of Arial and Georgia. They are declared through `@fontsource/arimo` (Apache 2.0) and `@fontsource/gelasio` (OFL) but sit after the system face in the stack, so a device with Arial and Georgia installed fetches nothing. Android and Linux fetch them and get an identical layout. The old metric-fallback `@font-face` block goes away because the fallback is now the same design.
+- Arimo and Gelasio are the metric-compatible open clones of Arial and Georgia. They are declared through `@fontsource/arimo` (OFL) and `@fontsource/gelasio` (OFL) but sit after the system face in the stack, so a device with Arial and Georgia installed fetches nothing. Android and Linux fetch them and get an identical layout. The old metric-fallback `@font-face` block goes away because the fallback is now the same design.
 - Montserrat 700 latin (`@fontsource/montserrat/700.css`) is the one file every visitor downloads. It is preloaded in place of Instrument Sans.
 - Headings: `--font-sans` 700, `letter-spacing: -0.02em`, `line-height: 1.05`. Body 400 at `--step-0`, `line-height: 1.6`. `strong` is 700.
 - `.label`: `--font-label` 700, uppercase, `letter-spacing: 0.14em`, `font-size: 0.8125rem`. Buttons and nav links take it.
@@ -94,7 +94,7 @@ The token swap carries most pages. These spots referenced the removed tokens or 
 |---|---|
 | `src/pages/index.astro` | stripe above h1; `.pull-line` and `.tier-line` rust; tier link hover rust |
 | `src/pages/packages.astro` | tier bar per card; list bullets rust; `.monthly-heading` rust; sorter strong rust |
-| `src/pages/how-it-works.astro` | step counters mustard with ink digits; stage dots ink, end stage rust; `.stage-num` and caret rust; tier list dt rust; the two tint fills become `--color-surface-alt` |
+| `src/pages/how-it-works.astro` | step counters mustard with ink digits; stage dots and rail rust through the brand token, end stage dot ink; `.stage-num` and caret rust; tier list dt rust; the two tint fills become `--color-surface-alt` |
 | `src/pages/faq.astro` | summary hover and open state rust |
 | `src/pages/start/thanks.astro` | `.pull-line` rust |
 | `src/components/WorkCard.astro` | tier badge mustard with ink text |

@@ -1,11 +1,14 @@
 ---
 import '../styles/global.css';
-import '@fontsource-variable/instrument-sans/wght.css';
-// The opsz axis, not wght: the serif only ever runs at 400, and letting
-// the optical size track the font size keeps it from going thin at the
-// 18px package promise lines and heavy at the 44px closing heading.
-import '@fontsource-variable/newsreader/opsz.css';
-import sansWoff2 from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+// Arial and Georgia are the logo's faces and ship with Windows, macOS and
+// iOS. Arimo and Gelasio are their metric-identical open clones; they sit
+// after the system face in the stack, so only Android and Linux fetch them.
+// Montserrat is the tagline face and the one file every visitor downloads.
+import '@fontsource/arimo/latin-400.css';
+import '@fontsource/arimo/latin-700.css';
+import '@fontsource/gelasio/latin-400-italic.css';
+import '@fontsource/montserrat/latin-700.css';
+import labelWoff2 from '@fontsource/montserrat/files/montserrat-latin-700-normal.woff2?url';
 import BackgroundShapes from '../components/BackgroundShapes.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -66,7 +69,7 @@ const siteJsonLd = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preload" href={sansWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={labelWoff2} as="font" type="font/woff2" crossorigin />
 
     <title>{title}</title>
     <meta name="description" content={description} />

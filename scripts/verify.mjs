@@ -292,25 +292,40 @@ check('FAQPage lives only on /faq/', () => {
 });
 
 section('Fonts');
-// The preload sits in the HTML and the @font-face in an externalized
-// stylesheet, so the hash has to agree across both files.
+// Montserrat is the one face every visitor downloads (Arial and Georgia are
+// system faces; Arimo and Gelasio only load where those are missing). The
+// preload sits in the HTML and the @font-face in an externalized stylesheet,
+// so the hash has to agree across both files.
 check('the preload and the stylesheet request the same file', () => {
-  const SANS = /\/_astro\/instrument-sans-latin-wght-normal\.[A-Za-z0-9_-]+\.woff2/g;
+  const LABEL = /\/_astro\/montserrat-latin-700-normal\.[A-Za-z0-9_-]+\.woff2/g;
   for (const p of PAGES) {
     const html = read(p);
     const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
       read(m[1].replace(/^\//, ''))
     );
     if (!sheets.length) throw new Error(p + ' links no stylesheet');
-    const inHtml = new Set(html.match(SANS) || []);
-    const inCss = new Set(sheets.flatMap((c) => c.match(SANS) || []));
-    if (inHtml.size !== 1) throw new Error(`${p} preloads ${inHtml.size} sans assets`);
-    if (inCss.size !== 1) throw new Error(`${p} stylesheets declare ${inCss.size} sans assets`);
+    const inHtml = new Set(html.match(LABEL) || []);
+    const inCss = new Set(sheets.flatMap((c) => c.match(LABEL) || []));
+    if (inHtml.size !== 1) throw new Error(`${p} preloads ${inHtml.size} label assets`);
+    if (inCss.size !== 1) throw new Error(`${p} stylesheets declare ${inCss.size} label assets`);
     const [preloaded] = [...inHtml];
     const [declared] = [...inCss];
     if (preloaded !== declared) throw new Error(`${p} preloads ${preloaded} but loads ${declared}`);
     for (const s of [html, ...sheets]) {
       if (s.includes('fonts.googleapis.com')) throw new Error(p + ' uses a third-party font origin');
+    }
+  }
+});
+check('the retired faces are gone from every stylesheet', () => {
+  for (const p of PAGES) {
+    const html = read(p);
+    const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
+      read(m[1].replace(/^\//, ''))
+    );
+    for (const s of sheets) {
+      for (const face of ['Instrument Sans', 'Newsreader']) {
+        if (s.includes(face)) throw new Error(`${p} still declares ${face}`);
+      }
     }
   }
 });
