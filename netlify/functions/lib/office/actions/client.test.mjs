@@ -12,7 +12,7 @@ const post = (fields) => {
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
   return new Request('https://site.test/office/api/client', { method: 'POST', body: d });
 };
-const good = { name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search', pipeline: 'website' };
+const good = { name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Growth', pipeline: 'website' };
 
 let csrf;
 test.before(() => { process.env.KEEPSITE_SESSION_SECRET = SECRET; csrf = mintCsrf(SECRET); });
@@ -67,6 +67,15 @@ test('update edits fields and keeps the slug and stage', async () => {
   const c = await s.clients.get('lova');
   assert.equal(c.phone, '555');
   assert.equal(c.stage, 'inquiry');
+});
+
+test('update keeps a stored retired tier but refuses a different retired one', async () => {
+  const s = await make();
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search', pipeline: 'website', stage: 'inquiry', stages: [], dates: {}, createdAt: 'x' });
+  let res = await action(post({ csrf, op: 'update', slug: 'lova', name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/');
+  res = await action(post({ csrf, op: 'update', slug: 'lova', name: 'Sierra', business: 'Lova', email: 's@example.com', tier: 'Search Plus' }), ctx(), s);
+  assert.match(res.headers.get('Location'), /error=.*tier/);
 });
 
 test('update of an unknown client is a 404 and an unknown op a 400', async () => {

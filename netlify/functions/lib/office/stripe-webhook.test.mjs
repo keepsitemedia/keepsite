@@ -11,7 +11,7 @@ const SECRET = 'whsec_test';
 
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
-  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', tier: 'Search', stripeCustomerId: 'cus_1' });
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', tier: 'Growth', stripeCustomerId: 'cus_1' });
   return s;
 };
 

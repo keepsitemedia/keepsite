@@ -536,7 +536,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
                 <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === (posted('template') ?? defaultTemplateId)}>{t.name}</option>)}</select>
               </label>
             </div>
-            <p class="field-hint">Amounts below prefill for {client.tier || 'Presence'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
+            <p class="field-hint">Amounts below prefill for {client.tier || 'the template'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
             <h3>Client</h3>
             <div class="row">
               <label class="field"><span>Legal business name</span><input name="legalName" value={posted('legalName') ?? draftFields.legalName} required /></label>

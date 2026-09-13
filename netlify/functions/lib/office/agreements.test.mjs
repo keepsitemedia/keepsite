@@ -11,7 +11,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
-const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Search' };
+const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Growth' };
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
   await s.clients.put('lova', client);

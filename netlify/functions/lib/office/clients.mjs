@@ -22,12 +22,17 @@ export function uniqueSlug(base, taken) {
   }
 }
 
-export function validateClient(fields) {
+export const isRetiredTier = (name) => Boolean(name) && !TIERS.includes(name);
+
+export function validateClient(fields, existing = null) {
   const errors = [];
   if (!fields.name) errors.push('name is required');
   if (!fields.business) errors.push('business is required');
   if (!EMAIL.test(fields.email ?? '')) errors.push('email does not look like an address');
-  if (fields.tier && !TIERS.includes(fields.tier)) errors.push(`tier must be one of ${TIERS.join(', ')}`);
+  // A retired tier stays valid only while it is left alone, so old clients
+  // keep working and the first edit moves them to a current package.
+  const keepsRetired = isRetiredTier(fields.tier) && existing?.tier === fields.tier;
+  if (fields.tier && !TIERS.includes(fields.tier) && !keepsRetired) errors.push(`tier must be one of ${TIERS.join(', ')}`);
   return errors;
 }
 

@@ -8,7 +8,7 @@ import { memoryBackend } from './backends.mjs';
 import { DATA_URL } from './fixtures.mjs';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
-const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', phone: '', address: '', tier: 'Search' };
+const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', phone: '', address: '', tier: 'Growth' };
 const post = (path, fields, headers = {}) => {
   const d = new FormData();
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
