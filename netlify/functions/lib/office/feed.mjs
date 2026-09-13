@@ -24,7 +24,8 @@ const brandOf = (client) => (client ? 'keepsite' : null);
 const inWindow = (day, w) => day >= w.from && day <= w.to;
 const keep = (brand, w) => brand === null || w.brand === null || brand === w.brand;
 
-const dayOf = (i) => (i.kind === 'task' ? i.due : i.ymd);
+// Shared with ics.mjs so the feed's day-of-item rule lives in one place.
+export const dayOf = (i) => (i.kind === 'task' ? i.due : i.ymd);
 const order = (a, b) =>
   dayOf(a).localeCompare(dayOf(b)) || (a.time ?? '').localeCompare(b.time ?? '') || a.title.localeCompare(b.title);
 

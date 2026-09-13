@@ -35,6 +35,7 @@ test('the token is required, checked, and fails closed when unset', async () => 
   const bareToken = await feed(get('', { Authorization: TOKEN }), ctx, s, NOW);
   assert.equal(bareToken.status, 401);
   assert.equal(bareToken.headers.get('WWW-Authenticate'), 'Bearer');
+  assert.equal(bareToken.headers.get('Cache-Control'), 'private, no-store');
   const saved = process.env.KEEPSITE_FEED_TOKEN;
   delete process.env.KEEPSITE_FEED_TOKEN;
   const res = await feed(get(), ctx, s, NOW);
@@ -79,8 +80,40 @@ test('GET can answer ICS by query or by Accept', async () => {
     const res = await feed(req, ctx, s, NOW);
     assert.equal(res.status, 200);
     assert.match(res.headers.get('Content-Type'), /text\/calendar/);
+    assert.equal(res.headers.get('Cache-Control'), 'private, no-store');
     assert.match(await res.text(), /BEGIN:VCALENDAR/);
   }
+});
+
+test('Accept is weighed by q-value against JSON, with a bare wildcard favoring JSON', async () => {
+  const { s } = await make();
+  const cases = [
+    ['application/json, text/calendar;q=0.1', /application\/json/],
+    ['text/calendar', /text\/calendar/],
+    ['*/*', /application\/json/],
+  ];
+  for (const [accept, contentType] of cases) {
+    const res = await feed(get('', { Accept: accept }), ctx, s, NOW);
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get('Content-Type'), contentType);
+  }
+});
+
+test('a brand filter through the route keeps only that brand, own tasks always included', async () => {
+  const { s, b } = await make();
+  const lova = await feed(get('?brand=lova'), ctx, s, NOW);
+  const lovaItems = (await lova.json()).items;
+  assert.deepEqual(lovaItems.map((i) => i.id), [b]);
+  const keepsite = await feed(get('?brand=keepsite'), ctx, s, NOW);
+  assert.equal((await keepsite.json()).items.length, 3);
+});
+
+test('HEAD with ?format=ics answers 200 with an empty body and the ICS content type', async () => {
+  const { s } = await make();
+  const res = await feed(new Request('https://site.test/office/api/feed?format=ics', { method: 'HEAD', headers: { Authorization: `Bearer ${TOKEN}` } }), ctx, s, NOW);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('Content-Type'), /text\/calendar/);
+  assert.equal(await res.text(), '');
 });
 
 test('POST add creates an own task and returns it', async () => {

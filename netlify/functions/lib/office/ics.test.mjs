@@ -55,6 +55,46 @@ test('a CANCEL method carries its sequence and STATUS:CANCELLED', () => {
   assert.ok(lines.includes('STATUS:CANCELLED'));
 });
 
+test('a content line over 75 octets folds with a leading space on the continuation, and unfolding restores it', () => {
+  // The emoji sits astride the 75-octet boundary so a byte-unsafe split
+  // would corrupt it; back the boundary off to the start of the character.
+  const longSummary = 'A'.repeat(65) + '😀' + 'B'.repeat(30);
+  const ics = buildIcs({ ...base, summary: longSummary });
+  const lines = ics.split('\r\n');
+  const first = lines.findIndex((l) => l.startsWith('SUMMARY:'));
+  assert.ok(Buffer.byteLength(lines[first], 'utf8') <= 75);
+  assert.equal(lines[first + 1][0], ' ');
+  assert.ok(Buffer.byteLength(lines[first + 1], 'utf8') <= 76);
+  const unfolded = ics.replace(/\r\n /g, '');
+  assert.ok(unfolded.includes(`SUMMARY:${longSummary}`));
+});
+
+test('URL is passed through unescaped in both builders, and a CRLF in it cannot inject a line', () => {
+  const commaUrl = 'https://x/?a=1,2';
+  assert.ok(buildIcs({ ...base, url: commaUrl }).includes(`URL:${commaUrl}`));
+  const feedItem = (url) => ({ kind: 'task', id: 'u1', business: null, title: 'T', due: '2026-09-19', time: null, done: false, url });
+  assert.ok(buildFeedIcs([feedItem(commaUrl)], new Date('2026-09-13T00:00:00Z')).includes(`URL:${commaUrl}`));
+
+  const injectingUrl = 'https://x/\r\nX-EVIL:1';
+  const icsA = buildIcs({ ...base, url: injectingUrl });
+  assert.ok(!icsA.split('\r\n').some((l) => l.startsWith('X-EVIL')));
+  const icsB = buildFeedIcs([feedItem(injectingUrl)], new Date('2026-09-13T00:00:00Z'));
+  assert.ok(!icsB.split('\r\n').some((l) => l.startsWith('X-EVIL')));
+});
+
+test('an empty window still returns a valid, component-free calendar', () => {
+  const ics = buildFeedIcs([], new Date('2026-09-13T00:00:00Z'));
+  assert.ok(ics.startsWith('BEGIN:VCALENDAR'));
+  assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
+  assert.ok(!ics.includes('VEVENT'));
+});
+
+test('a meeting item with a link carries it in DESCRIPTION', () => {
+  const items = [{ kind: 'meeting', id: 'b1', business: 'Acme', title: 'Kickoff', ymd: '2026-09-20', time: '10:00', minutes: 45, link: 'https://meet/x', url: 'https://x/office/clients/acme/?tab=meetings' }];
+  const ics = buildFeedIcs(items, new Date('2026-09-13T00:00:00Z'));
+  assert.match(ics, /DESCRIPTION:https:\/\/meet\/x\r\n/);
+});
+
 test('buildFeedIcs writes all-day and timed events for a whole window', () => {
   const now = new Date('2026-09-13T15:00:00Z');
   const items = [

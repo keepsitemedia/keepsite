@@ -27,8 +27,24 @@ function authorized(request) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-const wantsIcs = (request, url) =>
-  url.searchParams.get('format') === 'ics' || /text\/calendar/.test(request.headers.get('accept') ?? '');
+// The q-value Accept gives a media type, or 0 if the type is absent; only an
+// exact range is matched, so a bare `*/*` does not count as asking for ICS.
+function acceptQ(accept, type) {
+  for (const part of accept.split(',')) {
+    const [range, ...params] = part.split(';').map((s) => s.trim());
+    if (range.toLowerCase() !== type) continue;
+    const q = params.map((p) => /^q=([\d.]+)$/i.exec(p)).find(Boolean);
+    return q ? Number(q[1]) : 1;
+  }
+  return 0;
+}
+
+const wantsIcs = (request, url) => {
+  if (url.searchParams.get('format') === 'ics') return true;
+  const accept = request.headers.get('accept') ?? '';
+  const ics = acceptQ(accept, 'text/calendar');
+  return ics > 0 && ics >= acceptQ(accept, 'application/json');
+};
 
 async function load(s) {
   const [tasks, meetings, clients] = await Promise.all([s.tasks.listAll(), s.meetings.listAll(), s.clients.list()]);

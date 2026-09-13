@@ -4,10 +4,12 @@
 import { newId } from './ids.mjs';
 import { isYmd, isHhmm } from './dates.mjs';
 import { REPEATS, isRepeat, nextTask } from './recurrence.mjs';
+import { SLUG } from './store.mjs';
 
 const text = (v) => String(v ?? '').trim();
 
 export function newTask(fields, now = new Date()) {
+  if (!SLUG.test(String(fields.slug))) return { error: 'bad slug' };
   const title = text(fields.title);
   const due = text(fields.due);
   const time = text(fields.time);

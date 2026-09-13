@@ -33,6 +33,12 @@ test('newTask nulls empty optionals and rejects bad fields', () => {
   assert.match(newTask({ ...good, repeat: 'daily' }, NOW).error, /repeat/);
 });
 
+test('newTask rejects a slug that could escape the client directory', () => {
+  assert.match(newTask({ ...good, slug: '../x' }, NOW).error, /slug/);
+  assert.equal(newTask({ ...good, slug: 'office' }, NOW).error, undefined);
+  assert.equal(newTask({ ...good, slug: 'lova' }, NOW).error, undefined);
+});
+
 test('finishTask spawns once for an open repeating task', () => {
   const { task } = newTask(good, NOW);
   const first = finishTask(task, NOW);
