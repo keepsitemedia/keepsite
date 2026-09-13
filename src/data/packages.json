@@ -127,10 +127,9 @@
       "monthlyPriceNote": "from, quoted",
       "quoted": true,
       "monthlySummary": [
-        "Everything in Growth, for every arm",
-        "Search monitoring per arm",
-        "Updates tied to each arm's search goals",
-        "Scoped in your quote"
+        "Everything in Growth",
+        "Search monitoring per facet of your business",
+        "Updates tied to growth"
       ],
       "ctaLabel": "Talk about Range"
     }

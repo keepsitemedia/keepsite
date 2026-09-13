@@ -100,12 +100,21 @@ const packagesJsonLd = {
   <section class="section-tight">
     <div class="container">
       <h2 class="visually-hidden">The four packages</h2>
-      <div class="grid grid-2 tier-grid">
+      <!-- Four stacked disclosures. Closed, each shows the name, the promise
+           and one paragraph; everything else waits behind the marker. summary
+           allows one heading plus phrasing content, so the two lines under
+           the name are spans. -->
+      <div class="tier-stack">
         {packages.tiers.map((tier) => (
-          <div class="card tier" id={tier.id}>
-            <h3 class="tier-name">{tier.name}</h3>
-            <p class="serif tier-line">{tier.line}</p>
-            <p class="tier-sub">{tier.sub}</p>
+          <details class="card tier" id={tier.id}>
+            <summary class="tier-summary">
+              <span class="tier-head">
+                <h3 class="tier-name">{tier.name}</h3>
+                <span class="serif tier-line">{tier.line}</span>
+                <span class="tier-sub">{tier.sub}</span>
+              </span>
+              <span class="marker" aria-hidden="true"></span>
+            </summary>
 
             <h4 class="tier-h">Who it's for</h4>
             <p class="tier-who">{tier.who}</p>
@@ -133,7 +142,7 @@ const packagesJsonLd = {
             </div>
 
             <a class="btn tier-cta" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel} &rarr;</a>
-          </div>
+          </details>
         ))}
       </div>
     </div>
@@ -294,9 +303,22 @@ const packagesJsonLd = {
 
 </BaseLayout>
 
+<script is:inline>
+  // A link to /packages/#growth should land on Growth open, not on a
+  // closed card the reader then has to find the marker on.
+  (function () {
+    var open = function () {
+      var t = location.hash && document.querySelector('details.tier' + location.hash);
+      if (t) t.open = true;
+    };
+    open();
+    window.addEventListener('hashchange', open);
+  })();
+</script>
+
 <style>
-  .tier-grid { align-items: stretch; }
-  .tier { display: flex; flex-direction: column; scroll-margin-top: 6rem; }
+  .tier-stack { display: grid; gap: var(--space-3); max-width: 48rem; }
+  .tier { scroll-margin-top: 6rem; }
   /* One stripe color per tier, top edge of the card. Range takes the
      logo's copper so the four stay distinct. */
   .tier { border-top: 6px solid var(--color-ink); }
@@ -304,18 +326,29 @@ const packagesJsonLd = {
   #growth { border-top-color: var(--color-mustard); }
   #agile { border-top-color: var(--color-brand); }
   #range { border-top-color: var(--color-copper); }
-  .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); }
-  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-3); }
-  .tier-sub { margin-bottom: var(--space-3); }
+  .tier-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+    cursor: pointer;
+    list-style: none;
+  }
+  .tier-summary::-webkit-details-marker { display: none; }
+  .tier-summary .marker { margin-top: 0.45em; }
+  .tier-head { display: block; }
+  .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); transition: color 120ms ease; }
+  .tier-summary:hover .tier-name { color: var(--color-brand); }
+  .tier-line { display: block; color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
+  .tier-sub { display: block; max-width: var(--maxw-prose); }
+  .tier[open] .tier-summary { margin-bottom: var(--space-2); }
   .tier-h { font-size: var(--step-0); margin: var(--space-3) 0 var(--space-0); }
   .tier-feeling { margin-top: var(--space-1); }
   .tier-excludes li { list-style: none; }
   .tier-excludes li::before { content: "\2014  "; }
 
-  /* Price sits under the list, on the auto margin, so the four cards
-     line their prices and buttons up whatever the list length. */
   .tier-cost {
-    margin-top: auto;
+    margin-top: var(--space-3);
     padding-top: var(--space-3);
     border-top: 1px solid var(--color-border);
   }
@@ -414,6 +447,7 @@ const packagesJsonLd = {
   .marker::after { content: ""; position: absolute; background: currentColor; transition: opacity 120ms ease; }
   .marker::before { top: 6px; left: 0; width: 14px; height: 2px; }
   .marker::after { top: 0; left: 6px; width: 2px; height: 14px; }
-  .faq-item[open] .marker::after { opacity: 0; }
+  .faq-item[open] .marker::after,
+  .tier[open] .marker::after { opacity: 0; }
   .answer { margin: 0; padding-bottom: var(--space-3); }
 </style>
