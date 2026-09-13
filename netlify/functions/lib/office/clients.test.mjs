@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, uniqueSlug, validateClient, newClient, applyEdit, TIERS, OWN_SLUG } from './clients.mjs';
+import { slugify, uniqueSlug, validateClient, newClient, applyEdit, TIERS, OWN_SLUG, isRetiredTier } from './clients.mjs';
 
 const NOW = new Date('2026-09-04T16:00:00Z');
-const good = { name: 'Sierra', business: 'Lova Content Creation', email: 'sierra@example.com', tier: 'Search' };
+const good = { name: 'Sierra', business: 'Lova Content Creation', email: 'sierra@example.com', tier: 'Growth' };
 
 test('slugify makes a usable slug from a business name', () => {
   assert.equal(slugify('Lova Content Creation'), 'lova-content-creation');
@@ -25,6 +25,20 @@ test('validateClient requires name, business and a plausible email', () => {
   assert.match(validateClient({ ...good, email: 'nope' }).join(), /email/);
   assert.match(validateClient({ ...good, tier: 'Gold' }).join(), /tier/);
   assert.deepEqual(validateClient({ ...good, tier: '' }), []);
+  assert.deepEqual(TIERS, ['Presence', 'Growth', 'Agile', 'Range']);
+});
+
+// Clients stored before the four packages carry "Search" or "Search Plus".
+// They keep working untouched; the first edit has to move them.
+test('validateClient keeps a retired tier only while it is unchanged', () => {
+  const stored = { ...good, tier: 'Search' };
+  assert.deepEqual(validateClient({ ...good, tier: 'Search' }, stored), []);
+  assert.match(validateClient({ ...good, tier: 'Search' }, { ...good, tier: 'Growth' }).join(), /tier/);
+  assert.match(validateClient({ ...good, tier: 'Search Plus' }, stored).join(), /tier/);
+  assert.match(validateClient({ ...good, tier: 'Search' }).join(), /tier/);
+  assert.equal(isRetiredTier('Search'), true);
+  assert.equal(isRetiredTier('Growth'), false);
+  assert.equal(isRetiredTier(''), false);
 });
 
 test('newClient fills every field with a value', () => {

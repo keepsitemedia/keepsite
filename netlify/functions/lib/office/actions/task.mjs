@@ -3,7 +3,7 @@ import { store as defaultStore, SLUG } from '../store.mjs';
 import { ID } from '../ids.mjs';
 import { isYmd, isHhmm } from '../dates.mjs';
 import { OWN_SLUG } from '../clients.mjs';
-import { isRepeat } from '../recurrence.mjs';
+import { REPEATS, isRepeat } from '../recurrence.mjs';
 import { newTask, finishTask } from '../tasks.mjs';
 
 const when = (data) => {
@@ -14,12 +14,12 @@ const when = (data) => {
   return { due, time: time || null };
 };
 
-// An empty select means "does not repeat"; anything but the two words is a
-// form we did not write.
+// An empty select means "does not repeat"; anything outside the vocabulary
+// is a form we did not write.
 const repeatOf = (data) => {
   const value = field(data, 'repeat');
   if (!value) return { repeat: null };
-  if (!isRepeat(value)) return { error: 'repeat must be weekly or monthly' };
+  if (!isRepeat(value)) return { error: `repeat must be one of ${REPEATS.join(', ')}` };
   return { repeat: value };
 };
 
@@ -32,7 +32,8 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   const slug = field(data, 'slug');
   if (!SLUG.test(slug)) return problem(400, 'bad slug');
   const own = slug === OWN_SLUG;
-  if (!own && !(await s.clients.get(slug))) return problem(404, 'no such client');
+  const client = own ? null : await s.clients.get(slug);
+  if (!own && !client) return problem(404, 'no such client');
   // A `back` that safeNext would rewrite is one we did not issue; fall to
   // the task's own page rather than the dashboard.
   const back = field(data, 'back');
@@ -56,7 +57,7 @@ export async function task(request, ctx, s = defaultStore(), now = new Date()) {
   if (!existing) return problem(404, 'no such task');
 
   if (op === 'done') {
-    const { finished, next } = finishTask(existing, now);
+    const { finished, next } = finishTask(existing, now, { client });
     await s.tasks.put(slug, id, finished);
     if (next) await s.tasks.put(slug, next.id, next);
   } else if (op === 'reopen') await s.tasks.put(slug, id, { ...existing, done: false, doneAt: null });

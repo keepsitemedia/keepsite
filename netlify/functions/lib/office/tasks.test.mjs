@@ -48,3 +48,15 @@ test('finishTask spawns once for an open repeating task', () => {
   assert.equal(plain.next, null);
   assert.equal(plain.finished.nextId, null);
 });
+
+// A pipeline task rolls forward only while the client is still in the
+// stage that created it; own tasks and manual tasks have no stage to match.
+test('finishTask rolls a pipeline task forward only while the stage matches', () => {
+  const { task } = newTask(good, NOW);
+  const staged = { ...task, slug: 'lova', source: 'pipeline', stage: 'live', repeat: 'monthly', project: null };
+  assert.notEqual(finishTask(staged, NOW, { client: { stage: 'live' } }).next, null);
+  assert.equal(finishTask(staged, NOW, { client: { stage: 'copy' } }).next, null);
+  assert.equal(finishTask(staged, NOW, { client: null }).next, null);
+  assert.notEqual(finishTask(task, NOW, { client: null }).next, null);
+  assert.notEqual(finishTask({ ...task, slug: 'lova' }, NOW, { client: { stage: 'copy' } }).next, null);
+});

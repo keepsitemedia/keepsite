@@ -1,44 +1,55 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { REPEATS, isRepeat, nextDue, nextTask } from './recurrence.mjs';
+import { REPEATS, isRepeat, nextDue, nextTask, repeatLabel } from './recurrence.mjs';
 import { ID } from './ids.mjs';
 
-const NOW = new Date('2026-09-12T15:00:00Z');
-const base = {
-  id: '20260901T100000aaaaaa', slug: 'office', title: 'Post on LinkedIn', due: '2026-09-10', time: '09:00',
-  done: true, doneAt: NOW.toISOString(), source: 'manual', stage: null, questionnaire: null, payment: null, agreement: null,
-  notes: 'three posts', project: 'Marketing', repeat: 'weekly', createdAt: '2026-09-01T10:00:00.000Z',
+const NOW = new Date('2026-09-20T16:00:00Z');
+const task = {
+  id: '20260912T020750tuf2fw', slug: 'lova', title: 'Strategy meeting', due: '2026-09-15', time: '10:00',
+  done: true, doneAt: '2026-09-20T16:00:00.000Z', source: 'pipeline', stage: 'live',
+  questionnaire: null, payment: null, agreement: null, notes: 'bring numbers', repeat: 'monthly', createdAt: '2026-08-15T00:00:00.000Z',
 };
 
-test('isRepeat accepts the two words and nothing else', () => {
-  assert.deepEqual(REPEATS, ['weekly', 'monthly']);
-  assert.equal(isRepeat('weekly'), true);
-  assert.equal(isRepeat('monthly'), true);
-  assert.equal(isRepeat(''), false);
-  assert.equal(isRepeat(null), false);
+test('the repeat vocabulary', () => {
+  assert.deepEqual(REPEATS, ['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly']);
+  assert.equal(isRepeat('biweekly'), true);
   assert.equal(isRepeat('daily'), false);
+  assert.equal(isRepeat(null), false);
 });
 
-test('nextDue counts from the due date, not from today', () => {
-  assert.equal(nextDue('2026-09-10', 'weekly'), '2026-09-17');
+test('nextDue steps from the due date, not from today', () => {
+  assert.equal(nextDue('2026-09-15', 'weekly'), '2026-09-22');
+  assert.equal(nextDue('2026-09-15', 'biweekly'), '2026-09-29');
+  assert.equal(nextDue('2026-09-15', 'monthly'), '2026-10-15');
   assert.equal(nextDue('2026-01-31', 'monthly'), '2026-02-28');
-  assert.throws(() => nextDue('2026-09-10', 'daily'), /repeat/);
+  assert.equal(nextDue('2026-09-15', 'quarterly'), '2026-12-15');
+  assert.equal(nextDue('2026-09-15', 'yearly'), '2027-09-15');
+  assert.throws(() => nextDue('2026-09-15', 'daily'), /repeat/);
 });
 
-test('nextTask copies what recurs and resets what does not', () => {
-  const n = nextTask(base, NOW);
+test('nextTask copies the task forward with a fresh id and an open state', () => {
+  const n = nextTask(task, NOW);
   assert.match(n.id, ID);
-  assert.notEqual(n.id, base.id);
-  assert.equal(n.due, '2026-09-17');
+  assert.notEqual(n.id, task.id);
+  assert.equal(n.due, '2026-10-15');
   assert.equal(n.done, false);
   assert.equal(n.doneAt, null);
   assert.equal(n.createdAt, NOW.toISOString());
-  for (const k of ['slug', 'title', 'time', 'project', 'repeat', 'notes']) assert.equal(n[k], base[k], k);
-  for (const k of ['stage', 'questionnaire', 'payment', 'agreement', 'nextId']) assert.equal(n[k], null, k);
-  assert.equal(n.source, 'manual');
+  assert.equal(n.time, '10:00');
+  assert.equal(n.notes, 'bring numbers');
+  assert.equal(n.stage, 'live');
+  assert.equal(n.repeat, 'monthly');
+  assert.equal(n.source, 'pipeline');
 });
 
-test('a successor is always a manual task, even from a pipeline task', () => {
-  const n = nextTask({ ...base, source: 'pipeline' }, NOW);
-  assert.equal(n.source, 'manual');
+test('nextTask starts a fresh chain even when the finished task remembers a successor', () => {
+  const n = nextTask({ ...task, nextId: '20260912T020750aaaaaa', project: 'Admin' }, NOW);
+  assert.equal(n.nextId, null);
+  assert.equal(n.project, 'Admin');
+});
+
+test('repeatLabel reads like a sentence', () => {
+  assert.equal(repeatLabel('biweekly'), 'every two weeks');
+  assert.equal(repeatLabel('weekly'), 'weekly');
+  assert.equal(repeatLabel('quarterly'), 'quarterly');
 });

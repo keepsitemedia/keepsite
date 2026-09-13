@@ -55,3 +55,11 @@ test('formatWhen and formatHours read like an email', () => {
   assert.equal(formatHours(1 * 3600e3), 'about 1 hour');
   assert.equal(formatHours(45 * 60e3), '45 minutes');
 });
+
+test('addMonths keeps the day and clamps to the end of a short month', () => {
+  assert.equal(addMonths('2026-01-31', 1), '2026-02-28');
+  assert.equal(addMonths('2026-03-15', 3), '2026-06-15');
+  assert.equal(addMonths('2026-11-30', 3), '2027-02-28');
+  assert.equal(addMonths('2028-01-31', 1), '2028-02-29');
+  assert.equal(addMonths('2026-05-31', 12), '2027-05-31');
+});

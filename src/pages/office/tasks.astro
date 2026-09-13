@@ -5,7 +5,7 @@ import TaskRow from '../../components/office/TaskRow.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 import { OWN_SLUG } from '../../../netlify/functions/lib/office/clients.mjs';
-import { REPEATS } from '../../../netlify/functions/lib/office/recurrence.mjs';
+import { REPEATS, repeatLabel } from '../../../netlify/functions/lib/office/recurrence.mjs';
 
 // store.mjs has no type declarations, so astro check sees list() as any;
 // this narrows it to what the page reads.
@@ -48,7 +48,7 @@ const late = open.filter((t) => t.due < today).length;
       <label class="field"><span>Repeat</span>
         <select name="repeat">
           <option value="">Does not repeat</option>
-          {REPEATS.map((r) => <option value={r}>{r}</option>)}
+          {REPEATS.map((r) => <option value={r}>{repeatLabel(r)}</option>)}
         </select>
       </label>
     </div>

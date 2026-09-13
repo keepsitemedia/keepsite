@@ -54,7 +54,7 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     if (!SLUG.test(slug)) return problem(400, 'bad slug');
     const existing = await s.clients.get(slug);
     if (!existing) return problem(404, 'no such client');
-    const errors = validateClient(fields);
+    const errors = validateClient(fields, existing);
     if (errors.length) return back(`/office/clients/${slug}/`, errors);
     await s.clients.put(slug, applyEdit(existing, fields, now));
     return redirect(`/office/clients/${slug}/`);

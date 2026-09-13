@@ -144,8 +144,9 @@ Field notes:
   probably wants to hide or dim them.
 - `source` is `"pipeline"` or `"manual"`; `stage` is the pipeline stage id
   that created a pipeline task, else null.
-- `project` and `repeat` (`"weekly"`, `"monthly"` or null) are only ever
-  set on own tasks.
+- `project` is only ever set on own tasks. `repeat` is `"weekly"`,
+  `"biweekly"`, `"monthly"`, `"quarterly"`, `"yearly"` or null; own tasks
+  and some pipeline tasks carry one.
 - `url` is the office page where the item can be acted on. Opening it
   needs an office login; that is fine, both owners have one.
 - Meetings have `ymd` where tasks have `due`; the office names them that
@@ -173,7 +174,8 @@ Content-Type: application/json
 
 - `add` creates an own task (slug `office`) and returns the created item
   in the read shape. `title` and `due` are required; `repeat` must be
-  `weekly`, `monthly` or null. Marking a repeating task done creates the
+  `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly` or null. Marking a
+  repeating task done creates the
   next one in the office, exactly as the office's own Done button does.
 - `done` and `reopen` work on any task id in the feed, client tasks too,
   because the owner is the same person either way. `delete` is not

@@ -1,35 +1,29 @@
-// A repeating task is a chain of ordinary tasks: Done on one creates the
-// next, dated from the one just finished so a task done late does not drift.
+// A repeating task is not a schedule: marking one done creates the next one
+// from its own due date, so a late completion does not drift the cadence.
 import { addDays, addMonths } from './dates.mjs';
 import { newId } from './ids.mjs';
 
-export const REPEATS = ['weekly', 'monthly'];
-export const isRepeat = (value) => REPEATS.includes(value);
+export const REPEATS = ['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'];
+export const isRepeat = (v) => REPEATS.includes(v);
+
+const STEP = {
+  weekly: (d) => addDays(d, 7),
+  biweekly: (d) => addDays(d, 14),
+  monthly: (d) => addMonths(d, 1),
+  quarterly: (d) => addMonths(d, 3),
+  yearly: (d) => addMonths(d, 12),
+};
 
 export function nextDue(ymd, repeat) {
-  if (repeat === 'weekly') return addDays(ymd, 7);
-  if (repeat === 'monthly') return addMonths(ymd, 1);
-  throw new Error(`unknown repeat: ${repeat}`);
+  if (!isRepeat(repeat)) throw new Error(`unknown repeat: ${repeat}`);
+  return STEP[repeat](ymd);
 }
 
+// The successor starts its own chain: nextId is what the finished task uses
+// to remember it spawned once, so the copy must not inherit that memory.
 export function nextTask(task, now = new Date()) {
-  return {
-    id: newId(now),
-    slug: task.slug,
-    title: task.title,
-    due: nextDue(task.due, task.repeat),
-    time: task.time ?? null,
-    done: false,
-    doneAt: null,
-    source: 'manual',
-    stage: null,
-    questionnaire: null,
-    payment: null,
-    agreement: null,
-    notes: task.notes ?? '',
-    project: task.project ?? null,
-    repeat: task.repeat,
-    nextId: null,
-    createdAt: now.toISOString(),
-  };
+  return { ...task, id: newId(now), due: nextDue(task.due, task.repeat), done: false, doneAt: null, nextId: null, createdAt: now.toISOString() };
 }
+
+const LABEL = { weekly: 'weekly', biweekly: 'every two weeks', monthly: 'monthly', quarterly: 'quarterly', yearly: 'yearly' };
+export const repeatLabel = (repeat) => LABEL[repeat] ?? '';

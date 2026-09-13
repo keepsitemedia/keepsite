@@ -62,7 +62,7 @@ test('signaturePng refuses a small file that declares a huge bitmap', () => {
 });
 
 test('a full agreement renders to a multi-page PDF without throwing', async () => {
-  const blocks = fillBlocks(findAgreementTemplate('search-plus'), fields);
+  const blocks = fillBlocks(findAgreementTemplate('agile'), fields);
   const bytes = await renderAgreement({ blocks });
   assert.equal(Buffer.from(bytes.subarray(0, 5)).toString(), '%PDF-');
   const text = Buffer.from(bytes).toString('latin1');

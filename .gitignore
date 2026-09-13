@@ -11,3 +11,5 @@ dist/
 docs/internal/
 .superpowers/
 CRM.txt
+# Internal packages and voice reference: carries hour targets and the hourly rate.
+keepsite-packages-and-voice.*

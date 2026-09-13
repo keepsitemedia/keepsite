@@ -1,12 +1,12 @@
 {
- "id": "presence",
- "name": "Presence Package",
- "tier": "Presence",
- "version": "31ef801dae00",
+ "id": "growth",
+ "name": "Growth Package",
+ "tier": "Growth",
+ "version": "bd91812df7f4",
  "defaults": {
-  "buildFee": "$1,200",
-  "monthlyFee": "$60",
-  "pages": 5
+  "buildFee": "$1,800",
+  "monthlyFee": "$160",
+  "pages": 8
  },
  "blocks": [
   {
@@ -15,11 +15,11 @@
   },
   {
    "type": "subtitle",
-   "text": "Presence Package"
+   "text": "Growth Package"
   },
   {
    "type": "subtitle",
-   "text": "Keepsite Media — Website Design, Development, Hosting, and Maintenance"
+   "text": "Keepsite Media — Website Design, Development, Hosting, Maintenance, and Search"
   },
   {
    "type": "p",
@@ -130,7 +130,7 @@
     [
      "Pages included in the build (Exhibit A)",
      "{{pages}} pages",
-     "5 pages"
+     "8 pages"
     ],
     [
      "Discount applied (Section 2.8)",
@@ -153,7 +153,7 @@
   },
   {
    "type": "p",
-   "text": "We design, build, and launch your website. Exhibit A lists exactly what's included. The build is finished when your site is live on your domain and we've sent you the launch notice described in Section 4.9."
+   "text": "We design, build, and launch your website. Exhibit A lists exactly what's included. The build is finished when your site is live on your domain and we've sent you the launch notice described in Section 4.11."
   },
   {
    "type": "h3",
@@ -161,7 +161,7 @@
   },
   {
    "type": "p",
-   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, and one content change a month for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
+   "text": "Starting on the Launch Date, we handle hosting, maintenance, monitoring, content updates, search monitoring, and updates tied to your search goals for your site. Exhibit B lists exactly what that covers. We keep doing it for as long as this agreement is running and your account is current."
   },
   {
    "type": "h3",
@@ -189,7 +189,7 @@
   },
   {
    "type": "p",
-   "text": "The build costs one thousand two hundred dollars ($1,200), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
+   "text": "The build costs one thousand eight hundred dollars ($1,800), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
   },
   {
    "type": "p",
@@ -213,7 +213,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription costs sixty dollars ($60) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
+   "text": "The subscription costs one hundred sixty dollars ($160) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
   },
   {
    "type": "h3",
@@ -337,7 +337,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription can't be paused or put on hold after launch. If you need to stop, cancel and start again later at whatever our prices are then. This doesn't limit our right to put a pre-launch build on hold under Section 4.7."
+   "text": "The subscription can't be paused or put on hold after launch. If you need to stop, cancel and start again later at whatever our prices are then. This doesn't limit our right to put a pre-launch build on hold under Section 4.9."
   },
   {
    "type": "h3",
@@ -361,7 +361,7 @@
   },
   {
    "type": "p",
-   "text": "If you cancel before the Launch Date, you owe your deposit or first payment plus a fair share of the rest of the build fee covering the work already done, including design and copy work. If we cancel before launch for any reason other than you breaking the agreement, we refund what you've paid minus the value of the work we've done."
+   "text": "If you cancel before the Launch Date, you owe your deposit or first payment plus a fair share of the rest of the build fee covering the work already done, including search research and copywriting. If we cancel before launch for any reason other than you breaking the agreement, we refund what you've paid minus the value of the work we've done."
   },
   {
    "type": "h3",
@@ -377,7 +377,7 @@
   },
   {
    "type": "p",
-   "text": "b. Your site's text and images, your customer inquiry data (Section 9.2), and everything listed in Section 8.2, all in ordinary portable formats; and"
+   "text": "b. Your site's text and images, the search research, your customer inquiry data (Section 9.2), and everything listed in Section 8.2, all in ordinary portable formats; and"
   },
   {
    "type": "p",
@@ -425,7 +425,7 @@
   },
   {
    "type": "p",
-   "text": "On the day cancellation takes effect, everything you've accrued is immediately due, including any early cancellation fee under Section 3.4 and any discount added back under Section 2.8. Also, your access to the monthly services stops, and fees you've already paid aren't refunded or prorated."
+   "text": "On the day cancellation takes effect, everything you've accrued is immediately due, including any early cancellation fee under Section 3.4 and any discount added back under Section 2.8. Also, your access to the monthly services stops and the search work ends, and fees you've already paid aren't refunded or prorated."
   },
   {
    "type": "h2",
@@ -466,7 +466,7 @@
   },
   {
    "type": "p",
-   "text": "Each stage includes one (1) round of changes, limited to that stage. A stage closes when you approve it in writing, or when Section 4.7 says it's approved because we didn't hear back. Once a stage closes, reopening it costs extra — see Section 4.8 and Exhibit C."
+   "text": "Each stage includes one (1) round of changes, limited to that stage. A stage closes when you approve it in writing, or when Section 4.9 says it's approved because we didn't hear back. Once a stage closes, reopening it costs extra — see Section 4.10 and Exhibit C."
   },
   {
    "type": "p",
@@ -494,7 +494,7 @@
   },
   {
    "type": "p",
-   "text": "d. All the written copy for the site, delivered by the content lock date in Section 4.6. On Presence, you supply the words and we edit and place them. If you don't have source material, we can write it under Exhibit C or you can move up to the Growth package;"
+   "text": "d. Source material and business facts for the pages we're writing, delivered by the content lock date in Section 4.8. On this package we write your core page copy; we still need the facts from you;"
   },
   {
    "type": "p",
@@ -502,7 +502,7 @@
   },
   {
    "type": "p",
-   "text": "f. An answer at each of the three stage gates, inside the window in Section 4.7."
+   "text": "f. An answer at each of the three stage gates, inside the window in Section 4.9."
   },
   {
    "type": "h3",
@@ -514,7 +514,23 @@
   },
   {
    "type": "h3",
-   "text": "4.4 Stage One — Style"
+   "text": "4.4 Search research and site structure"
+  },
+  {
+   "type": "p",
+   "text": "Alongside Stage One, we study the actual search results for the searches you want to win: what shows up now, why, and what it would take to be there. We use that to shape your site's structure and page map. The page map that comes out of this sets what we build in Stage Two."
+  },
+  {
+   "type": "h3",
+   "text": "4.5 Meetings"
+  },
+  {
+   "type": "p",
+   "text": "We hold a kickoff call after signing and a check-in at each of the three stages. There are no other standing meetings; everything else runs on the questionnaires and email."
+  },
+  {
+   "type": "h3",
+   "text": "4.6 Stage One — Style"
   },
   {
    "type": "p",
@@ -534,7 +550,7 @@
   },
   {
    "type": "h3",
-   "text": "4.5 Stage Two — Function"
+   "text": "4.7 Stage Two — Function"
   },
   {
    "type": "p",
@@ -570,7 +586,7 @@
   },
   {
    "type": "h3",
-   "text": "4.6 Stage Three — Copy and Photography"
+   "text": "4.8 Stage Three — Copy and Photography"
   },
   {
    "type": "p",
@@ -586,11 +602,11 @@
   },
   {
    "type": "p",
-   "text": "It does not cover: replacing copy or photographs you already sent, a different design direction, changes to the page set or layouts you approved at Stage Two, or new pages. Those reopen a closed stage — see Section 4.8."
+   "text": "It does not cover: replacing copy or photographs you already sent, a different design direction, changes to the page set or layouts you approved at Stage Two, or new pages. Those reopen a closed stage — see Section 4.10."
   },
   {
    "type": "h3",
-   "text": "4.7 Approving things, and what happens if you go quiet"
+   "text": "4.9 Approving things, and what happens if you go quiet"
   },
   {
    "type": "p",
@@ -598,7 +614,7 @@
   },
   {
    "type": "h3",
-   "text": "4.8 Reopening a closed stage"
+   "text": "4.10 Reopening a closed stage"
   },
   {
    "type": "p",
@@ -606,7 +622,7 @@
   },
   {
    "type": "h3",
-   "text": "4.9 Launch"
+   "text": "4.11 Launch"
   },
   {
    "type": "p",
@@ -614,7 +630,7 @@
   },
   {
    "type": "h3",
-   "text": "4.10 Getting the facts right"
+   "text": "4.12 Getting the facts right"
   },
   {
    "type": "p",
@@ -630,7 +646,7 @@
   },
   {
    "type": "p",
-   "text": "Your monthly fee covers one (1) change request a month: text edits, swapping an image, changing hours or contact details, adding or removing a staff member or a service line, and similar changes that don't need a new page template, new design work, or a whole new page. Email us the request; there's no login for you to learn. Requests past the one included are billed at the Exhibit C price."
+   "text": "Your monthly fee covers small content updates — text edits, swapping an image, changing hours or contact details, adding or removing a staff member or a service line, and similar changes that don't need a new page template, new design work, or a whole new page. Email us the request; there's no login for you to learn."
   },
   {
    "type": "h3",
@@ -646,7 +662,7 @@
   },
   {
    "type": "p",
-   "text": "One included request a month is the plan. If a single request is really several changes, we'll say so and count it accordingly, or bill the extras at the Exhibit C price."
+   "text": "Small updates are offered on a fair-use basis. If your requests regularly run past four (4) a month, we'll tell you, and we'll either bill the extras at the Exhibit C price or move you to a package that covers the volume."
   },
   {
    "type": "h3",
@@ -702,7 +718,7 @@
   },
   {
    "type": "h2",
-   "text": "7. Analytics and Reporting"
+   "text": "7. Search Monitoring and Updates"
   },
   {
    "type": "h3",
@@ -710,31 +726,55 @@
   },
   {
    "type": "p",
-   "text": "Presence includes basic technical setup — title tags, meta descriptions, sitemap, indexability, mobile responsiveness, and page speed fundamentals — plus analytics installation and hooking up your Google Business Profile and social links."
+   "text": "Growth includes full on-page technical setup, analytics installation, Google Search Console setup and ongoing monitoring, Google Business Profile connection, and a yearly refresh of the search research."
   },
   {
    "type": "h3",
-   "text": "7.2 Quarterly summary"
+   "text": "7.2 Updates tied to your goals"
   },
   {
    "type": "p",
-   "text": "Every three (3) months you're subscribed, we send you a plain-English summary of how the site performed and what we changed. Once every twelve (12) months it also covers the maintenance we did that year. There's no dashboard and nothing for you to log into."
+   "text": "Through the Term we watch how the site performs for the searches we built it around, and we update existing pages — copy, headings, metadata, internal linking, structure — when the data points somewhere useful. The goals are the ones set in Section 4.4; we don't reinvent the strategy through the year."
   },
   {
    "type": "h3",
-   "text": "7.3 What isn't"
+   "text": "7.3 Changing pages without asking first"
   },
   {
    "type": "p",
-   "text": "Search research, search strategy, advice on what to write or post, Search Console monitoring, and ongoing search work aren't part of Presence. They're in the Growth, Agile, and Range packages."
+   "text": "We can change existing page copy, headings, metadata, and structure without checking with you first, when it's work under this Section. We won't change your pricing, service descriptions, claims, credentials, or contact details without your written approval. We'll summarize any meaningful page changes in the reporting under Section 7.4."
   },
   {
    "type": "h3",
-   "text": "7.4 No ranking promise"
+   "text": "7.4 Reporting"
+  },
+  {
+   "type": "p",
+   "text": "Every three (3) months you're subscribed, we send you a plain-English summary of how the site performed against its search goals and what we changed. Once every twelve (12) months it also covers the maintenance we did that year. There's no dashboard and nothing for you to log into."
+  },
+  {
+   "type": "h3",
+   "text": "7.5 What isn't included"
+  },
+  {
+   "type": "p",
+   "text": "Ongoing strategy meetings, research beyond the plan set at the start, A/B testing, and pages you ask for aren't part of Growth. Ongoing strategy is the Agile package; pages you ask for are priced in Exhibit C."
+  },
+  {
+   "type": "h3",
+   "text": "7.6 No ranking promise"
   },
   {
    "type": "p",
    "text": "We can't promise any search ranking, traffic level, lead volume, conversion rate, or revenue. Search engines run their own algorithms, and results depend on things we don't control — your competition, your market, and your business. We're committing to the work described here, not to an outcome."
+  },
+  {
+   "type": "h3",
+   "text": "7.7 What we won't do"
+  },
+  {
+   "type": "p",
+   "text": "We don't use link schemes, cloaking, keyword stuffing, scraped or spun content, or anything else that breaks search engine guidelines."
   },
   {
    "type": "h2",
@@ -754,7 +794,7 @@
   },
   {
    "type": "p",
-   "text": "Once you've paid the build fee and anything else due, you own everything we made for you: the website source code, the finished page designs, the page structure, and the written content. We call all of that the \"Deliverables.\" You own it outright — there's no license to maintain and no restriction on what you do with it. It stays yours after this agreement ends, and Section 3.8 covers how we hand it over."
+   "text": "Once you've paid the build fee and anything else due, you own everything we made for you: the website source code, the finished page designs, the page structure, the written page copy, the search research, and the written content. We call all of that the \"Deliverables.\" You own it outright — there's no license to maintain and no restriction on what you do with it. It stays yours after this agreement ends, and Section 3.8 covers how we hand it over."
   },
   {
    "type": "h3",
@@ -1015,11 +1055,11 @@
   },
   {
    "type": "h1",
-   "text": "EXHIBIT A — Presence Build Scope"
+   "text": "EXHIBIT A — Growth Build Scope"
   },
   {
    "type": "p",
-   "text": "One-time build fee: $1,200"
+   "text": "One-time build fee: $1,800"
   },
   {
    "type": "table",
@@ -1030,61 +1070,45 @@
     ],
     [
      "1",
-     "Custom website design and build, mobile-first"
+     "Everything in the Presence build"
     ],
     [
      "2",
-     "The number of pages stated in Schedule 1 (default five; standard configuration: Home, About, Services, Contact, plus one; the page set is fixed on approval at Stage Two)"
+     "Search-result research for the searches Client wants to win (Section 4.4)"
     ],
     [
      "3",
-     "Basic technical SEO setup — title tags, meta descriptions, sitemap, indexability, mobile responsiveness, page speed fundamentals"
+     "A page map built from that research; the number of pages stated in Schedule 1 (default eight; the page set is fixed on approval at Stage Two)"
     ],
     [
      "4",
-     "Analytics installation and configuration"
+     "Copy for the core pages written by Keepsite around the research, after one call to set tone"
     ],
     [
      "5",
-     "Google Business Profile connection and social profile links"
+     "Full on-page technical SEO setup — title tags, meta descriptions, headings, schema, internal linking, sitemap, indexability"
     ],
     [
      "6",
-     "Inquiry page and form routed to Client's email address or existing CRM (simple embed)"
+     "Google Search Console setup"
     ],
     [
      "7",
-     "Editing and placement of copy supplied by Client"
-    ],
-    [
-     "8",
-     "SSL certificate and DNS configuration"
-    ],
-    [
-     "9",
-     "Pre-launch testing across current major browsers and mobile devices"
-    ],
-    [
-     "10",
-     "Selection from four (4) house design directions at Stage One"
-    ],
-    [
-     "11",
-     "One (1) round of changes at each of the three stages"
+     "A kickoff call and a check-in at each stage (Section 4.5)"
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Not included in the build: search research, SEO copywriting, copy written from scratch, competitor analysis, e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, paid advertising management, and pages beyond the approved page map."
+   "text": "Not included in the build: ongoing strategy, A/B testing, e-commerce, booking systems, membership or login areas, multi-step or conditional forms, custom CRM integrations, logo or brand identity design, photography, videography, paid advertising management, and pages beyond the approved page map."
   },
   {
    "type": "h1",
-   "text": "EXHIBIT B — Presence Monthly Services"
+   "text": "EXHIBIT B — Growth Monthly Services"
   },
   {
    "type": "p",
-   "text": "Monthly subscription fee: $60 per month"
+   "text": "Monthly subscription fee: $160 per month"
   },
   {
    "type": "table",
@@ -1095,41 +1119,37 @@
     ],
     [
      "1",
-     "Website hosting"
+     "Everything in the Presence subscription, except where this Exhibit says otherwise"
     ],
     [
      "2",
-     "Routine maintenance — platform, dependency, and security updates"
+     "Small content updates on a fair-use basis (Section 5.1)"
     ],
     [
      "3",
-     "Uptime and error monitoring, so problems are caught before Client notices them"
+     "Google Search Console and analytics monitoring"
     ],
     [
      "4",
-     "One (1) change request a month as defined in Section 5.1"
+     "Updates to existing pages tied to the search goals (Section 7.2)"
     ],
     [
      "5",
-     "SSL certificate renewal and management"
+     "A plain-English summary every three (3) months against the search goals (Section 7.4)"
     ],
     [
      "6",
-     "Backups per Section 6.4"
+     "A yearly refresh of the search research"
     ],
     [
      "7",
-     "Email support with the response times in Section 5.2"
-    ],
-    [
-     "8",
-     "A plain-English summary every three (3) months (Section 7.2)"
+     "A yearly Google Business Profile check"
     ]
    ]
   },
   {
    "type": "p",
-   "text": "Not included in the monthly: new pages, redesigns, search research, Search Console monitoring, ongoing search work, and any work listed in Exhibit C."
+   "text": "Not included in the monthly: ongoing strategy meetings, research beyond the plan set at the start, A/B tests, pages Client asks for, redesigns, paid advertising management, and any work listed in Exhibit C."
   },
   {
    "type": "h1",
@@ -1164,7 +1184,7 @@
     ],
     [
      "Additional round of changes, or reopening a closed stage",
-     "Quoted in writing before work starts (Section 4.8)"
+     "Quoted in writing before work starts (Section 4.10)"
     ],
     [
      "Migration to another provider",
@@ -1220,7 +1240,7 @@
     ],
     [
      "Standard Build Fee",
-     "$1,200"
+     "$1,800"
     ],
     [
      "Adjusted Build Fee",
@@ -1252,7 +1272,7 @@
     ],
     [
      "Standard Monthly Fee",
-     "$60 per month"
+     "$160 per month"
     ],
     [
      "Discounted Monthly Fee",

@@ -1,7 +1,8 @@
 ---
-import { TIERS } from '../../../netlify/functions/lib/office/clients.mjs';
+import { TIERS, isRetiredTier } from '../../../netlify/functions/lib/office/clients.mjs';
 interface Props { client?: Record<string, string> }
 const c = Astro.props.client ?? {};
+const retired = isRetiredTier(c.tier ?? '');
 ---
 <div class="row">
   <label class="field"><span>Contact name</span><input name="name" required value={c.name ?? ''} /></label>
@@ -12,6 +13,7 @@ const c = Astro.props.client ?? {};
   <label class="field"><span>Tier</span>
     <select name="tier">
       <option value="" selected={!c.tier}>Not decided</option>
+      {retired && <option value={c.tier} selected>{c.tier} (retired)</option>}
       {TIERS.map((t) => <option value={t} selected={c.tier === t}>{t}</option>)}
     </select>
   </label>

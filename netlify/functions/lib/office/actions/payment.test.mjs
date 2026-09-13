@@ -7,7 +7,7 @@ import { mintCsrf } from '../session.mjs';
 
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
-  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', tier: 'Search', stripeCustomerId: null });
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', tier: 'Growth', stripeCustomerId: null });
   return s;
 };
 const post = (fields) => {

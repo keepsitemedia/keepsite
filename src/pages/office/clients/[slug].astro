@@ -13,7 +13,7 @@ import { todayIn, formatYmd } from '../../../../netlify/functions/lib/office/dat
 import { tierPrices } from '../../../../netlify/functions/lib/office/payments.mjs';
 import { dashboardUrl, stripeConfigured } from '../../../../netlify/functions/lib/office/stripe.mjs';
 import { loadAgreementTemplates } from '../../../../netlify/functions/lib/office/agreement-templates.mjs';
-import { defaultFields } from '../../../../netlify/functions/lib/office/agreements.mjs';
+import { defaultFields, PLANS } from '../../../../netlify/functions/lib/office/agreements.mjs';
 import { listDocuments, formatSize } from '../../../../netlify/functions/lib/office/documents.mjs';
 import { glance } from '../../../../netlify/functions/lib/office/attention.mjs';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
@@ -111,8 +111,8 @@ const agreementOut = agreements.some((a) => a.status === 'sent' || a.status === 
 // carry; before that, the Agreements tab is the way to send them.
 const sendable = allSendable.filter((t) => agreementOut || !needsSignLink(t));
 const heldBack = allSendable.filter((t) => !agreementOut && needsSignLink(t));
-const agreementTemplates = loadAgreementTemplates() as { id: string; name: string }[];
-const defaultTemplateId = ({ Presence: 'presence', Search: 'search', 'Search Plus': 'search-plus' } as Record<string, string>)[client.tier] ?? 'presence';
+const agreementTemplates = loadAgreementTemplates() as { id: string; name: string; tier: string }[];
+const defaultTemplateId = agreementTemplates.find((t) => t.tier === client.tier)?.id ?? 'presence';
 const draftFields = defaultFields(client, agreementTemplates.find((t) => t.id === defaultTemplateId) as any) as Record<string, any>;
 const dollarsOf = (cents: number | null) => (cents == null ? '' : (cents / 100).toFixed(2));
 // A rejected create redirects back with every posted field on the query
@@ -536,7 +536,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
                 <select name="template">{agreementTemplates.map((t) => <option value={t.id} selected={t.id === (posted('template') ?? defaultTemplateId)}>{t.name}</option>)}</select>
               </label>
             </div>
-            <p class="field-hint">Amounts below prefill for {client.tier || 'Presence'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
+            <p class="field-hint">Amounts below prefill for {client.tier || 'the template'}; change the template and they stay, so check the fees when the template differs from the tier.</p>
             <h3>Client</h3>
             <div class="row">
               <label class="field"><span>Legal business name</span><input name="legalName" value={posted('legalName') ?? draftFields.legalName} required /></label>
@@ -551,10 +551,17 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
             <div class="row">
               <label class="field"><span>Build fee</span><input name="buildFee" inputmode="decimal" value={posted('buildFee') ?? dollarsOf(draftFields.buildFee)} required /></label>
               <label class="field"><span>Monthly fee</span><input name="monthlyFee" inputmode="decimal" value={posted('monthlyFee') ?? dollarsOf(draftFields.monthlyFee)} required /></label>
+              <label class="field"><span>Payment plan</span>
+                <select name="paymentPlan">
+                  {PLANS.map((p) => <option value={p} selected={p === (posted('paymentPlan') ?? draftFields.paymentPlan)}>{p}</option>)}
+                </select>
+              </label>
               <label class="field"><span>Deposit on signing</span><input name="deposit" inputmode="decimal" value={posted('deposit') ?? dollarsOf(draftFields.deposit)} required /></label>
               <label class="field"><span>Balance on launch</span><input name="balance" inputmode="decimal" value={posted('balance') ?? dollarsOf(draftFields.balance)} required /></label>
               <label class="field"><span>Pages included</span><input name="pages" type="number" min="1" value={posted('pages') ?? (draftFields.pages ?? '')} required /></label>
             </div>
+            <p class="field-hint">On the twelve-payment plan the deposit is the first payment, nine percent of the build fee, and the balance is the remaining eleven.</p>
+            <label class="field"><span>Business arms covered (Range only)</span><textarea name="arms" rows="4" placeholder="One arm per line. Add (ongoing strategy) after an arm the quote includes it for.">{posted('arms') ?? draftFields.arms}</textarea></label>
             <details class="fold">
               <summary>Discount, Exhibit D</summary>
               <div class="fold-body">

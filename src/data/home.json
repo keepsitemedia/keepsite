@@ -1,77 +1,41 @@
 {
   "meta": {
     "title": "Keepsite Media | Websites for people with other things to do",
-    "description": "Professional websites for busy business owners. We build it, keep it working, and stay off your to-do list. Packages from $1,100."
+    "description": "We build your website and run it, so you can run your business. Custom sites for busy business owners, kept working month after month. Packages from $1,200."
   },
   "hero": {
     "headline": "Websites for people with other things to do.",
-    "sub": "Professional websites built to look good, work hard, and stay off your to-do list.",
-    "primaryCta": {
-      "label": "View Packages",
-      "href": "/packages/"
-    },
-    "secondaryCta": {
-      "label": "Start Your Site",
-      "href": "/start/"
-    }
+    "sub": "We build it. We keep it working. It stays off your list.",
+    "primaryCta": { "label": "See the packages", "href": "/packages/" },
+    "secondaryCta": { "label": "Start your site", "href": "/start/" }
   },
   "problem": {
-    "heading": "You don't need another business task.",
-    "body": "You already have a full list. A website shouldn't be the thing you keep meaning to get to."
+    "heading": "You've been meaning to fix your website for a year.",
+    "body": "The work is good. The business is real. The site is the thing you open at 10pm, look at, and close again. That's not a character flaw. It's a job that shouldn't be yours."
   },
   "solution": {
     "heading": "We build it. We keep it useful.",
     "beats": [
-      {
-        "title": "We build it.",
-        "body": "A custom site put together around what your business actually does, who you want walking in the door, and what those people search for."
-      },
-      {
-        "title": "We keep it working.",
-        "body": "Hosting, maintenance, monitoring, and the small updates that pile up. All handled, none of it yours."
-      },
-      {
-        "title": "We tell you what's working.",
-        "body": "Once a year you get a recap in plain English: how the site performed, what we maintained, what we'd do next."
-      }
+      { "title": "We build it.", "body": "A custom site around what your business does and who you want walking in the door. From Growth up, the whole structure comes from research into what your customers search for." },
+      { "title": "We keep it working.", "body": "Hosting, maintenance, monitoring, and the small changes that pile up. You send the new photo or the new hours. We put them in." },
+      { "title": "We tell you what's working.", "body": "A plain-English summary every quarter. What the site did, what we changed, what we'd do next. No dashboard to log into." }
     ],
     "pullLine": "A website that earns its keep."
   },
   "packages": {
-    "heading": "Three ways to work with us.",
-    "linkLabel": "See what's included",
+    "heading": "Four ways to work with us.",
+    "linkLabel": "See what's included, and what it costs",
     "linkHref": "/packages/"
   },
   "why": {
     "heading": "Why Keepsite",
     "pillars": [
-      {
-        "title": "Make it useful.",
-        "body": "Every site has a job. We find out how your customers look for it, build for that, and leave out the rest."
-      },
-      {
-        "title": "Keep it simple.",
-        "body": "Questions in one pass per stage, one round of changes per stage, no hosting or building decisions."
-      },
-      {
-        "title": "Show your work.",
-        "body": "Clear pricing, clear scope, and a yearly recap you can actually read."
-      },
-      {
-        "title": "Build for real life.",
-        "body": "You have customers, staff, and a schedule. The site fits around all of it."
-      }
+      { "title": "Make it useful.", "body": "Every site has a job. We find out what yours is, build for that, and leave out the rest." },
+      { "title": "Keep it simple.", "body": "Three decisions, one round of changes at each, and no homework in between." },
+      { "title": "Show your work.", "body": "Clear prices, clear scope, and a summary every quarter you can read in two minutes." },
+      { "title": "Build for real life.", "body": "We run businesses too. We know what it's like to be the only one holding it all together. The site fits around your week, not the other way round." }
     ]
   },
-  "work": {
-    "heading": "Recent work",
-    "linkLabel": "See all work",
-    "linkHref": "/work/"
-  },
-  "closing": {
-    "heading": "Keep your business moving.",
-    "sub": "We'll take care of the website.",
-    "ctaLabel": "Start your site",
-    "ctaHref": "/start/"
-  }
+  "work": { "heading": "Recent work", "linkLabel": "See all work", "linkHref": "/work/" },
+  "closing": { "heading": "Keep your business moving.", "sub": "We'll take care of the website.", "ctaLabel": "Start your site", "ctaHref": "/start/" }
 }

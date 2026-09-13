@@ -442,7 +442,7 @@
 .office .agreement h2.exhibit { margin-top: 2.5rem; }
 .office .agreement h3 { font-size: 1rem; margin: 1rem 0 0.25rem; }
 .office .agreement table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem; font-size: 0.95rem; }
-.office .agreement th, .office .agreement td { border: 1px solid var(--hairline); padding: 0.375rem 0.5rem; text-align: left; vertical-align: top; color: inherit; font-size: inherit; font-weight: inherit; }
+.office .agreement th, .office .agreement td { border: 1px solid var(--hairline); padding: 0.375rem 0.5rem; text-align: left; vertical-align: top; color: inherit; font-size: inherit; font-weight: inherit; white-space: pre-line; }
 .office .agreement th { font-weight: 600; }
 .office .agreement .party { margin: 1rem 0; }
 .office .agreement .signature { display: block; max-width: 18rem; height: auto; border-bottom: 1px solid var(--ink); }

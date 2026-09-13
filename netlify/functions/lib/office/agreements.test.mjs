@@ -11,7 +11,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 
 const NOW = new Date('2026-09-08T16:00:00Z');
 const later = (h) => new Date(NOW.getTime() + h * 3600e3);
-const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Search' };
+const client = { slug: 'lova', name: 'Sierra Lee', business: 'Lova Content Creation', email: 's@example.com', phone: '(801) 555-0100', address: '1 Main St', tier: 'Growth' };
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
   await s.clients.put('lova', client);
@@ -38,8 +38,22 @@ test('defaultFields prefill Schedule 1 from the client and the tier', () => {
   assert.equal(f.pages, 8);
   assert.equal(f.discountApplied, false);
   const other = defaultFields({ ...client, tier: '' }, findAgreementTemplate('presence'));
-  assert.equal(other.buildFee, 110000);
+  assert.equal(other.buildFee, 120000);
   assert.equal(other.pages, 5);
+});
+
+test('defaultFields prefills from the tier when it matches the template, and carries the plan and arms', () => {
+  const growthClient = { ...client, tier: 'Growth' };
+  const f = defaultFields(growthClient, findAgreementTemplate('growth'));
+  assert.equal(f.buildFee, 180000);
+  assert.equal(f.monthlyFee, 16000);
+  assert.equal(f.paymentPlan, 'Half and half');
+  assert.equal(f.arms, '');
+  const r = defaultFields({ ...client, tier: 'Range' }, findAgreementTemplate('range'));
+  assert.equal(r.buildFee, 210000);
+  assert.equal(r.pages, 16);
+  const mismatch = defaultFields({ ...client, tier: 'Presence' }, findAgreementTemplate('growth'));
+  assert.equal(mismatch.buildFee, 180000);
 });
 
 test('createAgreement stores a draft with both signers named', async () => {

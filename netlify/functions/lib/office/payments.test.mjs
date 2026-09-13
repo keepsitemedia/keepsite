@@ -8,7 +8,7 @@ import { newId } from './ids.mjs';
 const NOW = new Date('2026-09-08T16:00:00Z');
 const make = async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
-  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', tier: 'Search', stripeCustomerId: null });
+  await s.clients.put('lova', { slug: 'lova', name: 'Sierra Lee', business: 'Lova', email: 's@example.com', tier: 'Growth', stripeCustomerId: null });
   return s;
 };
 // A scripted Stripe: each call pops the next answer; every call is recorded.
@@ -28,8 +28,8 @@ test.after(() => { delete process.env.STRIPE_SECRET_KEY; });
 test('money and tier prices come from packages.json', () => {
   assert.equal(parseMoney('$1,100'), 110000);
   assert.equal(parseMoney('$55'), 5500);
-  assert.deepEqual(tierPrices('Search'), { build: 175000, monthly: 15000 });
-  assert.deepEqual(tierPrices('Presence'), { build: 110000, monthly: 5500 });
+  assert.deepEqual(tierPrices('Growth'), { build: 180000, monthly: 16000 });
+  assert.deepEqual(tierPrices('Presence'), { build: 120000, monthly: 6000 });
   assert.equal(tierPrices('Gold'), null);
 });
 
@@ -121,7 +121,7 @@ test('startSubscription falls back to a card and omits the anchor for today or t
     { id: 'prod_1' },
     { id: 'sub_1', status: 'active' },
   ]);
-  await startSubscription({ client: await s.clients.get('lova'), amount: 5500, description: 'Presence monthly', startYmd: '2026-09-08' }, s, fetchFn, NOW);
+  await startSubscription({ client: await s.clients.get('lova'), amount: 6000, description: 'Presence monthly', startYmd: '2026-09-08' }, s, fetchFn, NOW);
   assert.equal(calls[1].url, 'https://api.stripe.com/v1/payment_methods?customer=cus_1&type=card');
   assert.equal(calls[3].body.default_payment_method, 'pm_card2');
   assert.equal(calls[3].body.billing_cycle_anchor, undefined);
@@ -360,6 +360,6 @@ test('startSubscription with no start day keys on today', async () => {
   const s = await make();
   await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
   const { calls, fetchFn } = stripe([{ data: [{ id: 'pm_bank', type: 'us_bank_account', created: 10 }] }, { id: 'prod_1' }, { id: 'sub_1' }]);
-  await startSubscription({ client: await s.clients.get('lova'), amount: 5500, description: 'Presence monthly' }, s, fetchFn, NOW);
-  assert.equal(calls[2].init.headers['Idempotency-Key'], 'lova:subscription:2026-09-08:5500');
+  await startSubscription({ client: await s.clients.get('lova'), amount: 6000, description: 'Presence monthly' }, s, fetchFn, NOW);
+  assert.equal(calls[2].init.headers['Idempotency-Key'], 'lova:subscription:2026-09-08:6000');
 });

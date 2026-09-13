@@ -239,7 +239,8 @@ it before the slug check.
 Task documents gain three fields, null on client tasks:
 
 - `project`: free text, grouping label, for example "Referral program".
-- `repeat`: `weekly`, `monthly` or null.
+- `repeat`: `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly` or null,
+  the vocabulary pipeline tasks already use.
 - `nextId`: the id of the successor a finished repeating task created,
   so a task creates at most one successor in its lifetime; reopening
   keeps it.
