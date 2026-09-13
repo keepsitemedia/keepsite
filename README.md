@@ -271,6 +271,20 @@ stage, through `netlify/functions/submission-created.mjs`. The email
 notification is unchanged. A second inquiry from an email already on file is
 added to that client's notes instead.
 
+### Contacts
+
+`/office/contacts/` is for people you work with who are not clients:
+partners, referral sources, vendors, anyone with a relationship worth
+remembering. A contact has a business, an owner, contact details, a
+type and a log of dated notes. The list sorts by the last note, oldest
+first, so the relationships going quiet are at the top; the type links
+filter it.
+
+"Start a client" on a contact opens the new-client form filled in from
+the contact, and once the client exists the contact links to its page.
+Contacts send no email, create no tasks and appear nowhere else; they
+export from the Data page like everything else, under `contacts`.
+
 ### Email
 
 Every email starts from a template under Settings → Emails, seeded from
