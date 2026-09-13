@@ -53,7 +53,7 @@ const numeric = (s) => Number(String(s).replace(/[^0-9]/g, ''));
 
 section('Routes');
 check('every expected route is emitted', () => {
-  for (const p of [...PAGES, 'robots.txt', 'sitemap-index.xml', 'og-default.png', 'favicon.svg']) {
+  for (const p of [...PAGES, 'robots.txt', 'sitemap-index.xml', 'og-default.png', 'favicon.svg', 'apple-touch-icon.png']) {
     if (!fs.existsSync(path.join('dist', p))) throw new Error('missing ' + p);
   }
 });

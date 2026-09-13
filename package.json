@@ -15,6 +15,7 @@
     "verify": "node scripts/verify.mjs",
     "gate": "npm test && npm run check && npm run check:forms && npm run check:office && npm run build && npm run verify",
     "og": "node scripts/make-og-image.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "test": "node --test"
   },
   "dependencies": {
