@@ -330,6 +330,20 @@ check('the retired faces are gone from every stylesheet', () => {
   }
 });
 
+check('the retired palette is gone from every stylesheet', () => {
+  for (const p of PAGES) {
+    const html = read(p);
+    const sheets = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"/g)].map((m) =>
+      read(m[1].replace(/^\//, ''))
+    );
+    for (const s of sheets) {
+      for (const hex of ['#1F5C43', '#16302A', '#E6EFE9', '#A24A26', '#FBF9F4']) {
+        if (s.toUpperCase().includes(hex)) throw new Error(`${p} still uses ${hex}`);
+      }
+    }
+  }
+});
+
 section('Questionnaires');
 check('every question renders a labelled control inside a fieldset', () => {
   for (const form of ['intro', 'brand', 'build']) {
