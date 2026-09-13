@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { itemsForDay, monthGrid, dueBucket } from './calendar.mjs';
+import { itemsForDay, monthGrid, dueBucket, markedDays } from './calendar.mjs';
 
 const t = (due, time = null, extra = {}) => ({ id: due + (time ?? ''), due, time, done: false, ...extra });
 
@@ -42,4 +42,34 @@ test('dueBucket', () => {
   assert.equal(dueBucket(t('2026-09-04'), today), 'today');
   assert.equal(dueBucket(t('2026-09-07'), today), 'soon');
   assert.equal(dueBucket(t('2026-09-08'), today), 'later');
+});
+
+test('itemsForDay moves open late tasks onto today, oldest first, ahead of the day\'s own', () => {
+  const today = '2026-09-10';
+  const tasks = [t('2026-09-10', '09:00'), t('2026-09-08'), t('2026-09-05', '14:00'), t('2026-09-07', null, { done: true }), t('2026-09-11')];
+  const items = itemsForDay(tasks, [], today, today);
+  assert.deepEqual(items.map((i) => [i.due, i.late]), [
+    ['2026-09-05', true], ['2026-09-08', true], ['2026-09-10', false],
+  ]);
+});
+
+test('itemsForDay leaves a past day with only what was finished there', () => {
+  const today = '2026-09-10';
+  const tasks = [t('2026-09-08'), t('2026-09-08', '10:00', { done: true })];
+  const meetings = [{ id: 'm', ymd: '2026-09-08', time: '11:00', title: 'Kickoff' }];
+  const items = itemsForDay(tasks, meetings, '2026-09-08', today);
+  assert.deepEqual(items.map((i) => [i.kind, i.time, i.done ?? null]), [['task', '10:00', true], ['meeting', '11:00', null]]);
+});
+
+test('itemsForDay on a future day and without today behaves as before', () => {
+  const tasks = [t('2026-09-12'), t('2026-09-08')];
+  assert.deepEqual(itemsForDay(tasks, [], '2026-09-12', '2026-09-10').map((i) => i.due), ['2026-09-12']);
+  assert.deepEqual(itemsForDay(tasks, [], '2026-09-08').map((i) => i.due), ['2026-09-08']);
+});
+
+test('markedDays marks open tasks on their day, late ones on today, meetings on theirs', () => {
+  const today = '2026-09-10';
+  const tasks = [t('2026-09-05'), t('2026-09-12'), t('2026-09-03', null, { done: true })];
+  const meetings = [{ id: 'm', ymd: '2026-09-20', time: '11:00' }];
+  assert.deepEqual([...markedDays(tasks, meetings, today)].sort(), ['2026-09-10', '2026-09-12', '2026-09-20']);
 });

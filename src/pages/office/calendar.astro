@@ -5,7 +5,7 @@ import TaskRow from '../../components/office/TaskRow.astro';
 import MeetingRow from '../../components/office/MeetingRow.astro';
 import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { todayIn, addDays, isYmd, formatYmd } from '../../../netlify/functions/lib/office/dates.mjs';
-import { itemsForDay, monthGrid } from '../../../netlify/functions/lib/office/calendar.mjs';
+import { itemsForDay, monthGrid, markedDays } from '../../../netlify/functions/lib/office/calendar.mjs';
 import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
 import { OWN_SLUG } from '../../../netlify/functions/lib/office/clients.mjs';
 
@@ -15,7 +15,7 @@ import { OWN_SLUG } from '../../../netlify/functions/lib/office/clients.mjs';
 type ClientRow = { slug: string; business: string };
 type Task = { id: string; slug: string; due: string; time: string | null; done: boolean };
 type Meeting = { id: string; slug: string; title: string; ymd: string; time: string; minutes: number; link: string; notes: string };
-type Item = { kind: 'task' | 'meeting'; time: string | null; slug: string; id: string };
+type Item = { kind: 'task' | 'meeting'; time: string | null; slug: string; id: string; late?: boolean };
 type Cell = { ymd: string; day: number; inMonth: boolean; marked: boolean; today: boolean };
 type Grid = { label: string; prev: string; next: string; weeks: Cell[][] };
 type Pipeline = { stages: { id: string; name: string }[] };
@@ -29,10 +29,10 @@ const clients = (await s.clients.list()) as ClientRow[];
 const names = new Map(clients.map((c) => [c.slug, c.business]));
 const tasks = (await s.tasks.listAll()) as Task[];
 const meetings = (await s.meetings.listAll()) as Meeting[];
-const items = itemsForDay(tasks, meetings, day) as Item[];
-const marked = new Set(tasks.filter((t) => !t.done).map((t) => t.due));
-for (const m of meetings) marked.add(m.ymd);
-const grid = monthGrid(day, marked, today) as Grid;
+// Late tasks follow the owner onto today, each with a note of how late.
+const items = itemsForDay(tasks, meetings, day, today) as Item[];
+const lateCount = items.filter((i) => i.late).length;
+const grid = monthGrid(day, markedDays(tasks, meetings, today), today) as Grid;
 const here = `/office/calendar/?d=${day}`;
 const csrf = Astro.locals.csrf;
 const stageNames = Object.fromEntries(((await loadPipelines(s)) as Pipeline[]).flatMap((p) => p.stages.map((st) => [st.id, st.name])));
@@ -53,6 +53,7 @@ const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'lo
       </div>
 
       {items.length === 0 && <p class="empty">Nothing due.</p>}
+      {lateCount > 0 && <p class="quiet late-note">{lateCount === 1 ? 'One task is late and has moved here.' : `${lateCount} tasks are late and have moved here.`} Each says how late.</p>}
       {items.length > 0 && (
         <ul class="ledger">
           {items.map((i) => i.kind === 'meeting'
