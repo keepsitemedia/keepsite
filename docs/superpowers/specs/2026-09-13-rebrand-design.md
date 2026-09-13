@@ -24,7 +24,7 @@ The whole site follows from those four parts. The office (`/office/`) is out of 
 |---|---|---|---|
 | `--color-bg` | `#FFFFFF` | pages, header | |
 | `--color-surface` | `#FFFFFF` | cards, fields | |
-| `--color-surface-alt` | `#F4F1EC` | alternating bands | |
+| `--color-surface-alt` | `#F7F5F1` | alternating bands | |
 | `--color-ink` | `#111111` | text, primary buttons, closing band, the rule | 18.9:1 |
 | `--color-muted` | `#5A5A5A` | secondary text | 7.0:1 |
 | `--color-brand` | `#B8512C` rust | links, active nav, serif accents, button hover | 4.9:1 |

@@ -4,7 +4,7 @@
      slate, mustard and copper are fills and never sit under white text. */
   --color-bg: #FFFFFF;
   --color-surface: #FFFFFF;      /* cards, form fields */
-  --color-surface-alt: #F4F1EC;  /* alternating bands, footer */
+  --color-surface-alt: #F7F5F1;  /* alternating bands, footer */
   --color-ink: #111111;          /* text, primary buttons, the closing band, the rule */
   --color-muted: #5A5A5A;        /* secondary text */
   --color-brand: #B8512C;        /* rust: links, active nav, serif accents, hovers */
