@@ -32,9 +32,9 @@ const ctx = () => ({ admin: { email: 'me@x' }, csrf });
 const NOW = new Date('2026-09-08T16:00:00Z');
 const loc = (res) => decodeURIComponent(res.headers.get('Location'));
 const createFields = {
-  csrf, op: 'create', slug: 'lova', template: 'search',
+  csrf, op: 'create', slug: 'lova', template: 'growth',
   legalName: 'Lova Content Creation LLC', entityType: 'LLC', address: '1 Main St', signerName: 'Sierra Lee', signerTitle: 'Owner', email: 's@example.com', phone: '(801) 555-0100',
-  buildFee: '1750', monthlyFee: '150', deposit: '875', balance: '875', pages: '8',
+  buildFee: '1800', monthlyFee: '160', deposit: '900', balance: '900', pages: '8',
 };
 
 test('create stores a draft with cents and redirects to the admin signing page', async () => {
@@ -43,8 +43,8 @@ test('create stores a draft with cents and redirects to the admin signing page',
   const [a] = await s.agreements.list('lova');
   assert.equal(loc(res), `/office/agreements/lova/${a.id}/sign/`);
   assert.equal(a.status, 'draft');
-  assert.equal(a.fields.buildFee, 175000);
-  assert.equal(a.fields.deposit, 87500);
+  assert.equal(a.fields.buildFee, 180000);
+  assert.equal(a.fields.deposit, 90000);
   assert.equal(a.fields.pages, 8);
   assert.equal(a.fields.discountApplied, false);
   assert.equal(a.signers.client.email, 's@example.com');
@@ -84,7 +84,7 @@ test('a rejected create carries the typed fields back on the redirect', async ()
   const loc2 = loc(await agreement(post({ ...createFields, legalName: '' }), ctx(), s, mail, NOW));
   assert.match(loc2, /legalName=/);
   assert.match(loc2, /signerName=Sierra\+Lee/);
-  assert.match(loc2, /buildFee=1750/);
+  assert.match(loc2, /buildFee=1800/);
 });
 
 test('send signs as Keepsite and lands on the agreement email; void marks voided', async () => {

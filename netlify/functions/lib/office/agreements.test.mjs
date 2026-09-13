@@ -38,7 +38,7 @@ test('defaultFields prefill Schedule 1 from the client and the tier', () => {
   assert.equal(f.pages, 8);
   assert.equal(f.discountApplied, false);
   const other = defaultFields({ ...client, tier: '' }, findAgreementTemplate('presence'));
-  assert.equal(other.buildFee, 110000);
+  assert.equal(other.buildFee, 120000);
   assert.equal(other.pages, 5);
 });
 
