@@ -27,6 +27,7 @@ SCHEDULE_TERMS = {
     'Balance due on Launch Date': '{{balance}} ({{balancePercent}}%)',
     'Pages included in the build (Exhibit A)': '{{pages}} pages',
     'Discount applied (Section 2.8)': '{{discountApplied}}',
+    'Payment plan (Section 2.1)': '{{paymentPlan}}',
 }
 EXHIBIT_D_BUILD = {
     'Discount or promotion name': '{{discount.name}}',
@@ -39,6 +40,11 @@ EXHIBIT_D_MONTHLY = {
     'Amount': '{{discount.monthlyAmount}}',
     'Discounted Monthly Fee': '{{discount.discountedMonthlyFee}}',
     'Applies to': 'the first {{discount.months}} months of the subscription',
+}
+# Range lists the arms of the business in Exhibit A; the office prompts for
+# them when the draft is created, like every other Schedule value.
+EXHIBIT_A = {
+    'Business arms covered': '{{arms}}',
 }
 STYLE = {'Heading 1': 'h1', 'Heading 2': 'h2', 'Heading 3': 'h3'}
 
@@ -77,6 +83,7 @@ def main(path, template_id):
 
     blocks, defaults = [], {}
     section = None
+    exhibit = None
     i = 0
     schedule_tables = 0
     exhibit_d_tables = 0
@@ -94,6 +101,8 @@ def main(path, template_id):
                     if label.startswith('Pages'):
                         m = re.search(r'(\d+)', blank); defaults['pages'] = int(m.group(1)) if m else None
                 rows = map_rows(rows, SCHEDULE_TERMS); schedule_tables += 1
+            elif exhibit == 'a':
+                rows = map_rows(rows, EXHIBIT_A)
             elif section == 'discount':
                 rows = map_rows(rows, EXHIBIT_D_BUILD if exhibit_d_tables == 0 else EXHIBIT_D_MONTHLY); exhibit_d_tables += 1
             blocks.append({'type': 'table', 'rows': rows, **({'section': section} if section else {})})
@@ -127,6 +136,8 @@ def main(path, template_id):
             blocks.append({'type': 'signatures', 'intro': intro, 'parties': [keepsite, client], 'note': note})
             i = j
             continue
+        if style == 'Heading 1':
+            exhibit = 'a' if text.startswith('EXHIBIT A') else None
         if style == 'Heading 1' and text.startswith('EXHIBIT D'):
             section = 'discount'
         if section == 'discount' and text.startswith('☐'):
@@ -145,7 +156,7 @@ def main(path, template_id):
     # typed by hand does not.
     canonical = json.dumps(blocks, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
     version = hashlib.sha256(canonical.encode('utf-8')).hexdigest()[:12]
-    out = {'id': template_id, 'name': raw[1][2], 'version': version, 'defaults': defaults, 'blocks': blocks}
+    out = {'id': template_id, 'name': raw[1][2], 'tier': raw[1][2].replace(' Package', ''), 'version': version, 'defaults': defaults, 'blocks': blocks}
     json.dump(out, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write('\n')
 
