@@ -82,6 +82,7 @@ const endStation = {
     <div class="container">
       <h1>{process.heading}</h1>
       <p class="lead">{process.lead}</p>
+      <p class="timeline muted">{process.timeline}</p>
     </div>
   </section>
 
@@ -223,6 +224,19 @@ const endStation = {
       <div class="changes">
         <h3>{process.changes.heading}</h3>
         <p class="muted">{process.changes.body}</p>
+      </div>
+
+      <div class="meetings">
+        <h3>{process.meetings.heading}</h3>
+        <p class="muted">{process.meetings.lead}</p>
+        <dl class="tier-list">
+          {process.meetings.items.map((m) => (
+            <>
+              <dt>{m.name}</dt>
+              <dd>{m.body}</dd>
+            </>
+          ))}
+        </dl>
       </div>
     </div>
   </section>
@@ -653,6 +667,9 @@ const endStation = {
   }
   .changes h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
   .changes p { margin: 0; }
+
+  .timeline { margin-top: var(--space-1); }
+  .meetings { margin-top: var(--space-5); max-width: var(--maxw-prose); }
 
   .expectations ul { padding-left: 1.1rem; margin: 0; }
   .expectations li { margin-bottom: var(--space-2); color: var(--color-muted); }

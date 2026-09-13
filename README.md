@@ -26,14 +26,14 @@ npm run dev    # terminal 2: starts Astro on :4321
 
 Then open `http://localhost:4321/admin/`. `local_backend: true` in `public/admin/config.yml` makes the CMS read and write your working tree instead of the repo, so you can try an edit, see it in `npm run dev`, and throw it away with `git checkout src/`.
 
-**Tier prices live in one place.** `src/data/packages.json` is the only source for the three tier prices. Editing one there updates the package cards, the homepage tier strip, the monthly section (for monthly prices), and the JSON-LD `Offer` search engines read, all together.
+**Tier prices live in one place.** `src/data/packages.json` is the only source for the four tier prices. Editing one there updates the package cards, the homepage tier strip, the monthly section (for monthly prices), and the JSON-LD `Offer` search engines read, all together.
 
 Two other files quote prices as plain copy, and neither updates on its own:
 
-- `src/data/home.json` — the meta description mentions the starting price ("Packages from $1,100"), which renders into the homepage `<meta name="description">` and `og:description`.
-- `src/data/faq.json` — two answers quote the add-on prices ($90, $180, $270).
+- `src/data/home.json` — the meta description mentions the starting price ("Packages from $1,200").
+- `src/data/faq.json` — answers quote the add-on prices ($60, $150, $225) and Range's floor ($2,100, $350).
 
-Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too.
+Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too. Add-on prices are flat or "Quoted first". The verifier fails the build if any page states an hourly rate.
 
 ## Turning on analytics
 
