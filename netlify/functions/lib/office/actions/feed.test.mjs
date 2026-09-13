@@ -119,3 +119,17 @@ test('POST done and reopen work on any task by id and spawn like the office', as
   assert.equal((await feed(post({ op: 'done', id: '20260101T000000zzzzzz' }), ctx, s, NOW)).status, 404);
   assert.equal((await feed(post({ op: 'done', id: '../x' }), ctx, s, NOW)).status, 400);
 });
+
+test('POST done rolls a pipeline task forward only while its client is still in that stage', async () => {
+  const { s } = await make();
+  await s.clients.put('acme', { slug: 'acme', business: 'Acme', stage: 'live' });
+  const live = newId(new Date(NOW.getTime() + 3000));
+  const gone = newId(new Date(NOW.getTime() + 4000));
+  const base = { slug: 'acme', title: 'Strategy meeting', due: '2026-09-15', time: null, done: false, source: 'pipeline', questionnaire: null, payment: null, agreement: null, repeat: 'monthly', nextId: null };
+  await s.tasks.put('acme', live, { ...base, id: live, stage: 'live' });
+  await s.tasks.put('acme', gone, { ...base, id: gone, title: 'Research check-in', stage: 'copy' });
+  await feed(post({ op: 'done', id: live }), ctx, s, NOW);
+  await feed(post({ op: 'done', id: gone }), ctx, s, NOW);
+  const open = (await s.tasks.list('acme')).filter((t) => !t.done && t.title !== 'Layouts').map((t) => t.title);
+  assert.deepEqual(open, ['Strategy meeting']);
+});

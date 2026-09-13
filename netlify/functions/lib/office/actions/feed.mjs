@@ -96,7 +96,10 @@ export async function feed(request, _ctx, s = defaultStore(), now = new Date()) 
     if (!existing) return json(404, { error: 'no such task' });
     let updated;
     if (body.op === 'done') {
-      const { finished, next } = finishTask(existing, now);
+      // The office's Done button knows the client; the feed has to look it
+      // up so a pipeline task obeys the same stage rule through both doors.
+      const client = data.clients.find((c) => c.slug === existing.slug) ?? null;
+      const { finished, next } = finishTask(existing, now, { client });
       await s.tasks.put(existing.slug, id, finished);
       if (next) await s.tasks.put(existing.slug, next.id, next);
       updated = finished;

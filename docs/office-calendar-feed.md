@@ -174,9 +174,10 @@ Content-Type: application/json
 
 - `add` creates an own task (slug `office`) and returns the created item
   in the read shape. `title` and `due` are required; `repeat` must be
-  `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly` or null. Marking a
-  repeating task done creates the
-  next one in the office, exactly as the office's own Done button does.
+  `weekly`, `biweekly`, `monthly`, `quarterly`, `yearly` or null. Marking
+  a repeating task done creates the next one exactly as the office's own
+  Done button does, including the rule that a pipeline task rolls forward
+  only while its client is still in the stage that created it.
 - `done` and `reopen` work on any task id in the feed, client tasks too,
   because the owner is the same person either way. `delete` is not
   offered; do that in the office.

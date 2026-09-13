@@ -294,8 +294,8 @@ Beside each module, `node --test` as today:
   brand's hostname.
 - `guard.test.mjs` and the brand action: cookie parsing and fallback.
 - `contacts.test.mjs`: validation, note prepend, convert linkage.
-- `task.test.mjs`: reserved slug, fields, weekly and monthly next-due
-  including the month-end clamp, no double creation on replay, one
+- `task.test.mjs`: reserved slug, fields, next-due for the five repeat
+  kinds including the month-end clamp, no double creation on replay, one
   successor across reopen and re-done.
 - `digest.test.mjs`: one digest per brand with own tasks in each.
 - `check-office.mjs` gains: every pipeline names a known brand; every

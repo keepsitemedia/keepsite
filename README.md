@@ -57,28 +57,6 @@ verified by DNS and linked to GA4, and the website URL on their Google
 Business Profile. Clients on the seeded pipeline stored before this task
 existed do not get it until the pipelines are re-saved under Settings.
 
-## Turning on analytics
-
-Google Analytics 4 is off until a Measurement ID is set: `analyticsId` in
-`src/data/site.json`, also editable in `/admin` under Site & Navigation.
-With an id present the layout adds the gtag loader and its config on every
-public page; the content security policy in `netlify.toml` already allows
-Google's tag and collection domains, and `scripts/verify.mjs` adds the two
-tags to its script budget when the id is set. The office and the signing
-page carry no analytics. Google's Analytics terms require a privacy notice
-that names it; `/privacy/`, linked from the footer and edited under
-`privacy.json`, is that notice, and it also covers the inquiry form, the
-questionnaires, e-signing and Stripe. Update its date when its wording
-changes.
-
-The same steps apply to every client site at launch, and the office's
-Launch stage creates an "Install analytics and Search Console" task for it:
-a GA4 property in the client's Google account with Keepsite as an
-administrator, the id in their site, a Search Console domain property
-verified by DNS and linked to GA4, and the website URL on their Google
-Business Profile. Clients on the seeded pipeline stored before this task
-existed do not get it until the pipelines are re-saved under Settings.
-
 ## Turning on the Work page
 
 `/work/`, its nav item, the homepage strip, and the sitemap entry are all generated from the `work` content collection, which is empty at launch. They appear on the next deploy after the first entry exists. Nothing needs a code change.
@@ -359,9 +337,9 @@ any other task, with the project where the client name would be. The
 calendar's add form has an "Office (no client)" choice for them.
 
 A task can repeat weekly, every two weeks, monthly, quarterly or
-yearly. Marking it done creates the next
-one, dated from the one just finished, on the same day of the month
-clamped to a shorter month's end. Reopening a done task keeps the next
+yearly. Marking it done creates the next one, dated from the one just
+finished, on the same day of the month clamped to a shorter month's
+end. Reopening a done task keeps the next
 one, and marking it done again does not create another.
 
 In the store these are ordinary task documents under the reserved slug
