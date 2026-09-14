@@ -253,7 +253,8 @@ export function newKeywordId(random = Math.random) {
 
 export const splitList = (text) => String(text ?? '').split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
 
-const words = (s) => new Set(normalizeQuery(s).split(' ').filter((w) => w.length > 2));
+// A trailing s is folded so "Weddings" claims "wedding florist".
+const words = (s) => new Set(normalizeQuery(s).split(' ').filter((w) => w.length > 2).map((w) => w.replace(/s$/, '')));
 
 export function draftFromQuestionnaire(envelope) {
   const a = envelope?.answers;
