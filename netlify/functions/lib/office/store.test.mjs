@@ -56,9 +56,9 @@ test('counts every type', async () => {
   const s = make();
   await s.clients.put('lova', { slug: 'lova' });
   await s.tasks.put('lova', newId(), { title: 't' });
-  assert.deepEqual(Object.keys(await s.counts()), ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails', 'documents', 'contacts']);
+  assert.deepEqual(Object.keys(await s.counts()), ['clients', 'tasks', 'meetings', 'payments', 'agreements', 'emails', 'documents', 'contacts', 'research']);
   assert.deepEqual(await s.counts(), {
-    clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0, documents: 0, contacts: 0,
+    clients: 1, tasks: 1, meetings: 0, payments: 0, agreements: 0, emails: 0, documents: 0, contacts: 0, research: 0,
   });
 });
 
@@ -217,4 +217,16 @@ test('contacts are keyed by id, list in creation order and are counted', async (
   await s.contacts.remove(a);
   assert.equal(await s.contacts.count(), 1);
   await assert.rejects(() => s.contacts.get('../x'), /bad id/);
+});
+
+test('research keeps one document per client', async () => {
+  const s = make();
+  assert.equal(await s.research.get('acme'), null);
+  await s.research.put('acme', { slug: 'acme', keywords: [] });
+  assert.deepEqual(await s.research.get('acme'), { slug: 'acme', keywords: [] });
+  assert.equal((await s.research.listAll()).length, 1);
+  assert.equal(await s.research.count(), 1);
+  assert.equal((await s.counts()).research, 1);
+  await s.research.remove('acme');
+  assert.equal(await s.research.get('acme'), null);
 });

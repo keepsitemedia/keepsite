@@ -87,3 +87,7 @@ test('glance reads done and late states and omits money when the pipeline has no
   assert.match(e.Agreement.text, /expired/);
   assert.equal(e.Deposit.state, 'late');
 });
+
+test('nudge sends a tab task to that tab', () => {
+  assert.deepEqual(nudge({ slug: 'acme', tab: 'research' }), { href: '/office/clients/acme/?tab=research', label: 'Research' });
+});

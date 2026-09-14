@@ -144,6 +144,15 @@ export function createStore({ office, questionnaires }) {
       async list() { return readAll(office, 'contacts/'); },
       async count() { return (await office.list('contacts/')).length; },
     },
+    // One study per client, so it is keyed like the client document rather
+    // than like the id-keyed types.
+    research: {
+      async get(slug) { return readJSON(office, `research/${assertSlug(slug)}.json`); },
+      async put(slug, doc) { return writeJSON(office, `research/${assertSlug(slug)}.json`, doc); },
+      async remove(slug) { return office.remove(`research/${assertSlug(slug)}.json`); },
+      async listAll() { return readAll(office, 'research/'); },
+      async count() { return (await office.list('research/')).length; },
+    },
     // A lock is a key that can be created once. There is no release: an
     // agreement is sealed once and a client enters a stage for the first
     // time once, so the lock's name carries what identifies that one event
@@ -156,6 +165,7 @@ export function createStore({ office, questionnaires }) {
       for (const t of TYPES) out[t] = await s[t].count();
       out.documents = await s.documents.count();
       out.contacts = await s.contacts.count();
+      out.research = await s.research.count();
       return out;
     },
   };

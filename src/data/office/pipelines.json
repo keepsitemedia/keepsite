@@ -78,6 +78,12 @@
             "due": 5
           },
           {
+            "title": "Run search research",
+            "due": 5,
+            "tiers": ["Growth", "Agile", "Range"],
+            "tab": "research"
+          },
+          {
             "title": "Research check-in",
             "due": 7,
             "tiers": ["Agile"],
