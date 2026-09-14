@@ -499,7 +499,8 @@ Growth, Agile and Range clients get a Research tab. It replaces the SERP
 overlap spreadsheet in `docs/` with the same rules: gather the top eight
 organic results for each keyword, count the results two keywords share,
 and group keywords that share seven or more onto one page. Three to six
-is the gray zone, decided on the client call and recorded on the tab.
+is the gray zone, decided on the client call and recorded on the pair's
+compare page.
 
 Results come from your own browser. The tab shows a bookmarklet to drag to
 the bookmarks bar; open each keyword's search in an incognito window, click
@@ -507,6 +508,21 @@ it on the results page, and a capture page in the office saves the top eight
 under that keyword. No search API and nothing to configure. The keyword
 list drafts itself from the build questionnaire and is edited on the tab.
 Page types are guessed from each result's address and can be overridden.
+The bookmarklet is the same for every client: a capture is filed under the
+keyword whose text matches the search, across all clients, and the capture
+page asks you to pick when none or several match. Nothing changes when you
+move between clients.
+
+The tab opens with a glance: how many keywords are captured, how many
+pairs are still to decide, how many pages the study proposes, and whether
+the report is written, each with the next thing to do. Keywords, pairs and
+pages are ledger rows with edits behind a pop. The counts, the suggested
+read and the page grouping are automatic; the read, the same-cluster call,
+the note and any page edit are decisions, and the marks say which is
+which. Compare on any pair opens the workbook's Quick Compare block: the
+two result lists side by side with shared URLs and shared businesses
+marked, a one-line reading of the counts, and the read form, so the
+decision is made with the evidence in view.
 
 The tab's page list is the recommendation for Stage 2. "Write the report to
 Documents" renders it as a PDF in the client's Documents, and the send

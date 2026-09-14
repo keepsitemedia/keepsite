@@ -1,0 +1,89 @@
+---
+// One pair side by side: the Quick Compare block from the workbook, with
+// the shared URLs and businesses lit so the counts can be checked by eye,
+// and the read made here, where the evidence is.
+export const prerender = false;
+import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
+import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
+import { comparePair, describePair, normalizeUrl, domainOf, pairKey, READS, SAME } from '../../../../../netlify/functions/lib/office/research.mjs';
+import { formatYmd, todayIn } from '../../../../../netlify/functions/lib/office/dates.mjs';
+
+const slug = Astro.params.slug ?? '';
+if (!SLUG.test(slug)) return new Response('not found', { status: 404 });
+const s = store();
+const client = (await s.clients.get(slug)) as any;
+const study = (await s.research.get(slug)) as any;
+if (!client || !study) return new Response('not found', { status: 404 });
+
+const [aId, bId] = String(Astro.url.searchParams.get('pair') ?? '').split('|');
+const a = study.keywords.find((k: any) => k.id === aId);
+const b = study.keywords.find((k: any) => k.id === bId);
+if (!a || !b || !study.serps[a.id] || !study.serps[b.id]) return new Response('not found', { status: 404 });
+
+const csrf = Astro.locals.csrf;
+const key = pairKey(a.id, b.id);
+const serpA = study.serps[a.id];
+const serpB = study.serps[b.id];
+const c = comparePair(serpA.results, serpB.results) as any;
+const read = study.reads[key] ?? null;
+const total = Math.max(serpA.results.length, serpB.results.length);
+const urls = new Set(c.sharedUrls as string[]);
+const domains = new Set(c.sharedDomains as string[]);
+// A row lights for the strongest match it has: the exact page, else the business.
+const mark = (r: any) => (urls.has(normalizeUrl(r.url)) ? 'hl-url' : domains.has(domainOf(r.url)) ? 'hl-domain' : '');
+const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
+const tab = `/office/clients/${slug}/?tab=research`;
+// The workbook's suggested read for this branch, so the select can name it.
+const suggested = c.signal === 'strong' ? 'Same intent' : c.signal === 'gray' ? 'Gray zone / discuss' : 'Probably different';
+const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray zone' : 'Differ';
+---
+<OfficeLayout title={`${a.text} vs ${b.text}`}>
+  <div class="page-head">
+    <h1 class="file-name">{a.text} <span class="quiet">and</span> {b.text}</h1>
+    <span class="sub">{client.business}</span>
+    <span class="actions"><a class="btn-quiet btn-small" href={tab}>Back to research</a></span>
+  </div>
+
+  <dl class="glance">
+    <div><dt>Same exact URL</dt><dd>{c.exactUrl} of {total}<span class="detail">{signalWord}</span></dd></div>
+    <div><dt>Same business</dt><dd>{c.sameDomain} of {total}<span class="detail">{c.sameDomainDifferentPage} with a different page</span></dd></div>
+    <div><dt>Same page type</dt><dd>{c.samePageType} of {total}</dd></div>
+    <div><dt>Primary page</dt><dd>{c.primaryPage || 'None'}{c.primaryPage === 'Tie / review' && <span class="detail">Yours to choose</span>}</dd></div>
+  </dl>
+  <p><strong>{describePair(c, total)}</strong><br /><span class="quiet">Suggested: {c.action}</span></p>
+
+  <h2>Results <span class="sub">top {total} for each search</span></h2>
+  <p class="quiet legend"><span class="hl-url">Same exact URL</span> <span class="hl-domain">Same business, different page</span> <span class="legend-note">Unmarked results appear in only one search.</span></p>
+  <div class="serps">
+    {[{ k: a, serp: serpA }, { k: b, serp: serpB }].map(({ k, serp }) => (
+      <section class="serp">
+        <h3>{k.text}<span class="meta">captured {day(serp.capturedAt)}</span></h3>
+        <ol class="serp-list">
+          {serp.results.map((r: any) => (
+            <li class={mark(r)}>
+              <span class="rank">{r.rank}</span>
+              <span class="res">
+                <a href={r.url} target="_blank" rel="noopener">{r.title}</a>
+                <span class="meta">{r.domain} · {r.pageType}{r.typeSource === 'manual' ? ' · edited' : ''}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </div>
+
+  <h2>Your read <span class="sub">{read ? `recorded${read.notes ? ', with a note' : ''}` : 'not decided'}</span></h2>
+  <form method="POST" action="/office/api/research" class="sheet decision">
+    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="read" /><input type="hidden" name="key" value={key} />
+    <div class="row">
+      <label class="field"><span>Read</span><select name="human">{READS.map((r) => <option value={r} selected={(read?.human ?? suggested) === r}>{r}{r === suggested ? ' (suggested)' : ''}</option>)}</select></label>
+      <label class="field"><span>Same cluster</span><select name="sameCluster">{SAME.map((r) => <option selected={(read?.sameCluster ?? 'Undecided') === r}>{r}</option>)}</select></label>
+      <label class="field grow"><span>Note for the report</span><input name="notes" value={read?.notes ?? ''} placeholder="What was said on the call" /></label>
+    </div>
+    <div class="form-foot">
+      <span class="quiet">A Yes groups the two onto one page; a No keeps them apart even when they agree.</span>
+      <button class="btn">Save read</button>
+    </div>
+  </form>
+</OfficeLayout>

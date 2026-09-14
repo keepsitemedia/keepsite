@@ -458,3 +458,43 @@
 .office .ledger .what .toolbar { margin: 0; }
 .office td .toolbar { margin: 0; flex-wrap: nowrap; }
 .office .ledger .meta form.inline { display: inline; }
+
+/* Research ------------------------------------------------------ */
+
+/* Keyword, pair and page rows read as ledger lines: the title in ink, the
+   counts and grouping as a quiet second line, and edits behind a pop. */
+.office .ledger .what .title { color: var(--ink); }
+.office .ledger .what .meta.line { display: block; }
+.office .ledger .act details.pop > .pop-sheet { min-width: 19rem; }
+.office .decision .form-foot { display: flex; gap: var(--space-2); align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.office h1.file-name .quiet { font-size: 0.6em; }
+
+/* Compare ------------------------------------------------------- */
+
+/* Two ranked lists, not one four-column table: rank 3 on the left has
+   nothing to do with rank 3 on the right, and a table says otherwise.
+   Side by side on a desk, stacked on a phone. The workbook lit exact
+   matches green and same-business blue; the ledger has one green, so a
+   shared page takes it and a shared business takes the inset paper. */
+.office .serps { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.office .serp h3 { color: var(--ink); }
+.office .serp h3 .meta { display: block; color: var(--graphite); font-weight: 400; font-size: 0.92em; }
+.office .serp-list { list-style: none; margin: var(--space-1) 0 0; padding: 0; max-width: none; }
+.office .serp-list > li {
+  display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: 0.625rem;
+  padding: 0.5rem; border-radius: var(--radius-control);
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.office .serp-list > li:last-child { border-bottom: 0; }
+.office .serp-list .rank { color: var(--graphite); font-variant-numeric: tabular-nums; text-align: right; }
+.office .serp-list .meta { display: block; color: var(--graphite); font-size: 0.92em; }
+.office .serp-list > li.hl-url, .office .legend .hl-url { background: var(--moss); }
+.office .serp-list > li.hl-url a { color: var(--green-deep); }
+.office .serp-list > li.hl-domain, .office .legend .hl-domain { background: var(--paper-inset); }
+.office .legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.375rem var(--space-2); max-width: none; }
+.office .legend span { padding: 0.05rem 0.5rem; border-radius: var(--radius-control); }
+.office .legend .legend-note { padding: 0; }
+.office h2 .sub { color: var(--graphite); font-weight: 400; font-size: 0.8em; margin-left: 0.3rem; }
+@media (max-width: 52rem) {
+  .office .serps { grid-template-columns: 1fr; gap: var(--space-4); }
+}

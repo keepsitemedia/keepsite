@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, pairKey, pairs, group, pageList, emptyStudy,
+  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, describePair, pairKey, pairs, group, pageList, emptyStudy,
   pickResults, PICK_SOURCE, bookmarklet, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
@@ -74,6 +74,30 @@ test('comparePair gray zone, domain branch, and low', () => {
   const l = comparePair(A, Bn);
   assert.equal(l.read, 'Low overlap: likely a meaningfully different intent.');
   assert.equal(l.action, 'Consider separate clusters/pages if page types also differ.');
+});
+
+test('comparePair names the shared URLs and businesses the counts come from', () => {
+  const B4 = [...A.slice(0, 4), r('https://a5.com/other'), r('https://x2.com'), r('https://x3.com'), r('https://x4.com')];
+  const c = comparePair(A, B4);
+  assert.deepEqual(c.sharedUrls, ['a1.com/p', 'a2.com/p', 'a3.com/p', 'a4.com/p']);
+  assert.deepEqual(c.sharedDomains, ['a1.com', 'a2.com', 'a3.com', 'a4.com', 'a5.com']);
+  assert.deepEqual(comparePair([], []).sharedUrls, []);
+  // Two rows of A under one business still count twice, as in the workbook,
+  // and the business is listed once.
+  const twice = comparePair([r('https://a1.com/p'), r('https://a1.com/q')], [r('https://a1.com/z')]);
+  assert.equal(twice.sameDomain, 2);
+  assert.deepEqual(twice.sharedDomains, ['a1.com']);
+});
+
+test('describePair says what the counts mean in one line', () => {
+  const B4 = [...A.slice(0, 4), r('https://a5.com/other'), r('https://a6.com/other'), r('https://x3.com'), r('https://x4.com')];
+  assert.equal(describePair(comparePair(A, B4), 8), 'Four of eight pages are the same. Two more businesses rank with a different page for each search. Most results are service pages.');
+  const D = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://d${n}.com/p`, 'Directory'));
+  const one = [D[0], r('https://d2.com/other', 'Directory'), ...[3, 4, 5, 6, 7, 8].map((n) => r(`https://x${n}.com`, 'Directory'))];
+  assert.equal(describePair(comparePair(D, one), 8), 'One of eight pages is the same. One more business ranks with a different page for each search. Most results are directories.');
+  const tie = comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]);
+  assert.equal(describePair(tie, 1), 'None of the pages are the same. No page type leads on either side.');
+  assert.equal(describePair(comparePair([], []), 0), 'Nothing captured yet.');
 });
 
 test('comparePair primary page is the mode across both lists, tie reviewed, empty blank', () => {

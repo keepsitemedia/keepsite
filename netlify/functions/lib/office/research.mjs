@@ -60,6 +60,13 @@ const countIn = (as, bs, key) => {
   const set = new Set(bs.map(key));
   return as.filter((x) => set.has(key(x))).length;
 };
+// The distinct keys behind that count, in A's order. The compare page
+// highlights every row carrying one, so the rows lit on A's side equal the
+// count even when two of A's rows share a key.
+const sharedIn = (as, bs, key) => {
+  const set = new Set(bs.map(key));
+  return [...new Set(as.map(key).filter((k) => set.has(k)))];
+};
 
 export function primaryPageOf(results) {
   const counts = new Map();
@@ -74,12 +81,34 @@ export function comparePair(a, b) {
   const exactUrl = countIn(a, b, (x) => normalizeUrl(x.url));
   const sameDomain = countIn(a, b, (x) => domainOf(x.url));
   const samePageType = countIn(a, b, (x) => x.pageType);
+  const sharedUrls = sharedIn(a, b, (x) => normalizeUrl(x.url));
+  const sharedDomains = sharedIn(a, b, (x) => domainOf(x.url));
   const branch = exactUrl >= 7 ? 'strong' : exactUrl >= 3 ? 'gray' : sameDomain >= 4 ? 'domain' : 'low';
   const [read, action] = READ_TEXT[branch];
   return {
-    exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), samePageType,
+    exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), samePageType, sharedUrls, sharedDomains,
     read, action, signal: branch === 'domain' ? 'low' : branch, primaryPage: primaryPageOf([...a, ...b]),
   };
+}
+
+// The compare page's plain-English line over the two columns: the same
+// counts as comparePair, read the way the owner would say them on a call.
+const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const word = (n) => WORDS[n] ?? String(n);
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const PLURAL = {
+  'Service page': 'service pages', 'Location page': 'location pages', 'Homepage': 'homepages', 'Directory': 'directories',
+  'Blog/FAQ': 'blog or FAQ pages', 'Portfolio/Gallery': 'portfolio or gallery pages', 'About page': 'about pages',
+};
+export function describePair(c, total) {
+  if (!total) return 'Nothing captured yet.';
+  const same = c.exactUrl === 0 ? 'None of the pages are the same.'
+    : `${cap(word(c.exactUrl))} of ${word(total)} pages ${c.exactUrl === 1 ? 'is' : 'are'} the same.`;
+  const more = c.sameDomainDifferentPage === 0 ? ''
+    : ` ${cap(word(c.sameDomainDifferentPage))} more ${c.sameDomainDifferentPage === 1 ? 'business ranks' : 'businesses rank'} with a different page for each search.`;
+  const type = c.primaryPage === 'Tie / review' ? ' No page type leads on either side.'
+    : c.primaryPage ? ` Most results are ${PLURAL[c.primaryPage] ?? c.primaryPage.toLowerCase()}.` : '';
+  return `${same}${more}${type}`;
 }
 
 export const pairKey = (a, b) => [a, b].sort().join('|');

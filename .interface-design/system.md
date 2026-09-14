@@ -58,6 +58,12 @@ ledger. Section headings (`h2`) sit on a hairline rule.
   and mark pairs, built by `attention.mjs`.
 - **Fold** (`details.fold`): a section that is there when wanted. Summary
   in ink with a quiet note on the right.
+- **Two lists, not a grid** (`.serps` / `.serp-list`, the research compare
+  page): when two ranked lists are compared, show them as two lists side by
+  side, stacking under 52rem. A shared table row would claim rank 3 on the
+  left has something to do with rank 3 on the right. Matches are marked on
+  the rows themselves: moss for the same URL, `--paper-inset` for the same
+  business with a different page, with a legend.
 - **Pop** (`details.pop`): a row's second action, opening a small sheet.
 - **Buttons**: `.btn` green for the one primary action on a screen,
   `.btn-quiet` for everything else, `.link-quiet` for row actions,
@@ -72,6 +78,10 @@ ledger. Section headings (`h2`) sit on a hairline rule.
 - Clay at most where something is actually late, failed or destructive.
 - Inputs are inset (darker), not raised (lighter).
 - Empty states are a plain sentence in graphite, never italic.
+- Say which side a value came from. Where a screen mixes computed values
+  with the owner's judgment, label the computed ones automatic and give the
+  judgment its own heading and mark; an undecided thing reads "Not decided",
+  never a silent default.
 - Native date and time pickers stay native, sized to the control height.
 - Lists that are the page (`.rail`, `.ledger`) opt out of the site's
   prose measure.

@@ -1,7 +1,10 @@
 ---
-// The Research tab: capture, keywords, gray zone, pages, results, report.
-// Everything is a form; the study is reshaped by the research action.
-import { bookmarklet, pairs, pageList, PAGE_TYPES, READS, SAME, emptyStudy } from '../../../netlify/functions/lib/office/research.mjs';
+// The Research tab: a glance of where the study stands, then capture,
+// keywords, pairs, pages, results and the report as ledgers and folds.
+// Editing sits behind pops so a row reads as a line; the read on a pair is
+// made on the compare page, where the two result lists are.
+import Mark from './Mark.astro';
+import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -16,27 +19,61 @@ const next = study.keywords.find((k: any) => !study.serps[k.id]);
 const search = (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 const ps = pairs(study) as any[];
 const gray = ps.filter((p) => p.signal === 'gray');
+const undecided = gray.filter((p) => !p.read);
 const strong = ps.filter((p) => p.signal === 'strong').length;
 const low = ps.filter((p) => p.signal === 'low').length;
 const pages = pageList(study) as any[];
+const edited = pages.filter((p) => !p.auto).length;
 const clusters = [...new Set(study.keywords.map((k: any) => k.cluster))] as string[];
 const isRange = client.tier === 'Range';
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const showPairs = Astro.url.searchParams.get('pairs') === '1';
 const link = bookmarklet(origin);
+const compare = (key: string) => `/office/research/${slug}/compare/?pair=${encodeURIComponent(key)}`;
+const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([name, value]) => ({ name, value }));
+
+// The glance: four facts, each a mark, so the next thing to do reads first.
+type Fact = { label: string; state: 'done' | 'waiting' | 'late' | 'none'; text: string; detail?: string; href?: string };
+const facts: Fact[] = [
+  study.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
+    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${study.keywords.length}`, detail: `Next: ${next.text}`, href: search(next.text) }
+    : { label: 'Captured', state: 'done', text: `All ${study.keywords.length}` },
+  ps.length === 0 ? { label: 'Pairs', state: 'none', text: 'Nothing to compare yet' }
+    : undecided.length ? { label: 'Pairs', state: 'none', text: `${undecided.length} to decide`, detail: `Next: ${undecided[0].a.text} · ${undecided[0].b.text}`, href: compare(undecided[0].key) }
+    : gray.length ? { label: 'Pairs', state: 'done', text: 'All decided', detail: `${gray.length} in the gray zone` }
+    : { label: 'Pairs', state: 'done', text: 'None in the gray zone', detail: `${strong} agree, ${low} differ` },
+  pages.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
+    : { label: 'Pages', state: pages.some((p) => p.type === 'Tie / review') ? 'waiting' : 'done', text: `${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`, detail: edited ? `${edited} edited by you` : 'Grouped automatically' },
+  study.reportedAt ? { label: 'Report', state: 'done', text: `Written ${day(study.reportedAt)}`, href: `/office/clients/${slug}/?tab=documents` }
+    : { label: 'Report', state: 'none', text: 'Not written' },
+];
+const external = (href: string) => href.startsWith('http');
 ---
-<h2>Capture</h2>
-<p class="quiet">Drag this to your bookmarks bar once: <a class="btn-quiet btn-small" href={link} onclick="return false">Capture results</a>. Then, for each keyword, open the search in an incognito window and click it on the results page.</p>
-<p><strong>{captures.length} of {study.keywords.length} captured.</strong>
-  {next && <> Next: <strong>{next.text}</strong> · <a href={search(next.text)} target="_blank" rel="noopener">Search</a></>}
-  {!next && study.keywords.length > 0 && <> Every keyword is captured.</>}
-</p>
+<dl class="glance">
+  {facts.map((f) => (
+    <div>
+      <dt>{f.label}</dt>
+      <dd>
+        <Mark state={f.state}>{f.href && !f.detail ? <a href={f.href}>{f.text}</a> : f.text}</Mark>
+        {f.detail && <span class="detail">{f.href ? <a href={f.href} target={external(f.href) ? '_blank' : undefined} rel={external(f.href) ? 'noopener' : undefined}>{f.detail}</a> : f.detail}</span>}
+      </dd>
+    </div>
+  ))}
+</dl>
 {captured && byId.has(captured) && <p class="notice notice-ok">Captured “{text(captured)}”.</p>}
 
-<h2>Keywords</h2>
+<details class="fold" open={captures.length === 0}>
+  <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : study.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
+  <div class="fold-body">
+    <p class="quiet">Drag this to your bookmarks bar once: <a class="btn-quiet btn-small" href={link} onclick="return false">Capture results</a>. It is the same button for every client: a capture is filed under the keyword whose text matches the search, and the capture page asks you to pick when none or several match.</p>
+    <p class="quiet">For each keyword, open the search in an incognito window and click the button on the results page.{next && <> Start with <a href={search(next.text)} target="_blank" rel="noopener">{next.text}</a>.</>}</p>
+  </div>
+</details>
+
+<h2>Keywords <span class="count">{study.keywords.length}</span></h2>
 {study.keywords.length === 0 && (
   <form method="POST" action={api} class="inline">
-    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="draft" />
+    {hidden({ csrf, slug, op: 'draft' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
     <p class="empty">No keywords yet. <button class="btn-quiet btn-small">Draft from the build questionnaire</button> or add one below.</p>
   </form>
 )}
@@ -45,104 +82,128 @@ const link = bookmarklet(origin);
     <summary>{c}<span class="sub">{study.keywords.filter((k: any) => k.cluster === c).length}</span></summary>
     <div class="fold-body">
       <ul class="ledger">
-        {study.keywords.filter((k: any) => k.cluster === c).map((k: any) => (
-          <li class="no-tick">
-            <span class="when">{study.serps[k.id] ? day(study.serps[k.id].capturedAt) : 'not captured'}</span>
-            <span class="what">
-              <form method="POST" action={api} class="toolbar">
-                <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="edit" /><input type="hidden" name="id" value={k.id} />
-                <input class="grow" name="text" value={k.text} aria-label="Keyword" required />
-                <input name="cluster" value={k.cluster} aria-label="Cluster" />
-                {isRange && <input name="arm" value={k.arm} placeholder="Arm" aria-label="Arm" />}
-                <button class="btn-quiet btn-small">Save</button>
-              </form>
-              {study.serps[k.id]?.related?.filter((r: string) => !study.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase())).length > 0 && (
-                <span class="meta">Related:
-                  {study.serps[k.id].related.filter((r: string) => !study.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase())).map((r: string) => (
-                    <form method="POST" action={api} class="inline">
-                      <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="add" />
-                      <input type="hidden" name="text" value={r} /><input type="hidden" name="cluster" value={k.cluster} /><input type="hidden" name="arm" value={k.arm} />
-                      <button class="link-quiet">+ {r}</button>
-                    </form>
-                  ))}
-                </span>
-              )}
-            </span>
-            <span class="act">
-              <a href={search(k.text)} target="_blank" rel="noopener">{study.serps[k.id] ? 'Recapture' : 'Search'}</a>
-              <form method="POST" action={api} class="inline">
-                <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="remove" /><input type="hidden" name="id" value={k.id} />
-                <button class="link-quiet danger" onclick="return confirm('Remove this keyword and its results?')">Remove</button>
-              </form>
-            </span>
-          </li>
-        ))}
+        {study.keywords.filter((k: any) => k.cluster === c).map((k: any) => {
+          const serp = study.serps[k.id];
+          const related = (serp?.related ?? []).filter((r: string) => !study.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase()));
+          return (
+            <li class="no-tick">
+              <span class="when"><Mark state={serp ? 'done' : 'none'}>{serp ? day(serp.capturedAt) : 'Not captured'}</Mark></span>
+              <span class="what">
+                <span class="title">{k.text}</span>{isRange && k.arm && <span class="meta"> · {k.arm}</span>}
+                {related.length > 0 && (
+                  <span class="meta line">Related:
+                    {related.map((r: string) => (
+                      <form method="POST" action={api} class="inline">
+                        {hidden({ csrf, slug, op: 'add', text: r, cluster: k.cluster, arm: k.arm ?? '' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                        <button class="link-quiet">+ {r}</button>
+                      </form>
+                    ))}
+                  </span>
+                )}
+              </span>
+              <span class="act">
+                <a href={search(k.text)} target="_blank" rel="noopener">{serp ? 'Recapture' : 'Search'}</a>
+                <details class="pop">
+                  <summary class="link-quiet">Edit</summary>
+                  <form method="POST" action={api} class="pop-sheet">
+                    {hidden({ csrf, slug, id: k.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                    <label class="field"><span>Keyword</span><input name="text" value={k.text} required /></label>
+                    <label class="field"><span>Cluster</span><input name="cluster" value={k.cluster} list="clusters" /></label>
+                    {isRange && <label class="field"><span>Arm</span><input name="arm" value={k.arm} /></label>}
+                    <div class="pop-actions">
+                      <button class="btn-quiet btn-small" name="op" value="edit">Save</button>
+                      <button class="link-quiet danger" name="op" value="remove" formnovalidate onclick="return confirm('Remove this keyword and its results?')">Remove</button>
+                    </div>
+                  </form>
+                </details>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   </details>
 ))}
 <form method="POST" action={api} class="toolbar">
-  <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="add" />
+  {hidden({ csrf, slug, op: 'add' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
   <input class="grow" name="text" placeholder="New keyword" aria-label="New keyword" required />
   <input name="cluster" placeholder="Cluster" aria-label="Cluster" list="clusters" />
   <datalist id="clusters">{clusters.map((c) => <option value={c} />)}</datalist>
   {isRange && <input name="arm" placeholder="Arm" aria-label="Arm" />}
-  <button class="btn">Add</button>
+  <button class="btn-quiet">Add</button>
 </form>
-<form method="POST" action={api} class="toolbar">
-  <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="areas" />
-  <label class="field grow"><span>Service areas, for spotting location pages</span><input name="areas" value={study.areas.join(', ')} /></label>
-  <button class="btn-quiet">Save areas</button>
-</form>
+<details class="fold">
+  <summary>Service areas<span class="sub">{study.areas.length ? study.areas.join(', ') : 'None set'}</span></summary>
+  <div class="fold-body">
+    <form method="POST" action={api} class="toolbar">
+      {hidden({ csrf, slug, op: 'areas' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+      <label class="field grow"><span>Towns and areas, for spotting location pages</span><input name="areas" value={study.areas.join(', ')} /></label>
+      <button class="btn-quiet">Save areas</button>
+    </form>
+  </div>
+</details>
 
-<h2>Gray zone <span class="count">{gray.length}</span></h2>
-<p class="quiet">{strong} pairs agree, {gray.length} to discuss, {low} clearly different. <a href={`/office/clients/${slug}/?tab=research&pairs=1`}>{showPairs ? 'Showing every pair.' : 'Show every pair.'}</a></p>
+<h2>Pairs <span class="count">{showPairs ? ps.length : gray.length}</span></h2>
+{ps.length === 0 && <p class="empty">Capture two keywords and their pair appears here.</p>}
+{ps.length > 0 && (
+  <p class="quiet">{strong} agree, {gray.length} in the gray zone, {low} differ. The counts and the suggestion are automatic; the read is yours, made on the compare page. <a href={`/office/clients/${slug}/?tab=research${showPairs ? '' : '&pairs=1'}`}>{showPairs ? 'Show the gray zone only.' : 'Show every pair.'}</a></p>
+)}
 {(showPairs ? ps : gray).length > 0 && (
-  <div class="table-scroll"><table>
-    <thead><tr><th>Pair</th><th>Same URL</th><th>Same business</th><th>Same type</th><th>Auto read</th><th>Your read</th></tr></thead>
-    <tbody>
-      {(showPairs ? ps : gray).map((p) => (
-        <tr>
-          <td>{p.a.text}<br />{p.b.text}</td>
-          <td class="num">{p.exactUrl}</td><td class="num">{p.sameDomainDifferentPage}</td><td class="num">{p.samePageType}</td>
-          <td class="quiet">{p.action}</td>
-          <td>
-            <form method="POST" action={api} class="toolbar">
-              <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="read" /><input type="hidden" name="key" value={p.key} />
-              <select name="human" aria-label="Human read">{READS.map((r) => <option selected={(p.read?.human ?? 'Gray zone / discuss') === r}>{r}</option>)}</select>
-              <select name="sameCluster" aria-label="Same cluster">{SAME.map((r) => <option selected={(p.read?.sameCluster ?? 'Undecided') === r}>{r}</option>)}</select>
-              <input name="notes" value={p.read?.notes ?? ''} placeholder="Note" aria-label="Note" />
-              <button class="btn-quiet btn-small">Save</button>
-            </form>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table></div>
+  <ul class="ledger">
+    {(showPairs ? ps : gray).map((p) => (
+      <li class="no-tick">
+        <span class="when">
+          {p.read ? <Mark state="done">{p.read.human}</Mark>
+            : p.signal === 'gray' ? <Mark state="none">Not decided</Mark>
+            : <Mark state="waiting">{p.signal === 'strong' ? 'Agree' : 'Differ'}</Mark>}
+        </span>
+        <span class="what">
+          <span class="title">{p.a.text} · {p.b.text}</span>
+          <span class="meta line">{p.exactUrl} same URL · {p.sameDomainDifferentPage} same business · {p.samePageType} same type · suggested: {p.action}</span>
+          {p.read?.notes && <span class="meta line">Note: {p.read.notes}</span>}
+        </span>
+        <span class="act"><a href={compare(p.key)}>Compare</a></span>
+      </li>
+    ))}
+  </ul>
 )}
 
 <h2>Pages <span class="count">{pages.length}</span></h2>
 {pages.length === 0 && <p class="empty">Capture a few keywords and the page list appears here.</p>}
-{pages.map((p) => (
-  <form method="POST" action={api} class="sheet">
-    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="page" /><input type="hidden" name="id" value={p.id} /><input type="hidden" name="keywords" value={p.keywords.join(',')} />
-    <div class="row">
-      <label class="field grow"><span>Page</span><input name="title" value={p.title} required /></label>
-      <label class="field"><span>Type</span><select name="type">{[...PAGE_TYPES, 'Tie / review'].map((t) => <option selected={p.type === t}>{t}</option>)}</select></label>
-    </div>
-    <p class="quiet">{p.keywords.map(text).join(' · ')}{p.auto ? '' : ' · edited'}</p>
-    <label class="field"><span>Note for the report</span><input name="note" value={p.note} /></label>
-    <div class="form-foot"><button class="btn-quiet btn-small">Save</button></div>
-  </form>
-))}
-{pages.filter((p) => !p.auto).map((p) => (
-  <form method="POST" action={api} class="inline">
-    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="reset" /><input type="hidden" name="id" value={p.id} />
-    <button class="link-quiet">Reset “{p.title}” to auto</button>
-  </form>
-))}
+{pages.length > 0 && <p class="quiet">Grouped from the pairs that agree and your same-cluster calls. Edit a page to keep your own title, type and note; “Tie / review” means the type is still yours to choose.</p>}
+{pages.length > 0 && (
+  <ul class="ledger">
+    {pages.map((p) => (
+      <li class="no-tick">
+        <span class="when"><Mark state={p.type === 'Tie / review' ? 'waiting' : p.auto ? 'none' : 'done'}>{p.auto ? 'Automatic' : 'Edited'}</Mark></span>
+        <span class="what">
+          <span class="title">{p.title}</span><span class="meta"> · {p.type}{p.type === 'Tie / review' ? ', type to decide' : ''}</span>
+          {/* The title is one of the keywords, so a single-keyword page would repeat itself. */}
+          {p.keywords.length > 1 && <span class="meta line">{p.keywords.map(text).join(' · ')}</span>}
+          {p.note && <span class="meta line">Note: {p.note}</span>}
+        </span>
+        <span class="act">
+          <details class="pop">
+            <summary class="link-quiet">Edit</summary>
+            <form method="POST" action={api} class="pop-sheet">
+              {hidden({ csrf, slug, id: p.id, keywords: p.keywords.join(',') }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+              <label class="field"><span>Page</span><input name="title" value={p.title} required /></label>
+              <label class="field"><span>Type</span><select name="type">{[...PAGE_TYPES, 'Tie / review'].map((t) => <option selected={p.type === t}>{t}</option>)}</select></label>
+              <label class="field"><span>Note for the report</span><input name="note" value={p.note} /></label>
+              <div class="pop-actions">
+                <button class="btn-quiet btn-small" name="op" value="page">Save</button>
+                {!p.auto && <button class="link-quiet" name="op" value="reset" formnovalidate>Back to automatic</button>}
+              </div>
+            </form>
+          </details>
+        </span>
+      </li>
+    ))}
+  </ul>
+)}
 
 <h2>Results</h2>
+{captures.length === 0 && <p class="empty">Each captured keyword's top eight appear here.</p>}
 {captures.map((k: any) => (
   <details class="fold">
     <summary>{k.text}<span class="sub">{day(study.serps[k.id].capturedAt)}</span></summary>
@@ -156,7 +217,7 @@ const link = bookmarklet(origin);
             <td class="quiet">{r.domain}</td>
             <td>
               <form method="POST" action={api} class="inline">
-                <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="type" /><input type="hidden" name="keyword" value={k.id} /><input type="hidden" name="rank" value={r.rank} />
+                {hidden({ csrf, slug, op: 'type', keyword: k.id, rank: String(r.rank) }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
                 <select name="pageType" aria-label="Page type" onchange="this.form.requestSubmit()">{PAGE_TYPES.map((t) => <option selected={r.pageType === t}>{t}</option>)}</select>
                 {r.typeSource === 'manual' && <span class="quiet"> edited</span>}
               </form>
@@ -170,7 +231,7 @@ const link = bookmarklet(origin);
 
 <h2>Report</h2>
 <form method="POST" action={api} class="toolbar" id="report">
-  <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="report" />
+  {hidden({ csrf, slug, op: 'report' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
   <button class="btn" disabled={captures.length === 0}>Write the report to Documents</button>
   <a class="btn-quiet" href={`/office/research/${slug}/report/`} target="_blank" rel="noopener">Preview</a>
   {study.reportedAt && <span class="quiet">Last written {day(study.reportedAt)}. Send it from the <a href={`/office/clients/${slug}/?tab=emails`}>Emails tab</a>.</span>}
