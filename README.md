@@ -493,6 +493,28 @@ client attached to a questionnaire. Every link streams through the office
 behind the admin login; nothing in Blobs has a public URL. Uploads take one
 file at a time, up to 4 MB, and only uploads can be removed.
 
+### Search research
+
+Growth, Agile and Range clients get a Research tab. It replaces the SERP
+overlap spreadsheet in `docs/` with the same rules: gather the top eight
+organic results for each keyword, count the results two keywords share,
+and group keywords that share seven or more onto one page. Three to six
+is the gray zone, decided on the client call and recorded on the tab.
+
+Results come from your own browser. The tab shows a bookmarklet to drag to
+the bookmarks bar; open each keyword's search in an incognito window, click
+it on the results page, and a capture page in the office saves the top eight
+under that keyword. No search API and nothing to configure. The keyword
+list drafts itself from the build questionnaire and is edited on the tab.
+Page types are guessed from each result's address and can be overridden.
+
+The tab's page list is the recommendation for Stage 2. "Write the report to
+Documents" renders it as a PDF in the client's Documents, and the send
+screen offers to attach the newest one to any email, checked by default on
+the seeded "Search research report" template. Advancing a Growth, Agile or
+Range client into Demo creates the "Run search research" task, which links
+to the tab.
+
 ## Enabling the CMS (/admin)
 
 DecapCMS uses Netlify's git-gateway:
