@@ -16,6 +16,7 @@ import { loadAgreementTemplates } from '../../../../netlify/functions/lib/office
 import { defaultFields, PLANS } from '../../../../netlify/functions/lib/office/agreements.mjs';
 import { listDocuments, formatSize } from '../../../../netlify/functions/lib/office/documents.mjs';
 import { glance } from '../../../../netlify/functions/lib/office/attention.mjs';
+import Research from '../../../components/office/Research.astro';
 import QuestionnaireAnswers from '../../../components/office/QuestionnaireAnswers.astro';
 import { mint } from '../../../../netlify/functions/lib/token.mjs';
 import intro from '../../../data/questionnaires/intro.json';
@@ -127,6 +128,10 @@ const markOf = (status: string): Fact['state'] =>
   : ['failed', 'expired', 'declined', 'voided'].includes(status) ? 'late'
   : ['pending', 'partiallySigned'].includes(status) ? 'waiting'
   : 'none';
+// Research shows for the tiers that include it, and for anyone who already
+// has a study, so a tier change never hides work.
+const study = await s.research.get(slug);
+const researchOn = ['Growth', 'Agile', 'Range'].includes(client.tier) || Boolean(study);
 const tabs: { id: string; label: string; count?: number; dot?: boolean }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'tasks', label: 'Tasks', count: open.length },
@@ -135,6 +140,7 @@ const tabs: { id: string; label: string; count?: number; dot?: boolean }[] = [
   ...(pipelinePlan ? [{ id: 'payments', label: 'Payments' }] : []),
   { id: 'emails', label: 'Emails' },
   { id: 'documents', label: 'Documents' },
+  ...(researchOn ? [{ id: 'research', label: 'Research' }] : []),
   { id: 'agreements', label: 'Agreements', dot: agreementOut },
 ];
 const host = (url: string) => { try { return new URL(url).host; } catch { return url; } };
@@ -473,6 +479,10 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
         </form>
       </div>
     </>
+  )}
+
+  {tab === 'research' && researchOn && (
+    <Research client={client} study={study} csrf={csrf} origin={site} captured={Astro.url.searchParams.get('captured') ?? ''} />
   )}
 
   {tab === 'agreements' && (
