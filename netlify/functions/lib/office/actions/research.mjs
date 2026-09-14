@@ -111,7 +111,9 @@ async function capture(data, s, now) {
     target = { slug, keywordId: keyword };
   } else {
     const matches = findCaptureTargets(await s.research.listAll(), value.q);
-    if (matches.length !== 1) return redirect(`${CAPTURE}?pick=1`);
+    // A redirect drops the fragment the bookmarklet arrived with, so the
+    // capture travels back in the Location's own fragment for the picker.
+    if (matches.length !== 1) return redirect(`${CAPTURE}?pick=1#${encodeURIComponent(JSON.stringify({ ...value, at: now.toISOString() }))}`);
     [target] = matches;
   }
   const study = await s.research.get(target.slug);

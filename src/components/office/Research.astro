@@ -109,7 +109,7 @@ const link = bookmarklet(origin);
           <td>
             <form method="POST" action={api} class="toolbar">
               <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="read" /><input type="hidden" name="key" value={p.key} />
-              <select name="human" aria-label="Human read">{READS.map((r) => <option selected={p.read?.human === r}>{r}</option>)}</select>
+              <select name="human" aria-label="Human read">{READS.map((r) => <option selected={(p.read?.human ?? 'Gray zone / discuss') === r}>{r}</option>)}</select>
               <select name="sameCluster" aria-label="Same cluster">{SAME.map((r) => <option selected={(p.read?.sameCluster ?? 'Undecided') === r}>{r}</option>)}</select>
               <input name="notes" value={p.read?.notes ?? ''} placeholder="Note" aria-label="Note" />
               <button class="btn-quiet btn-small">Save</button>
@@ -169,7 +169,7 @@ const link = bookmarklet(origin);
 ))}
 
 <h2>Report</h2>
-<form method="POST" action={api} class="toolbar">
+<form method="POST" action={api} class="toolbar" id="report">
   <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="report" />
   <button class="btn" disabled={captures.length === 0}>Write the report to Documents</button>
   <a class="btn-quiet" href={`/office/research/${slug}/report/`} target="_blank" rel="noopener">Preview</a>
