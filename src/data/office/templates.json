@@ -33,6 +33,19 @@
     ]
   },
   {
+    "id": "research-report",
+    "name": "Search research report",
+    "subject": "Your search research, and the pages it points to",
+    "body": "Hi {{client.firstName}},\n\nAttached is the search research for {{client.business}}. It shows what people type into Google when they need what you do, which of those searches Google answers with the same pages, and the page list we are building from that.\n\nThe short version is on the second page. The rest is the evidence, search by search, in case you want to see how we got there.\n\n{{note}}\n\nThanks,\n{{site.brand}}",
+    "fields": [
+      {
+        "key": "note",
+        "label": "Personal note",
+        "default": ""
+      }
+    ]
+  },
+  {
     "id": "copy",
     "name": "Copy and photos in place",
     "subject": "{{client.business}}, with your words and photos",

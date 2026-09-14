@@ -38,7 +38,7 @@ test('unknown type or format is 400; POST is 405', async () => {
 // otherwise offers every store collection as a download.
 test('tokens, locks and documents are not exportable types', async () => {
   const s = await make();
-  assert.deepEqual(EXPORTABLE, ['clients', 'contacts', 'tasks', 'meetings', 'payments', 'agreements', 'emails']);
+  assert.deepEqual(EXPORTABLE, ['clients', 'contacts', 'research', 'tasks', 'meetings', 'payments', 'agreements', 'emails']);
   for (const type of ['tokens', 'locks', 'documents', 'settings']) {
     assert.equal((await exportData(get(`type=${type}&format=json`), ctx, s)).status, 400, type);
   }

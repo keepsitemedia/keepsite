@@ -140,3 +140,9 @@ test('the seed gives each tier the meetings the package promises', () => {
   assert.deepEqual(titles('Presence', 'live'), ['Analytics summary to client', 'Annual recap']);
   assert.deepEqual(titles('Range', 'live'), ['Search summary to client', 'Annual recap']);
 });
+
+test('a task may name a client tab, and only a real one', () => {
+  const base = (tab) => [{ id: 'p', name: 'P', stages: [{ id: 's', name: 'S', tasks: [{ title: 'T', due: 1, tab }] }] }];
+  assert.deepEqual(validatePipelines(base('research')), []);
+  assert.match(validatePipelines(base('nope'))[0], /tab must be one of/);
+});

@@ -64,8 +64,19 @@ export async function send(request, ctx, s = defaultStore(), fetchFn = fetch, no
   const values = placeholdersIn(template.body).map((name) => fill(`{{${name}}}`, context, prompted).text);
   const html = toSafeHtml(escapeValues(cleanBody, values));
 
+  // The research report rides along when asked for: the newest document the
+  // research action wrote, as Resend wants it.
+  const attachments = [];
+  if (data.get('attach') === 'on') {
+    const reports = (await s.documents.list(slug)).filter((m) => m && m.source === 'research').sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
+    if (reports[0]) {
+      const bytes = await s.documents.get(slug, reports[0].name);
+      if (bytes) attachments.push({ filename: reports[0].name, content: Buffer.from(bytes).toString('base64') });
+    }
+  }
+
   const result = await sendMail(
-    { slug, to: client.email, subject: cleanSubject, text: cleanBody, html, template: templateId, kind: 'template' },
+    { slug, to: client.email, subject: cleanSubject, text: cleanBody, html, template: templateId, kind: 'template', attachments },
     s, fetchFn, now,
   );
   return redirect(

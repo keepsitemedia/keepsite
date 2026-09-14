@@ -234,7 +234,9 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
   const analytics = JSON.parse(fs.readFileSync('src/data/site.json', 'utf8')).analyticsId ? 2 : 0;
   const expect = {
     'index.html': 1,
-    'packages/index.html': 2,
+    // Plus the tier-open script: a link to /packages/#growth should land on
+    // that disclosure open, and only JS can open a <details>.
+    'packages/index.html': 3,
     // Plus the stage-scroll script: the CSS accordion cannot put the station
     // it opens at the top of the viewport, only JS can.
     'how-it-works/index.html': 2,

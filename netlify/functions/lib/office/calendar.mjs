@@ -7,12 +7,32 @@ const byTime = (a, b) => {
   return a.time < b.time ? -1 : 1;
 };
 
-export function itemsForDay(tasks, meetings, ymd) {
+const byDue = (a, b) => (a.due === b.due ? byTime(a, b) : a.due < b.due ? -1 : 1);
+const asTask = (t, late) => ({ ...t, kind: 'task', time: t.time ?? null, late });
+
+// With `today` given, an open task that is past due follows the owner: it
+// shows on today, flagged `late`, ahead of today's own items, and no longer
+// on the day it was due. Done tasks and meetings stay where they happened.
+// Without `today` the day shows exactly what is dated to it.
+export function itemsForDay(tasks, meetings, ymd, today) {
+  const moved = (t) => today && !t.done && t.due < today;
+  const late = today && ymd === today ? tasks.filter(moved).sort(byDue).map((t) => asTask(t, true)) : [];
   const items = [
-    ...tasks.filter((t) => t.due === ymd).map((t) => ({ ...t, kind: 'task', time: t.time ?? null })),
+    ...tasks.filter((t) => t.due === ymd && !moved(t)).map((t) => asTask(t, false)),
     ...meetings.filter((m) => m.ymd === ymd).map((m) => ({ ...m, kind: 'meeting', time: m.time ?? null })),
   ];
-  return items.sort(byTime);
+  return [...late, ...items.sort(byTime)];
+}
+
+// The days the month grid dots: every meeting, every open task on its due
+// day, and today whenever an open task is late, since that is where it shows.
+export function markedDays(tasks, meetings, today) {
+  const marked = new Set(meetings.map((m) => m.ymd));
+  for (const t of tasks) {
+    if (t.done) continue;
+    marked.add(t.due < today ? today : t.due);
+  }
+  return marked;
 }
 
 const pad = (n) => String(n).padStart(2, '0');

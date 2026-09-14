@@ -1,0 +1,57 @@
+---
+// Opened by the bookmarklet with the capture in the URL fragment, which
+// never reaches the server; the inline script moves it into the form.
+export const prerender = false;
+import OfficeLayout from '../../../layouts/OfficeLayout.astro';
+import { store } from '../../../../netlify/functions/lib/office/store.mjs';
+
+const error = Astro.url.searchParams.get('error');
+const pick = Astro.url.searchParams.get('pick') === '1';
+const csrf = Astro.locals.csrf;
+const studies = pick ? ((await store().research.listAll()) as any[]) : [];
+const clients = pick ? ((await store().clients.list()) as any[]) : [];
+const names = new Map(clients.map((c) => [c.slug, c.business]));
+---
+<OfficeLayout title="Capture results">
+  <div class="page-head"><h1>Capture results</h1></div>
+  {error && <p class="error">{error}</p>}
+  <p id="status" class="quiet">Reading the results…</p>
+  <form method="POST" action="/office/api/research" id="capture" hidden>
+    <input type="hidden" name="csrf" value={csrf} />
+    <input type="hidden" name="op" value="capture" />
+    <input type="hidden" name="payload" id="payload" />
+    <p><strong id="q"></strong></p>
+    <ol id="results"></ol>
+    {pick && (
+      <label class="field"><span>Save under</span>
+        <select name="target" id="target" required>
+          <option value="">Choose the client and keyword</option>
+          {studies.flatMap((s) => s.keywords.map((k: any) => <option value={`${s.slug}|${k.id}`}>{names.get(s.slug) ?? s.slug} · {k.text}</option>))}
+        </select>
+      </label>
+    )}
+    <input type="hidden" name="slug" id="slug" /><input type="hidden" name="keyword" id="keyword" />
+    <button class="btn">Save</button>
+  </form>
+  <script is:inline>
+    (function () {
+      var raw = location.hash.slice(1);
+      var status = document.getElementById('status');
+      if (!raw) { status.textContent = 'Nothing to capture. Click the bookmarklet on a Google results page.'; return; }
+      var data;
+      try { data = JSON.parse(decodeURIComponent(raw)); } catch (e) { status.textContent = 'The capture could not be read.'; return; }
+      document.getElementById('payload').value = JSON.stringify(data);
+      document.getElementById('q').textContent = data.q;
+      var list = document.getElementById('results');
+      (data.results || []).forEach(function (r) { var li = document.createElement('li'); li.textContent = r.title + ' — ' + r.url; list.appendChild(li); });
+      status.textContent = (data.results || []).length + ' results for this search.';
+      var target = document.getElementById('target');
+      if (target) target.addEventListener('change', function () {
+        var parts = target.value.split('|');
+        document.getElementById('slug').value = parts[0] || '';
+        document.getElementById('keyword').value = parts[1] || '';
+      });
+      document.getElementById('capture').hidden = false;
+    })();
+  </script>
+</OfficeLayout>

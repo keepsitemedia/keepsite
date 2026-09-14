@@ -6,6 +6,10 @@ import { addDays } from './dates.mjs';
 import { TIERS } from './clients.mjs';
 import { isRepeat } from './recurrence.mjs';
 
+// The client page's tab ids. A task that names one gets a link to it on
+// Today and the client's Tasks tab, the way a payment task links to Payments.
+export const TABS = ['overview', 'tasks', 'questionnaires', 'meetings', 'payments', 'emails', 'documents', 'agreements', 'research'];
+
 const KEY = /^[a-z][a-z0-9-]{0,31}$/;
 
 export function validatePipelines(value) {
@@ -52,6 +56,7 @@ export function validatePipelines(value) {
           else for (const name of t.tiers) if (!TIERS.includes(name)) errors.push(`${tat}: tiers names unknown tier "${name}"`);
         }
         if (t.repeat !== undefined && !isRepeat(t.repeat)) errors.push(`${tat}: repeat must be weekly, biweekly, monthly, quarterly or yearly`);
+        if (t.tab !== undefined && !TABS.includes(t.tab)) errors.push(`${tat}: tab must be one of ${TABS.join(', ')}`);
         // hooks.mjs, payments.mjs and agreements.mjs close these three task
         // kinds without rolling a repeat forward, so combining them would
         // silently drop the repeat after the first completion.
@@ -109,6 +114,7 @@ export function advance({ client, pipeline, stageId, today, now = new Date() }) 
         payment: t.payment ?? null,
         agreement: t.agreement ?? null,
         repeat: t.repeat ?? null,
+        tab: t.tab ?? null,
         notes: '',
         createdAt: at,
       }))

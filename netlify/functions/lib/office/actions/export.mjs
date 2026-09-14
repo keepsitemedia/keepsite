@@ -11,7 +11,7 @@ const FORMATS = {
 
 // The Data page offers a download for exactly these; a store collection that
 // is not here (documents, tokens, locks) has no export and no link.
-export const EXPORTABLE = ['clients', 'contacts', ...TYPES];
+export const EXPORTABLE = ['clients', 'contacts', 'research', ...TYPES];
 
 // A GET behind the guard; nothing is written, so no CSRF token is needed.
 export async function exportData(request, _ctx, s = defaultStore(), now = new Date()) {

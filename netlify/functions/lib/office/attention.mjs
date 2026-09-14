@@ -27,6 +27,7 @@ export function splitOpen(tasks, today, horizon = 3) {
 }
 
 export function nudge(t) {
+  if (t.tab) return { href: `/office/clients/${t.slug}/?tab=${t.tab}`, label: t.tab[0].toUpperCase() + t.tab.slice(1) };
   if (t.questionnaire) return { href: `/office/send/${t.slug}/questionnaire-reminder/?form=${t.questionnaire}`, label: 'Remind' };
   if (t.agreement === 'completed') return { href: `/office/send/${t.slug}/agreement/`, label: 'Resend link' };
   if (t.payment) return { href: `/office/clients/${t.slug}/?tab=payments`, label: 'Payments' };

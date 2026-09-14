@@ -87,3 +87,16 @@ test('a client value with Markdown in it is inert in the HTML body but untouched
   assert.ok(sent.text.includes(`for ${evil}.`));
   assert.ok(!sent.text.includes('\\['));
 });
+
+test('attach=on sends the newest research report as an attachment', async () => {
+  const s = await make();
+  await s.documents.put('lova', 'search-research-2026-09-01.pdf', new Uint8Array([1]), { type: 'application/pdf', source: 'research' }, new Date('2026-09-01T00:00:00Z'));
+  await s.documents.put('lova', 'search-research-2026-09-13.pdf', new Uint8Array([2, 3]), { type: 'application/pdf', source: 'research' }, new Date('2026-09-13T00:00:00Z'));
+  let sent;
+  const fetchFn = async (url, init) => { sent = JSON.parse(init.body); return new Response('{"id":"e1"}'); };
+  const res = await send(post({ csrf, slug: 'lova', template: 'research-report', subject: 'S', body: 'B', attach: 'on' }), ctx(), s, fetchFn, new Date());
+  assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=emails&sent=1');
+  assert.equal(sent.attachments.length, 1);
+  assert.equal(sent.attachments[0].filename, 'search-research-2026-09-13.pdf');
+  assert.equal(sent.attachments[0].content, Buffer.from([2, 3]).toString('base64'));
+});

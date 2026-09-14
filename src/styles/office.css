@@ -453,3 +453,8 @@
 
 .office form.upload { display: flex; gap: var(--space-2); align-items: end; flex-wrap: wrap; }
 .office form.upload input[type="file"] { display: block; margin-top: 0.25rem; }
+
+/* Research: forms inside ledger rows and table cells stay on one line. */
+.office .ledger .what .toolbar { margin: 0; }
+.office td .toolbar { margin: 0; flex-wrap: nowrap; }
+.office .ledger .meta form.inline { display: inline; }

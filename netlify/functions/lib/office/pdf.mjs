@@ -11,6 +11,7 @@ const MARGIN = 72;
 const CONTENT = PAGE.width - 2 * MARGIN;
 const SIZES = { title: 18, subtitle: 12, h1: 14, h2: 13, h3: 11.5, p: 11, table: 9.5, small: 8.5 };
 const LEADING = 1.35;
+export { SIZES };
 
 const REPLACEMENTS = { '☐': '[ ]', '☑': '[x]', '☒': '[x]', '✓': 'x', ' ': ' ' };
 const WINANSI = /^[\x20-\x7e\xa0-\xffŒœŠšŸŽžƒˆ˜–—‘’‚“”„†‡•…‰‹›€™]$/;
@@ -103,7 +104,7 @@ function wrap(font, size, text, width) {
 
 const fmtDate = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: TZ, dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
 
-class Writer {
+export class Writer {
   constructor(doc, fonts) {
     this.doc = doc; this.fonts = fonts; this.page = null; this.y = 0; this.pageNo = 0;
   }
