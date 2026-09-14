@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, pairKey, pairs, group, pageList, emptyStudy,
+  pickResults, PICK_SOURCE, bookmarklet, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -147,4 +148,88 @@ test('emptyStudy has the spec shape', () => {
   assert.deepEqual(Object.keys(s), ['slug', 'createdAt', 'updatedAt', 'areas', 'keywords', 'serps', 'reads', 'pages', 'reportedAt']);
   assert.equal(s.createdAt, '2026-09-13T00:00:00.000Z');
   assert.deepEqual(PAGE_TYPES, ['Homepage', 'Service page', 'Location page', 'Directory', 'Blog/FAQ', 'Portfolio/Gallery', 'About page', 'Other']);
+});
+
+test('pickResults keeps eight organic results in order and drops the noise', () => {
+  const c = (href, title, extra = {}) => ({ href, title, ad: false, box: href, ...extra });
+  const candidates = [
+    c('https://ad.com/x', 'Sponsored', { ad: true }),
+    c('https://www.google.com/search?q=x', 'Google thing'),
+    c('https://one.com/', 'One'),
+    c('https://one.com/sitelink', 'One sitelink', { box: 'https://one.com/' }),
+    c('https://two.com/', 'Two'),
+    c('https://two.com/', 'Two duplicate'),
+    ...[3, 4, 5, 6, 7, 8, 9].map((n) => c(`https://s${n}.com/`, `S${n}`)),
+  ];
+  const out = pickResults({ q: ' Wedding  florist ', candidates, related: ['a', 'a', 'b', 'wedding florist', ''] });
+  assert.equal(out.q, 'Wedding  florist');
+  assert.deepEqual(out.results.map((x) => x.url), ['https://one.com/', 'https://two.com/', 'https://s3.com/', 'https://s4.com/', 'https://s5.com/', 'https://s6.com/', 'https://s7.com/', 'https://s8.com/']);
+  assert.deepEqual(out.results.map((x) => x.rank), [1, 2, 3, 4, 5, 6, 7, 8]);
+  assert.deepEqual(out.related, ['a', 'b']);
+});
+
+test('bookmarklet embeds the origin and the same picker', () => {
+  const b = bookmarklet('https://www.keepsitemedia.com');
+  assert.ok(b.startsWith('javascript:'));
+  const code = decodeURIComponent(b.slice('javascript:'.length));
+  assert.ok(code.includes('https://www.keepsitemedia.com/office/research/capture/#'));
+  assert.ok(code.includes(PICK_SOURCE));
+  assert.ok(!code.includes('\n'));
+});
+
+test('normalizeQuery folds case and whitespace', () => {
+  assert.equal(normalizeQuery('  Wedding   Florist PROVO '), 'wedding florist provo');
+});
+
+test('validateCapture accepts the bookmarklet shape and rejects the rest', () => {
+  const good = { q: 'x', results: [{ rank: 1, url: 'https://a.com/', title: 'A' }], related: ['b'], at: '2026-09-13T00:00:00Z' };
+  assert.deepEqual(validateCapture(JSON.stringify(good)).errors, []);
+  assert.match(validateCapture('nope').errors[0], /not valid/);
+  assert.match(validateCapture(JSON.stringify({ ...good, q: '' })).errors[0], /query/);
+  assert.match(validateCapture(JSON.stringify({ ...good, results: [{ url: 'ftp://x', title: 'x' }] })).errors[0], /http/);
+  assert.match(validateCapture(JSON.stringify({ ...good, results: Array(9).fill(good.results[0]) })).errors[0], /at most 8/);
+  assert.match(validateCapture(JSON.stringify({ ...good, related: Array(11).fill('r') })).errors[0], /at most 10/);
+});
+
+test('findCaptureTargets matches the query across studies', () => {
+  const s1 = { slug: 'acme', keywords: [{ id: 'k1', text: 'Wedding florist' }] };
+  const s2 = { slug: 'beta', keywords: [{ id: 'k9', text: 'wedding  florist ' }, { id: 'k8', text: 'other' }] };
+  assert.deepEqual(findCaptureTargets([s1, s2], 'wedding florist'), [{ slug: 'acme', keywordId: 'k1', text: 'Wedding florist' }, { slug: 'beta', keywordId: 'k9', text: 'wedding  florist ' }]);
+  assert.deepEqual(findCaptureTargets([s1, s2], 'nothing'), []);
+});
+
+test('applyCapture stores a classified snapshot and refreshes the auto pages', () => {
+  const s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
+  s.areas = ['Provo'];
+  s.keywords = [{ id: 'k1', text: 'x', cluster: 'C', arm: '', source: 'manual' }];
+  const out = applyCapture(s, 'k1', { q: 'x', results: [{ rank: 1, url: 'https://a.com/provo/', title: 'A' }], related: ['y'] }, new Date('2026-09-14T00:00:00Z'));
+  assert.equal(out.serps.k1.capturedAt, '2026-09-14T00:00:00.000Z');
+  assert.equal(out.serps.k1.results[0].pageType, 'Location page');
+  assert.equal(out.serps.k1.results[0].domain, 'a.com');
+  assert.equal(out.serps.k1.results[0].typeSource, 'auto');
+  assert.deepEqual(out.serps.k1.related, ['y']);
+  assert.equal(out.pages.length, 1);
+  assert.equal(out.updatedAt, '2026-09-14T00:00:00.000Z');
+});
+
+test('splitList and draftFromQuestionnaire', () => {
+  assert.deepEqual(splitList('a, b;c\n d \n\n'), ['a', 'b', 'c', 'd']);
+  const envelope = { answers: {
+    services: 'Wedding flowers, Funeral flowers',
+    searchTerms: 'wedding florist provo\nfuneral flowers near me',
+    findabilityWishes: 'sympathy arrangements',
+    ownPageCandidates: 'corporate events',
+    serviceArea: 'Provo, Orem',
+    targetAreas: 'Utah County',
+  } };
+  const d = draftFromQuestionnaire(envelope);
+  assert.deepEqual(d.areas, ['Provo', 'Orem', 'Utah County']);
+  assert.deepEqual(d.keywords.map((k) => [k.text, k.cluster, k.source]), [
+    ['wedding florist provo', 'Wedding flowers', 'questionnaire'],
+    ['funeral flowers near me', 'Funeral flowers', 'questionnaire'],
+    ['sympathy arrangements', 'General', 'questionnaire'],
+    ['corporate events', 'General', 'questionnaire'],
+  ]);
+  assert.ok(d.keywords.every((k) => /^k[a-z0-9]{8}$/.test(k.id)));
+  assert.deepEqual(draftFromQuestionnaire(null), { keywords: [], areas: [] });
 });

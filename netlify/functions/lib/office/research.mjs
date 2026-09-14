@@ -137,3 +137,137 @@ export function emptyStudy(slug, now = new Date()) {
   const at = now.toISOString();
   return { slug, createdAt: at, updatedAt: at, areas: [], keywords: [], serps: {}, reads: {}, pages: [], reportedAt: null };
 }
+
+// ---- Capture --------------------------------------------------------------
+
+// Shared with the bookmarklet by source text: bookmarklet() embeds
+// PICK_SOURCE, so the picker the browser runs is the picker these tests run.
+// It must stay self-contained: no imports, no references outside itself.
+export function pickResults(input) {
+  var q = String(input.q || '').trim();
+  var results = [];
+  var seen = {};
+  var boxes = {};
+  var candidates = input.candidates || [];
+  for (var i = 0; i < candidates.length && results.length < 8; i += 1) {
+    var c = candidates[i];
+    if (!c || c.ad || !c.href || !c.title) continue;
+    var host;
+    try { host = new URL(c.href).hostname.toLowerCase(); } catch (e) { continue; }
+    if (!/^https?:/i.test(c.href) || host === 'google.com' || host.slice(-11) === '.google.com') continue;
+    if (c.box && boxes[c.box]) continue;
+    if (seen[c.href]) continue;
+    seen[c.href] = true;
+    if (c.box) boxes[c.box] = true;
+    results.push({ rank: results.length + 1, url: c.href, title: String(c.title).trim().slice(0, 200) });
+  }
+  var related = [];
+  var rel = input.related || [];
+  for (var j = 0; j < rel.length && related.length < 10; j += 1) {
+    var t = String(rel[j] || '').trim();
+    if (t && related.indexOf(t) < 0 && t.toLowerCase().replace(/\s+/g, ' ') !== q.toLowerCase().replace(/\s+/g, ' ')) related.push(t);
+  }
+  return { q: q, results: results, related: related };
+}
+
+// One line, so the bookmarklet can embed it verbatim. pickResults must
+// therefore never contain a line comment.
+export const PICK_SOURCE = pickResults.toString().replace(/\s*\n\s*/g, ' ');
+
+// The DOM walk gathers candidates; pickResults decides. A result container is
+// the closest [data-hveid], which is what a sitelink shares with its parent.
+export function bookmarklet(origin) {
+  const code = `(function(){
+var PICK=${PICK_SOURCE};
+var q=new URLSearchParams(location.search).get('q')||'';
+var cands=[];var n=0;
+document.querySelectorAll('h3').forEach(function(h){
+var a=h.closest('a[href]');if(!a)return;
+var box=h.closest('[data-hveid]')||(a.parentElement&&a.parentElement.parentElement)||a;
+if(!box.dataset.kbox){n+=1;box.dataset.kbox=String(n);}
+cands.push({href:a.href,title:h.textContent,ad:!!h.closest('#tads,#bottomads,[data-text-ad],[aria-label="Ads"],.related-question-pair,[data-attrid],#rhs'),box:box.dataset.kbox});
+});
+var related=[];document.querySelectorAll('#botstuff a[href*="/search?"]').forEach(function(a){related.push(a.textContent);});
+var picked=PICK({q:q,candidates:cands,related:related});
+if(!picked.results.length){alert('No results found on this page');return;}
+picked.at=new Date().toISOString();
+window.open(${JSON.stringify(`${origin}/office/research/capture/#`)}+encodeURIComponent(JSON.stringify(picked)));
+})();`;
+  return `javascript:${encodeURIComponent(code.replace(/\n/g, ' '))}`;
+}
+
+export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+export function validateCapture(text) {
+  const errors = [];
+  let v;
+  try { v = JSON.parse(String(text ?? '')); } catch { return { value: null, errors: ['the capture is not valid JSON'] }; }
+  if (!v || typeof v !== 'object') return { value: null, errors: ['the capture is not an object'] };
+  const q = String(v.q ?? '').trim();
+  if (!q) errors.push('the query is empty');
+  const results = Array.isArray(v.results) ? v.results : [];
+  if (results.length > 8) errors.push('at most 8 results');
+  results.forEach((r, i) => {
+    if (!r || typeof r !== 'object' || !/^https?:\/\//i.test(String(r.url ?? ''))) errors.push(`result ${i + 1} needs an http URL`);
+    if (!String(r?.title ?? '').trim()) errors.push(`result ${i + 1} needs a title`);
+  });
+  const related = Array.isArray(v.related) ? v.related.map((x) => String(x ?? '').trim()).filter(Boolean) : [];
+  if (related.length > 10) errors.push('at most 10 related searches');
+  return {
+    value: errors.length ? null : { q, results: results.map((r, i) => ({ rank: i + 1, url: String(r.url), title: String(r.title).trim().slice(0, 200) })), related },
+    errors,
+  };
+}
+
+export function findCaptureTargets(studies, q) {
+  const want = normalizeQuery(q);
+  const out = [];
+  for (const s of studies) for (const k of s.keywords ?? []) if (normalizeQuery(k.text) === want) out.push({ slug: s.slug, keywordId: k.id, text: k.text });
+  return out;
+}
+
+export function applyCapture(study, keywordId, capture, now = new Date()) {
+  const results = capture.results.map((r, i) => ({
+    rank: i + 1, url: r.url, title: r.title, domain: domainOf(r.url),
+    pageType: classify(r, study.areas), typeSource: 'auto',
+  }));
+  const serps = { ...study.serps, [keywordId]: { capturedAt: now.toISOString(), query: capture.q, results, related: capture.related ?? [] } };
+  return touch({ ...study, serps }, now);
+}
+
+// Any change to a snapshot or a read reshapes the auto page rows.
+export function touch(study, now = new Date()) {
+  const next = { ...study, updatedAt: now.toISOString() };
+  next.pages = pageList(next);
+  return next;
+}
+
+// ---- Keywords ---------------------------------------------------------------
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+export function newKeywordId(random = Math.random) {
+  let id = 'k';
+  for (let i = 0; i < 8; i += 1) id += ALPHABET[Math.floor(random() * ALPHABET.length)];
+  return id;
+}
+
+export const splitList = (text) => String(text ?? '').split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
+
+const words = (s) => new Set(normalizeQuery(s).split(' ').filter((w) => w.length > 2));
+
+export function draftFromQuestionnaire(envelope) {
+  const a = envelope?.answers;
+  if (!a) return { keywords: [], areas: [] };
+  const clusters = splitList(a.services);
+  const areas = [...new Set([...splitList(a.serviceArea), ...splitList(a.targetAreas)])];
+  const texts = [...new Set([...splitList(a.searchTerms), ...splitList(a.findabilityWishes), ...splitList(a.ownPageCandidates)])];
+  // The cluster sharing the most words wins; a tie goes to the first
+  // listed, and no shared word at all lands in General.
+  const keywords = texts.map((text) => {
+    const kw = words(text);
+    const scored = clusters.map((c) => ({ c, n: [...words(c)].filter((w) => kw.has(w)).length }));
+    const best = scored.reduce((a, b) => (b.n > a.n ? b : a), { c: 'General', n: 0 });
+    return { id: newKeywordId(), text, cluster: best.c, arm: '', source: 'questionnaire' };
+  });
+  return { keywords, areas };
+}
