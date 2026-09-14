@@ -38,6 +38,7 @@ const context = buildContext({ client, admin: Astro.locals.admin, secret, form: 
 const rendered = render(template, context, {}, { keepPrompted: true }) as Rendered;
 const fields = template.fields ?? [];
 const csrf = Astro.locals.csrf;
+const report = ((await s.documents.list(slug)) as any[]).filter((m) => m && m.source === 'research').sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)))[0] ?? null;
 const unfilled = rendered.unresolved.filter((u) => !fields.some((f) => f.key === u));
 ---
 <OfficeLayout title={`Send: ${template.name}`}>
@@ -71,6 +72,9 @@ const unfilled = rendered.unresolved.filter((u) => !fields.some((f) => f.key ===
       )}
       <label class="field"><span>Subject</span><input name="subject" value={rendered.subject} data-original={rendered.subject} required /></label>
       <label class="field"><span>Body, in Markdown</span><textarea name="body" data-original={rendered.text}>{rendered.text}</textarea></label>
+      {report && (
+        <label class="field check"><input type="checkbox" name="attach" checked={template.id === 'research-report'} /> <span>Attach the latest research report ({report.name})</span></label>
+      )}
       <button class="btn">Send</button>
     </div>
     <div>
