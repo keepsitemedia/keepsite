@@ -50,7 +50,7 @@ test('login with an admin sets access, refresh and csrf cookies', async () => {
     ]);
     const cookies = await login(BASE, 'me@keepsitemedia.com', 'pw', fetchFn);
     assert.equal(cookies.length, 3);
-    assert.match(cookies[0], /^ks_access=A; Max-Age=3600; Path=\/; HttpOnly; Secure; SameSite=Strict$/);
+    assert.match(cookies[0], /^ks_access=A; Max-Age=3600; Path=\/; HttpOnly; Secure; SameSite=Lax$/);
     assert.match(cookies[1], /^ks_refresh=R; /);
     assert.match(cookies[2], /^ks_csrf=[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+; /);
     assert.equal(calls[0].init.method, 'POST');

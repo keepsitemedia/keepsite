@@ -51,4 +51,6 @@ test('safeNext only allows office paths', () => {
   assert.equal(safeNext('/office/api/logout'), '/office/');
   assert.equal(safeNext(''), '/office/');
   assert.equal(safeNext('/office/x\\evil'), '/office/');
+  assert.equal(safeNext('/office/research/capture/#%7B%22q%22%3A%22x%22%7D'), '/office/research/capture/#%7B%22q%22%3A%22x%22%7D');
+  assert.equal(safeNext('/office/x#//evil.test'), '/office/');
 });

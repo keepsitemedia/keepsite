@@ -31,6 +31,17 @@ test('login sets cookies and lands on next', async () => {
   }
 });
 
+test('login keeps the fragment a capture arrived with', async () => {
+  process.env.KEEPSITE_SESSION_SECRET = 's';
+  try {
+    const next = '/office/research/capture/#%7B%22q%22%3A%22x%22%7D';
+    const res = await login(post({ email: 'me@keepsitemedia.com', password: 'pw', next }), {}, identity(true));
+    assert.equal(res.headers.get('Location'), next);
+  } finally {
+    delete process.env.KEEPSITE_SESSION_SECRET;
+  }
+});
+
 test('login failure goes back to the form with a generic flag and no cookies', async () => {
   const res = await login(post({ email: 'a', password: 'b' }), {}, identity(false));
   assert.equal(res.status, 303);

@@ -22,8 +22,13 @@ export function parseCookies(header) {
   return out;
 }
 
+// Lax, not Strict: the research bookmarklet opens the capture page from a
+// Google results page, and Strict withholds the session on any navigation
+// that starts on another site, so the office bounces a logged-in admin to
+// login. Lax still withholds cookies from cross-site POSTs, and every office
+// write is a POST checked against the csrf cookie anyway.
 const cookie = (name, value, maxAge) =>
-  `${name}=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Strict`;
+  `${name}=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 const clear = (name) => cookie(name, '', 0);
 
 async function token(base, params, fetchFn) {
