@@ -5,7 +5,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { comparePair, describePair, normalizeUrl, domainOf, pairKey, READS, SAME } from '../../../../../netlify/functions/lib/office/research.mjs';
+import { comparePair, describePair, normalizeUrl, domainOf, pairKey, migrateStudy, openRound, READS, SAME } from '../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../netlify/functions/lib/office/dates.mjs';
 
 const slug = Astro.params.slug ?? '';
@@ -14,18 +14,19 @@ const s = store();
 const client = (await s.clients.get(slug)) as any;
 const study = (await s.research.get(slug)) as any;
 if (!client || !study) return new Response('not found', { status: 404 });
+const round = openRound(migrateStudy(study));
 
 const [aId, bId] = String(Astro.url.searchParams.get('pair') ?? '').split('|');
-const a = study.keywords.find((k: any) => k.id === aId);
-const b = study.keywords.find((k: any) => k.id === bId);
-if (!a || !b || !study.serps[a.id] || !study.serps[b.id]) return new Response('not found', { status: 404 });
+const a = round.keywords.find((k: any) => k.id === aId);
+const b = round.keywords.find((k: any) => k.id === bId);
+if (!a || !b || !round.serps[a.id] || !round.serps[b.id]) return new Response('not found', { status: 404 });
 
 const csrf = Astro.locals.csrf;
 const key = pairKey(a.id, b.id);
-const serpA = study.serps[a.id];
-const serpB = study.serps[b.id];
+const serpA = round.serps[a.id];
+const serpB = round.serps[b.id];
 const c = comparePair(serpA.results, serpB.results) as any;
-const read = study.reads[key] ?? null;
+const read = round.reads[key] ?? null;
 const total = Math.max(serpA.results.length, serpB.results.length);
 const urls = new Set(c.sharedUrls as string[]);
 const domains = new Set(c.sharedDomains as string[]);

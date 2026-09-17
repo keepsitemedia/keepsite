@@ -4,26 +4,28 @@
 // Editing sits behind pops so a row reads as a line; the read on a pair is
 // made on the compare page, where the two result lists are.
 import Mark from './Mark.astro';
-import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
 const { client, csrf, origin, captured } = Astro.props;
-const study = Astro.props.study ?? emptyStudy(client.slug);
+const study = migrateStudy(Astro.props.study ?? emptyStudy(client.slug));
+const round = openRound(study);
+const closedRounds = study.rounds.slice(0, -1).reverse();
 const slug: string = client.slug;
 const api = '/office/api/research';
-const byId = new Map<string, any>(study.keywords.map((k: any) => [k.id, k]));
+const byId = new Map<string, any>(round.keywords.map((k: any) => [k.id, k]));
 const text = (id: string) => byId.get(id)?.text ?? id;
-const captures = study.keywords.filter((k: any) => study.serps[k.id]);
-const next = study.keywords.find((k: any) => !study.serps[k.id]);
-const ps = pairs(study) as any[];
+const captures = round.keywords.filter((k: any) => round.serps[k.id]);
+const next = round.keywords.find((k: any) => !round.serps[k.id]);
+const ps = pairs(round) as any[];
 const gray = ps.filter((p) => p.signal === 'gray');
 const undecided = gray.filter((p) => !p.read);
 const strong = ps.filter((p) => p.signal === 'strong').length;
 const low = ps.filter((p) => p.signal === 'low').length;
-const pages = pageList(study) as any[];
+const pages = pageList(round) as any[];
 const edited = pages.filter((p) => !p.auto).length;
-const clusters = [...new Set(study.keywords.map((k: any) => k.cluster))] as string[];
+const clusters = [...new Set(round.keywords.map((k: any) => k.cluster))] as string[];
 const isRange = client.tier === 'Range';
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const showPairs = Astro.url.searchParams.get('pairs') === '1';
@@ -34,20 +36,41 @@ const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([
 // The glance: four facts, each a mark, so the next thing to do reads first.
 type Fact = { label: string; state: 'done' | 'waiting' | 'late' | 'none'; text: string; detail?: string; href?: string; search?: boolean };
 const facts: Fact[] = [
-  study.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
-    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${study.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text), search: true }
-    : { label: 'Captured', state: 'done', text: `All ${study.keywords.length}` },
+  round.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
+    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${round.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text), search: true }
+    : { label: 'Captured', state: 'done', text: `All ${round.keywords.length}` },
   ps.length === 0 ? { label: 'Pairs', state: 'none', text: 'Nothing to compare yet' }
     : undecided.length ? { label: 'Pairs', state: 'none', text: `${undecided.length} to decide`, detail: `Next: ${undecided[0].a.text} · ${undecided[0].b.text}`, href: compare(undecided[0].key) }
     : gray.length ? { label: 'Pairs', state: 'done', text: 'All decided', detail: `${gray.length} in the gray zone` }
     : { label: 'Pairs', state: 'done', text: 'None in the gray zone', detail: `${strong} agree, ${low} differ` },
   pages.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
     : { label: 'Pages', state: pages.some((p) => p.type === 'Tie / review') ? 'waiting' : 'done', text: `${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`, detail: edited ? `${edited} edited by you` : 'Grouped automatically' },
-  study.reportedAt ? { label: 'Report', state: 'done', text: `Written ${day(study.reportedAt)}`, href: `/office/clients/${slug}/?tab=documents` }
+  round.reportedAt ? { label: 'Report', state: 'done', text: `Written ${day(round.reportedAt)}`, href: `/office/clients/${slug}/?tab=documents` }
     : { label: 'Report', state: 'none', text: 'Not written' },
 ];
 const external = (href: string) => href.startsWith('http');
 ---
+<p class="quiet">Round {study.rounds.length}, started {day(round.startedAt)}.
+  {closedRounds.length > 0 && <> Earlier: {closedRounds.map((r: any, i: number) => (
+    <><a href={`/office/research/${slug}/rounds/${r.id}/`}>{day(r.startedAt)}</a>{i < closedRounds.length - 1 ? ', ' : ''}</>
+  ))}.</>}
+</p>
+<details class="fold">
+  <summary>Start a new round<span class="sub">Keeps this one, carries the keywords over</span></summary>
+  <div class="fold-body">
+    <p class="quiet">A new round freezes this one and starts again with the same keywords and service areas, so you can re-run the study in six or twelve months and still have what it said today.</p>
+    <form method="POST" action={api} class="toolbar">
+      {hidden({ csrf, slug, op: 'round' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+      <button class="btn-quiet" onclick="return confirm('Freeze this round and start a new one? This round stays readable but stops accepting changes.')">Start a new round</button>
+    </form>
+    {Object.keys(round.serps).length === 0 && study.rounds.length > 1 && (
+      <form method="POST" action={api} class="toolbar">
+        {hidden({ csrf, slug, op: 'round-discard' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+        <button class="link-quiet">This round is empty — go back to the previous one</button>
+      </form>
+    )}
+  </div>
+</details>
 <dl class="glance">
   {facts.map((f) => (
     <div>
@@ -62,7 +85,7 @@ const external = (href: string) => href.startsWith('http');
 {captured && byId.has(captured) && <p class="notice notice-ok">Captured “{text(captured)}”.</p>}
 
 <details class="fold" open={captures.length === 0}>
-  <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : study.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
+  <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : round.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
   <div class="fold-body">
     <p class="quiet">Drag this to your bookmarks bar once: <a class="btn-quiet btn-small" href={link} onclick="return false">Capture results</a>. It is the same button for every client: a capture is filed under the keyword whose text matches the search, and the capture page asks you to pick when none or several match.</p>
     <p class="quiet">For each keyword, open the search in the research profile and click the button on the results page.{next && <> Start with <a href={searchUrl(next.text)} data-search target="_blank" rel="noopener">{next.text}</a>.</>}</p>
@@ -92,8 +115,8 @@ const external = (href: string) => href.startsWith('http');
   })();
 </script>
 
-<h2>Keywords <span class="count">{study.keywords.length}</span></h2>
-{study.keywords.length === 0 && (
+<h2>Keywords <span class="count">{round.keywords.length}</span></h2>
+{round.keywords.length === 0 && (
   <form method="POST" action={api} class="inline">
     {hidden({ csrf, slug, op: 'draft' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
     <p class="empty">No keywords yet. <button class="btn-quiet btn-small">Draft from the build questionnaire</button> or add one below.</p>
@@ -101,12 +124,12 @@ const external = (href: string) => href.startsWith('http');
 )}
 {clusters.map((c) => (
   <details class="fold" open>
-    <summary>{c}<span class="sub">{study.keywords.filter((k: any) => k.cluster === c).length}</span></summary>
+    <summary>{c}<span class="sub">{round.keywords.filter((k: any) => k.cluster === c).length}</span></summary>
     <div class="fold-body">
       <ul class="ledger">
-        {study.keywords.filter((k: any) => k.cluster === c).map((k: any) => {
-          const serp = study.serps[k.id];
-          const related = (serp?.related ?? []).filter((r: string) => !study.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase()));
+        {round.keywords.filter((k: any) => k.cluster === c).map((k: any) => {
+          const serp = round.serps[k.id];
+          const related = (serp?.related ?? []).filter((r: string) => !round.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase()));
           return (
             <li class="no-tick">
               <span class="when"><Mark state={serp ? 'done' : 'none'}>{serp ? day(serp.capturedAt) : 'Not captured'}</Mark></span>
@@ -155,11 +178,11 @@ const external = (href: string) => href.startsWith('http');
   <button class="btn-quiet">Add</button>
 </form>
 <details class="fold">
-  <summary>Service areas<span class="sub">{study.areas.length ? study.areas.join(', ') : 'None set'}</span></summary>
+  <summary>Service areas<span class="sub">{round.areas.length ? round.areas.join(', ') : 'None set'}</span></summary>
   <div class="fold-body">
     <form method="POST" action={api} class="toolbar">
       {hidden({ csrf, slug, op: 'areas' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
-      <label class="field grow"><span>Towns and areas, for spotting location pages</span><input name="areas" value={study.areas.join(', ')} /></label>
+      <label class="field grow"><span>Towns and areas, for spotting location pages</span><input name="areas" value={round.areas.join(', ')} /></label>
       <button class="btn-quiet">Save areas</button>
     </form>
   </div>
@@ -228,11 +251,11 @@ const external = (href: string) => href.startsWith('http');
 {captures.length === 0 && <p class="empty">Each captured keyword's top eight appear here.</p>}
 {captures.map((k: any) => (
   <details class="fold">
-    <summary>{k.text}<span class="sub">{day(study.serps[k.id].capturedAt)}</span></summary>
+    <summary>{k.text}<span class="sub">{day(round.serps[k.id].capturedAt)}</span></summary>
     <div class="fold-body"><div class="table-scroll"><table>
       <thead><tr><th>#</th><th>Result</th><th>Business</th><th>Type</th></tr></thead>
       <tbody>
-        {study.serps[k.id].results.map((r: any) => (
+        {round.serps[k.id].results.map((r: any) => (
           <tr>
             <td class="num">{r.rank}</td>
             <td><a href={r.url} target="_blank" rel="noopener">{r.title}</a></td>
@@ -251,10 +274,23 @@ const external = (href: string) => href.startsWith('http');
   </details>
 ))}
 
+<details class="fold" open={!!(round.notes?.intro || round.notes?.closing)}>
+  <summary>Notes for the report<span class="sub">{round.notes?.intro || round.notes?.closing ? 'Written' : 'None yet'}</span></summary>
+  <div class="fold-body">
+    <p class="quiet">Your words around the automatic findings. The opening prints before them, the closing prints last. Leave either empty and it prints nothing.</p>
+    <form method="POST" action={api} class="pop-sheet">
+      {hidden({ csrf, slug, op: 'notes', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+      <label class="field"><span>Opening — what this study looked at and why</span><textarea name="intro" rows="4">{round.notes?.intro ?? ''}</textarea></label>
+      <label class="field"><span>Closing — what you recommend</span><textarea name="closing" rows="4">{round.notes?.closing ?? ''}</textarea></label>
+      <div class="pop-actions"><button class="btn-quiet btn-small">Save notes</button></div>
+    </form>
+  </div>
+</details>
+
 <h2>Report</h2>
 <form method="POST" action={api} class="toolbar" id="report">
   {hidden({ csrf, slug, op: 'report' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
   <button class="btn" disabled={captures.length === 0}>Write the report to Documents</button>
   <a class="btn-quiet" href={`/office/research/${slug}/report/`} target="_blank" rel="noopener">Preview</a>
-  {study.reportedAt && <span class="quiet">Last written {day(study.reportedAt)}. Send it from the <a href={`/office/clients/${slug}/?tab=emails`}>Emails tab</a>.</span>}
+  {round.reportedAt && <span class="quiet">Last written {day(round.reportedAt)}. Send it from the <a href={`/office/clients/${slug}/?tab=emails`}>Emails tab</a>.</span>}
 </form>
