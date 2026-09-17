@@ -120,6 +120,7 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
     await s.research.put(slug, touch({ ...study, rounds }, now));
     return redirect(tab(slug));
   }
+  if (op === 'notes') return saveRound({ ...round, notes: { intro: text('intro'), closing: text('closing') } });
   if (op === 'report') {
     const bytes = await renderResearchReport({ client, study, renderedAt: now });
     const name = reportName(now);

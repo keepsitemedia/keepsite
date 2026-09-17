@@ -197,6 +197,18 @@ test('an empty new round can be discarded, a captured one cannot', async () => {
   assert.equal(res.status, 400);
 });
 
+test('notes are stored on the round and trimmed', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'notes', intro: '  What we looked at.  ', closing: 'What to do next.' }), ctx(), s, now);
+  assert.deepEqual(openRound(await s.research.get('acme')).notes, { intro: 'What we looked at.', closing: 'What to do next.' });
+});
+
+test('an omitted note is stored as an empty string, not dropped', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'notes', intro: 'Only this one.' }), ctx(), s, now);
+  assert.deepEqual(openRound(await s.research.get('acme')).notes, { intro: 'Only this one.', closing: '' });
+});
+
 test('refuses without csrf, on GET, and on an unknown client', async () => {
   const s = await make();
   assert.equal((await research(new Request('https://site.test/office/api/research'), ctx(), s, now)).status, 405);
