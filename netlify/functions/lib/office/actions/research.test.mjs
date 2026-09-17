@@ -130,7 +130,12 @@ test('report writes a document and stamps reportedAt', async () => {
   const meta = await s.documents.meta('acme', 'search-research-2026-09-13.pdf');
   assert.equal(meta.source, 'research');
   assert.equal(meta.type, 'application/pdf');
-  assert.equal(openRound(await s.research.get('acme')).reportedAt, now.toISOString());
+  const saved = await s.research.get('acme');
+  assert.equal(openRound(saved).reportedAt, now.toISOString());
+  // report writes through touch like every other op, so it also refreshes
+  // updatedAt and the round's page list rather than only stamping reportedAt.
+  assert.equal(saved.updatedAt, now.toISOString());
+  assert.equal(openRound(saved).pages.length, 1);
 });
 
 test('a legacy document is migrated on the way in and saved with rounds', async () => {

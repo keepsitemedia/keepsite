@@ -164,8 +164,10 @@ test('openRound is the last round and roundOf finds one by id', () => {
   assert.equal(roundOf(s, 'nope'), undefined);
 });
 
-const study = () => {
-  const round = {
+// Named for what it returns, not what it stands in for: a round fixture,
+// never a study — that conflation is exactly what this design prevents.
+const round = () => {
+  const r0 = {
     ...emptyRound('r1', new Date('2026-09-13T00:00:00Z')),
     keywords: [
       { id: 'k1', text: 'wedding florist provo', cluster: 'Weddings', arm: '', source: 'manual' },
@@ -175,14 +177,14 @@ const study = () => {
     ],
   };
   const cap = (results) => ({ capturedAt: '2026-09-13T01:00:00Z', query: 'q', results, related: [] });
-  round.serps = { k1: cap(A), k2: cap(B7), k3: cap([1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://f${n}.com/p`))) };
-  return round;
+  r0.serps = { k1: cap(A), k2: cap(B7), k3: cap([1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://f${n}.com/p`))) };
+  return r0;
 };
 
 test('pairs covers captured keywords only and carries the stored read', () => {
-  const round = study();
-  round.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Yes', notes: '' };
-  const p = pairs(round);
+  const r = round();
+  r.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Yes', notes: '' };
+  const p = pairs(r);
   assert.deepEqual(p.map((x) => x.key), ['k1|k2', 'k1|k3', 'k2|k3']);
   assert.equal(p[0].signal, 'strong');
   assert.equal(p[0].read.human, 'Same intent');
@@ -190,34 +192,34 @@ test('pairs covers captured keywords only and carries the stored read', () => {
 });
 
 test('group joins strong pairs, honours No and Yes, leaves uncaptured out', () => {
-  const round = study();
-  let g = group(round);
+  const r = round();
+  let g = group(r);
   assert.deepEqual(g.map((x) => x.keywords), [['k1', 'k2'], ['k3']]);
   assert.equal(g[0].title, 'wedding florist provo');
   assert.equal(g[0].type, 'Service page');
   assert.equal(g[0].auto, true);
 
-  round.reads['k1|k2'] = { human: 'Different intent', sameCluster: 'No', notes: '' };
-  g = group(round);
+  r.reads['k1|k2'] = { human: 'Different intent', sameCluster: 'No', notes: '' };
+  g = group(r);
   assert.deepEqual(g.map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
 
-  round.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Undecided', notes: '' };
-  round.reads['k1|k3'] = { human: 'Probably same', sameCluster: 'Yes', notes: '' };
-  g = group(round);
+  r.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Undecided', notes: '' };
+  r.reads['k1|k3'] = { human: 'Probably same', sameCluster: 'Yes', notes: '' };
+  g = group(r);
   assert.deepEqual(g.map((x) => x.keywords), [['k1', 'k2', 'k3']]);
 });
 
 test('pageList keeps an edited row and regroups the rest', () => {
-  const round = study();
-  round.pages = [{ id: 'p9', title: 'Sympathy flowers', type: 'Service page', keywords: ['k3'], note: 'client asked', auto: false }];
-  const list = pageList(round);
+  const r = round();
+  r.pages = [{ id: 'p9', title: 'Sympathy flowers', type: 'Service page', keywords: ['k3'], note: 'client asked', auto: false }];
+  const list = pageList(r);
   assert.equal(list.length, 2);
   assert.equal(list[0].id, 'p9');
   assert.deepEqual(list[1].keywords, ['k1', 'k2']);
   assert.equal(list[1].auto, true);
   // A keyword claimed by an edited row is not regrouped, even if strong.
-  round.pages = [{ id: 'p9', title: 'One', type: 'Service page', keywords: ['k1'], note: '', auto: false }];
-  assert.deepEqual(pageList(round).map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
+  r.pages = [{ id: 'p9', title: 'One', type: 'Service page', keywords: ['k1'], note: '', auto: false }];
+  assert.deepEqual(pageList(r).map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
 });
 
 test('touch recomputes the open round and leaves closed rounds alone', () => {
@@ -305,7 +307,7 @@ test('validateCapture accepts the bookmarklet shape and rejects the rest', () =>
   assert.match(validateCapture(JSON.stringify({ ...good, related: Array(11).fill('r') })).errors[0], /at most 10/);
 });
 
-test('findCaptureTargets matches keywords in the open round', () => {
+test('findCaptureTargets matches keywords in the open round, across studies', () => {
   const study = {
     slug: 'x',
     rounds: [
@@ -313,8 +315,12 @@ test('findCaptureTargets matches keywords in the open round', () => {
       { ...emptyRound('r2'), keywords: [{ id: 'k1', text: 'Wedding Florist' }] },
     ],
   };
-  assert.deepEqual(findCaptureTargets([study], ' wedding  florist '), [{ slug: 'x', keywordId: 'k1', text: 'Wedding Florist' }]);
-  assert.deepEqual(findCaptureTargets([study], 'gone away'), []);
+  const other = { slug: 'beta', rounds: [{ ...emptyRound('r1'), keywords: [{ id: 'k9', text: 'wedding  florist ' }, { id: 'k8', text: 'other' }] }] };
+  assert.deepEqual(findCaptureTargets([study, other], ' wedding  florist '), [
+    { slug: 'x', keywordId: 'k1', text: 'Wedding Florist' },
+    { slug: 'beta', keywordId: 'k9', text: 'wedding  florist ' },
+  ]);
+  assert.deepEqual(findCaptureTargets([study, other], 'gone away'), []);
 });
 
 test('applyCapture stores a classified snapshot and refreshes the auto pages', () => {

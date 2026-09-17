@@ -304,7 +304,7 @@ export function findCaptureTargets(studies, q) {
   const out = [];
   for (const s of studies) {
     const round = openRound(s);
-    for (const k of round?.keywords ?? []) if (normalizeQuery(k.text) === want) out.push({ slug: s.slug, keywordId: k.id, text: k.text });
+    for (const k of round.keywords) if (normalizeQuery(k.text) === want) out.push({ slug: s.slug, keywordId: k.id, text: k.text });
   }
   return out;
 }
