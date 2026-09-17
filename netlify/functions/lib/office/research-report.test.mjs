@@ -52,6 +52,20 @@ test('the report text covers every section', async () => {
   }
 });
 
+test('the header names the round so two rounds are not confused', () => {
+  const open = { ...emptyRound('r1'), startedAt: '2026-09-13T00:00:00.000Z', closedAt: null };
+  const closed = { ...emptyRound('r0'), startedAt: '2026-01-05T00:00:00.000Z', closedAt: '2026-02-10T00:00:00.000Z' };
+  const renderedAt = new Date('2026-09-17T00:00:00Z');
+  const openHeader = reportLines({ client, round: open, renderedAt })[1].text;
+  const closedHeader = reportLines({ client, round: closed, renderedAt })[1].text;
+  assert.notEqual(openHeader, closedHeader, 'two rounds rendered on the same day print different headers');
+  assert.ok(openHeader.includes('Sep 12'), "names the open round's start");
+  assert.ok(!openHeader.includes('closed'), 'an open round does not claim to be closed');
+  assert.ok(closedHeader.includes('Jan 4'), "names the closed round's start");
+  assert.ok(closedHeader.includes('closed'), 'names the closed round as closed');
+  assert.ok(closedHeader.includes('Feb 9'), "names the closed round's close date");
+});
+
 test('the notes bracket the findings and empty ones print nothing', () => {
   const round = { ...emptyRound('r1'), keywords: [], serps: {}, notes: { intro: 'Why we looked.', closing: 'What to do.' } };
   const L = reportLines({ client, round, renderedAt: new Date('2026-09-17T00:00:00Z') });

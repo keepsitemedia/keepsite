@@ -31,9 +31,13 @@ export function reportLines({ client, round, renderedAt }) {
   const pageRows = pageList(round);
   const captured = round.keywords.filter((k) => round.serps[k.id]);
   const day = formatYmd(todayIn(undefined, renderedAt));
+  const started = formatYmd(todayIn(undefined, new Date(round.startedAt)));
+  const closed = round.closedAt ? formatYmd(todayIn(undefined, new Date(round.closedAt))) : null;
 
   h1('Search research');
-  p(`${client.business} · ${client.tier ?? ''} · ${day}`.replace(' ·  ·', ' ·'));
+  // The round's own dates, not just the print date: two rounds for the same
+  // client can otherwise print an identical header on the same day.
+  p(`${client.business} · ${client.tier ?? ''} · Round started ${started}${closed ? `, closed ${closed}` : ''} · Printed ${day}`.replace(' ·  ·', ' ·'));
   p('Before we lay out a site we find out what people type into Google when they need what you do, and which of those searches Google answers with the same pages. Searches that share results belong on one page. Searches that do not need pages of their own. This report shows what we found and the page list that comes out of it.');
   if (round.notes?.intro) p(round.notes.intro);
 

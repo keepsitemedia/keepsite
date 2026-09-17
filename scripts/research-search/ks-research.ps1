@@ -27,17 +27,25 @@ function Stop-With($message) {
   exit 1
 }
 
-# Mirrors isSearchUrl in netlify/functions/lib/office/research.mjs. This string
-# reaches a browser command line, so anything but a Google search is refused:
-# a wider rule would let a stray ks-private: link pass flags or a local path.
+# Mirrors isSearchUrl in netlify/functions/lib/office/research.mjs — but this
+# side must be stricter, because $target below reaches a browser command
+# line: a whole-string match is the only thing that can't be defeated by
+# appending a flag after the prefix. The two must change together.
 $prefix = 'https://www.google.com/search?q='
+$pattern = '^https://www\.google\.com/search\?q=[A-Za-z0-9%._~!$&''()*+,;=:@/-]*$'
 
 $target = $Url -replace '^ks-research:', ''
 # Some browsers hand the scheme's payload back percent-encoded whole.
 if ($target.StartsWith('https%3A', [System.StringComparison]::OrdinalIgnoreCase)) {
   $target = [uri]::UnescapeDataString($target)
 }
-if (-not $target.StartsWith($prefix, [System.StringComparison]::Ordinal)) {
+# Spelled out on its own, even though the pattern below already excludes
+# whitespace: a command-line argument split is exactly how this class of bug
+# hides, so the next reader should not have to prove it from the regex alone.
+if ($target -match '\s') {
+  Stop-With "Refused: a ks-research link may not contain whitespace`n`nIt asked for:`n$target"
+}
+if ($target -cnotmatch $pattern) {
   Stop-With "Refused: a ks-research link may only open $prefix`n`nIt asked for:`n$target"
 }
 
@@ -57,4 +65,15 @@ $browsers = @(
 $browser = $browsers | Where-Object { Test-Path -LiteralPath $_.Path } | Select-Object -First 1
 if (-not $browser) { Stop-With 'Neither Firefox nor Chrome was found in the usual places.' }
 
-Start-Process -FilePath $browser.Path -ArgumentList ($browser.Flag + $target)
+# Windows PowerShell 5.1 joins -ArgumentList elements with a bare space and
+# quotes none of them, so an element containing one (Chrome's
+# "--profile-directory=Profile 2") would otherwise split into two arguments
+# on the far side and the browser would open a different, empty profile.
+# Quoting whatever needs it here keeps each element the one argument it is.
+function Format-Argument([string] $value) {
+  if ($value -match '[\s"]') { return '"' + ($value -replace '"', '\"') + '"' }
+  return $value
+}
+$argumentLine = (($browser.Flag + $target) | ForEach-Object { Format-Argument $_ }) -join ' '
+
+Start-Process -FilePath $browser.Path -ArgumentList $argumentLine

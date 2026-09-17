@@ -66,7 +66,7 @@ const external = (href: string) => href.startsWith('http');
     {Object.keys(round.serps).length === 0 && study.rounds.length > 1 && (
       <form method="POST" action={api} class="toolbar">
         {hidden({ csrf, slug, op: 'round-discard', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
-        <button class="link-quiet">This round is empty — go back to the previous one</button>
+        <button class="link-quiet" onclick="return confirm('Discard this round and go back to the previous one? Any keywords, areas, and notes added here will be lost.')">This round is empty — go back to the previous one</button>
       </form>
     )}
   </div>
@@ -277,7 +277,7 @@ const external = (href: string) => href.startsWith('http');
 <details class="fold" open={!!(round.notes?.intro || round.notes?.closing)}>
   <summary>Notes for the report<span class="sub">{round.notes?.intro || round.notes?.closing ? 'Written' : 'None yet'}</span></summary>
   <div class="fold-body">
-    <p class="quiet">Your words around the automatic findings. The opening prints before them, the closing prints last. Leave either empty and it prints nothing.</p>
+    <p class="quiet">Your words around the automatic findings. The opening prints before them, the closing prints last. An empty note prints nothing.</p>
     <form method="POST" action={api} class="pop-sheet">
       {hidden({ csrf, slug, op: 'notes', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
       <label class="field"><span>Opening — what this study looked at and why</span><textarea name="intro" rows="4">{round.notes?.intro ?? ''}</textarea></label>

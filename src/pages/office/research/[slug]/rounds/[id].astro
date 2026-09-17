@@ -4,11 +4,12 @@
 export const prerender = false;
 import OfficeLayout from '../../../../../layouts/OfficeLayout.astro';
 import Mark from '../../../../../components/office/Mark.astro';
-import { store } from '../../../../../../netlify/functions/lib/office/store.mjs';
+import { store, SLUG } from '../../../../../../netlify/functions/lib/office/store.mjs';
 import { migrateStudy, roundOf, pairs, pageList } from '../../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../../netlify/functions/lib/office/dates.mjs';
 
 const { slug, id } = Astro.params;
+if (!SLUG.test(slug ?? '')) return new Response('not found', { status: 404 });
 const client = await store().clients.get(slug);
 const raw = await store().research.get(slug);
 const study = raw ? migrateStudy(raw) : null;
