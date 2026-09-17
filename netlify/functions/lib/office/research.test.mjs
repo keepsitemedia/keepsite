@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, describePair, pairKey, pairs, group, pageList, emptyStudy,
-  pickResults, PICK_SOURCE, bookmarklet, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
+  pickResults, PICK_SOURCE, bookmarklet, searchUrl, privateSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -199,6 +199,25 @@ test('bookmarklet embeds the origin and the same picker', () => {
   assert.ok(code.includes('https://www.keepsitemedia.com/office/research/capture/#'));
   assert.ok(code.includes(PICK_SOURCE));
   assert.ok(!code.includes('\n'));
+});
+
+test('searchUrl spells the one search the handler will open', () => {
+  assert.equal(searchUrl('  wedding florist provo '), 'https://www.google.com/search?q=wedding%20florist%20provo');
+  assert.equal(searchUrl('roof repair & gutters'), 'https://www.google.com/search?q=roof%20repair%20%26%20gutters');
+  assert.equal(privateSearchUrl('wedding florist'), 'ks-private:https://www.google.com/search?q=wedding%20florist');
+});
+
+// The rule the PowerShell handler mirrors: anything it would refuse to open,
+// this refuses too, so the two stay arguable against one another.
+test('isSearchUrl accepts a Google search and nothing else', () => {
+  assert.equal(isSearchUrl(searchUrl('x')), true);
+  assert.equal(isSearchUrl('https://www.google.com/search?q='), true);
+  assert.equal(isSearchUrl('https://www.google.com.evil.test/search?q=x'), false);
+  assert.equal(isSearchUrl('http://www.google.com/search?q=x'), false);
+  assert.equal(isSearchUrl('https://google.com/search?q=x'), false);
+  assert.equal(isSearchUrl('file:///C:/Windows/System32/calc.exe'), false);
+  assert.equal(isSearchUrl('--headless'), false);
+  assert.equal(isSearchUrl(''), false);
 });
 
 test('normalizeQuery folds case and whitespace', () => {

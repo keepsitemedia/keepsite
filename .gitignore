@@ -13,3 +13,6 @@ docs/internal/
 CRM.txt
 # Internal packages and voice reference: carries hour targets and the hourly rate.
 keepsite-packages-and-voice.*
+
+# Written by `npm run handler` with this machine's own paths.
+scripts/private-search/*.reg

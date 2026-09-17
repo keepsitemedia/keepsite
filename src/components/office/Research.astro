@@ -4,7 +4,7 @@
 // Editing sits behind pops so a row reads as a line; the read on a pair is
 // made on the compare page, where the two result lists are.
 import Mark from './Mark.astro';
-import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy, searchUrl, PRIVATE_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -16,7 +16,6 @@ const byId = new Map<string, any>(study.keywords.map((k: any) => [k.id, k]));
 const text = (id: string) => byId.get(id)?.text ?? id;
 const captures = study.keywords.filter((k: any) => study.serps[k.id]);
 const next = study.keywords.find((k: any) => !study.serps[k.id]);
-const search = (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 const ps = pairs(study) as any[];
 const gray = ps.filter((p) => p.signal === 'gray');
 const undecided = gray.filter((p) => !p.read);
@@ -33,10 +32,10 @@ const compare = (key: string) => `/office/research/${slug}/compare/?pair=${encod
 const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([name, value]) => ({ name, value }));
 
 // The glance: four facts, each a mark, so the next thing to do reads first.
-type Fact = { label: string; state: 'done' | 'waiting' | 'late' | 'none'; text: string; detail?: string; href?: string };
+type Fact = { label: string; state: 'done' | 'waiting' | 'late' | 'none'; text: string; detail?: string; href?: string; search?: boolean };
 const facts: Fact[] = [
   study.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
-    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${study.keywords.length}`, detail: `Next: ${next.text}`, href: search(next.text) }
+    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${study.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text), search: true }
     : { label: 'Captured', state: 'done', text: `All ${study.keywords.length}` },
   ps.length === 0 ? { label: 'Pairs', state: 'none', text: 'Nothing to compare yet' }
     : undecided.length ? { label: 'Pairs', state: 'none', text: `${undecided.length} to decide`, detail: `Next: ${undecided[0].a.text} · ${undecided[0].b.text}`, href: compare(undecided[0].key) }
@@ -55,7 +54,7 @@ const external = (href: string) => href.startsWith('http');
       <dt>{f.label}</dt>
       <dd>
         <Mark state={f.state}>{f.href && !f.detail ? <a href={f.href}>{f.text}</a> : f.text}</Mark>
-        {f.detail && <span class="detail">{f.href ? <a href={f.href} target={external(f.href) ? '_blank' : undefined} rel={external(f.href) ? 'noopener' : undefined}>{f.detail}</a> : f.detail}</span>}
+        {f.detail && <span class="detail">{f.href ? <a href={f.href} data-search={f.search ? '' : undefined} target={external(f.href) ? '_blank' : undefined} rel={external(f.href) ? 'noopener' : undefined}>{f.detail}</a> : f.detail}</span>}
       </dd>
     </div>
   ))}
@@ -66,9 +65,32 @@ const external = (href: string) => href.startsWith('http');
   <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : study.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
   <div class="fold-body">
     <p class="quiet">Drag this to your bookmarks bar once: <a class="btn-quiet btn-small" href={link} onclick="return false">Capture results</a>. It is the same button for every client: a capture is filed under the keyword whose text matches the search, and the capture page asks you to pick when none or several match.</p>
-    <p class="quiet">For each keyword, open the search in an incognito window and click the button on the results page.{next && <> Start with <a href={search(next.text)} target="_blank" rel="noopener">{next.text}</a>.</>}</p>
+    <p class="quiet">For each keyword, open the search in a private window and click the button on the results page.{next && <> Start with <a href={searchUrl(next.text)} data-search target="_blank" rel="noopener">{next.text}</a>.</>}</p>
+    <p class="quiet"><label><input type="checkbox" id="private-search" /> Open searches in a private window when I click Search.</label> No page can open one on its own, so this needs the handler installed on this machine: run <code>npm run handler</code>, double-click <code>scripts/private-search/ks-private.reg</code>, and leave the box unticked anywhere it is not installed.</p>
   </div>
 </details>
+
+<script define:vars={{ scheme: PRIVATE_SCHEME }}>
+  (function () {
+    var KEY = 'ks.privateSearch';
+    var box = document.getElementById('private-search');
+    // Private browsing is exactly where storage can throw, which is where
+    // this setting matters least: a throw reads as off.
+    var on = function () { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } };
+    if (box) {
+      box.checked = on();
+      box.addEventListener('change', function () { try { localStorage.setItem(KEY, box.checked ? '1' : '0'); } catch (e) {} });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest ? e.target.closest('a[data-search]') : null;
+      if (!a || !on()) return;
+      e.preventDefault();
+      // The handler opens the private window; this tab stays on the study.
+      location.href = scheme + a.href;
+    });
+  })();
+</script>
 
 <h2>Keywords <span class="count">{study.keywords.length}</span></h2>
 {study.keywords.length === 0 && (
@@ -102,7 +124,7 @@ const external = (href: string) => href.startsWith('http');
                 )}
               </span>
               <span class="act">
-                <a href={search(k.text)} target="_blank" rel="noopener">{serp ? 'Recapture' : 'Search'}</a>
+                <a href={searchUrl(k.text)} data-search target="_blank" rel="noopener">{serp ? 'Recapture' : 'Search'}</a>
                 <details class="pop">
                   <summary class="link-quiet">Edit</summary>
                   <form method="POST" action={api} class="pop-sheet">
