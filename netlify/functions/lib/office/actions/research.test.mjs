@@ -4,7 +4,7 @@ import { research } from './research.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
-import { emptyStudy, openRound } from '../research.mjs';
+import { emptyStudy, emptyRound, openRound } from '../research.mjs';
 
 // createStore reads questionnaires and never writes them, so the test keeps
 // the backend and writes the envelope the questionnaire function would.
@@ -150,6 +150,51 @@ test('a legacy document is migrated on the way in and saved with rounds', async 
   assert.equal(saved.rounds.length, 1);
   assert.equal(saved.rounds.at(-1).keywords.at(-1).text, 'wedding florist');
   assert.equal(saved.keywords, undefined);
+});
+
+test('starting a round closes the old one and inherits keywords with their ids', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'add', text: 'one', cluster: 'C', arm: '' }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'areas', areas: 'Provo' }), ctx(), s, now);
+  await research(post({ csrf, op: 'capture', payload: capture('one') }), ctx(), s, now);
+  const keyword = openRound(await s.research.get('acme')).keywords[0];
+  const opened = new Date('2027-03-02T00:00:00Z');
+  await research(post({ csrf, slug: 'acme', op: 'round' }), ctx(), s, opened);
+  const saved = await s.research.get('acme');
+  assert.equal(saved.rounds.length, 2);
+  assert.equal(saved.rounds[0].closedAt, '2027-03-02T00:00:00.000Z');
+  assert.equal(saved.rounds[1].id, 'r2');
+  assert.deepEqual(saved.rounds[1].keywords, [keyword]);
+  assert.deepEqual(saved.rounds[1].areas, ['Provo']);
+  assert.deepEqual(saved.rounds[1].serps, {});
+  assert.deepEqual(saved.rounds[1].reads, {});
+  assert.equal(saved.rounds[1].reportedAt, null);
+  assert.deepEqual(saved.rounds[1].notes, { intro: '', closing: '' });
+});
+
+test('an op naming a closed round is refused, not retargeted', async () => {
+  const s = await make();
+  const study = { slug: 'acme', createdAt: now.toISOString(), updatedAt: now.toISOString(), rounds: [{ ...emptyRound('r1', now), closedAt: 'z' }, emptyRound('r2', now)] };
+  await s.research.put('acme', study);
+  const res = await research(post({ csrf, slug: 'acme', op: 'add', text: 'one', round: 'r1' }), ctx(), s, now);
+  assert.equal(res.status, 400);
+  assert.deepEqual(await s.research.get('acme'), study);
+});
+
+test('an empty new round can be discarded, a captured one cannot', async () => {
+  const s = await make();
+  await s.research.put('acme', { slug: 'acme', createdAt: now.toISOString(), updatedAt: now.toISOString(), rounds: [{ ...emptyRound('r1', now), closedAt: 'z' }, emptyRound('r2', now)] });
+  await research(post({ csrf, slug: 'acme', op: 'round-discard' }), ctx(), s, now);
+  const saved = await s.research.get('acme');
+  assert.equal(saved.rounds.length, 1);
+  assert.equal(saved.rounds[0].closedAt, null);
+
+  await s.research.put('beta', {
+    slug: 'beta', createdAt: now.toISOString(), updatedAt: now.toISOString(),
+    rounds: [{ ...emptyRound('r1', now), closedAt: 'z' }, { ...emptyRound('r2', now), serps: { k1: {} } }],
+  });
+  const res = await research(post({ csrf, slug: 'beta', op: 'round-discard' }), ctx(), s, now);
+  assert.equal(res.status, 400);
 });
 
 test('refuses without csrf, on GET, and on an unknown client', async () => {

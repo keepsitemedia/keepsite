@@ -1,7 +1,7 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
 import {
-  PAGE_TYPES, READS, SAME, emptyStudy, migrateStudy, openRound, touch, newKeywordId, normalizeQuery, splitList, draftFromQuestionnaire,
+  PAGE_TYPES, READS, SAME, emptyStudy, emptyRound, migrateStudy, openRound, touch, newKeywordId, normalizeQuery, splitList, draftFromQuestionnaire,
   validateCapture, findCaptureTargets, applyCapture,
 } from '../research.mjs';
 import { renderResearchReport, reportName } from '../research-report.mjs';
@@ -27,15 +27,20 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
   if (!client) return problem(404, 'no such client');
   const study = migrateStudy((await s.research.get(slug)) ?? emptyStudy(slug, now), now);
   const round = openRound(study);
+  const text = (name) => field(data, name).trim();
+  // A form may name the round it was rendered from. Refusing a stale one is
+  // the point: silently retargeting would edit this year's study while the
+  // owner believed they were annotating last year's.
+  const named = text('round');
+  if (named && named !== round.id) return problem(400, 'that round is closed; open the current round to make changes');
   // Every op edits the open round; a closed round is the record of a finished
-  // run and Task 5's guard refuses writes naming one.
+  // run and the guard above refuses writes naming one.
   const saveRound = async (next, extra = '') => {
     const rounds = study.rounds.slice();
     rounds[rounds.length - 1] = next;
     await s.research.put(slug, touch({ ...study, rounds }, now));
     return redirect(tab(slug, extra));
   };
-  const text = (name) => field(data, name).trim();
 
   if (op === 'draft') {
     const drafted = draftFromQuestionnaire(await s.questionnaires.get(slug, 'build'));
@@ -96,6 +101,24 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
     if (!PAGE_TYPES.includes(pageType)) return back(slug, 'pick a page type');
     const results = serp.results.map((r) => (r.rank === rank ? { ...r, pageType, typeSource: 'manual' } : r));
     return saveRound({ ...round, serps: { ...round.serps, [keyword]: { ...serp, results } } });
+  }
+  if (op === 'round') {
+    const closed = { ...round, closedAt: now.toISOString() };
+    const next = {
+      ...emptyRound(`r${study.rounds.length + 1}`, now),
+      areas: [...round.areas],
+      keywords: round.keywords.map((k) => ({ ...k })),
+    };
+    await s.research.put(slug, touch({ ...study, rounds: [...study.rounds.slice(0, -1), closed, next] }, now));
+    return redirect(tab(slug));
+  }
+  if (op === 'round-discard') {
+    if (study.rounds.length < 2) return problem(400, 'there is no earlier round to go back to');
+    if (Object.keys(round.serps).length) return problem(400, 'this round has captures, so it cannot be discarded');
+    const rounds = study.rounds.slice(0, -1);
+    rounds[rounds.length - 1] = { ...rounds[rounds.length - 1], closedAt: null };
+    await s.research.put(slug, touch({ ...study, rounds }, now));
+    return redirect(tab(slug));
   }
   if (op === 'report') {
     const bytes = await renderResearchReport({ client, study, renderedAt: now });
