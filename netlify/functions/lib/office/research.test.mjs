@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, describePair, pairKey, pairs, group, pageList, emptyStudy,
-  pickResults, PICK_SOURCE, bookmarklet, searchUrl, privateSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
+  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -204,7 +204,7 @@ test('bookmarklet embeds the origin and the same picker', () => {
 test('searchUrl spells the one search the handler will open', () => {
   assert.equal(searchUrl('  wedding florist provo '), 'https://www.google.com/search?q=wedding%20florist%20provo');
   assert.equal(searchUrl('roof repair & gutters'), 'https://www.google.com/search?q=roof%20repair%20%26%20gutters');
-  assert.equal(privateSearchUrl('wedding florist'), 'ks-private:https://www.google.com/search?q=wedding%20florist');
+  assert.equal(researchSearchUrl('wedding florist'), 'ks-research:https://www.google.com/search?q=wedding%20florist');
 });
 
 // The rule the PowerShell handler mirrors: anything it would refuse to open,

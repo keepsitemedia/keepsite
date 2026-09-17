@@ -232,16 +232,17 @@ window.open(${JSON.stringify(`${origin}/office/research/capture/#`)}+encodeURICo
   return `javascript:${encodeURIComponent(code.replace(/\n/g, ' '))}`;
 }
 
-// The search a capture starts from, spelled once. scripts/private-search
-// whitelists SEARCH_PREFIX verbatim: a page cannot open a private window, so
-// the ks-private: link hands the URL to a handler installed on the machine,
-// and the handler opens Firefox or Chrome private. Widen the prefix here and
-// you widen what that handler will launch, so keep isSearchUrl and the
-// PowerShell regex saying the same thing.
+// The search a capture starts from, spelled once. scripts/research-search
+// whitelists SEARCH_PREFIX verbatim: a page cannot choose which browser
+// profile opens a link, so the ks-research: link hands the URL to a handler
+// installed on the machine, and the handler opens the research profile —
+// signed into the research account, activity paused, never used for browsing.
+// Widen the prefix here and you widen what that handler will launch, so keep
+// isSearchUrl and the PowerShell regex saying the same thing.
 export const SEARCH_PREFIX = 'https://www.google.com/search?q=';
-export const PRIVATE_SCHEME = 'ks-private:';
+export const RESEARCH_SCHEME = 'ks-research:';
 export const searchUrl = (q) => `${SEARCH_PREFIX}${encodeURIComponent(String(q ?? '').trim())}`;
-export const privateSearchUrl = (q) => `${PRIVATE_SCHEME}${searchUrl(q)}`;
+export const researchSearchUrl = (q) => `${RESEARCH_SCHEME}${searchUrl(q)}`;
 export const isSearchUrl = (url) => String(url ?? '').startsWith(SEARCH_PREFIX);
 
 export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');

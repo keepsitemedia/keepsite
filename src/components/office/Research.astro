@@ -4,7 +4,7 @@
 // Editing sits behind pops so a row reads as a line; the read on a pair is
 // made on the compare page, where the two result lists are.
 import Mark from './Mark.astro';
-import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy, searchUrl, PRIVATE_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -65,17 +65,17 @@ const external = (href: string) => href.startsWith('http');
   <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : study.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
   <div class="fold-body">
     <p class="quiet">Drag this to your bookmarks bar once: <a class="btn-quiet btn-small" href={link} onclick="return false">Capture results</a>. It is the same button for every client: a capture is filed under the keyword whose text matches the search, and the capture page asks you to pick when none or several match.</p>
-    <p class="quiet">For each keyword, open the search in a private window and click the button on the results page.{next && <> Start with <a href={searchUrl(next.text)} data-search target="_blank" rel="noopener">{next.text}</a>.</>}</p>
-    <p class="quiet"><label><input type="checkbox" id="private-search" /> Open searches in a private window when I click Search.</label> No page can open one on its own, so this needs the handler installed on this machine: run <code>npm run handler</code>, double-click <code>scripts/private-search/ks-private.reg</code>, and leave the box unticked anywhere it is not installed.</p>
+    <p class="quiet">For each keyword, open the search in the research profile and click the button on the results page.{next && <> Start with <a href={searchUrl(next.text)} data-search target="_blank" rel="noopener">{next.text}</a>.</>}</p>
+    <p class="quiet"><label><input type="checkbox" id="research-search" /> Open searches in the research profile when I click Search.</label> Captures must be made signed in — signed out, Google hides the web addresses. The research profile is signed into an account with its activity paused, so the results are not shaped by your own searching. A page cannot pick a profile on its own, so this needs the handler installed: see <code>scripts/research-search/README.md</code>.</p>
   </div>
 </details>
 
-<script define:vars={{ scheme: PRIVATE_SCHEME }}>
+<script define:vars={{ scheme: RESEARCH_SCHEME }}>
   (function () {
-    var KEY = 'ks.privateSearch';
-    var box = document.getElementById('private-search');
-    // Private browsing is exactly where storage can throw, which is where
-    // this setting matters least: a throw reads as off.
+    var KEY = 'ks.researchSearch';
+    var box = document.getElementById('research-search');
+    // Storage can throw in a locked-down profile; a throw reads as off, which
+    // leaves the plain Google links working.
     var on = function () { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } };
     if (box) {
       box.checked = on();
@@ -86,7 +86,7 @@ const external = (href: string) => href.startsWith('http');
       var a = e.target.closest ? e.target.closest('a[data-search]') : null;
       if (!a || !on()) return;
       e.preventDefault();
-      // The handler opens the private window; this tab stays on the study.
+      // The handler opens the research profile; this tab stays on the study.
       location.href = scheme + a.href;
     });
   })();

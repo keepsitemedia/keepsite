@@ -15,4 +15,4 @@ CRM.txt
 keepsite-packages-and-voice.*
 
 # Written by `npm run handler` with this machine's own paths.
-scripts/private-search/*.reg
+scripts/research-search/*.reg

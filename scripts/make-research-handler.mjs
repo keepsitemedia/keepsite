@@ -1,12 +1,12 @@
-// Writes the .reg files that register ks-private: on this machine, with the
+// Writes the .reg files that register ks-research: on this machine, with the
 // paths resolved here because a .reg cannot compute them. See
-// scripts/private-search/README.md.
+// scripts/research-search/README.md.
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const here = join(dirname(fileURLToPath(import.meta.url)), 'private-search');
+const here = join(dirname(fileURLToPath(import.meta.url)), 'research-search');
 
 // The handler runs as a Windows process, so every path in the .reg must be a
 // Windows path even though this script usually runs under WSL.
@@ -21,9 +21,9 @@ function windowsPath(path) {
   }
 }
 
-const key = 'HKEY_CURRENT_USER\\Software\\Classes\\ks-private';
+const key = 'HKEY_CURRENT_USER\\Software\\Classes\\ks-research';
 const powershell = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
-const script = windowsPath(join(here, 'ks-private.ps1'));
+const script = windowsPath(join(here, 'ks-research.ps1'));
 // Registry string values escape backslashes and quotes; the command is one
 // such value, so every path inside it is doubled.
 const esc = (s) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -32,7 +32,7 @@ const command = `"${powershell}" -NoProfile -ExecutionPolicy Bypass -WindowStyle
 const install = `Windows Registry Editor Version 5.00
 
 [${key}]
-@="URL:Keepsite private search"
+@="URL:Keepsite research search"
 "URL Protocol"=""
 
 [${key}\\shell\\open\\command]
@@ -49,6 +49,6 @@ const write = (name, text) => {
   writeFileSync(file, Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(text.replace(/\n/g, '\r\n'), 'utf16le')]));
   console.log(`wrote ${file}`);
 };
-write('ks-private.reg', install);
-write('ks-private-uninstall.reg', uninstall);
-console.log(`\nhandler: ${script}\nDouble-click ks-private.reg in Explorer, then tick the box in the office Capture fold.`);
+write('ks-research.reg', install);
+write('ks-research-uninstall.reg', uninstall);
+console.log(`\nhandler: ${script}\nDouble-click ks-research.reg in Explorer, then tick the box in the office Capture fold.`);
