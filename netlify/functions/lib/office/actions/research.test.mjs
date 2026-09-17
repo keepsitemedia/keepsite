@@ -181,6 +181,19 @@ test('an op naming a closed round is refused, not retargeted', async () => {
   assert.deepEqual(await s.research.get('acme'), study);
 });
 
+test('a closed round id on the report op is refused, and nothing is written', async () => {
+  const s = await make();
+  const study = { slug: 'acme', createdAt: now.toISOString(), updatedAt: now.toISOString(), rounds: [{ ...emptyRound('r1', now), closedAt: 'z' }, emptyRound('r2', now)] };
+  await s.research.put('acme', study);
+  // A stale Research tab still holds the round it was rendered with; the
+  // guard is what turns that into a loud refusal instead of a report quietly
+  // filed under whatever round happens to be open now.
+  const res = await research(post({ csrf, slug: 'acme', op: 'report', round: 'r1' }), ctx(), s, now);
+  assert.equal(res.status, 400);
+  assert.deepEqual(await s.research.get('acme'), study);
+  assert.equal(await s.documents.meta('acme', 'search-research-2026-09-13.pdf'), null);
+});
+
 test('an empty new round can be discarded, a captured one cannot', async () => {
   const s = await make();
   await s.research.put('acme', { slug: 'acme', createdAt: now.toISOString(), updatedAt: now.toISOString(), rounds: [{ ...emptyRound('r1', now), closedAt: 'z' }, emptyRound('r2', now)] });

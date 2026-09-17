@@ -60,12 +60,12 @@ const external = (href: string) => href.startsWith('http');
   <div class="fold-body">
     <p class="quiet">A new round freezes this one and starts again with the same keywords and service areas, so you can re-run the study in six or twelve months and still have what it said today.</p>
     <form method="POST" action={api} class="toolbar">
-      {hidden({ csrf, slug, op: 'round' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+      {hidden({ csrf, slug, op: 'round', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
       <button class="btn-quiet" onclick="return confirm('Freeze this round and start a new one? This round stays readable but stops accepting changes.')">Start a new round</button>
     </form>
     {Object.keys(round.serps).length === 0 && study.rounds.length > 1 && (
       <form method="POST" action={api} class="toolbar">
-        {hidden({ csrf, slug, op: 'round-discard' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+        {hidden({ csrf, slug, op: 'round-discard', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
         <button class="link-quiet">This round is empty — go back to the previous one</button>
       </form>
     )}
@@ -118,7 +118,7 @@ const external = (href: string) => href.startsWith('http');
 <h2>Keywords <span class="count">{round.keywords.length}</span></h2>
 {round.keywords.length === 0 && (
   <form method="POST" action={api} class="inline">
-    {hidden({ csrf, slug, op: 'draft' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+    {hidden({ csrf, slug, op: 'draft', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
     <p class="empty">No keywords yet. <button class="btn-quiet btn-small">Draft from the build questionnaire</button> or add one below.</p>
   </form>
 )}
@@ -139,7 +139,7 @@ const external = (href: string) => href.startsWith('http');
                   <span class="meta line">Related:
                     {related.map((r: string) => (
                       <form method="POST" action={api} class="inline">
-                        {hidden({ csrf, slug, op: 'add', text: r, cluster: k.cluster, arm: k.arm ?? '' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                        {hidden({ csrf, slug, op: 'add', text: r, cluster: k.cluster, arm: k.arm ?? '', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
                         <button class="link-quiet">+ {r}</button>
                       </form>
                     ))}
@@ -151,7 +151,7 @@ const external = (href: string) => href.startsWith('http');
                 <details class="pop">
                   <summary class="link-quiet">Edit</summary>
                   <form method="POST" action={api} class="pop-sheet">
-                    {hidden({ csrf, slug, id: k.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                    {hidden({ csrf, slug, id: k.id, round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
                     <label class="field"><span>Keyword</span><input name="text" value={k.text} required /></label>
                     <label class="field"><span>Cluster</span><input name="cluster" value={k.cluster} list="clusters" /></label>
                     {isRange && <label class="field"><span>Arm</span><input name="arm" value={k.arm} /></label>}
@@ -170,7 +170,7 @@ const external = (href: string) => href.startsWith('http');
   </details>
 ))}
 <form method="POST" action={api} class="toolbar">
-  {hidden({ csrf, slug, op: 'add' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+  {hidden({ csrf, slug, op: 'add', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
   <input class="grow" name="text" placeholder="New keyword" aria-label="New keyword" required />
   <input name="cluster" placeholder="Cluster" aria-label="Cluster" list="clusters" />
   <datalist id="clusters">{clusters.map((c) => <option value={c} />)}</datalist>
@@ -181,7 +181,7 @@ const external = (href: string) => href.startsWith('http');
   <summary>Service areas<span class="sub">{round.areas.length ? round.areas.join(', ') : 'None set'}</span></summary>
   <div class="fold-body">
     <form method="POST" action={api} class="toolbar">
-      {hidden({ csrf, slug, op: 'areas' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+      {hidden({ csrf, slug, op: 'areas', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
       <label class="field grow"><span>Towns and areas, for spotting location pages</span><input name="areas" value={round.areas.join(', ')} /></label>
       <button class="btn-quiet">Save areas</button>
     </form>
@@ -231,7 +231,7 @@ const external = (href: string) => href.startsWith('http');
           <details class="pop">
             <summary class="link-quiet">Edit</summary>
             <form method="POST" action={api} class="pop-sheet">
-              {hidden({ csrf, slug, id: p.id, keywords: p.keywords.join(',') }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+              {hidden({ csrf, slug, id: p.id, keywords: p.keywords.join(','), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
               <label class="field"><span>Page</span><input name="title" value={p.title} required /></label>
               <label class="field"><span>Type</span><select name="type">{[...PAGE_TYPES, 'Tie / review'].map((t) => <option selected={p.type === t}>{t}</option>)}</select></label>
               <label class="field"><span>Note for the report</span><input name="note" value={p.note} /></label>
@@ -262,7 +262,7 @@ const external = (href: string) => href.startsWith('http');
             <td class="quiet">{r.domain}</td>
             <td>
               <form method="POST" action={api} class="inline">
-                {hidden({ csrf, slug, op: 'type', keyword: k.id, rank: String(r.rank) }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                {hidden({ csrf, slug, op: 'type', keyword: k.id, rank: String(r.rank), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
                 <select name="pageType" aria-label="Page type" onchange="this.form.requestSubmit()">{PAGE_TYPES.map((t) => <option selected={r.pageType === t}>{t}</option>)}</select>
                 {r.typeSource === 'manual' && <span class="quiet"> edited</span>}
               </form>
@@ -289,7 +289,7 @@ const external = (href: string) => href.startsWith('http');
 
 <h2>Report</h2>
 <form method="POST" action={api} class="toolbar" id="report">
-  {hidden({ csrf, slug, op: 'report' }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+  {hidden({ csrf, slug, op: 'report', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
   <button class="btn" disabled={captures.length === 0}>Write the report to Documents</button>
   <a class="btn-quiet" href={`/office/research/${slug}/report/`} target="_blank" rel="noopener">Preview</a>
   {round.reportedAt && <span class="quiet">Last written {day(round.reportedAt)}. Send it from the <a href={`/office/clients/${slug}/?tab=emails`}>Emails tab</a>.</span>}

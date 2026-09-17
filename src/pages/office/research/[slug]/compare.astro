@@ -76,7 +76,7 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
 
   <h2>Your read <span class="sub">{read ? `recorded${read.notes ? ', with a note' : ''}` : 'not decided'}</span></h2>
   <form method="POST" action="/office/api/research" class="sheet decision">
-    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="read" /><input type="hidden" name="key" value={key} />
+    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="read" /><input type="hidden" name="key" value={key} /><input type="hidden" name="round" value={round.id} />
     <div class="row">
       <label class="field"><span>Read</span><select name="human">{READS.map((r) => <option value={r} selected={(read?.human ?? suggested) === r}>{r}{r === suggested ? ' (suggested)' : ''}</option>)}</select></label>
       <label class="field"><span>Same cluster</span><select name="sameCluster">{SAME.map((r) => <option selected={(read?.sameCluster ?? 'Undecided') === r}>{r}</option>)}</select></label>
