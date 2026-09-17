@@ -12,7 +12,11 @@ test('reportName is dated in Denver', () => {
 
 test('reportName carries the round start so two rounds do not collide', () => {
   const round = { ...emptyRound('r1'), startedAt: '2026-09-13T00:00:00.000Z' };
-  assert.equal(reportName(new Date('2026-09-20T00:00:00Z'), round), 'search-research-2026-09-13.pdf');
+  // Office-local (Denver), same as everywhere else the round's date is shown:
+  // 2026-09-13T00:00Z is 2026-09-12 evening in Denver. Do not "fix" this to
+  // the UTC date — that would disagree with the date printed next to the
+  // round everywhere else in the product.
+  assert.equal(reportName(new Date('2026-09-20T00:00:00Z'), round), 'search-research-2026-09-12.pdf');
 });
 
 test('renderResearchReport writes a PDF that names the pages and the searches', async () => {

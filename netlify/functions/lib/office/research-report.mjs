@@ -7,11 +7,8 @@ import { pairs, pageList } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 // The round's start date, not today's: a report re-rendered next week is still
-// that round's report, and two rounds must not overwrite one another. The
-// round's date is read as the calendar day already recorded in its ISO
-// timestamp, not reinterpreted through Denver's offset — a round begun late
-// at night must not name its report for the day the server considers "today".
-export const reportName = (now, round) => `search-research-${round?.startedAt ? todayIn('UTC', new Date(round.startedAt)) : todayIn(undefined, now)}.pdf`;
+// that round's report, and two rounds must not overwrite one another.
+export const reportName = (now, round) => `search-research-${todayIn(undefined, new Date(round?.startedAt ?? now))}.pdf`;
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
