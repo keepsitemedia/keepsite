@@ -122,8 +122,8 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
   }
   if (op === 'notes') return saveRound({ ...round, notes: { intro: text('intro'), closing: text('closing') } });
   if (op === 'report') {
-    const bytes = await renderResearchReport({ client, study, renderedAt: now });
-    const name = reportName(now);
+    const bytes = await renderResearchReport({ client, round, renderedAt: now });
+    const name = reportName(now, round);
     await s.documents.put(slug, name, new Uint8Array(bytes), { type: 'application/pdf', source: 'research', createdBy: ctx.admin?.email ?? null }, now);
     const rounds = study.rounds.slice();
     rounds[rounds.length - 1] = { ...round, reportedAt: now.toISOString() };
