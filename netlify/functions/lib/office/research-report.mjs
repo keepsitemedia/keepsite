@@ -3,7 +3,7 @@
 // the split lets a test read the words without decoding a PDF stream.
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Writer, SIZES } from './pdf.mjs';
-import { pairs, pageList } from './research.mjs';
+import { pairs, pageList, openRound } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 export const reportName = (now) => `search-research-${todayIn(undefined, now)}.pdf`;
@@ -23,11 +23,14 @@ export function reportLines({ client, study, renderedAt }) {
   const p = (text) => L.push({ kind: 'p', text });
   const small = (text) => L.push({ kind: 'small', text });
   const table = (rows) => L.push({ kind: 'table', rows });
-  const byId = new Map(study.keywords.map((k) => [k.id, k]));
+  // Task 7 restructures the report around the round directly; for now this
+  // is the smallest bridge from the study reportLines is still handed.
+  const round = openRound(study);
+  const byId = new Map(round.keywords.map((k) => [k.id, k]));
   const text = (id) => byId.get(id)?.text ?? id;
-  const ps = pairs(study);
-  const pageRows = pageList(study);
-  const captured = study.keywords.filter((k) => study.serps[k.id]);
+  const ps = pairs(round);
+  const pageRows = pageList(round);
+  const captured = round.keywords.filter((k) => round.serps[k.id]);
   const day = formatYmd(todayIn(undefined, renderedAt));
 
   h1('Search research');
@@ -43,7 +46,7 @@ export function reportLines({ client, study, renderedAt }) {
     const ids = row.keywords;
     const inside = ps.filter((x) => ids.includes(x.a.id) && ids.includes(x.b.id));
     const strong = inside.filter((x) => x.signal === 'strong').length;
-    const results = ids.flatMap((id) => study.serps[id]?.results ?? []);
+    const results = ids.flatMap((id) => round.serps[id]?.results ?? []);
     const doms = topDomains(results, 3).map(([d]) => d);
     p(`${row.title}${row.type ? ` — ${row.type}` : ''}`);
     small(`Targets: ${ids.map(text).join('; ')}`);
@@ -60,7 +63,7 @@ export function reportLines({ client, study, renderedAt }) {
 
   h2('What we saw');
   for (const row of pageRows) {
-    const results = row.keywords.flatMap((id) => study.serps[id]?.results ?? []);
+    const results = row.keywords.flatMap((id) => round.serps[id]?.results ?? []);
     const doms = topDomains(results);
     if (!doms.length) continue;
     p(row.title);
@@ -69,7 +72,7 @@ export function reportLines({ client, study, renderedAt }) {
 
   h2('Appendix: every search');
   for (const k of captured) {
-    const serp = study.serps[k.id];
+    const serp = round.serps[k.id];
     p(`${k.text} · captured ${formatYmd(todayIn(undefined, new Date(serp.capturedAt)))}`);
     table([['#', 'Title', 'Business', 'Page type'], ...serp.results.map((x) => [String(x.rank), x.title, x.domain, x.pageType])]);
   }

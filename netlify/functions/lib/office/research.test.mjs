@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, describePair, pairKey, pairs, group, pageList, emptyStudy,
+  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
@@ -113,23 +113,76 @@ test('pairKey sorts', () => {
   assert.equal(pairKey('k2', 'k1'), 'k1|k2');
 });
 
+test('emptyStudy is one open round and nothing else', () => {
+  const s = emptyStudy('x', new Date('2026-09-17T00:00:00Z'));
+  assert.deepEqual(Object.keys(s).sort(), ['createdAt', 'rounds', 'slug', 'updatedAt']);
+  assert.equal(s.rounds.length, 1);
+  const round = s.rounds[0];
+  assert.equal(round.id, 'r1');
+  assert.equal(round.closedAt, null);
+  assert.deepEqual(round.keywords, []);
+  assert.deepEqual(round.areas, []);
+  assert.deepEqual(round.serps, {});
+  assert.deepEqual(round.reads, {});
+  assert.deepEqual(round.pages, []);
+  assert.deepEqual(round.notes, { intro: '', closing: '' });
+  assert.equal(round.reportedAt, null);
+});
+
+// Every document written before rounds existed is one round's worth of work.
+test('migrateStudy wraps a legacy document into r1', () => {
+  const legacy = {
+    slug: 'x', createdAt: '2026-09-13T00:00:00.000Z', updatedAt: '2026-09-14T00:00:00.000Z',
+    areas: ['Provo'], keywords: [{ id: 'k1', text: 'one', cluster: 'C' }],
+    serps: { k1: { capturedAt: '2026-09-13T00:00:00.000Z', results: [], related: [] } },
+    reads: { 'k1|k2': { human: 'Same intent' } }, pages: [{ id: 'p1' }], reportedAt: '2026-09-14T00:00:00.000Z',
+  };
+  const s = migrateStudy(legacy, new Date('2026-09-17T00:00:00Z'));
+  assert.deepEqual(Object.keys(s).sort(), ['createdAt', 'rounds', 'slug', 'updatedAt']);
+  const round = s.rounds[0];
+  assert.equal(round.id, 'r1');
+  assert.equal(round.startedAt, '2026-09-13T00:00:00.000Z');
+  assert.equal(round.closedAt, null);
+  assert.deepEqual(round.areas, ['Provo']);
+  assert.deepEqual(round.keywords, legacy.keywords);
+  assert.deepEqual(round.serps, legacy.serps);
+  assert.deepEqual(round.reads, legacy.reads);
+  assert.deepEqual(round.pages, legacy.pages);
+  assert.equal(round.reportedAt, '2026-09-14T00:00:00.000Z');
+  assert.deepEqual(round.notes, { intro: '', closing: '' });
+});
+
+test('migrateStudy is a no-op on a document that already has rounds', () => {
+  const once = migrateStudy({ slug: 'x', createdAt: 'a', updatedAt: 'b', rounds: [{ id: 'r1', serps: {} }] });
+  assert.deepEqual(migrateStudy(once), once);
+});
+
+test('openRound is the last round and roundOf finds one by id', () => {
+  const s = { slug: 'x', rounds: [{ id: 'r1' }, { id: 'r2' }] };
+  assert.equal(openRound(s).id, 'r2');
+  assert.equal(roundOf(s, 'r1').id, 'r1');
+  assert.equal(roundOf(s, 'nope'), undefined);
+});
+
 const study = () => {
-  const s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
-  s.keywords = [
-    { id: 'k1', text: 'wedding florist provo', cluster: 'Weddings', arm: '', source: 'manual' },
-    { id: 'k2', text: 'provo wedding flowers', cluster: 'Weddings', arm: '', source: 'manual' },
-    { id: 'k3', text: 'funeral flowers provo', cluster: 'Sympathy', arm: '', source: 'manual' },
-    { id: 'k4', text: 'not captured yet', cluster: 'Sympathy', arm: '', source: 'manual' },
-  ];
+  const round = {
+    ...emptyRound('r1', new Date('2026-09-13T00:00:00Z')),
+    keywords: [
+      { id: 'k1', text: 'wedding florist provo', cluster: 'Weddings', arm: '', source: 'manual' },
+      { id: 'k2', text: 'provo wedding flowers', cluster: 'Weddings', arm: '', source: 'manual' },
+      { id: 'k3', text: 'funeral flowers provo', cluster: 'Sympathy', arm: '', source: 'manual' },
+      { id: 'k4', text: 'not captured yet', cluster: 'Sympathy', arm: '', source: 'manual' },
+    ],
+  };
   const cap = (results) => ({ capturedAt: '2026-09-13T01:00:00Z', query: 'q', results, related: [] });
-  s.serps = { k1: cap(A), k2: cap(B7), k3: cap([1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://f${n}.com/p`))) };
-  return s;
+  round.serps = { k1: cap(A), k2: cap(B7), k3: cap([1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://f${n}.com/p`))) };
+  return round;
 };
 
 test('pairs covers captured keywords only and carries the stored read', () => {
-  const s = study();
-  s.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Yes', notes: '' };
-  const p = pairs(s);
+  const round = study();
+  round.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Yes', notes: '' };
+  const p = pairs(round);
   assert.deepEqual(p.map((x) => x.key), ['k1|k2', 'k1|k3', 'k2|k3']);
   assert.equal(p[0].signal, 'strong');
   assert.equal(p[0].read.human, 'Same intent');
@@ -137,39 +190,49 @@ test('pairs covers captured keywords only and carries the stored read', () => {
 });
 
 test('group joins strong pairs, honours No and Yes, leaves uncaptured out', () => {
-  const s = study();
-  let g = group(s);
+  const round = study();
+  let g = group(round);
   assert.deepEqual(g.map((x) => x.keywords), [['k1', 'k2'], ['k3']]);
   assert.equal(g[0].title, 'wedding florist provo');
   assert.equal(g[0].type, 'Service page');
   assert.equal(g[0].auto, true);
 
-  s.reads['k1|k2'] = { human: 'Different intent', sameCluster: 'No', notes: '' };
-  g = group(s);
+  round.reads['k1|k2'] = { human: 'Different intent', sameCluster: 'No', notes: '' };
+  g = group(round);
   assert.deepEqual(g.map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
 
-  s.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Undecided', notes: '' };
-  s.reads['k1|k3'] = { human: 'Probably same', sameCluster: 'Yes', notes: '' };
-  g = group(s);
+  round.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Undecided', notes: '' };
+  round.reads['k1|k3'] = { human: 'Probably same', sameCluster: 'Yes', notes: '' };
+  g = group(round);
   assert.deepEqual(g.map((x) => x.keywords), [['k1', 'k2', 'k3']]);
 });
 
 test('pageList keeps an edited row and regroups the rest', () => {
-  const s = study();
-  s.pages = [{ id: 'p9', title: 'Sympathy flowers', type: 'Service page', keywords: ['k3'], note: 'client asked', auto: false }];
-  const list = pageList(s);
+  const round = study();
+  round.pages = [{ id: 'p9', title: 'Sympathy flowers', type: 'Service page', keywords: ['k3'], note: 'client asked', auto: false }];
+  const list = pageList(round);
   assert.equal(list.length, 2);
   assert.equal(list[0].id, 'p9');
   assert.deepEqual(list[1].keywords, ['k1', 'k2']);
   assert.equal(list[1].auto, true);
   // A keyword claimed by an edited row is not regrouped, even if strong.
-  s.pages = [{ id: 'p9', title: 'One', type: 'Service page', keywords: ['k1'], note: '', auto: false }];
-  assert.deepEqual(pageList(s).map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
+  round.pages = [{ id: 'p9', title: 'One', type: 'Service page', keywords: ['k1'], note: '', auto: false }];
+  assert.deepEqual(pageList(round).map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
+});
+
+test('touch recomputes the open round and leaves closed rounds alone', () => {
+  const closed = { ...emptyRound('r1'), closedAt: '2026-01-01T00:00:00.000Z', pages: [{ id: 'frozen' }] };
+  const open = { ...emptyRound('r2'), keywords: [{ id: 'k1', text: 'one', cluster: 'C' }], serps: {} };
+  const s = { slug: 'x', createdAt: 'a', updatedAt: 'a', rounds: [closed, open] };
+  const next = touch(s, new Date('2026-09-17T00:00:00Z'));
+  assert.equal(next.updatedAt, '2026-09-17T00:00:00.000Z');
+  assert.deepEqual(next.rounds[0].pages, [{ id: 'frozen' }]);
+  assert.deepEqual(next.rounds[1].pages, []);
 });
 
 test('emptyStudy has the spec shape', () => {
   const s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
-  assert.deepEqual(Object.keys(s), ['slug', 'createdAt', 'updatedAt', 'areas', 'keywords', 'serps', 'reads', 'pages', 'reportedAt']);
+  assert.deepEqual(Object.keys(s), ['slug', 'createdAt', 'updatedAt', 'rounds']);
   assert.equal(s.createdAt, '2026-09-13T00:00:00.000Z');
   assert.deepEqual(PAGE_TYPES, ['Homepage', 'Service page', 'Location page', 'Directory', 'Blog/FAQ', 'Portfolio/Gallery', 'About page', 'Other']);
 });
@@ -242,25 +305,39 @@ test('validateCapture accepts the bookmarklet shape and rejects the rest', () =>
   assert.match(validateCapture(JSON.stringify({ ...good, related: Array(11).fill('r') })).errors[0], /at most 10/);
 });
 
-test('findCaptureTargets matches the query across studies', () => {
-  const s1 = { slug: 'acme', keywords: [{ id: 'k1', text: 'Wedding florist' }] };
-  const s2 = { slug: 'beta', keywords: [{ id: 'k9', text: 'wedding  florist ' }, { id: 'k8', text: 'other' }] };
-  assert.deepEqual(findCaptureTargets([s1, s2], 'wedding florist'), [{ slug: 'acme', keywordId: 'k1', text: 'Wedding florist' }, { slug: 'beta', keywordId: 'k9', text: 'wedding  florist ' }]);
-  assert.deepEqual(findCaptureTargets([s1, s2], 'nothing'), []);
+test('findCaptureTargets matches keywords in the open round', () => {
+  const study = {
+    slug: 'x',
+    rounds: [
+      { ...emptyRound('r1'), closedAt: 'x', keywords: [{ id: 'old', text: 'gone away' }] },
+      { ...emptyRound('r2'), keywords: [{ id: 'k1', text: 'Wedding Florist' }] },
+    ],
+  };
+  assert.deepEqual(findCaptureTargets([study], ' wedding  florist '), [{ slug: 'x', keywordId: 'k1', text: 'Wedding Florist' }]);
+  assert.deepEqual(findCaptureTargets([study], 'gone away'), []);
 });
 
 test('applyCapture stores a classified snapshot and refreshes the auto pages', () => {
   const s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
-  s.areas = ['Provo'];
-  s.keywords = [{ id: 'k1', text: 'x', cluster: 'C', arm: '', source: 'manual' }];
+  s.rounds[0] = { ...s.rounds[0], areas: ['Provo'], keywords: [{ id: 'k1', text: 'x', cluster: 'C', arm: '', source: 'manual' }] };
   const out = applyCapture(s, 'k1', { q: 'x', results: [{ rank: 1, url: 'https://a.com/provo/', title: 'A' }], related: ['y'] }, new Date('2026-09-14T00:00:00Z'));
-  assert.equal(out.serps.k1.capturedAt, '2026-09-14T00:00:00.000Z');
-  assert.equal(out.serps.k1.results[0].pageType, 'Location page');
-  assert.equal(out.serps.k1.results[0].domain, 'a.com');
-  assert.equal(out.serps.k1.results[0].typeSource, 'auto');
-  assert.deepEqual(out.serps.k1.related, ['y']);
-  assert.equal(out.pages.length, 1);
+  const round = openRound(out);
+  assert.equal(round.serps.k1.capturedAt, '2026-09-14T00:00:00.000Z');
+  assert.equal(round.serps.k1.results[0].pageType, 'Location page');
+  assert.equal(round.serps.k1.results[0].domain, 'a.com');
+  assert.equal(round.serps.k1.results[0].typeSource, 'auto');
+  assert.deepEqual(round.serps.k1.related, ['y']);
+  assert.equal(round.pages.length, 1);
   assert.equal(out.updatedAt, '2026-09-14T00:00:00.000Z');
+});
+
+test('applyCapture files into the open round only', () => {
+  const closed = { ...emptyRound('r1'), closedAt: '2026-01-01T00:00:00.000Z', keywords: [{ id: 'k1', text: 'one', cluster: 'C' }], serps: {} };
+  const open = { ...emptyRound('r2'), keywords: [{ id: 'k1', text: 'one', cluster: 'C' }] };
+  const s = { slug: 'x', createdAt: 'a', updatedAt: 'a', rounds: [closed, open] };
+  const next = applyCapture(s, 'k1', { q: 'one', results: [{ rank: 1, url: 'https://a.com/x', title: 'A' }], related: [] }, new Date('2026-09-17T00:00:00Z'));
+  assert.deepEqual(next.rounds[0].serps, {});
+  assert.equal(next.rounds[1].serps.k1.results[0].url, 'https://a.com/x');
 });
 
 test('splitList and draftFromQuestionnaire', () => {
