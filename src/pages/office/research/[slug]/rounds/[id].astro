@@ -1,0 +1,68 @@
+---
+// A frozen round, read only: the page offers no controls at all, so there
+// is nothing here that could post a change back to a round that is closed.
+export const prerender = false;
+import OfficeLayout from '../../../../../layouts/OfficeLayout.astro';
+import Mark from '../../../../../components/office/Mark.astro';
+import { store } from '../../../../../../netlify/functions/lib/office/store.mjs';
+import { migrateStudy, roundOf, pairs, pageList } from '../../../../../../netlify/functions/lib/office/research.mjs';
+import { formatYmd, todayIn } from '../../../../../../netlify/functions/lib/office/dates.mjs';
+
+const { slug, id } = Astro.params;
+const client = await store().clients.get(slug);
+const raw = await store().research.get(slug);
+const study = raw ? migrateStudy(raw) : null;
+const round = study ? roundOf(study, id) : null;
+if (!client || !round) return new Response('Not found', { status: 404 });
+const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
+const ps = pairs(round) as any[];
+const rows = pageList(round) as any[];
+const byId = new Map<string, any>(round.keywords.map((k: any) => [k.id, k]));
+const text = (kid: string) => byId.get(kid)?.text ?? kid;
+const captures = round.keywords.filter((k: any) => round.serps[k.id]);
+---
+<OfficeLayout title={`${client.business} · research round`}>
+  <div class="page-head">
+    <h1>{client.business} — research</h1>
+    <p class="quiet">Round started {day(round.startedAt)}{round.closedAt ? `, closed ${day(round.closedAt)}` : ''}. This round is frozen; <a href={`/office/clients/${slug}/?tab=research`}>the current round</a> is where changes go.</p>
+  </div>
+  {round.notes?.intro && <p>{round.notes.intro}</p>}
+  <h2>Pages <span class="count">{rows.length}</span></h2>
+  <ul class="ledger">
+    {rows.map((p: any) => (
+      <li class="no-tick">
+        <span class="when"><Mark state={p.auto ? 'none' : 'done'}>{p.auto ? 'Automatic' : 'Edited'}</Mark></span>
+        <span class="what"><span class="title">{p.title}</span><span class="meta"> · {p.type}</span>
+          {p.keywords.length > 1 && <span class="meta line">{p.keywords.map(text).join(' · ')}</span>}
+          {p.note && <span class="meta line">Note: {p.note}</span>}
+        </span>
+      </li>
+    ))}
+  </ul>
+  <h2>Pairs <span class="count">{ps.length}</span></h2>
+  <ul class="ledger">
+    {ps.map((p: any) => (
+      <li class="no-tick">
+        <span class="when">{p.read ? <Mark state="done">{p.read.human}</Mark> : <Mark state="none">Not decided</Mark>}</span>
+        <span class="what"><span class="title">{p.a.text} · {p.b.text}</span>
+          <span class="meta line">{p.exactUrl} same URL · {p.sameDomainDifferentPage} same business · suggested: {p.action}</span>
+          {p.read?.notes && <span class="meta line">Note: {p.read.notes}</span>}
+        </span>
+      </li>
+    ))}
+  </ul>
+  <h2>Results</h2>
+  {captures.map((k: any) => (
+    <details class="fold">
+      <summary>{k.text}<span class="sub">{day(round.serps[k.id].capturedAt)}</span></summary>
+      <div class="fold-body"><div class="table-scroll"><table>
+        <thead><tr><th>#</th><th>Result</th><th>Business</th><th>Type</th></tr></thead>
+        <tbody>{round.serps[k.id].results.map((r: any) => (
+          <tr><td class="num">{r.rank}</td><td><a href={r.url} target="_blank" rel="noopener">{r.title}</a></td><td class="quiet">{r.domain}</td><td>{r.pageType}</td></tr>
+        ))}</tbody>
+      </table></div></div>
+    </details>
+  ))}
+  {round.notes?.closing && <p>{round.notes.closing}</p>}
+  <p><a class="btn-quiet" href={`/office/research/${slug}/report/?round=${round.id}`} target="_blank" rel="noopener">This round's report</a></p>
+</OfficeLayout>
