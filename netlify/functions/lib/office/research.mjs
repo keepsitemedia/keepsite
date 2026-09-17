@@ -205,20 +205,27 @@ export const PICK_SOURCE = pickResults.toString().replace(/\s*\n\s*/g, ' ');
 
 // The DOM walk gathers candidates; pickResults decides. A result container is
 // the closest [data-hveid], which is what a sitelink shares with its parent.
+// Signed out, Google replaces every result link with /goto?url=<opaque blob>,
+// which carries no destination and which pickResults drops as a google.com
+// host. Counting them is what lets a short capture say why it is short
+// instead of looking like a thin results page.
 export function bookmarklet(origin) {
   const code = `(function(){
 var PICK=${PICK_SOURCE};
 var q=new URLSearchParams(location.search).get('q')||'';
-var cands=[];var n=0;
+var cands=[];var n=0;var hidden=0;
 document.querySelectorAll('h3').forEach(function(h){
 var a=h.closest('a[href]');if(!a)return;
 var box=h.closest('[data-hveid]')||(a.parentElement&&a.parentElement.parentElement)||a;
 if(!box.dataset.kbox){n+=1;box.dataset.kbox=String(n);}
+if(a.pathname==='/goto')hidden+=1;
 cands.push({href:a.href,title:h.textContent,ad:!!h.closest('#tads,#bottomads,[data-text-ad],[aria-label="Ads"],.related-question-pair,[data-attrid],#rhs'),box:box.dataset.kbox});
 });
 var related=[];document.querySelectorAll('#botstuff a[href*="/search?"]').forEach(function(a){related.push(a.textContent);});
 var picked=PICK({q:q,candidates:cands,related:related});
-if(!picked.results.length){alert('No results found on this page');return;}
+var signedOut='Google gave no web addresses for these results, which is what it does when you are not signed in. Search again in the research account and capture from there.';
+if(!picked.results.length){alert(hidden?signedOut:'No results found on this page');return;}
+if(hidden&&picked.results.length<8){alert(hidden+' of these results had no web address and were skipped, so this capture would be short. '+signedOut);return;}
 picked.at=new Date().toISOString();
 window.open(${JSON.stringify(`${origin}/office/research/capture/#`)}+encodeURIComponent(JSON.stringify(picked)));
 })();`;

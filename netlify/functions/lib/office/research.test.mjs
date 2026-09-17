@@ -220,6 +220,14 @@ test('isSearchUrl accepts a Google search and nothing else', () => {
   assert.equal(isSearchUrl(''), false);
 });
 
+test('the bookmarklet names the cause when Google hides the addresses', () => {
+  const code = decodeURIComponent(bookmarklet('https://x.test').slice('javascript:'.length));
+  assert.ok(code.includes("'/goto'"));
+  assert.ok(code.includes('research account'));
+  assert.ok(code.includes('skipped'));
+  assert.ok(!code.includes('\n'));
+});
+
 test('normalizeQuery folds case and whitespace', () => {
   assert.equal(normalizeQuery('  Wedding   Florist PROVO '), 'wedding florist provo');
 });
