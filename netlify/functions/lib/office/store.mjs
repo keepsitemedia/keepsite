@@ -117,7 +117,11 @@ export function createStore({ office, questionnaires }) {
       // creates that settled on the same slug cannot both write it.
       async putIfNew(slug, doc) { return office.setTextIfNew(clientKey(slug), serialize(doc)); },
       async remove(slug) { return office.remove(clientKey(slug)); },
-      async list() { return readAll(office, 'clients/'); },
+      // Archived clients are off every working view by default, so a page
+      // added later hides one by accident rather than nagging about one.
+      // The three callers that must see everyone ask for listAll by name.
+      async list() { return (await readAll(office, 'clients/')).filter((c) => !c.archivedAt); },
+      async listAll() { return readAll(office, 'clients/'); },
       async count() { return (await office.list('clients/')).length; },
     },
     settings: {

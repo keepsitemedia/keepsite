@@ -230,3 +230,22 @@ test('research keeps one document per client', async () => {
   await s.research.remove('acme');
   assert.equal(await s.research.get('acme'), null);
 });
+
+test('clients.list hides archived clients and listAll keeps them', async () => {
+  const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+  await s.clients.put('active', { slug: 'active', business: 'Active', stage: 'demo' });
+  await s.clients.put('legacy', { slug: 'legacy', business: 'Legacy', stage: 'live' });
+  await s.clients.put('gone', { slug: 'gone', business: 'Gone', stage: 'demo', archivedAt: '2026-09-17T00:00:00.000Z', archivedReason: 'stopped replying' });
+
+  assert.deepEqual((await s.clients.list()).map((c) => c.slug).sort(), ['active', 'legacy']);
+  assert.deepEqual((await s.clients.listAll()).map((c) => c.slug).sort(), ['active', 'gone', 'legacy']);
+});
+
+// Every client written before archiving existed has no such field.
+test('a client with no archivedAt reads as active', async () => {
+  const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+  await s.clients.put('legacy', { slug: 'legacy', business: 'Legacy', stage: 'live' });
+  assert.equal((await s.clients.list()).length, 1);
+  await s.clients.put('nulled', { slug: 'nulled', business: 'Nulled', stage: 'live', archivedAt: null });
+  assert.equal((await s.clients.list()).length, 2);
+});
