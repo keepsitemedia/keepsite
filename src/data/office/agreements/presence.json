@@ -2,10 +2,10 @@
  "id": "presence",
  "name": "Presence Package",
  "tier": "Presence",
- "version": "31ef801dae00",
+ "version": "60f3b710b8de",
  "defaults": {
-  "buildFee": "$1,200",
-  "monthlyFee": "$60",
+  "buildFee": "$2,400",
+  "monthlyFee": "$85",
   "pages": 5
  },
  "blocks": [
@@ -189,7 +189,7 @@
   },
   {
    "type": "p",
-   "text": "The build costs one thousand two hundred dollars ($1,200), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
+   "text": "The build costs two thousand four hundred dollars ($2,400), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
   },
   {
    "type": "p",
@@ -213,7 +213,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription costs sixty dollars ($60) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
+   "text": "The subscription costs eighty-five dollars ($85) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
   },
   {
    "type": "h3",
@@ -1019,7 +1019,7 @@
   },
   {
    "type": "p",
-   "text": "One-time build fee: $1,200"
+   "text": "One-time build fee: $2,400"
   },
   {
    "type": "table",
@@ -1084,7 +1084,7 @@
   },
   {
    "type": "p",
-   "text": "Monthly subscription fee: $60 per month"
+   "text": "Monthly subscription fee: $85 per month"
   },
   {
    "type": "table",
@@ -1220,7 +1220,7 @@
     ],
     [
      "Standard Build Fee",
-     "$1,200"
+     "$2,400"
     ],
     [
      "Adjusted Build Fee",
@@ -1252,7 +1252,7 @@
     ],
     [
      "Standard Monthly Fee",
-     "$60 per month"
+     "$85 per month"
     ],
     [
      "Discounted Monthly Fee",

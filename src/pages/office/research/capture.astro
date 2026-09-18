@@ -4,11 +4,12 @@
 export const prerender = false;
 import OfficeLayout from '../../../layouts/OfficeLayout.astro';
 import { store } from '../../../../netlify/functions/lib/office/store.mjs';
+import { migrateStudy, openRound } from '../../../../netlify/functions/lib/office/research.mjs';
 
 const error = Astro.url.searchParams.get('error');
 const pick = Astro.url.searchParams.get('pick') === '1';
 const csrf = Astro.locals.csrf;
-const studies = pick ? ((await store().research.listAll()) as any[]) : [];
+const studies = pick ? ((await store().research.listAll()) as any[]).map((doc) => migrateStudy(doc)) : [];
 const clients = pick ? ((await store().clients.list()) as any[]) : [];
 const names = new Map(clients.map((c) => [c.slug, c.business]));
 ---
@@ -26,7 +27,7 @@ const names = new Map(clients.map((c) => [c.slug, c.business]));
       <label class="field"><span>Save under</span>
         <select name="target" id="target" required>
           <option value="">Choose the client and keyword</option>
-          {studies.flatMap((s) => s.keywords.map((k: any) => <option value={`${s.slug}|${k.id}`}>{names.get(s.slug) ?? s.slug} · {k.text}</option>))}
+          {studies.flatMap((s) => openRound(s).keywords.map((k: any) => <option value={`${s.slug}|${k.id}`}>{names.get(s.slug) ?? s.slug} · {k.text}</option>))}
         </select>
       </label>
     )}

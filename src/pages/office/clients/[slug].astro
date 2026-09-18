@@ -62,7 +62,12 @@ const csrf = Astro.locals.csrf;
 const here = `/office/clients/${slug}/?tab=${tab}`;
 const DEFINITIONS: Record<string, any> = { intro, brand, build };
 const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
-const site = Astro.site?.origin ?? '';
+// The bookmarklet opens the capture page on whatever origin built it. In
+// production that must be the real site, but Astro.site is the configured
+// URL, so a locally served office would hand out a bookmarklet that files
+// captures into production — which makes the capture flow untestable and the
+// mistake silent.
+const site = import.meta.env.DEV ? Astro.url.origin : (Astro.site?.origin ?? Astro.url.origin);
 const pipelineForms = pipeline?.questionnaires ?? [];
 const wantForms = tab === 'questionnaires' || tab === 'overview';
 const forms = wantForms

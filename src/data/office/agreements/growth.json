@@ -2,10 +2,10 @@
  "id": "growth",
  "name": "Growth Package",
  "tier": "Growth",
- "version": "bd91812df7f4",
+ "version": "c5c852b38211",
  "defaults": {
-  "buildFee": "$1,800",
-  "monthlyFee": "$160",
+  "buildFee": "$3,600",
+  "monthlyFee": "$225",
   "pages": 8
  },
  "blocks": [
@@ -189,7 +189,7 @@
   },
   {
    "type": "p",
-   "text": "The build costs one thousand eight hundred dollars ($1,800), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
+   "text": "The build costs three thousand six hundred dollars ($3,600), less any discount in Exhibit D. Schedule 1 says how you're paying it:"
   },
   {
    "type": "p",
@@ -213,7 +213,7 @@
   },
   {
    "type": "p",
-   "text": "The subscription costs one hundred sixty dollars ($160) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
+   "text": "The subscription costs two hundred twenty-five dollars ($225) per month, less any discount in Exhibit D. The first payment is due on the Launch Date and every payment after that on the same day of the month."
   },
   {
    "type": "h3",
@@ -1059,7 +1059,7 @@
   },
   {
    "type": "p",
-   "text": "One-time build fee: $1,800"
+   "text": "One-time build fee: $3,600"
   },
   {
    "type": "table",
@@ -1108,7 +1108,7 @@
   },
   {
    "type": "p",
-   "text": "Monthly subscription fee: $160 per month"
+   "text": "Monthly subscription fee: $225 per month"
   },
   {
    "type": "table",
@@ -1240,7 +1240,7 @@
     ],
     [
      "Standard Build Fee",
-     "$1,800"
+     "$3,600"
     ],
     [
      "Adjusted Build Fee",
@@ -1272,7 +1272,7 @@
     ],
     [
      "Standard Monthly Fee",
-     "$160 per month"
+     "$225 per month"
     ],
     [
      "Discounted Monthly Fee",

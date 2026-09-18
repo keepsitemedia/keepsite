@@ -138,7 +138,7 @@ check('nothing links a retired route', () => {
 });
 check('prices are the new ones', () => {
   const h = read('packages/index.html');
-  for (const p of ['$1,200', '$60', '$1,800', '$160', '$2,100', '$425', '$350']) {
+  for (const p of ['$2,400', '$85', '$3,600', '$225', '$4,200', '$595', '$490']) {
     if (!h.includes(p)) throw new Error('missing price ' + p);
   }
 });
@@ -273,7 +273,7 @@ check('business node is complete and address-free', () => {
 });
 check('Service prices match the rendered prices', () => {
   const services = ld('packages/index.html')[1]['@graph'];
-  const expect = { presence: ['1200.00', '60.00'], growth: ['1800.00', '160.00'], agile: ['2100.00', '425.00'], range: ['2100.00', '350.00'] };
+  const expect = { presence: ['2400.00', '85.00'], growth: ['3600.00', '225.00'], agile: ['4200.00', '595.00'], range: ['4200.00', '490.00'] };
   if (services.length !== 4) throw new Error('services: ' + services.length);
   for (const s of services) {
     const id = s['@id'].split('#')[1];

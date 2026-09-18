@@ -24,9 +24,9 @@
         "Advice on what to write or post",
         "A login for you. You send us the change, we make it"
       ],
-      "buildPrice": "$1,200",
+      "buildPrice": "$2,400",
       "buildPriceNote": "one-time build",
-      "monthlyPrice": "$60",
+      "monthlyPrice": "$85",
       "monthlyPriceNote": "per month",
       "quoted": false,
       "monthlySummary": [
@@ -57,9 +57,9 @@
         "Ongoing strategy meetings. The strategy is set at the start and built into the site",
         "Paid advertising"
       ],
-      "buildPrice": "$1,800",
+      "buildPrice": "$3,600",
       "buildPriceNote": "one-time build",
-      "monthlyPrice": "$160",
+      "monthlyPrice": "$225",
       "monthlyPriceNote": "per month",
       "quoted": false,
       "monthlySummary": [
@@ -90,9 +90,9 @@
         "Make business decisions for you. We bring the research, you decide",
         "Advertising outside of search"
       ],
-      "buildPrice": "$2,100",
+      "buildPrice": "$4,200",
       "buildPriceNote": "one-time build",
-      "monthlyPrice": "$425",
+      "monthlyPrice": "$595",
       "monthlyPriceNote": "per month",
       "quoted": false,
       "monthlySummary": [
@@ -121,10 +121,10 @@
         "Treat you as one business. Range is scoped per arm, and priced the same way",
         "Publish a fixed price. We publish the floor and quote the rest after one conversation"
       ],
-      "buildPrice": "$2,100",
-      "buildPriceNote": "from, quoted",
-      "monthlyPrice": "$350",
-      "monthlyPriceNote": "from, quoted",
+      "buildPrice": "$4,200",
+      "buildPriceNote": "starting at, quoted",
+      "monthlyPrice": "$490",
+      "monthlyPriceNote": "starting at, quoted",
       "quoted": true,
       "monthlySummary": [
         "Everything in Growth",

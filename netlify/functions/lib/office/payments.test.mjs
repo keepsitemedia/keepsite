@@ -28,8 +28,8 @@ test.after(() => { delete process.env.STRIPE_SECRET_KEY; });
 test('money and tier prices come from packages.json', () => {
   assert.equal(parseMoney('$1,100'), 110000);
   assert.equal(parseMoney('$55'), 5500);
-  assert.deepEqual(tierPrices('Growth'), { build: 180000, monthly: 16000 });
-  assert.deepEqual(tierPrices('Presence'), { build: 120000, monthly: 6000 });
+  assert.deepEqual(tierPrices('Growth'), { build: 360000, monthly: 22500 });
+  assert.deepEqual(tierPrices('Presence'), { build: 240000, monthly: 8500 });
   assert.equal(tierPrices('Gold'), null);
 });
 

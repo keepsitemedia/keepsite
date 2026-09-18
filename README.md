@@ -30,8 +30,8 @@ Then open `http://localhost:4321/admin/`. `local_backend: true` in `public/admin
 
 Two other files quote prices as plain copy, and neither updates on its own:
 
-- `src/data/home.json` — the meta description mentions the starting price ("Packages from $1,200").
-- `src/data/faq.json` — answers quote the add-on prices ($60, $150, $225) and Range's floor ($2,100, $350).
+- `src/data/home.json` — the meta description mentions the starting price ("Packages from $2,400").
+- `src/data/faq.json` — answers quote the add-on prices ($60, $150, $225) and Range's floor ($4,200, $490).
 
 Add-on prices in `packages.json` are display-only copy: editing one changes the add-ons list and nothing else. So when any price changes, check those two files too. Add-on prices are flat or "Quoted first". The verifier fails the build if any page states an hourly rate.
 
@@ -59,12 +59,20 @@ existed do not get it until the pipelines are re-saved under Settings.
 
 ## Brand assets
 
-The logo source is `docs/brand/keepsitelogo.png`, the Canva export. Three
-files derive from it and are committed, so a build never touches it:
+The logo source is `docs/brand/*.svg`, the Canva exports: `1.svg` is the
+full lockup with the tagline, `2.svg` the lockup without it, `4.svg` the K
+and the stripe block. Everything the site serves derives from them and is
+committed, so a build never touches `docs/`:
 
+- `public/brand/*.svg`, the three lockups cropped to their own bounding box
+  and recolored from the artboard's ink to the palette tokens, from
+  `npm run logos`. `Logo.astro` serves these as `<img>`; inlining them would
+  put 9 KB and 20 KB into every page instead of one cached copy.
+- `public/favicon.svg`, the mark on a square, also from `npm run logos`.
 - `public/og-default.png`, the share card, from `npm run og`.
-- `public/apple-touch-icon.png`, the stripe block at 180px, from `npm run icons`.
-- `public/favicon.svg`, the stripe block, edited by hand.
+- `public/apple-touch-icon.png`, the mark at 180px, from `npm run icons`.
+
+Run `npm run logos` first: the other two read `public/brand/`.
 
 The site's faces are Arial and Georgia, which ship with Windows, macOS and
 iOS, with Arimo and Gelasio self-hosted as metric-identical fallbacks for

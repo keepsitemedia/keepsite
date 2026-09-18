@@ -132,11 +132,11 @@ const packagesJsonLd = {
 
             <div class="tier-cost">
               <p class="tier-price price">
-                {tier.quoted && <span class="tier-from">from </span>}{tier.buildPrice}
+                {tier.quoted && <span class="tier-floor">Starting at </span>}{tier.buildPrice}
                 <span class="tier-price-note muted">{tier.buildPriceNote}</span>
               </p>
               <p class="tier-monthly price muted">
-                + {tier.quoted ? 'from ' : ''}{tier.monthlyPrice}/month
+                + {tier.quoted ? 'Starting at ' : ''}{tier.monthlyPrice}/month
               </p>
               {tier.quoted && <p class="tier-quoted muted">Quoted after one conversation.</p>}
             </div>
@@ -361,7 +361,7 @@ const packagesJsonLd = {
   }
   .tier-price-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
   .tier-monthly { font-size: var(--step-1); margin: var(--space-0) 0 0; }
-  .tier-from, .tier-quoted { font-size: var(--step--1); }
+  .tier-floor, .tier-quoted { font-size: var(--step--1); }
 
   .tier-bestfor { font-size: var(--step--1); margin-bottom: var(--space-3); }
 

@@ -1,11 +1,10 @@
 // Regenerates public/og-default.png. Run: npm run og
-// Composites the Canva export onto the 1200 by 630 card so the wordmark is
-// pixel-exact and the build machine needs no fonts. The crop box is the
-// artwork's bounding box (x 116-1374, y 248-658) with a 20px margin.
+// The full lockup on the 1200 by 630 card, left-aligned on white. The
+// source is the cropped brand SVG, so the build machine needs no fonts and
+// the card cannot drift from the logo in the header.
 import sharp from 'sharp';
 
-const logo = await sharp('docs/brand/keepsitelogo.png')
-  .extract({ left: 96, top: 228, width: 1298, height: 450 })
+const logo = await sharp('public/brand/lockup-tagline.svg', { density: 1200 })
   .resize({ width: 1000 })
   .png()
   .toBuffer();

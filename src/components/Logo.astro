@@ -1,104 +1,47 @@
 ---
-// The logo lockup in HTML and CSS rather than SVG text, so the wordmark
-// sets in the page's own font stack (Arial where installed, Arimo where
-// not) and reads as text to assistive tech. Compact is the header; full
-// adds the heavy rule, "media" under it, and the tagline for the footer.
+// The logo is the brand artwork from docs/brand, cropped, recolored and
+// written to public/brand by scripts/make-logos.mjs.
+//
+// It ships as <img> rather than inline SVG. The two lockups are 9 KB and
+// 20 KB against a 13 KB home page, so inlining would put them into every
+// document instead of letting the browser cache one copy for the site.
+//
+// Compact is the header: wordmark and rule. Full is the footer: the same
+// lockup with the tagline under it. Both sit on light ground, so the art
+// carries its own ink rather than inheriting the page's.
 import site from '../data/site.json';
 
 interface Props {
   variant?: 'compact' | 'full';
 }
 const { variant = 'compact' } = Astro.props;
-// The logo sets the tagline without its full stop.
-const tagline = site.tagline.replace(/\.$/, '');
 ---
 {variant === 'compact' ? (
-  <a class="logo logo-compact" href="/" aria-label={`${site.brand}, home`}>
-    <span class="logo-mark" aria-hidden="true"></span>
-    <span class="logo-word" aria-hidden="true">Keepsite</span>
-    <span class="logo-media" aria-hidden="true">media</span>
+  <a class="logo logo-compact" href="/">
+    <img src="/brand/lockup.svg" width="1213" height="316" alt={site.brand} decoding="async" />
   </a>
 ) : (
-  <div class="logo logo-full">
-    <a class="logo-link" href="/" aria-label={`${site.brand}, home`}>
-      <span class="logo-mark" aria-hidden="true"></span>
-      <span class="logo-word" aria-hidden="true">Keepsite</span>
-    </a>
-    <span class="logo-rule" aria-hidden="true"><span class="logo-media">media</span></span>
-    <p class="logo-tagline label">{tagline}</p>
-  </div>
+  <a class="logo logo-full" href="/">
+    <img
+      src="/brand/lockup-tagline.svg"
+      width="1213"
+      height="397"
+      alt={`${site.brand}. ${site.tagline}`}
+      loading="lazy"
+      decoding="async"
+    />
+  </a>
 )}
 
 <style>
-  .logo { color: var(--color-ink); text-decoration: none; }
-  /* The block is the K's cap height tall (Arial's is 0.716em) and sits on
-     the baseline, touching the K's stem: the negative margin swallows the
-     glyph's left side bearing, as in the logo. */
-  .logo-mark {
-    display: inline-block;
-    width: 0.53em;
-    height: 0.72em;
-    margin-right: -0.06em;
-    background: var(--stripe);
-  }
-  .logo-word {
-    font-family: var(--font-sans);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-  .logo-media {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-weight: 400;
-    color: var(--color-copper-deep);
-    line-height: 1;
-  }
+  .logo { display: block; }
+  .logo img { display: block; width: 100%; height: auto; }
 
-  /* Header: one line, mark and wordmark on a shared baseline. */
-  .logo-compact {
-    display: inline-flex;
-    align-items: baseline;
-    font-size: 1.6rem;
-  }
-  .logo-compact .logo-media { font-size: 0.72em; margin-left: 0.3em; }
+  /* Header: the wordmark's cap height lands near the nav's 13px label, so
+     the two read as one bar rather than a logo with captions beside it. */
+  .logo-compact { width: 9.5rem; }
 
-  /* Footer: the full lockup. The column is sized by the wordmark alone
-     (the tagline is width 0 with min-width 100%, so it wraps to fit rather
-     than widening the lockup), which puts the rule under "Keepsite" and
-     "media" under "site", with its ascenders crossing the rule, as in the
-     logo. */
-  .logo-full {
-    display: inline-grid;
-    grid-template-columns: max-content;
-    font-size: 3.5rem;
-    line-height: 1;
-  }
-  .logo-link {
-    display: inline-flex;
-    align-items: baseline;
-    padding-bottom: 0.06em;
-    color: inherit;
-    text-decoration: none;
-  }
-  .logo-rule {
-    display: block;
-    border-top: 0.1em solid var(--color-ink);
-    text-align: right;
-  }
-  .logo-full .logo-media {
-    display: inline-block;
-    position: relative;
-    top: -0.55em;
-    padding-right: 0.25em;
-    font-size: 0.75em;
-  }
-  .logo-tagline {
-    width: 0;
-    min-width: 100%;
-    margin: -0.05em 0 0;
-    max-width: none;
-    font-size: 0.6875rem;
-    letter-spacing: 0.1em;
-  }
+  /* Footer: sized by width, so the lockup fills its grid column without
+     outgrowing it on a narrow screen. */
+  .logo-full { width: min(100%, 16rem); }
 </style>
