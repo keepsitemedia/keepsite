@@ -97,7 +97,10 @@ test('read, page, reset and type edits reshape the study', async () => {
   await research(post({ csrf, op: 'capture', payload: capture('a') }), ctx(), s, now);
   await research(post({ csrf, op: 'capture', payload: capture('b', 4) }), ctx(), s, now);
   round = openRound(await s.research.get('acme'));
-  assert.equal(round.pages.length, 2);
+  // b's four results are a strict subset of a's eight, so every one of b's
+  // businesses is shared: denominator 4, ratio 1.0, signal strong, and the
+  // pair groups into one page automatically, before any read is recorded.
+  assert.equal(round.pages.length, 1);
   const key = [ka, kb].sort().join('|');
   await research(post({ csrf, slug: 'acme', op: 'read', key, human: 'Probably same', sameCluster: 'Yes', notes: 'call' }), ctx(), s, now);
   round = openRound(await s.research.get('acme'));
