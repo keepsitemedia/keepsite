@@ -54,6 +54,22 @@ test('an email that fails validation is dropped, not stored raw', async () => {
   assert.equal(c.email, '');
 });
 
+test('an inquiry from an archived client reopens them instead of duplicating', async () => {
+  const s = make();
+  await s.clients.put('lova', {
+    slug: 'lova', business: 'Lova', email: 's@example.com', stage: 'demo', notes: 'first note',
+    archivedAt: '2026-09-17T00:00:00.000Z', archivedReason: 'stopped replying',
+  });
+  const res = await recordInquiry({ email: 'S@Example.com', notes: 'we are ready now' }, s, NOW);
+  assert.equal(res.created, false);
+  assert.equal(res.slug, 'lova');
+  const c = await s.clients.get('lova');
+  assert.equal(c.archivedAt, null);
+  assert.equal(c.archivedReason, '');
+  assert.match(c.notes, /we are ready now/);
+  assert.equal((await s.clients.listAll()).length, 1);
+});
+
 test('clients with an empty email are skipped by the dedupe lookup', async () => {
   const s = make();
   await recordInquiry({ email: 'bad\r\nline', business: 'First' }, s, NOW);
