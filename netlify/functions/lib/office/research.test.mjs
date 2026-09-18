@@ -406,7 +406,13 @@ test('many simultaneous gray pairs resolve without recursing', () => {
     keywords: [1, 2, 3, 4, 5, 6].map(kw),
     serps: Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`k${n}`, serpFor(n)])),
   };
+  const started = Date.now();
   const rows = pairs(round);
+  const elapsed = Date.now() - started;
+  // The recursion this guards against took 6.4s on four keywords and did not
+  // finish on six. A bound this loose cannot flake, and anything approaching
+  // it means the nesting is back.
+  assert.ok(elapsed < 2000, `pairs() took ${elapsed}ms on six keywords; the decisive probe is recursing again`);
   assert.equal(rows.length, 15);
   // Nothing else joins any two of these keywords, so the owner's answer on
   // any one pair is the only thing that could merge it: every pair decides.
