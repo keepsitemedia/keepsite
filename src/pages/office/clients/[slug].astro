@@ -157,7 +157,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
     <span class="sub">{client.tier || 'Tier not decided'}</span>
   </div>
   {client.archivedAt && (
-    <p class="notice">
+    <div class="notice">
       Archived {formatYmd(todayIn(undefined, new Date(client.archivedAt)))}{client.archivedReason ? ` — ${client.archivedReason}` : ''}.
       <form method="POST" action="/office/api/client" class="inline">
         <input type="hidden" name="csrf" value={csrf} />
@@ -165,7 +165,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
         <input type="hidden" name="slug" value={slug} />
         <button class="link-quiet">Restore</button>
       </form>
-    </p>
+    </div>
   )}
   <p class="file-line">
     <span>{client.name}</span>
