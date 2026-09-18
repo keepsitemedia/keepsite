@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
+  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
@@ -149,6 +149,23 @@ test('the tiebreaker reads the leading type, not the overlap count', () => {
   assert.ok(c.samePageType > 0, 'the saturating count still sees a match');
   assert.equal(c.resolvedBy, 'type');
   assert.equal(c.signal, 'low', 'but the leading types differ, so the pair separates');
+});
+
+// A directory-heavy field is the normal case for these searches, and the
+// same directories rank on nearly every pair. If the tiebreaker read the raw
+// arrays, 'Directory' would lead both sides of almost every gray pair — the
+// exact constant the ratio was built to strip out — and this pair would
+// wrongly resolve to strong instead of separating on what the businesses do.
+test('the tiebreaker leads on the businesses, not the shared directories', () => {
+  const directories = ['https://yelp.com/a', 'https://angi.com/a', 'https://thumbtack.com/a', 'https://bbb.org/a', 'https://facebook.com/a'].map((u) => dr(u));
+  const a = [...directories, r('https://p.com/', 'Homepage'), r('https://q-a.com/', 'Homepage'), r('https://s-a.com/', 'Homepage')];
+  const b = [...directories, r('https://p.com/', 'Blog/FAQ'), r('https://q-b.com/', 'Blog/FAQ'), r('https://s-b.com/', 'Blog/FAQ')];
+  // The premise the fix addresses: read raw, both sides lead with Directory.
+  assert.equal(primaryPageOf(a), 'Directory');
+  assert.equal(primaryPageOf(b), 'Directory');
+  const c = comparePair(a, b);
+  assert.equal(c.resolvedBy, 'type');
+  assert.equal(c.signal, 'low', 'the businesses lead with different types even though the directories agree');
 });
 
 test('page type cannot move a pair that was not gray', () => {

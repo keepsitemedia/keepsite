@@ -116,8 +116,12 @@ export function comparePair(a, b) {
   // samePageType is deliberately not used: it counts a row of A whose type
   // appears anywhere in B, so across eight results and a handful of types it
   // is 8 almost always. The leading type on each side is what discriminates.
-  const primaryA = primaryPageOf(a);
-  const primaryB = primaryPageOf(b);
+  // Over the businesses, not the raw results: directories lead the count in a
+  // directory-heavy field, so comparing the raw leaders would put 'Directory'
+  // on both sides of almost every pair and reintroduce the constant the ratio
+  // strips out. What discriminates is the shape the individual businesses use.
+  const primaryA = primaryPageOf(aBiz);
+  const primaryB = primaryPageOf(bBiz);
   const comparable = primaryA && primaryB && primaryA !== 'Tie / review' && primaryB !== 'Tie / review';
   const tie = branch !== 'gray' || !comparable ? null : primaryA === primaryB ? 'strong' : 'low';
   const [read, action] = READ_TEXT[tie ?? branch];
