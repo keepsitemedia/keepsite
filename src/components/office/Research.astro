@@ -23,6 +23,12 @@ const gray = ps.filter((p) => p.signal === 'gray');
 const undecided = gray.filter((p) => !p.read);
 const strong = ps.filter((p) => p.signal === 'strong').length;
 const low = ps.filter((p) => p.signal === 'low').length;
+const decisive = ps.filter((p) => p.decisive === true);
+const settled = ps.filter((p) => p.decisive === false);
+// A read made before directories left the signal may no longer match it.
+const revisit = ps.filter((p) => p.read && (
+  (p.read.sameCluster === 'Yes' && p.signal === 'low') || (p.read.sameCluster === 'No' && p.signal === 'strong')
+));
 const pages = pageList(round) as any[];
 const edited = pages.filter((p) => !p.auto).length;
 const clusters = [...new Set(round.keywords.map((k: any) => k.cluster))] as string[];
@@ -188,14 +194,17 @@ const external = (href: string) => href.startsWith('http');
   </div>
 </details>
 
-<h2>Pairs <span class="count">{showPairs ? ps.length : gray.length}</span></h2>
+<h2>Pairs <span class="count">{showPairs ? ps.length : decisive.length}</span></h2>
 {ps.length === 0 && <p class="empty">Capture two keywords and their pair appears here.</p>}
 {ps.length > 0 && (
-  <p class="quiet">{strong} agree, {gray.length} in the gray zone, {low} differ. The counts and the suggestion are automatic; the read is yours, made on the compare page. <a href={`/office/clients/${slug}/?tab=research${showPairs ? '' : '&pairs=1'}`}>{showPairs ? 'Show the gray zone only.' : 'Show every pair.'}</a></p>
+  <p class="quiet">{strong} agree, {gray.length} in the gray zone, {low} differ. The counts and the suggestion are automatic; the read is yours, made on the compare page. <a href={`/office/clients/${slug}/?tab=research${showPairs ? '' : '&pairs=1'}`}>{showPairs ? 'Show only what needs deciding.' : 'Show every pair.'}</a></p>
 )}
-{(showPairs ? ps : gray).length > 0 && (
+{revisit.length > 0 && (
+  <p class="notice">{revisit.length} {revisit.length === 1 ? 'decision was' : 'decisions were'} made before directories stopped counting toward the signal, and no longer match it. Worth a second look: {revisit.map((p: any) => `${p.a.text} · ${p.b.text}`).join('; ')}.</p>
+)}
+{(showPairs ? ps : decisive).length > 0 && (
   <ul class="ledger">
-    {(showPairs ? ps : gray).map((p) => (
+    {(showPairs ? ps : decisive).map((p) => (
       <li class="no-tick">
         <span class="when">
           {p.read ? <Mark state="done">{p.read.human}</Mark>
@@ -204,13 +213,16 @@ const external = (href: string) => href.startsWith('http');
         </span>
         <span class="what">
           <span class="title">{p.a.text} · {p.b.text}</span>
-          <span class="meta line">{p.exactUrl} same URL · {p.sameDomainDifferentPage} same business · {p.samePageType} same type · suggested: {p.action}</span>
+          <span class="meta line">{p.signal === 'unmeasurable' ? 'too few businesses to compare' : `${p.sharedBusinesses} of ${p.denominator} businesses`} · {p.sharedDirectories} shared {p.sharedDirectories === 1 ? 'directory' : 'directories'} · {p.samePageType} same type{p.resolvedBy === 'type' ? ' · settled on page type' : ''} · suggested: {p.action}</span>
           {p.read?.notes && <span class="meta line">Note: {p.read.notes}</span>}
         </span>
         <span class="act"><a href={compare(p.key)}>Compare</a></span>
       </li>
     ))}
   </ul>
+)}
+{settled.length > 0 && !showPairs && (
+  <p class="quiet">{settled.length} other {settled.length === 1 ? 'pair makes' : 'pairs make'} no difference to the page list either way. <a href={`/office/clients/${slug}/?tab=research&pairs=1`}>Show every pair.</a></p>
 )}
 
 <h2>Pages <span class="count">{pages.length}</span></h2>
