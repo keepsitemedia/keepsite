@@ -24,7 +24,11 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     if (!pipeline) return problem(400, 'unknown pipeline');
     const errors = validateClient(fields);
     if (errors.length) return back('/office/clients/new/', errors);
-    const taken = new Set((await s.clients.list()).map((c) => c.slug));
+    // listAll, not list: an archived client still occupies its slug key, and
+    // a new client that slugifies to the same name must land on a fresh
+    // slug rather than have putIfNew below refuse it as a harmless
+    // double-submit and redirect onto the archived client's page.
+    const taken = new Set((await s.clients.listAll()).map((c) => c.slug));
     const slug = uniqueSlug(slugify(fields.business), taken);
     const today = todayIn(undefined, now);
     const first = pipeline.stages[0];

@@ -76,9 +76,16 @@ export async function runDigest({ s = defaultStore(), now = new Date(), fetchFn 
     await logFailure({ slug: 'office', template: null, kind: 'digest-sweep', error: e.message }, s, now);
   }
   const today = todayIn(undefined, now);
-  const [clients, tasks, meetings, payments] = await Promise.all([
+  const [clients, tasksAll, meetingsAll, payments] = await Promise.all([
     s.clients.list(), s.tasks.listAll(), s.meetings.listAll(), s.payments.listAll(),
   ]);
+  // tasks and meetings are read from listAll, so an archived client's tasks
+  // and meetings still show up here; drop anything that isn't an own task or
+  // on the active list, the same rule feed.mjs uses, so an archived client
+  // stops showing in the one daily email that would otherwise nag forever.
+  const activeSlugs = new Set(clients.map((c) => c.slug));
+  const tasks = tasksAll.filter((t) => t.slug === OWN_SLUG || activeSlugs.has(t.slug));
+  const meetings = meetingsAll.filter((m) => activeSlugs.has(m.slug));
   const submitted = new Set();
   for (const t of tasks) {
     if (t.questionnaire && !t.done && (await s.questionnaires.get(t.slug, t.questionnaire))) submitted.add(`${t.slug}/${t.questionnaire}`);

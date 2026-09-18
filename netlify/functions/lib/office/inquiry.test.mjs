@@ -67,6 +67,7 @@ test('an inquiry from an archived client reopens them instead of duplicating', a
   assert.equal(c.archivedAt, null);
   assert.equal(c.archivedReason, '');
   assert.match(c.notes, /we are ready now/);
+  assert.match(c.notes, /first note/);
   assert.equal((await s.clients.listAll()).length, 1);
 });
 

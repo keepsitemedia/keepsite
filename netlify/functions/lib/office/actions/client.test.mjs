@@ -63,6 +63,20 @@ test('create picks a free slug when the business name is taken', async () => {
   assert.equal(res.headers.get('Location'), '/office/clients/lova-2/');
 });
 
+test('create avoids an archived client\'s slug instead of landing on their page', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), archivedAt: new Date().toISOString(), archivedReason: 'left' });
+  const res = await action(post({ op: 'create', csrf, ...good, email: 'new@example.com' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova-2/');
+  const created = await s.clients.get('lova-2');
+  assert.equal(created.email, 'new@example.com');
+  assert.equal(created.archivedAt ?? null, null);
+  const archived = await s.clients.get('lova');
+  assert.equal(archived.email, good.email);
+  assert.ok(archived.archivedAt);
+});
+
 test('two creates in flight together make one client and one task set', async () => {
   const s = make();
   const [a, b] = await Promise.all([
