@@ -144,7 +144,9 @@ export async function applyEvent(event, s, now = new Date(), fetchFn = fetch) {
   if (!CHECKOUT_EVENTS.has(type) && !INVOICE_EVENTS.has(type) && type !== 'customer.subscription.deleted') {
     return { handled: false, slug: null, change: `ignored ${type}` };
   }
-  const clients = await s.clients.list();
+  // listAll, not list: this is how a webhook finds its client, and an
+  // archived client's subscription can still be running.
+  const clients = await s.clients.listAll();
   const slug = slugFor(object, clients);
   if (!slug) return { handled: false, slug: null, change: `no client for customer ${object.customer ?? 'unknown'}` };
   const client = clients.find((c) => c.slug === slug);

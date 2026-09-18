@@ -5,9 +5,17 @@ import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
 import { newContact } from '../contacts.mjs';
+import { newId } from '../ids.mjs';
 
 const SECRET = 's';
 const make = () => createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+// The questionnaire endpoint writes through its own store handle, so the
+// office store exposes no writer; a test that seeds answers must hold the
+// backend itself.
+const makeWithIntake = () => {
+  const intake = memoryBackend();
+  return { s: createStore({ office: memoryBackend(), questionnaires: intake }), intake };
+};
 const post = (fields) => {
   const d = new FormData();
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
@@ -31,11 +39,42 @@ test('create writes the client, its inquiry tasks, and redirects to it', async (
   assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Reply with recommendation']);
 });
 
+// A slug is reusable, so anything left behind under it is inherited by the
+// next client of the same name — and nothing in the office would show it.
+test('delete clears the research study and the questionnaire answers', async () => {
+  const { s, intake } = makeWithIntake();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.research.put('lova', { slug: 'lova', createdAt: 'a', updatedAt: 'a', rounds: [] });
+  await intake.setText('lova/build.json', JSON.stringify({ answers: { business: 'Lova' } }));
+  await intake.setBytes('lova/logo.png', new Uint8Array([1, 2, 3]), { type: 'image/png' });
+
+  await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+
+  assert.equal(await s.clients.get('lova'), null);
+  assert.equal(await s.research.get('lova'), null);
+  assert.equal(await s.questionnaires.get('lova', 'build'), null);
+  assert.deepEqual(await s.questionnaires.files('lova'), []);
+});
+
 test('create picks a free slug when the business name is taken', async () => {
   const s = make();
   await action(post({ op: 'create', csrf, ...good }), ctx(), s);
   const res = await action(post({ op: 'create', csrf, ...good, email: 'other@example.com' }), ctx(), s);
   assert.equal(res.headers.get('Location'), '/office/clients/lova-2/');
+});
+
+test('create avoids an archived client\'s slug instead of landing on their page', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), archivedAt: new Date().toISOString(), archivedReason: 'left' });
+  const res = await action(post({ op: 'create', csrf, ...good, email: 'new@example.com' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/clients/lova-2/');
+  const created = await s.clients.get('lova-2');
+  assert.equal(created.email, 'new@example.com');
+  assert.equal(created.archivedAt ?? null, null);
+  const archived = await s.clients.get('lova');
+  assert.equal(archived.email, good.email);
+  assert.ok(archived.archivedAt);
 });
 
 test('two creates in flight together make one client and one task set', async () => {
@@ -122,6 +161,63 @@ test('delete removes the client and everything filed under it, then lands on the
   assert.deepEqual(await s.tasks.list('lova'), []);
   assert.deepEqual(await s.meetings.list('lova'), []);
   assert.deepEqual(await s.documents.list('lova'), []);
+});
+
+test('archive records the date and reason and leaves the stage alone', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  const before = await s.clients.get('lova');
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: '  went with a cousin  ' }), ctx(), s);
+  const after = await s.clients.get('lova');
+  assert.equal(after.archivedReason, 'went with a cousin');
+  assert.ok(after.archivedAt);
+  assert.equal(after.stage, before.stage);
+  assert.deepEqual(await s.clients.list(), []);
+  assert.deepEqual((await s.clients.listAll()).map((c) => c.slug), ['lova']);
+});
+
+test('restore puts the client back at the stage it already held', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'left' }), ctx(), s);
+  await action(post({ op: 'restore', csrf, slug: 'lova' }), ctx(), s);
+  const c = await s.clients.get('lova');
+  assert.equal(c.archivedAt, null);
+  assert.equal(c.archivedReason, '');
+  assert.equal(c.stage, 'inquiry');
+  assert.deepEqual((await s.clients.list()).map((x) => x.slug), ['lova']);
+});
+
+// Archiving takes a client off the views the owner reads daily. A live
+// subscription nobody is looking at keeps charging someone who has left.
+test('archive is refused while a subscription is active, and writes nothing', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  const sub = { id: newId(), kind: 'subscription', status: 'active', amount: 9900 };
+  await s.payments.put('lova', sub.id, sub);
+  const res = await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'cancelled' }), ctx(), s);
+  assert.equal(res.status, 303);
+  assert.equal((await s.clients.get('lova')).archivedAt ?? null, null);
+});
+
+test('an unpaid one-off balance does not block archiving', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  const owed = { id: newId(), kind: 'deposit', status: 'unpaid', amount: 50000 };
+  await s.payments.put('lova', owed.id, owed);
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'walked away owing' }), ctx(), s);
+  assert.ok((await s.clients.get('lova')).archivedAt);
+});
+
+test('archiving twice keeps the first date and reason', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'first' }), ctx(), s);
+  const first = await s.clients.get('lova');
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'second' }), ctx(), s);
+  const again = await s.clients.get('lova');
+  assert.equal(again.archivedReason, 'first');
+  assert.equal(again.archivedAt, first.archivedAt);
 });
 
 test('delete refuses a client with a signed agreement or a payment on record', async () => {

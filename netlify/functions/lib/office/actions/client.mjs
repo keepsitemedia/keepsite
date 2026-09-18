@@ -24,7 +24,11 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     if (!pipeline) return problem(400, 'unknown pipeline');
     const errors = validateClient(fields);
     if (errors.length) return back('/office/clients/new/', errors);
-    const taken = new Set((await s.clients.list()).map((c) => c.slug));
+    // listAll, not list: an archived client still occupies its slug key, and
+    // a new client that slugifies to the same name must land on a fresh
+    // slug rather than have putIfNew below refuse it as a harmless
+    // double-submit and redirect onto the archived client's page.
+    const taken = new Set((await s.clients.listAll()).map((c) => c.slug));
     const slug = uniqueSlug(slugify(fields.business), taken);
     const today = todayIn(undefined, now);
     const first = pipeline.stages[0];
@@ -60,6 +64,31 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     return redirect(`/office/clients/${slug}/`);
   }
 
+  if (op === 'archive') {
+    const slug = field(data, 'slug');
+    if (!SLUG.test(slug)) return problem(400, 'bad slug');
+    const existing = await s.clients.get(slug);
+    if (!existing) return problem(404, 'no such client');
+    if (existing.archivedAt) return back(`/office/clients/${slug}/`, ['this client is already archived']);
+    // A subscription still running would keep charging someone who has left,
+    // from a page the owner has just taken off their daily views.
+    if ((await s.payments.list(slug)).some((p) => p.kind === 'subscription' && p.status === 'active')) {
+      return back(`/office/clients/${slug}/`, ['this client still has an active subscription; cancel it first']);
+    }
+    const at = now.toISOString();
+    await s.clients.put(slug, { ...existing, archivedAt: at, archivedReason: field(data, 'reason').trim(), updatedAt: at });
+    return redirect('/office/clients/?archived=1');
+  }
+
+  if (op === 'restore') {
+    const slug = field(data, 'slug');
+    if (!SLUG.test(slug)) return problem(400, 'bad slug');
+    const existing = await s.clients.get(slug);
+    if (!existing) return problem(404, 'no such client');
+    await s.clients.put(slug, { ...existing, archivedAt: null, archivedReason: '', updatedAt: now.toISOString() });
+    return redirect(`/office/clients/${slug}/`);
+  }
+
   if (op === 'delete') {
     const slug = field(data, 'slug');
     if (!SLUG.test(slug)) return problem(400, 'bad slug');
@@ -82,6 +111,12 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     for (const meta of await s.documents.list(slug)) {
       if (meta?.name) await s.documents.remove(slug, meta.name);
     }
+    // Both are keyed by slug, and a slug is reusable: left behind, they are
+    // silently inherited by the next client of the same name. A signing token
+    // is not cleared, deliberately — it resolves through an agreement id that
+    // was just deleted, so it can only ever resolve to nothing.
+    await s.research.remove(slug);
+    await s.questionnaires.remove(slug);
     await s.clients.remove(slug);
     return redirect('/office/clients/');
   }

@@ -9,6 +9,7 @@ import { store } from '../../../netlify/functions/lib/office/store.mjs';
 import { loadPipelines } from '../../../netlify/functions/lib/office/pipeline.mjs';
 import { todayIn, addDays } from '../../../netlify/functions/lib/office/dates.mjs';
 import { splitOpen } from '../../../netlify/functions/lib/office/attention.mjs';
+import { OWN_SLUG } from '../../../netlify/functions/lib/office/clients.mjs';
 
 // store.mjs, pipeline.mjs and attention.mjs have no type declarations, so
 // astro check sees their returns as any; these narrow each read to what
@@ -23,13 +24,19 @@ type PaymentDoc = { id: string; slug: string; kind: string; amount: number; stat
 const s = store();
 const today = todayIn();
 const tomorrow = addDays(today, 1);
-const meetings = ((await s.meetings.listAll()) as Meeting[])
-  .filter((m) => m.ymd === today || m.ymd === tomorrow)
-  .sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`));
 const pipelines = (await loadPipelines(s)) as Pipeline[];
 const clients = (await s.clients.list()) as ClientRow[];
 const names = new Map(clients.map((c) => [c.slug, c.business]));
-const tasks = (await s.tasks.listAll()) as Task[];
+// tasks and meetings come from listAll, which does not know about archived
+// clients; drop anything that isn't an own task or on the active list above,
+// the same rule feed.mjs uses, so an archived client's open work stops
+// showing up here as a bare slug the moment the dashboard's own name lookup
+// misses.
+const meetings = ((await s.meetings.listAll()) as Meeting[])
+  .filter((m) => names.has(m.slug))
+  .filter((m) => m.ymd === today || m.ymd === tomorrow)
+  .sort((a, b) => `${a.ymd}${a.time}`.localeCompare(`${b.ymd}${b.time}`));
+const tasks = ((await s.tasks.listAll()) as Task[]).filter((t) => t.slug === OWN_SLUG || names.has(t.slug));
 const { onYou, later, waiting } = splitOpen(tasks, today) as { onYou: Task[]; later: number; waiting: Task[] };
 const late = onYou.filter((t) => t.due < today).length;
 const csrf = Astro.locals.csrf;

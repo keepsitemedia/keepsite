@@ -18,11 +18,16 @@ export async function recordInquiry(data, s = defaultStore(), now = new Date()) 
   const rawEmail = str(data.email);
   const email = EMAIL.test(rawEmail) ? rawEmail : '';
   const lookupKey = email.toLowerCase();
-  const clients = await s.clients.list();
+  // listAll, not list: an archived client who writes again must be matched,
+  // or they are created a second time under a new slug and their history is
+  // stranded on the old one.
+  const clients = await s.clients.listAll();
   const existing = lookupKey && clients.find((c) => c.email && c.email.toLowerCase() === lookupKey);
   if (existing) {
     const notes = [existing.notes, note(data, today)].filter(Boolean).join('\n\n');
-    await s.clients.put(existing.slug, { ...existing, notes, updatedAt: now.toISOString() });
+    // Someone who writes to you again is not archived any more, and this
+    // inquiry would otherwise land on a page the dashboard no longer shows.
+    await s.clients.put(existing.slug, { ...existing, notes, archivedAt: null, archivedReason: '', updatedAt: now.toISOString() });
     return { slug: existing.slug, created: false };
   }
 

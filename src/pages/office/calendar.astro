@@ -27,8 +27,13 @@ const day = isYmd(requested) ? requested : today;
 
 const clients = (await s.clients.list()) as ClientRow[];
 const names = new Map(clients.map((c) => [c.slug, c.business]));
-const tasks = (await s.tasks.listAll()) as Task[];
-const meetings = (await s.meetings.listAll()) as Meeting[];
+// tasks and meetings come from listAll, which does not know about archived
+// clients; drop anything that isn't an own task or on the active list above,
+// the same rule feed.mjs uses, so an archived client's open work stops
+// showing up on the calendar as a bare slug the moment the name lookup
+// misses.
+const tasks = ((await s.tasks.listAll()) as Task[]).filter((t) => t.slug === OWN_SLUG || names.has(t.slug));
+const meetings = ((await s.meetings.listAll()) as Meeting[]).filter((m) => names.has(m.slug));
 // Late tasks follow the owner onto today, each with a note of how late.
 const items = itemsForDay(tasks, meetings, day, today) as Item[];
 const lateCount = items.filter((i) => i.late).length;
