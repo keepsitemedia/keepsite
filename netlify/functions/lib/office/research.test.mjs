@@ -82,9 +82,14 @@ test('comparePair counts like the workbook and reads the strong branch', () => {
 });
 
 test('comparePair gray zone and low, on the business ratio', () => {
-  const B4 = [...A.slice(0, 4), r('https://x1.com'), r('https://x2.com'), r('https://x3.com'), r('https://x4.com')];
+  // x1-x4 are Homepage, tying B4 4-4 against the 4 Service pages carried
+  // over from A: the tiebreaker only fires when a side actually leads, and
+  // this test is about the ratio branch, not page type, so it must stay out
+  // of the way.
+  const B4 = [...A.slice(0, 4), r('https://x1.com', 'Homepage'), r('https://x2.com', 'Homepage'), r('https://x3.com', 'Homepage'), r('https://x4.com', 'Homepage')];
   const g = comparePair(A, B4);
   assert.equal(g.signal, 'gray');
+  assert.equal(g.resolvedBy, undefined);
   assert.equal(g.read, 'GRAY ZONE: some of the same businesses rank for both. Review page types and client priorities.');
   assert.equal(g.action, 'Discuss on the client call before deciding whether to split.');
 
@@ -109,7 +114,10 @@ test('comparePair gray zone and low, on the business ratio', () => {
 // Ratios, not counts: strip the directories and a SERP may hold only three or
 // four businesses, so "seven of eight" stops meaning anything.
 test('the ladder branches on the share of businesses in common', () => {
-  const biz = (n, from = 0) => Array.from({ length: n }, (_, i) => r(`https://b${i + from}.com/`));
+  // A alternates two types in a fixed 3-3 tie, so its leading type is
+  // always 'Tie / review' and the page-type tiebreaker never fires here:
+  // this test is about the ratio ladder alone.
+  const biz = (n, from = 0) => Array.from({ length: n }, (_, i) => r(`https://b${i + from}.com/`, (i + from) % 2 === 0 ? 'Homepage' : 'Service page'));
   const pair = (shared, total) => comparePair(biz(total), [...biz(shared), ...biz(total - shared, 100)]);
   assert.equal(pair(6, 6).signal, 'strong');
   assert.equal(pair(4, 6).signal, 'strong');
@@ -117,6 +125,37 @@ test('the ladder branches on the share of businesses in common', () => {
   assert.equal(pair(2, 6).signal, 'gray');
   assert.equal(pair(1, 6).signal, 'low');
   assert.equal(pair(0, 6).signal, 'low');
+});
+
+// The reasoning an owner does by hand: matching SERP shape means one question.
+test('page type resolves a gray pair, in both directions', () => {
+  const at = (type, urls) => urls.map((u) => r(u, type));
+  const same = comparePair(at('Homepage', ['https://a.com/', 'https://b.com/', 'https://x1.com/']), at('Homepage', ['https://a.com/', 'https://c.com/', 'https://x2.com/']));
+  assert.equal(same.signal, 'strong');
+  assert.equal(same.resolvedBy, 'type');
+
+  const differ = comparePair(at('Homepage', ['https://a.com/', 'https://b.com/', 'https://x1.com/']), at('Blog/FAQ', ['https://a.com/', 'https://c.com/', 'https://x2.com/']));
+  assert.equal(differ.signal, 'low');
+  assert.equal(differ.resolvedBy, 'type');
+});
+
+// samePageType saturates and must not be what decides this.
+test('the tiebreaker reads the leading type, not the overlap count', () => {
+  // Only p.com is shared; q/s differ per side, so the business ratio (1 of
+  // 3) lands in the gray band, even though every row's type still turns up
+  // somewhere on the other side, which is what samePageType saturates on.
+  const mixed = (lead, side) => [r('https://p.com/', lead), r(`https://q-${side}.com/`, lead), r(`https://s-${side}.com/`, lead), r('https://z.com/', 'Directory')];
+  const c = comparePair(mixed('Homepage', 'a'), mixed('Blog/FAQ', 'b'));
+  assert.ok(c.samePageType > 0, 'the saturating count still sees a match');
+  assert.equal(c.resolvedBy, 'type');
+  assert.equal(c.signal, 'low', 'but the leading types differ, so the pair separates');
+});
+
+test('page type cannot move a pair that was not gray', () => {
+  const at = (type, urls) => urls.map((u) => r(u, type));
+  const strong = comparePair(at('Homepage', ['https://a.com/', 'https://b.com/', 'https://c.com/']), at('Blog/FAQ', ['https://a.com/', 'https://b.com/', 'https://c.com/']));
+  assert.equal(strong.signal, 'strong');
+  assert.equal(strong.resolvedBy, undefined);
 });
 
 // Two or three businesses is too little to compute a share of. Saying so is

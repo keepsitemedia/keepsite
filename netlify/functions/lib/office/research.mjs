@@ -111,11 +111,20 @@ export function comparePair(a, b) {
     : ratio >= STRONG_RATIO ? 'strong'
     : ratio >= GRAY_RATIO ? 'gray'
     : 'low';
-  const [read, action] = READ_TEXT[branch];
+  // Only where the share of businesses was already inconclusive. A pair that
+  // is clearly one thing or the other is never second-guessed by page type.
+  // samePageType is deliberately not used: it counts a row of A whose type
+  // appears anywhere in B, so across eight results and a handful of types it
+  // is 8 almost always. The leading type on each side is what discriminates.
+  const primaryA = primaryPageOf(a);
+  const primaryB = primaryPageOf(b);
+  const comparable = primaryA && primaryB && primaryA !== 'Tie / review' && primaryB !== 'Tie / review';
+  const tie = branch !== 'gray' || !comparable ? null : primaryA === primaryB ? 'strong' : 'low';
+  const [read, action] = READ_TEXT[tie ?? branch];
   return {
     exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), samePageType, sharedUrls, sharedDomains,
     sharedBusinesses, sharedDirectories, businessesA: aBiz.length, businessesB: bBiz.length, denominator, ratio,
-    read, action, signal: branch, primaryPage: primaryPageOf([...a, ...b]),
+    read, action, signal: tie ?? branch, resolvedBy: tie ? 'type' : undefined, primaryPage: primaryPageOf([...a, ...b]),
   };
 }
 
