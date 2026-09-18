@@ -156,23 +156,30 @@ export const pairKey = (a, b) => [a, b].sort().join('|');
 
 const captured = (round) => round.keywords.filter((k) => round.serps[k.id]);
 
-export function pairs(round) {
+// Rows without the decisive label. group() needs the comparison but never the
+// label, and computing it here would make decisiveFor — which calls group —
+// recurse through every other askable pair.
+function pairRows(round) {
   const ks = captured(round);
   const out = [];
   for (let i = 0; i < ks.length; i += 1) {
     for (let j = i + 1; j < ks.length; j += 1) {
       const key = pairKey(ks[i].id, ks[j].id);
       const read = round.reads[key] ?? null;
-      const row = { a: ks[i], b: ks[j], key, ...comparePair(round.serps[ks[i].id].results, round.serps[ks[j].id].results), read };
-      // Only a pair the signal could not settle is a question. A strong or low
-      // pair has an answer already, and a pair with a read has been answered —
-      // both are null, meaning nothing to ask.
-      const askable = !read && (row.signal === 'gray' || row.signal === 'unmeasurable');
-      row.decisive = askable ? decisiveFor(round, key) : null;
-      out.push(row);
+      out.push({ a: ks[i], b: ks[j], key, ...comparePair(round.serps[ks[i].id].results, round.serps[ks[j].id].results), read });
     }
   }
   return out;
+}
+
+export function pairs(round) {
+  return pairRows(round).map((row) => {
+    // Only a pair the signal could not settle is a question. A strong or low
+    // pair has an answer already, and a pair with a read has been answered —
+    // both are null, meaning nothing to ask.
+    const askable = !row.read && (row.signal === 'gray' || row.signal === 'unmeasurable');
+    return { ...row, decisive: askable ? decisiveFor(round, row.key) : null };
+  });
 }
 
 // Would the owner's answer change anything? Force the pair each way and
@@ -194,7 +201,7 @@ export function group(round) {
   const parent = new Map(ks.map((k) => [k.id, k.id]));
   const find = (x) => (parent.get(x) === x ? x : find(parent.get(x)));
   const union = (x, y) => parent.set(find(x), find(y));
-  const ps = pairs(round);
+  const ps = pairRows(round);
   for (const p of ps) {
     const same = p.read?.sameCluster;
     if (same === 'No') continue;

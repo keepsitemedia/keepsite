@@ -384,6 +384,38 @@ test('a gray pair already joined through a third keyword is not decisive', () =>
   assert.equal(ac.decisive, false);
 });
 
+// decisiveFor calls group(), which must not recompute decisive for every
+// other askable pair — that recursion is factorial in the number of
+// simultaneously-gray pairs. Six keywords, all fifteen pairs gray and
+// unread, is the shape that caught it: each keyword shares exactly one
+// business with every other, so every pair sits at the 1/3 gray floor, and
+// mixed page types keep the tiebreaker from resolving any of them away.
+test('many simultaneous gray pairs resolve without recursing', () => {
+  const kw = (n) => ({ id: `k${n}`, text: `kw${n}`, cluster: 'C' });
+  const serpFor = (n) => ({
+    capturedAt: '2026-09-17T00:00:00.000Z',
+    related: [],
+    results: [
+      { rank: 1, ...r('https://shared.com/', 'Service page') },
+      { rank: 2, ...r(`https://u${n}a.com/`, 'Location page') },
+      { rank: 3, ...r(`https://u${n}b.com/`, 'Homepage') },
+    ],
+  });
+  const round = {
+    ...emptyRound('r1'),
+    keywords: [1, 2, 3, 4, 5, 6].map(kw),
+    serps: Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`k${n}`, serpFor(n)])),
+  };
+  const rows = pairs(round);
+  assert.equal(rows.length, 15);
+  // Nothing else joins any two of these keywords, so the owner's answer on
+  // any one pair is the only thing that could merge it: every pair decides.
+  for (const p of rows) {
+    assert.equal(p.signal, 'gray', `${p.a.text} · ${p.b.text}`);
+    assert.equal(p.decisive, true, `${p.a.text} · ${p.b.text}`);
+  }
+});
+
 test('a pair that would split the page list is decisive', () => {
   // Mixed page types on both sides so there is no leading type to settle the
   // tie (see comparePair's tiebreaker) and the ratio alone decides: gray.
