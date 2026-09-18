@@ -131,6 +131,13 @@ export function createStore({ office, questionnaires }) {
         return (await questionnaires.list(prefix)).filter((k) => !ENVELOPES.has(k.slice(prefix.length)));
       },
       async file(slug, name) { return questionnaires.getBytes(`${assertSlug(slug)}/${assertDocName(name)}`); },
+      // Written by the questionnaire endpoint through its own store handle, so
+      // there is no put here — but a deleted client's answers must go, or the
+      // next client on that slug inherits them with nothing to show they did.
+      async remove(slug) {
+        const prefix = `${assertSlug(slug)}/`;
+        for (const key of await questionnaires.list(prefix)) await questionnaires.remove(key);
+      },
     },
     documents: documents(office),
     tokens: {

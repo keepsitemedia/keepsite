@@ -82,6 +82,12 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     for (const meta of await s.documents.list(slug)) {
       if (meta?.name) await s.documents.remove(slug, meta.name);
     }
+    // Both are keyed by slug, and a slug is reusable: left behind, they are
+    // silently inherited by the next client of the same name. A signing token
+    // is not cleared, deliberately — it resolves through an agreement id that
+    // was just deleted, so it can only ever resolve to nothing.
+    await s.research.remove(slug);
+    await s.questionnaires.remove(slug);
     await s.clients.remove(slug);
     return redirect('/office/clients/');
   }

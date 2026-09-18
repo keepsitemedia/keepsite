@@ -8,6 +8,13 @@ import { newContact } from '../contacts.mjs';
 
 const SECRET = 's';
 const make = () => createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+// The questionnaire endpoint writes through its own store handle, so the
+// office store exposes no writer; a test that seeds answers must hold the
+// backend itself.
+const makeWithIntake = () => {
+  const intake = memoryBackend();
+  return { s: createStore({ office: memoryBackend(), questionnaires: intake }), intake };
+};
 const post = (fields) => {
   const d = new FormData();
   for (const [k, v] of Object.entries(fields)) d.append(k, v);
@@ -29,6 +36,23 @@ test('create writes the client, its inquiry tasks, and redirects to it', async (
   assert.equal(c.stage, 'inquiry');
   assert.equal(c.pipeline, 'website');
   assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Reply with recommendation']);
+});
+
+// A slug is reusable, so anything left behind under it is inherited by the
+// next client of the same name — and nothing in the office would show it.
+test('delete clears the research study and the questionnaire answers', async () => {
+  const { s, intake } = makeWithIntake();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await s.research.put('lova', { slug: 'lova', createdAt: 'a', updatedAt: 'a', rounds: [] });
+  await intake.setText('lova/build.json', JSON.stringify({ answers: { business: 'Lova' } }));
+  await intake.setBytes('lova/logo.png', new Uint8Array([1, 2, 3]), { type: 'image/png' });
+
+  await action(post({ op: 'delete', csrf, slug: 'lova' }), ctx(), s);
+
+  assert.equal(await s.clients.get('lova'), null);
+  assert.equal(await s.research.get('lova'), null);
+  assert.equal(await s.questionnaires.get('lova', 'build'), null);
+  assert.deepEqual(await s.questionnaires.files('lova'), []);
 });
 
 test('create picks a free slug when the business name is taken', async () => {
