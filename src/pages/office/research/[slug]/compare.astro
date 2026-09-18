@@ -32,6 +32,11 @@ const urls = new Set(c.sharedUrls as string[]);
 const domains = new Set(c.sharedDomains as string[]);
 // A row lights for the strongest match it has: the exact page, else the business.
 const mark = (r: any) => (urls.has(normalizeUrl(r.url)) ? 'hl-url' : domains.has(businessOf(r.url)) ? 'hl-domain' : '');
+// Every business that ranks on both sides gets a number, printed on each of
+// its rows in both columns, so the pairing survives without the lines — on a
+// narrow screen the columns stack and there is nothing to draw between.
+const numbered = new Map<string, number>([...domains].sort().map((d, i) => [d, i + 1]));
+const badge = (r: any) => numbered.get(businessOf(r.url)) ?? null;
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const tab = `/office/clients/${slug}/?tab=research`;
 // The workbook's suggested read for this branch, so the select can name it.
@@ -63,19 +68,21 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
   <p><strong>{describePair(c, total)}</strong><br /><span class="quiet">Suggested: {c.action}</span></p>
 
   <h2>Results <span class="sub">top {total} for each search</span></h2>
-  <p class="quiet legend"><span class="hl-url">Same exact URL</span> <span class="hl-domain">Same business, different page</span> <span class="legend-note">Unmarked results appear in only one search.</span></p>
-  <div class="serps">
+  <p class="quiet legend"><span class="hl-url">Same exact URL</span> <span class="hl-domain">Same business, different page</span> <span class="legend-note">A number pairs one business across both columns; a solid line joins the same page, a dashed line the same business on a different page. Unmarked results appear in only one search.</span></p>
+  <div class="serps" data-lines>
+    <svg class="serp-lines" aria-hidden="true"></svg>
     {[{ k: a, serp: serpA }, { k: b, serp: serpB }].map(({ k, serp }) => (
       <section class="serp">
         <h3>{k.text}<span class="meta">captured {day(serp.capturedAt)}</span></h3>
         <ol class="serp-list">
           {serp.results.map((r: any) => (
-            <li class={mark(r)}>
+            <li class={mark(r)} data-biz={badge(r) ? businessOf(r.url) : undefined} data-url={badge(r) ? normalizeUrl(r.url) : undefined}>
               <span class="rank">{r.rank}</span>
               <span class="res">
                 <a href={r.url} target="_blank" rel="noopener">{r.title}</a>
                 <span class="meta">{r.domain} · {r.pageType}{r.typeSource === 'manual' ? ' · edited' : ''}</span>
               </span>
+              {badge(r) && <span class="biz-badge" title={`Business ${badge(r)}: ${businessOf(r.url)}`}>{badge(r)}</span>}
             </li>
           ))}
         </ol>
@@ -97,3 +104,41 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
     </div>
   </form>
 </OfficeLayout>
+
+<script>
+  // Connectors between the two columns, one per shared business: a row on
+  // the left to every row on the right with the same business. Solid when the
+  // two rows are the same page, dashed when the business ranks with a
+  // different page for each search. Drawn from layout, so redrawn on resize;
+  // hidden by CSS once the columns stack, where a line would have to go
+  // through the text.
+  const wrap = document.querySelector('[data-lines]');
+  const svg = wrap?.querySelector('svg.serp-lines');
+  const cols = wrap ? [...wrap.querySelectorAll('.serp')] : [];
+  function draw() {
+    if (!wrap || !svg || cols.length !== 2) return;
+    const box = wrap.getBoundingClientRect();
+    svg.setAttribute('width', String(box.width));
+    svg.setAttribute('height', String(box.height));
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    const left = [...cols[0].querySelectorAll<HTMLElement>('li[data-biz]')];
+    const right = [...cols[1].querySelectorAll<HTMLElement>('li[data-biz]')];
+    const paths = [];
+    for (const a of left) {
+      for (const b of right) {
+        if (a.dataset.biz !== b.dataset.biz) continue;
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        const x1 = ra.right - box.left; const y1 = ra.top + ra.height / 2 - box.top;
+        const x2 = rb.left - box.left; const y2 = rb.top + rb.height / 2 - box.top;
+        const mid = (x1 + x2) / 2;
+        const same = a.dataset.url === b.dataset.url;
+        paths.push(`<path d="M${x1},${y1} C${mid},${y1} ${mid},${y2} ${x2},${y2}" class="${same ? 'line-url' : 'line-biz'}"/>`);
+      }
+    }
+    svg.innerHTML = paths.join('');
+  }
+  draw();
+  if (wrap) new ResizeObserver(draw).observe(wrap);
+  window.addEventListener('load', draw);
+</script>
