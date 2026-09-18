@@ -46,7 +46,7 @@ const captures = round.keywords.filter((k: any) => round.serps[k.id]);
       <li class="no-tick">
         <span class="when">{p.read ? <Mark state="done">{p.read.human}</Mark> : <Mark state="none">Not decided</Mark>}</span>
         <span class="what"><span class="title">{p.a.text} · {p.b.text}</span>
-          <span class="meta line">{p.exactUrl} same URL · {p.sameDomainDifferentPage} same business · suggested: {p.action}</span>
+          <span class="meta line">{p.signal === 'unmeasurable' ? 'too few businesses to compare' : `${p.sharedBusinesses} of ${p.denominator} businesses`} · {p.sharedDirectories} shared {p.sharedDirectories === 1 ? 'directory' : 'directories'} · {p.samePageType} same type{p.resolvedBy === 'type' ? ' · settled on page type' : ''} · suggested: {p.action}</span>
           {p.read?.notes && <span class="meta line">Note: {p.read.notes}</span>}
         </span>
       </li>

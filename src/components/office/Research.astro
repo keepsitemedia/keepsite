@@ -20,7 +20,6 @@ const captures = round.keywords.filter((k: any) => round.serps[k.id]);
 const next = round.keywords.find((k: any) => !round.serps[k.id]);
 const ps = pairs(round) as any[];
 const gray = ps.filter((p) => p.signal === 'gray');
-const undecided = gray.filter((p) => !p.read);
 const strong = ps.filter((p) => p.signal === 'strong').length;
 const low = ps.filter((p) => p.signal === 'low').length;
 const unmeasurable = ps.filter((p) => p.signal === 'unmeasurable').length;
@@ -46,9 +45,15 @@ const facts: Fact[] = [
   round.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
     : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${round.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text), search: true }
     : { label: 'Captured', state: 'done', text: `All ${round.keywords.length}` },
+  // Same definition the Pairs heading and queue below use: decisive, not
+  // merely gray-and-unread. Anything else and the glance and the queue can
+  // disagree on the same screen — a count above a queue of a different size,
+  // a "Next:" link to a pair the queue itself suppresses, or "All decided"
+  // while an unmeasurable pair (never gray, so never counted here before)
+  // still sits unanswered.
   ps.length === 0 ? { label: 'Pairs', state: 'none', text: 'Nothing to compare yet' }
-    : undecided.length ? { label: 'Pairs', state: 'none', text: `${undecided.length} to decide`, detail: `Next: ${undecided[0].a.text} · ${undecided[0].b.text}`, href: compare(undecided[0].key) }
-    : gray.length ? { label: 'Pairs', state: 'done', text: 'All decided', detail: `${gray.length} in the gray zone` }
+    : decisive.length ? { label: 'Pairs', state: 'none', text: `${decisive.length} to decide`, detail: `Next: ${decisive[0].a.text} · ${decisive[0].b.text}`, href: compare(decisive[0].key) }
+    : gray.length || unmeasurable ? { label: 'Pairs', state: 'done', text: 'All decided', detail: `${gray.length + unmeasurable} settled without changing the page list` }
     : { label: 'Pairs', state: 'done', text: 'None in the gray zone', detail: `${strong} agree, ${low} differ` },
   pages.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
     : { label: 'Pages', state: pages.some((p) => p.type === 'Tie / review') ? 'waiting' : 'done', text: `${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`, detail: edited ? `${edited} edited by you` : 'Grouped automatically' },

@@ -35,7 +35,10 @@ const mark = (r: any) => (urls.has(normalizeUrl(r.url)) ? 'hl-url' : domains.has
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const tab = `/office/clients/${slug}/?tab=research`;
 // The workbook's suggested read for this branch, so the select can name it.
-const suggested = c.signal === 'strong' ? 'Same intent' : c.signal === 'gray' ? 'Gray zone / discuss' : 'Probably different';
+// unmeasurable gets no suggestion at all: too few businesses to compute a
+// share means there is nothing for the numbers to recommend, and the page
+// says as much above the form — a pre-picked option would contradict it.
+const suggested = c.signal === 'strong' ? 'Same intent' : c.signal === 'gray' ? 'Gray zone / discuss' : c.signal === 'unmeasurable' ? null : 'Probably different';
 const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray zone' : c.signal === 'unmeasurable' ? 'Cannot tell' : 'Differ';
 ---
 <OfficeLayout title={`${a.text} vs ${b.text}`}>
@@ -48,9 +51,13 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
   <dl class="glance">
     <div><dt>Businesses in common</dt><dd>{c.signal === 'unmeasurable' ? 'too few to compare' : `${c.sharedBusinesses} of ${c.denominator}`}<span class="detail">{signalWord}</span></dd></div>
     <div><dt>Directories in common</dt><dd>{c.sharedDirectories}<span class="detail">rank for almost everything</span></dd></div>
-    <div><dt>Same exact URL</dt><dd>{c.exactUrl} of {total}<span class="detail">{signalWord}</span></dd></div>
-    <div><dt>Same business</dt><dd>{c.sameDomain} of {total}<span class="detail">{c.sameDomainDifferentPage} with a different page</span></dd></div>
-    <div><dt>Same page type</dt><dd>{c.samePageType} of {total}</dd></div>
+    {/* These three count every result, directories included — unlike "Businesses in
+        common" above, which is the measured signal. On an unmeasurable pair the "of
+        total" is dropped too, so a small, directory-padded field cannot read as a
+        near-total match next to a metric that says it cannot be compared. */}
+    <div><dt>Same exact URL — all results</dt><dd>{c.signal === 'unmeasurable' ? c.exactUrl : `${c.exactUrl} of ${total}`}<span class="detail">{signalWord}</span></dd></div>
+    <div><dt>Same business — all results</dt><dd>{c.signal === 'unmeasurable' ? c.sameDomain : `${c.sameDomain} of ${total}`}<span class="detail">{c.sameDomainDifferentPage} with a different page</span></dd></div>
+    <div><dt>Same page type — all results</dt><dd>{c.signal === 'unmeasurable' ? c.samePageType : `${c.samePageType} of ${total}`}</dd></div>
     <div><dt>Primary page</dt><dd>{c.primaryPage || 'None'}{c.primaryPage === 'Tie / review' && <span class="detail">Yours to choose</span>}</dd></div>
   </dl>
   <p><strong>{describePair(c, total)}</strong><br /><span class="quiet">Suggested: {c.action}</span></p>

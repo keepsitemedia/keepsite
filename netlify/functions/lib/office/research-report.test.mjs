@@ -75,6 +75,33 @@ test('the report explains why directories are set aside', () => {
   assert.ok(!/Seven or more shared results out of eight/.test(words));
 });
 
+// The page-grouping rationale used to say "share seven or more of their top
+// eight results" long after strong stopped meaning that: it means most of
+// the smaller side's businesses, directories aside. That line is read by the
+// client, in a PDF, as the reason for the page list — it has to describe
+// what is actually measured now, nowhere in the report.
+test('the page-grouping rationale never quotes seven-of-eight results', async () => {
+  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
+  s.rounds[0] = {
+    ...s.rounds[0],
+    keywords: [
+      { id: 'k1', text: 'wedding florist provo', cluster: 'Weddings', arm: '', source: 'manual' },
+      { id: 'k2', text: 'provo wedding flowers', cluster: 'Weddings', arm: '', source: 'manual' },
+    ],
+  };
+  const A = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://a${n}.com/p`));
+  s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: A, related: [] });
+  s = applyCapture(s, 'k2', { q: 'provo wedding flowers', results: [...A.slice(0, 7), r('https://other.com/p')], related: [] });
+  const round = openRound(s);
+  assert.equal(pairs(round)[0].signal, 'strong', 'fixture must exercise the strong, multi-keyword page branch');
+
+  const lines = reportLines({ client, round, renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
+  assert.ok(text.includes('The pages we recommend'), 'sanity: the page section rendered');
+  assert.ok(!/seven or more/i.test(text), 'no seven-of-eight phrasing anywhere in the report');
+  assert.ok(!/top eight/i.test(text), 'no seven-of-eight phrasing anywhere in the report');
+});
+
 test('a read on an unmeasurable pair still reaches the decisions table', async () => {
   let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
   s.rounds[0] = {

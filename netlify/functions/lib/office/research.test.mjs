@@ -457,6 +457,40 @@ test('many simultaneous gray pairs resolve without recursing', () => {
   }
 });
 
+// decisiveFor used to recompute comparePair for every pair, twice, for every
+// askable pair — measured 39ms at 10 keywords but 7.4s at 40, and ~25s on a
+// directory-heavy real study, because comparePair does not depend on reads
+// and was being redone anyway. Same shape as the six-keyword recursion test
+// above, scaled to 40 keywords (780 pairs, all gray, all decisive), which is
+// enough to have caught the old cost but not so much it flakes on a slow CI box.
+test('pairs() computes comparePair once per pair, not once per probe', () => {
+  const kw = (n) => ({ id: `k${n}`, text: `kw${n}`, cluster: 'C' });
+  const serpFor = (n) => ({
+    capturedAt: '2026-09-17T00:00:00.000Z',
+    related: [],
+    results: [
+      { rank: 1, ...r('https://shared.com/', 'Service page') },
+      { rank: 2, ...r(`https://u${n}a.com/`, 'Location page') },
+      { rank: 3, ...r(`https://u${n}b.com/`, 'Homepage') },
+    ],
+  });
+  const ids = Array.from({ length: 40 }, (_, i) => i + 1);
+  const round = {
+    ...emptyRound('r1'),
+    keywords: ids.map(kw),
+    serps: Object.fromEntries(ids.map((n) => [`k${n}`, serpFor(n)])),
+  };
+  const started = Date.now();
+  const rows = pairs(round);
+  const elapsed = Date.now() - started;
+  assert.equal(rows.length, 780);
+  for (const p of rows) {
+    assert.equal(p.signal, 'gray', `${p.a.text} · ${p.b.text}`);
+    assert.equal(p.decisive, true, `${p.a.text} · ${p.b.text}`);
+  }
+  assert.ok(elapsed < 3000, `pairs() took ${elapsed}ms on 40 keywords; comparePair is being recomputed per probe again`);
+});
+
 test('a pair that would split the page list is decisive', () => {
   // Mixed page types on both sides so there is no leading type to settle the
   // tie (see comparePair's tiebreaker) and the ratio alone decides: gray.

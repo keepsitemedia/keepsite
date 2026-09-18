@@ -42,7 +42,7 @@ export function reportLines({ client, round, renderedAt }) {
   if (round.notes?.intro) p(round.notes.intro);
 
   h2('What we did');
-  p(`We searched ${plural(captured.length, 'term')} drawn from your questionnaire, each under the same conditions, and kept the top eight organic results for every one, ignoring ads and map listings. Then we compared every pair of searches: ${plural(ps.length, 'comparison')} in all. Directory sites — wedding listings, social profiles, forums — rank for almost every search in a field, so they tell us little about what a particular search means. We compare the individual businesses instead. When most of the same businesses answer two searches with the same page, the two searches are one question and one page should answer them. When they mostly differ, they are separate questions and need separate pages.`);
+  p(`We searched ${plural(captured.length, 'term')} drawn from your questionnaire, each under the same conditions, and kept up to eight organic results for every one, ignoring ads and map listings. Then we compared every pair of searches: ${plural(ps.length, 'comparison')} in all. Directory sites — review sites, social profiles, forums — rank for almost every search in a field, so they tell us little about what a particular search means. We compare the individual businesses instead. When most of the same businesses answer two searches with the same page, the two searches are one question and one page should answer them. When they mostly differ, they are separate questions and need separate pages. When the businesses alone do not settle it, we also look at whether the two searches turn up the same kind of page — both homepages, say, or both blog posts — and let that decide.`);
 
   h2('The pages we recommend');
   if (!pageRows.length) p('No searches have been captured yet.');
@@ -54,9 +54,12 @@ export function reportLines({ client, round, renderedAt }) {
     const doms = topDomains(results, 3).map(([d]) => d);
     p(`${row.title}${row.type ? ` — ${row.type}` : ''}`);
     small(`Targets: ${ids.map(text).join('; ')}`);
+    // 'strong' is a count of pairs whose businesses (directories aside)
+    // mostly overlap, not a fraction of eight results — say it in words a
+    // client can act on, not a number they might expect to reproduce by hand.
     const why = ids.length === 1
       ? 'This search shares few results with any other, so it earns a page of its own.'
-      : `${plural(strong, 'pair', 'pairs')} of these searches share seven or more of their top eight results, so one page can answer all of them.`;
+      : `${plural(strong, 'pair', 'pairs')} of these searches bring up mostly the same businesses, so one page can answer all of them.`;
     small(`${why}${doms.length ? ` The businesses that rank most across them: ${doms.join(', ')}.` : ''}${row.note ? ` ${row.note}` : ''}`);
   }
 

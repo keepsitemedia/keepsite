@@ -103,6 +103,13 @@ export function comparePair(a, b) {
   const sharedDomains = sharedIn(a, b, (x) => domainOf(x.url));
   const aBiz = businessesOf(a);
   const bBiz = businessesOf(b);
+  // Whichever side has fewer businesses sets the denominator, so a search
+  // whose businesses are a strict subset of the other's always scores a
+  // perfect 1.0 — no gray zone, no question asked. That is the same shape
+  // MIN_BUSINESSES=3 is meant to guard against: the thinnest measurable SERP
+  // is the one likeliest to look like a perfect match. Nobody has measured
+  // how often this actually fires; run `node scripts/calibrate-pairs.mjs`
+  // against a real study before trusting a 'strong' result on a lopsided pair.
   const denominator = Math.min(aBiz.length, bBiz.length);
   const sharedBusinesses = countIn(aBiz, bBiz, (x) => normalizeUrl(x.url));
   const sharedDirectories = countIn(a.filter(isDirectory), b.filter(isDirectory), (x) => normalizeUrl(x.url));
@@ -168,9 +175,11 @@ export const pairKey = (a, b) => [a, b].sort().join('|');
 
 const captured = (round) => round.keywords.filter((k) => round.serps[k.id]);
 
-// Rows without the decisive label. group() needs the comparison but never the
-// label, and computing it here would make decisiveFor — which calls group —
-// recurse through every other askable pair.
+// Rows without the decisive label, computed once per round. group() and
+// decisiveFor() both need the comparison but never the label — computing it
+// here would make decisiveFor recurse through every other askable pair —
+// and comparePair does not depend on reads, so every caller can share these
+// same rows instead of paying for comparePair again.
 function pairRows(round) {
   const ks = captured(round);
   const out = [];
@@ -185,35 +194,44 @@ function pairRows(round) {
 }
 
 export function pairs(round) {
-  return pairRows(round).map((row) => {
+  const rows = pairRows(round);
+  return rows.map((row) => {
     // Only a pair the signal could not settle is a question. A strong or low
     // pair has an answer already, and a pair with a read has been answered —
     // both are null, meaning nothing to ask.
     const askable = !row.read && (row.signal === 'gray' || row.signal === 'unmeasurable');
-    return { ...row, decisive: askable ? decisiveFor(round, row.key) : null };
+    return { ...row, decisive: askable ? decisiveFor(rows, round, row.key) : null };
   });
 }
 
 // Would the owner's answer change anything? Force the pair each way and
-// compare the page lists. When they match, the two keywords are already
-// joined (or already separated) through other pairs and the question is
-// rhetorical. Two group() passes per undecided pair; at forty keywords that
-// is milliseconds, and past a hundred it wants revisiting.
-function decisiveFor(round, key) {
-  const withRead = (sameCluster) => ({ ...round, reads: { ...round.reads, [key]: { human: 'Gray zone / discuss', sameCluster, notes: '' } } });
-  const asOne = pageList(withRead('Yes')).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
-  const asTwo = pageList(withRead('No')).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
+// compare the resulting groups. When they match, the two keywords are
+// already joined (or already separated) through other pairs and the
+// question is rhetorical. comparePair does not depend on reads — only the
+// forced pair's read differs between the two probes — so this reuses the
+// rows already built for the round instead of recomputing comparePair for
+// every pair, twice, for every askable pair. That recomputation is what made
+// this O(n^4): 39ms at 10 keywords, 7.4s at 40, ~25s on a directory-heavy
+// real study, on every render of the Research tab, the report and every
+// archived round.
+function decisiveFor(rows, round, key) {
+  const withRead = (sameCluster) => rows.map((row) => (row.key === key
+    ? { ...row, read: { human: 'Gray zone / discuss', sameCluster, notes: '' } }
+    : row));
+  const asOne = groupFrom(withRead('Yes'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
+  const asTwo = groupFrom(withRead('No'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
   return asOne !== asTwo;
 }
 
 // Union-find over captured keywords. A strong pair joins unless the owner
-// said No; a Yes joins whatever the numbers say.
-export function group(round) {
+// said No; a Yes joins whatever the numbers say. Takes already-built rows —
+// comparePair does not depend on reads, so a caller with rows in hand (see
+// decisiveFor) never has to recompute them.
+function groupFrom(ps, round) {
   const ks = captured(round);
   const parent = new Map(ks.map((k) => [k.id, k.id]));
   const find = (x) => (parent.get(x) === x ? x : find(parent.get(x)));
   const union = (x, y) => parent.set(find(x), find(y));
-  const ps = pairRows(round);
   for (const p of ps) {
     const same = p.read?.sameCluster;
     if (same === 'No') continue;
@@ -232,6 +250,10 @@ export function group(round) {
     return { id: `p-${ids.slice().sort().join('-')}`, title: round.keywords.find((k) => k.id === title).text, type: primaryPageOf(results), keywords: ids, note: '', auto: true };
   });
   return rows.sort((x, y) => y.keywords.length - x.keywords.length || round.keywords.findIndex((k) => k.id === x.keywords[0]) - round.keywords.findIndex((k) => k.id === y.keywords[0]));
+}
+
+export function group(round) {
+  return groupFrom(pairRows(round), round);
 }
 
 export function pageList(round) {
