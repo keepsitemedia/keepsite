@@ -51,10 +51,18 @@ export function classify({ url, title }, areas = []) {
   return 'Service page';
 }
 
+// PROVISIONAL. These are reasoned, not measured: run
+// `node scripts/calibrate-pairs.mjs <export.json>` against a real study and
+// move them to where the data separates. Until that has been done, treat a
+// pair near a boundary as a judgement call rather than a verdict.
+export const STRONG_RATIO = 2 / 3;
+export const GRAY_RATIO = 1 / 3;
+export const MIN_BUSINESSES = 3;
+
 const READ_TEXT = {
   strong: ['Strong overlap: very likely the same search intent.', 'Keep these keywords in the same cluster/page.'],
-  gray: ['GRAY ZONE: 3–6 shared URLs. Review page types, domains, and client priorities.', 'Discuss on the client call before deciding whether to split.'],
-  domain: ['Low exact overlap, but many of the same businesses rank with different pages.', 'Inspect which pages each business uses before splitting.'],
+  gray: ['GRAY ZONE: some of the same businesses rank for both. Review page types and client priorities.', 'Discuss on the client call before deciding whether to split.'],
+  unmeasurable: ['Too few businesses rank for these searches — nearly all directories — so a share cannot be computed.', 'Decide this one on what the client does, not on the numbers.'],
   low: ['Low overlap: likely a meaningfully different intent.', 'Consider separate clusters/pages if page types also differ.'],
 };
 
@@ -99,12 +107,15 @@ export function comparePair(a, b) {
   const sharedBusinesses = countIn(aBiz, bBiz, (x) => normalizeUrl(x.url));
   const sharedDirectories = countIn(a.filter(isDirectory), b.filter(isDirectory), (x) => normalizeUrl(x.url));
   const ratio = denominator ? sharedBusinesses / denominator : null;
-  const branch = exactUrl >= 7 ? 'strong' : exactUrl >= 3 ? 'gray' : sameDomain >= 4 ? 'domain' : 'low';
+  const branch = denominator < MIN_BUSINESSES ? 'unmeasurable'
+    : ratio >= STRONG_RATIO ? 'strong'
+    : ratio >= GRAY_RATIO ? 'gray'
+    : 'low';
   const [read, action] = READ_TEXT[branch];
   return {
     exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), samePageType, sharedUrls, sharedDomains,
     sharedBusinesses, sharedDirectories, businessesA: aBiz.length, businessesB: bBiz.length, denominator, ratio,
-    read, action, signal: branch === 'domain' ? 'low' : branch, primaryPage: primaryPageOf([...a, ...b]),
+    read, action, signal: branch, primaryPage: primaryPageOf([...a, ...b]),
   };
 }
 

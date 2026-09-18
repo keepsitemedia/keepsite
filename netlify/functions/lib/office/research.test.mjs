@@ -81,27 +81,59 @@ test('comparePair counts like the workbook and reads the strong branch', () => {
   assert.equal(c.primaryPage, 'Service page');
 });
 
-test('comparePair gray zone, domain branch, and low', () => {
+test('comparePair gray zone and low, on the business ratio', () => {
   const B4 = [...A.slice(0, 4), r('https://x1.com'), r('https://x2.com'), r('https://x3.com'), r('https://x4.com')];
   const g = comparePair(A, B4);
   assert.equal(g.signal, 'gray');
-  assert.equal(g.read, 'GRAY ZONE: 3–6 shared URLs. Review page types, domains, and client priorities.');
+  assert.equal(g.read, 'GRAY ZONE: some of the same businesses rank for both. Review page types and client priorities.');
   assert.equal(g.action, 'Discuss on the client call before deciding whether to split.');
 
-  // Same businesses, different pages: five domains match, no URL does.
+  // Same businesses, different pages: five domains match (still counted by
+  // sameDomain, unchanged), but no URL does, so no business counts as shared
+  // and the ratio is 0 — there is no "domain" branch to catch this anymore.
   const Bd = [1, 2, 3, 4, 5].map((n) => r(`https://a${n}.com/other`)).concat([r('https://y1.com'), r('https://y2.com'), r('https://y3.com')]);
   const d = comparePair(A, Bd);
   assert.equal(d.exactUrl, 0);
   assert.equal(d.sameDomain, 5);
   assert.equal(d.sameDomainDifferentPage, 5);
   assert.equal(d.signal, 'low');
-  assert.equal(d.read, 'Low exact overlap, but many of the same businesses rank with different pages.');
-  assert.equal(d.action, 'Inspect which pages each business uses before splitting.');
+  assert.equal(d.read, 'Low overlap: likely a meaningfully different intent.');
+  assert.equal(d.action, 'Consider separate clusters/pages if page types also differ.');
 
   const Bn = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://z${n}.com/p`));
   const l = comparePair(A, Bn);
   assert.equal(l.read, 'Low overlap: likely a meaningfully different intent.');
   assert.equal(l.action, 'Consider separate clusters/pages if page types also differ.');
+});
+
+// Ratios, not counts: strip the directories and a SERP may hold only three or
+// four businesses, so "seven of eight" stops meaning anything.
+test('the ladder branches on the share of businesses in common', () => {
+  const biz = (n, from = 0) => Array.from({ length: n }, (_, i) => r(`https://b${i + from}.com/`));
+  const pair = (shared, total) => comparePair(biz(total), [...biz(shared), ...biz(total - shared, 100)]);
+  assert.equal(pair(6, 6).signal, 'strong');
+  assert.equal(pair(4, 6).signal, 'strong');
+  assert.equal(pair(3, 6).signal, 'gray');
+  assert.equal(pair(2, 6).signal, 'gray');
+  assert.equal(pair(1, 6).signal, 'low');
+  assert.equal(pair(0, 6).signal, 'low');
+});
+
+// Two or three businesses is too little to compute a share of. Saying so is
+// more honest than dressing up noise as a measurement.
+test('a pair with too few businesses is unmeasurable, not low', () => {
+  const biz = (n) => Array.from({ length: n }, (_, i) => r(`https://b${i}.com/`));
+  const c = comparePair(biz(2), biz(2));
+  assert.equal(c.signal, 'unmeasurable');
+  assert.match(c.read, /cannot/i);
+});
+
+test('unmeasurable never groups automatically', () => {
+  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }], serps: {} };
+  const serp = (n) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: Array.from({ length: n }, (_, i) => ({ rank: i + 1, ...r(`https://b${i}.com/`) })), related: [] });
+  round.serps.k1 = serp(2); round.serps.k2 = serp(2);
+  assert.equal(pairs(round)[0].signal, 'unmeasurable');
+  assert.equal(group(round).length, 2, 'two ungrouped keywords, not one page');
 });
 
 test('comparePair names the shared URLs and businesses the counts come from', () => {
@@ -134,7 +166,8 @@ test('comparePair primary page is the mode across both lists, tie reviewed, empt
   assert.equal(comparePair(a, b).primaryPage, 'Homepage');
   assert.equal(comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]).primaryPage, 'Tie / review');
   assert.equal(comparePair([], []).primaryPage, '');
-  assert.equal(comparePair([], []).read, 'Low overlap: likely a meaningfully different intent.');
+  // Zero businesses on each side is zero to divide by, same as too few: unmeasurable, not a verdict of "low".
+  assert.equal(comparePair([], []).read, 'Too few businesses rank for these searches — nearly all directories — so a share cannot be computed.');
 });
 
 test('comparePair counts businesses and directories apart', () => {
