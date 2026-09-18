@@ -30,6 +30,7 @@ type ClientDoc = {
   business: string; name: string; email: string; phone: string; website: string; tier: string; pipeline: string; stage: string;
   stages: { stage: string; at: string }[];
   dates: { inquiry: string; signed: string | null; launched: string | null };
+  archivedAt: string | null; archivedReason: string;
 };
 type StageRow = { id: string; name: string };
 type PipelineRow = { stages: StageRow[]; questionnaires?: string[] };
@@ -155,6 +156,17 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
     <h1 class="file-name">{client.business}</h1>
     <span class="sub">{client.tier || 'Tier not decided'}</span>
   </div>
+  {client.archivedAt && (
+    <p class="notice">
+      Archived {formatYmd(todayIn(undefined, new Date(client.archivedAt)))}{client.archivedReason ? ` — ${client.archivedReason}` : ''}.
+      <form method="POST" action="/office/api/client" class="inline">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="op" value="restore" />
+        <input type="hidden" name="slug" value={slug} />
+        <button class="link-quiet">Restore</button>
+      </form>
+    </p>
+  )}
   <p class="file-line">
     <span>{client.name}</span>
     <a href={`mailto:${client.email}`}>{client.email}</a>
@@ -204,6 +216,16 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
             <ClientFields client={client as unknown as Record<string, string>} />
             <div class="form-foot"><button class="btn">Save</button></div>
           </form>
+          {!client.archivedAt && (
+            <form method="POST" action="/office/api/client" class="form-foot">
+              <input type="hidden" name="csrf" value={csrf} />
+              <input type="hidden" name="op" value="archive" />
+              <input type="hidden" name="slug" value={slug} />
+              <label class="field grow"><span>Why are they leaving?</span><input name="reason" placeholder="stopped replying after the demo" /></label>
+              <button class="btn-quiet">Archive client</button>
+              <span class="field-hint">Keeps everything, takes them off your lists. Refused while a subscription is still active.</span>
+            </form>
+          )}
           <form method="POST" action="/office/api/client" class="form-foot">
             <input type="hidden" name="csrf" value={csrf} />
             <input type="hidden" name="op" value="delete" />
