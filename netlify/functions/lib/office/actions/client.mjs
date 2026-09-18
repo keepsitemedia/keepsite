@@ -60,6 +60,31 @@ export async function client(request, ctx, s = defaultStore(), now = new Date())
     return redirect(`/office/clients/${slug}/`);
   }
 
+  if (op === 'archive') {
+    const slug = field(data, 'slug');
+    if (!SLUG.test(slug)) return problem(400, 'bad slug');
+    const existing = await s.clients.get(slug);
+    if (!existing) return problem(404, 'no such client');
+    if (existing.archivedAt) return back(`/office/clients/${slug}/`, ['this client is already archived']);
+    // A subscription still running would keep charging someone who has left,
+    // from a page the owner has just taken off their daily views.
+    if ((await s.payments.list(slug)).some((p) => p.kind === 'subscription' && p.status === 'active')) {
+      return back(`/office/clients/${slug}/`, ['this client still has an active subscription; cancel it first']);
+    }
+    const at = now.toISOString();
+    await s.clients.put(slug, { ...existing, archivedAt: at, archivedReason: field(data, 'reason').trim(), updatedAt: at });
+    return redirect('/office/clients/?archived=1');
+  }
+
+  if (op === 'restore') {
+    const slug = field(data, 'slug');
+    if (!SLUG.test(slug)) return problem(400, 'bad slug');
+    const existing = await s.clients.get(slug);
+    if (!existing) return problem(404, 'no such client');
+    await s.clients.put(slug, { ...existing, archivedAt: null, archivedReason: '', updatedAt: now.toISOString() });
+    return redirect(`/office/clients/${slug}/`);
+  }
+
   if (op === 'delete') {
     const slug = field(data, 'slug');
     if (!SLUG.test(slug)) return problem(400, 'bad slug');

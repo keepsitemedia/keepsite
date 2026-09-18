@@ -5,6 +5,7 @@ import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
 import { newContact } from '../contacts.mjs';
+import { newId } from '../ids.mjs';
 
 const SECRET = 's';
 const make = () => createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
@@ -146,6 +147,63 @@ test('delete removes the client and everything filed under it, then lands on the
   assert.deepEqual(await s.tasks.list('lova'), []);
   assert.deepEqual(await s.meetings.list('lova'), []);
   assert.deepEqual(await s.documents.list('lova'), []);
+});
+
+test('archive records the date and reason and leaves the stage alone', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  const before = await s.clients.get('lova');
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: '  went with a cousin  ' }), ctx(), s);
+  const after = await s.clients.get('lova');
+  assert.equal(after.archivedReason, 'went with a cousin');
+  assert.ok(after.archivedAt);
+  assert.equal(after.stage, before.stage);
+  assert.deepEqual(await s.clients.list(), []);
+  assert.deepEqual((await s.clients.listAll()).map((c) => c.slug), ['lova']);
+});
+
+test('restore puts the client back at the stage it already held', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'left' }), ctx(), s);
+  await action(post({ op: 'restore', csrf, slug: 'lova' }), ctx(), s);
+  const c = await s.clients.get('lova');
+  assert.equal(c.archivedAt, null);
+  assert.equal(c.archivedReason, '');
+  assert.equal(c.stage, 'inquiry');
+  assert.deepEqual((await s.clients.list()).map((x) => x.slug), ['lova']);
+});
+
+// Archiving takes a client off the views the owner reads daily. A live
+// subscription nobody is looking at keeps charging someone who has left.
+test('archive is refused while a subscription is active, and writes nothing', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  const sub = { id: newId(), kind: 'subscription', status: 'active', amount: 9900 };
+  await s.payments.put('lova', sub.id, sub);
+  const res = await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'cancelled' }), ctx(), s);
+  assert.equal(res.status, 303);
+  assert.equal((await s.clients.get('lova')).archivedAt ?? null, null);
+});
+
+test('an unpaid one-off balance does not block archiving', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  const owed = { id: newId(), kind: 'deposit', status: 'unpaid', amount: 50000 };
+  await s.payments.put('lova', owed.id, owed);
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'walked away owing' }), ctx(), s);
+  assert.ok((await s.clients.get('lova')).archivedAt);
+});
+
+test('archiving twice keeps the first date and reason', async () => {
+  const s = make();
+  await action(post({ op: 'create', csrf, ...good }), ctx(), s);
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'first' }), ctx(), s);
+  const first = await s.clients.get('lova');
+  await action(post({ op: 'archive', csrf, slug: 'lova', reason: 'second' }), ctx(), s);
+  const again = await s.clients.get('lova');
+  assert.equal(again.archivedReason, 'first');
+  assert.equal(again.archivedAt, first.archivedAt);
 });
 
 test('delete refuses a client with a signed agreement or a payment on record', async () => {
