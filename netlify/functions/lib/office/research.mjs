@@ -77,10 +77,15 @@ export function classify({ url, title }, areas = []) {
   return 'Service page';
 }
 
-// PROVISIONAL. These are reasoned, not measured: run
-// `node scripts/calibrate-pairs.mjs <export.json>` against a real study and
-// move them to where the data separates. Until that has been done, treat a
-// pair near a boundary as a judgement call rather than a verdict.
+// Reasoned, not measured, and measured once without finding a better place
+// for them. Calibrated 2026-09-18 against the Makeup by Brinley study (22
+// keywords, 231 pairs, social profiles counted as businesses): the only
+// natural break in the ratio distribution is between 0 and 0.2 — "shares
+// nothing" against "shares something". From 0.2 to 0.8 it is a smooth ramp
+// with no gap, so the cuts below are arbitrary by the spec's own test and
+// stay where they were. A pair near a boundary is a judgement call, not a
+// verdict. Re-run `node scripts/calibrate-pairs.mjs <export.json>` on the
+// next study in a different field before trusting them there.
 export const STRONG_RATIO = 2 / 3;
 export const GRAY_RATIO = 1 / 3;
 export const MIN_BUSINESSES = 3;
