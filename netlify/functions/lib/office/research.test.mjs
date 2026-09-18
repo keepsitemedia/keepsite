@@ -181,7 +181,9 @@ test('a pair with too few businesses is unmeasurable, not low', () => {
   const biz = (n) => Array.from({ length: n }, (_, i) => r(`https://b${i}.com/`));
   const c = comparePair(biz(2), biz(2));
   assert.equal(c.signal, 'unmeasurable');
-  assert.match(c.read, /cannot/i);
+  // Asserted on meaning (too few businesses), not on a word like "cannot"
+  // that could vanish with a copy edit and leave this test blind.
+  assert.match(c.read, /too few businesses/i);
 });
 
 test('unmeasurable never groups automatically', () => {
@@ -215,7 +217,7 @@ test('describePair says what the counts mean in one line', () => {
   // Both sides are all directories, so there are zero businesses to compare
   // and the pair is unmeasurable: the one shared directory is named apart,
   // never phrased as a share of businesses.
-  assert.equal(describePair(comparePair(D, one), 8), 'Too few businesses rank for these searches to compare them. They also share one directory, which rank for almost everything in a field. Most results are directories.');
+  assert.equal(describePair(comparePair(D, one), 8), 'Too few businesses rank for these searches to compare them. They also share one directory, which ranks for almost everything in a field. Most results are directories.');
   const tie = comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]);
   // One business each side is below MIN_BUSINESSES, so this is unmeasurable
   // too, even though no directories are involved: the opener states the
@@ -256,7 +258,7 @@ test('comparePair primary page is the mode across both lists, tie reviewed, empt
   assert.equal(comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]).primaryPage, 'Tie / review');
   assert.equal(comparePair([], []).primaryPage, '');
   // Zero businesses on each side is zero to divide by, same as too few: unmeasurable, not a verdict of "low".
-  assert.equal(comparePair([], []).read, 'Too few businesses rank for these searches — nearly all directories — so a share cannot be computed.');
+  assert.equal(comparePair([], []).read, 'Too few businesses rank for these searches to compare them.');
 });
 
 test('comparePair counts businesses and directories apart', () => {

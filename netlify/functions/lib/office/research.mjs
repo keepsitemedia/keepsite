@@ -62,7 +62,7 @@ export const MIN_BUSINESSES = 3;
 const READ_TEXT = {
   strong: ['Strong overlap: very likely the same search intent.', 'Keep these keywords in the same cluster/page.'],
   gray: ['GRAY ZONE: some of the same businesses rank for both. Review page types and client priorities.', 'Discuss on the client call before deciding whether to split.'],
-  unmeasurable: ['Too few businesses rank for these searches — nearly all directories — so a share cannot be computed.', 'Decide this one on what the client does, not on the numbers.'],
+  unmeasurable: ['Too few businesses rank for these searches to compare them.', 'Decide this one on what the client does, not on the numbers.'],
   low: ['Low overlap: likely a meaningfully different intent.', 'Consider separate clusters/pages if page types also differ.'],
 };
 
@@ -148,7 +148,7 @@ export function describePair(c, total) {
   // Named apart from the business count, never folded into it: a directory
   // ranking for both searches says nothing about whether the searches mean
   // the same thing.
-  const dirs = c.sharedDirectories ? ` They also share ${word(c.sharedDirectories)} ${c.sharedDirectories === 1 ? 'directory' : 'directories'}, which rank for almost everything in a field.` : '';
+  const dirs = c.sharedDirectories ? ` They also share ${word(c.sharedDirectories)} ${c.sharedDirectories === 1 ? 'directory, which ranks' : 'directories, which rank'} for almost everything in a field.` : '';
   // unmeasurable means too few businesses to compute a share at all, so no
   // ratio or count of businesses may appear in this branch. State the effect,
   // not a guessed cause: a sparse SERP with no directories at all also lands
