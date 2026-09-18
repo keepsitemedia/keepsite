@@ -205,8 +205,11 @@ export function pairs(round) {
 }
 
 // Would the owner's answer change anything? Force the pair each way and
-// compare the resulting groups. When they match, the two keywords are
-// already joined (or already separated) through other pairs and the
+// compare the resulting page lists — not the raw groups: a keyword claimed
+// by a hand-edited page never reaches group() at all (see pageListFrom), so
+// a pair touching one is never decisive no matter which way it is forced.
+// When the two page lists match, the two keywords are already joined (or
+// already separated, or one is spoken for) through other pairs and the
 // question is rhetorical. comparePair does not depend on reads — only the
 // forced pair's read differs between the two probes — so this reuses the
 // rows already built for the round instead of recomputing comparePair for
@@ -218,8 +221,8 @@ function decisiveFor(rows, round, key) {
   const withRead = (sameCluster) => rows.map((row) => (row.key === key
     ? { ...row, read: { human: 'Gray zone / discuss', sameCluster, notes: '' } }
     : row));
-  const asOne = groupFrom(withRead('Yes'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
-  const asTwo = groupFrom(withRead('No'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
+  const asOne = pageListFrom(withRead('Yes'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
+  const asTwo = pageListFrom(withRead('No'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
   return asOne !== asTwo;
 }
 
@@ -256,11 +259,23 @@ export function group(round) {
   return groupFrom(pairRows(round), round);
 }
 
-export function pageList(round) {
+// pageList's body, taking prebuilt pair rows so a caller who already has
+// them (decisiveFor) never pays for comparePair again. Rows touching a
+// claimed keyword are dropped, not just the keyword itself: left in, such a
+// row would still union its other, unclaimed keyword into a group through
+// groupFrom, resurrecting a keyword the kept page already accounts for. This
+// must keep matching rest's own filtering below, or a claimed keyword would
+// be groupable through one path and not the other.
+function pageListFrom(rows, round) {
   const kept = (round.pages ?? []).filter((p) => p.auto === false);
   const claimed = new Set(kept.flatMap((p) => p.keywords));
   const rest = { ...round, keywords: round.keywords.filter((k) => !claimed.has(k.id)) };
-  return [...kept, ...group(rest)];
+  const restRows = rows.filter((row) => !claimed.has(row.a.id) && !claimed.has(row.b.id));
+  return [...kept, ...groupFrom(restRows, rest)];
+}
+
+export function pageList(round) {
+  return pageListFrom(pairRows(round), round);
 }
 
 // A round is one complete run of a study. Keywords and areas live here, not

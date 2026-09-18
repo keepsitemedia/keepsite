@@ -515,6 +515,35 @@ test('a pair that would split the page list is decisive', () => {
   assert.equal(p.decisive, true);
 });
 
+// Same pair, same shape, but k1 is now claimed by a hand-edited page. Once
+// pageList sets that page aside, k1 never re-enters grouping — the owner's
+// answer on k1-k2 cannot change the page list either way, so this must
+// report false, not true. Regression test for 22a2dab, which swapped
+// decisiveFor's pageList() calls for groupFrom(), skipping the kept/claimed
+// filtering entirely.
+test('a gray pair is not decisive when one keyword is claimed by a hand-edited page', () => {
+  const round = {
+    ...emptyRound('r1'),
+    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }],
+    serps: {
+      k1: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://a.com/', 'Service page') },
+        { rank: 2, ...r('https://b.com/', 'Location page') },
+        { rank: 3, ...r('https://x.com/', 'Homepage') },
+      ] },
+      k2: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://a.com/', 'Service page') },
+        { rank: 2, ...r('https://c.com/', 'Location page') },
+        { rank: 3, ...r('https://y.com/', 'Homepage') },
+      ] },
+    },
+    pages: [{ id: 'p9', title: 'Hand-edited', type: 'Service page', keywords: ['k1'], note: 'client asked', auto: false }],
+  };
+  const [p] = pairs(round);
+  assert.equal(p.signal, 'gray');
+  assert.equal(p.decisive, false);
+});
+
 test('a pair that already has a read is not asked about again', () => {
   const serp = (urls) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: urls.map((u, i) => ({ rank: i + 1, ...r(u) })), related: [] });
   const round = {
