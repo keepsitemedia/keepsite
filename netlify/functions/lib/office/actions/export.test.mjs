@@ -21,6 +21,13 @@ test('json export returns the documents as an attachment', async () => {
   assert.equal((await res.json())[0].slug, 'lova');
 });
 
+test('an export contains archived clients', async () => {
+  const s = await make();
+  await s.clients.put('gone', { slug: 'gone', business: 'Gone', stage: 'demo', archivedAt: '2026-09-17T00:00:00.000Z', archivedReason: 'left' });
+  const res = await exportData(get('type=clients&format=json'), ctx, s);
+  assert.match(await res.text(), /gone/);
+});
+
 test('csv export flattens documents', async () => {
   const res = await exportData(get('type=tasks&format=csv'), ctx, await make());
   assert.match(res.headers.get('Content-Type'), /text\/csv/);

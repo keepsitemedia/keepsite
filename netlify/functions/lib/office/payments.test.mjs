@@ -246,6 +246,15 @@ test('invoices create monthly documents, paid or failed, found by customer when 
   assert.equal((await s.payments.list('lova')).length, 2);
 });
 
+test('a webhook for an archived client is still matched, not dropped as unknown', async () => {
+  const s = await make();
+  await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1', archivedAt: '2026-09-16T00:00:00.000Z', archivedReason: 'left' });
+  const r = await applyEvent(evt('evt_archived', 'invoice.paid', { id: 'in_archived', customer: 'cus_1', subscription: 'sub_1', amount_paid: 15000 }), s, NOW);
+  assert.deepEqual(r, { handled: true, slug: 'lova', change: 'monthly paid' });
+  const m = (await s.payments.list('lova')).find((p) => p.stripe.invoiceId === 'in_archived');
+  assert.equal(m.status, 'paid');
+});
+
 test('a failed invoice falls back to last_finalization_error, then to a generic message', async () => {
   const s = await make();
   await s.clients.put('lova', { ...(await s.clients.get('lova')), stripeCustomerId: 'cus_1' });
