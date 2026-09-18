@@ -23,6 +23,7 @@ const gray = ps.filter((p) => p.signal === 'gray');
 const undecided = gray.filter((p) => !p.read);
 const strong = ps.filter((p) => p.signal === 'strong').length;
 const low = ps.filter((p) => p.signal === 'low').length;
+const unmeasurable = ps.filter((p) => p.signal === 'unmeasurable').length;
 const decisive = ps.filter((p) => p.decisive === true);
 const settled = ps.filter((p) => p.decisive === false);
 // A read made before directories left the signal may no longer match it.
@@ -197,7 +198,7 @@ const external = (href: string) => href.startsWith('http');
 <h2>Pairs <span class="count">{showPairs ? ps.length : decisive.length}</span></h2>
 {ps.length === 0 && <p class="empty">Capture two keywords and their pair appears here.</p>}
 {ps.length > 0 && (
-  <p class="quiet">{strong} agree, {gray.length} in the gray zone, {low} differ. The counts and the suggestion are automatic; the read is yours, made on the compare page. <a href={`/office/clients/${slug}/?tab=research${showPairs ? '' : '&pairs=1'}`}>{showPairs ? 'Show only what needs deciding.' : 'Show every pair.'}</a></p>
+  <p class="quiet">{strong} agree, {gray.length} in the gray zone, {low} differ{unmeasurable > 0 ? `, ${unmeasurable} cannot be measured` : ''}. The counts and the suggestion are automatic; the read is yours, made on the compare page. <a href={`/office/clients/${slug}/?tab=research${showPairs ? '' : '&pairs=1'}`}>{showPairs ? 'Show only what needs deciding.' : 'Show every pair.'}</a></p>
 )}
 {revisit.length > 0 && (
   <p class="notice">{revisit.length} {revisit.length === 1 ? 'decision was' : 'decisions were'} made before directories stopped counting toward the signal, and no longer match it. Worth a second look: {revisit.map((p: any) => `${p.a.text} · ${p.b.text}`).join('; ')}.</p>
@@ -209,6 +210,7 @@ const external = (href: string) => href.startsWith('http');
         <span class="when">
           {p.read ? <Mark state="done">{p.read.human}</Mark>
             : p.signal === 'gray' ? <Mark state="none">Not decided</Mark>
+            : p.signal === 'unmeasurable' ? <Mark state="none">Cannot tell</Mark>
             : <Mark state="waiting">{p.signal === 'strong' ? 'Agree' : 'Differ'}</Mark>}
         </span>
         <span class="what">
@@ -220,6 +222,9 @@ const external = (href: string) => href.startsWith('http');
       </li>
     ))}
   </ul>
+)}
+{ps.length > 0 && !showPairs && decisive.length === 0 && settled.length === 0 && (
+  <p class="quiet">Nothing left to decide — every pair is either settled or clear.</p>
 )}
 {settled.length > 0 && !showPairs && (
   <p class="quiet">{settled.length} other {settled.length === 1 ? 'pair makes' : 'pairs make'} no difference to the page list either way. <a href={`/office/clients/${slug}/?tab=research&pairs=1`}>Show every pair.</a></p>
