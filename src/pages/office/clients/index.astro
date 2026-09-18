@@ -10,30 +10,57 @@ import { waitsOnClient, relative } from '../../../../netlify/functions/lib/offic
 // store.mjs and pipeline.mjs have no type declarations, so astro check sees
 // their returns as any; these narrow the two list() reads to what this page
 // actually reads rather than casting the whole store to any.
-type ClientRow = { slug: string; business: string; name: string; tier: string; pipeline: string; stage: string };
+type ClientRow = { slug: string; business: string; name: string; tier: string; pipeline: string; stage: string; archivedAt: string | null; archivedReason: string };
 type TaskRow = { due: string; title: string; done: boolean; questionnaire: string | null; payment: string | null; agreement: string | null };
 
 const s = store();
 const pipelines = await loadPipelines(s);
-const clients = ((await s.clients.list()) as ClientRow[]).sort((a, b) => a.business.localeCompare(b.business));
+const showArchived = Astro.url.searchParams.get('archived') === '1';
+const all = (await s.clients.listAll()) as ClientRow[];
+const clients = all
+  .filter((c) => (showArchived ? c.archivedAt : !c.archivedAt))
+  .sort((a, b) => a.business.localeCompare(b.business));
+const archivedCount = all.filter((c) => c.archivedAt).length;
 const today = todayIn();
+const stageName = (c: ClientRow) => findStage(findPipeline(pipelines, c.pipeline), c.stage)?.name ?? c.stage;
 
 // The next open task per client, one store read per client. Fine at fifty.
+// An archived client has no next task worth showing, so skip the reads entirely.
 const next = new Map<string, TaskRow | null>();
-for (const c of clients) {
-  const open = ((await s.tasks.list(c.slug)) as TaskRow[]).filter((t) => !t.done).sort((a, b) => a.due.localeCompare(b.due));
-  next.set(c.slug, open[0] ?? null);
+if (!showArchived) {
+  for (const c of clients) {
+    const open = ((await s.tasks.list(c.slug)) as TaskRow[]).filter((t) => !t.done).sort((a, b) => a.due.localeCompare(b.due));
+    next.set(c.slug, open[0] ?? null);
+  }
 }
-const stageName = (c: ClientRow) => findStage(findPipeline(pipelines, c.pipeline), c.stage)?.name ?? c.stage;
 ---
 <OfficeLayout title="Clients">
   <div class="page-head">
     <h1>Clients</h1>
     <span class="sub">{clients.length}</span>
-    <div class="actions"><a class="btn" href="/office/clients/new/">New client</a></div>
+    <div class="actions">
+      {showArchived
+        ? <a class="btn-quiet" href="/office/clients/">Active clients</a>
+        : archivedCount > 0 && <a class="btn-quiet" href="/office/clients/?archived=1">Archived ({archivedCount})</a>}
+      <a class="btn" href="/office/clients/new/">New client</a>
+    </div>
   </div>
   {clients.length === 0 ? (
-    <p class="empty">No clients yet.</p>
+    <p class="empty">{showArchived ? 'No archived clients.' : 'No clients yet.'}</p>
+  ) : showArchived ? (
+    <div class="table-scroll"><table>
+      <thead><tr><th>Client</th><th>Left at</th><th>Archived</th><th>Reason</th></tr></thead>
+      <tbody>
+        {clients.map((c) => (
+          <tr>
+            <td><a href={`/office/clients/${c.slug}/`}>{c.business}</a></td>
+            <td><span class="chip">{stageName(c)}</span></td>
+            <td class="quiet">{formatYmd(todayIn(undefined, new Date(c.archivedAt as string)))}</td>
+            <td class="quiet">{c.archivedReason}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table></div>
   ) : (
     <div class="table-scroll">
       <table>
