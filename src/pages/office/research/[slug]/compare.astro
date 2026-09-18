@@ -5,7 +5,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { comparePair, describePair, normalizeUrl, domainOf, pairKey, migrateStudy, openRound, READS, SAME } from '../../../../../netlify/functions/lib/office/research.mjs';
+import { comparePair, describePair, normalizeUrl, businessOf, pairKey, migrateStudy, openRound, READS, SAME } from '../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../netlify/functions/lib/office/dates.mjs';
 
 const slug = Astro.params.slug ?? '';
@@ -31,7 +31,7 @@ const total = Math.max(serpA.results.length, serpB.results.length);
 const urls = new Set(c.sharedUrls as string[]);
 const domains = new Set(c.sharedDomains as string[]);
 // A row lights for the strongest match it has: the exact page, else the business.
-const mark = (r: any) => (urls.has(normalizeUrl(r.url)) ? 'hl-url' : domains.has(domainOf(r.url)) ? 'hl-domain' : '');
+const mark = (r: any) => (urls.has(normalizeUrl(r.url)) ? 'hl-url' : domains.has(businessOf(r.url)) ? 'hl-domain' : '');
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const tab = `/office/clients/${slug}/?tab=research`;
 // The workbook's suggested read for this branch, so the select can name it.

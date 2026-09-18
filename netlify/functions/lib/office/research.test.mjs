@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  PAGE_TYPES, normalizeUrl, domainOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
+  PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
 } from './research.mjs';
 
@@ -733,4 +733,66 @@ test('splitList and draftFromQuestionnaire', () => {
   ]);
   assert.ok(d.keywords.every((k) => /^k[a-z0-9]{8}$/.test(k.id)));
   assert.deepEqual(draftFromQuestionnaire(null), { keywords: [], areas: [] });
+});
+
+// A social profile is that business's page on someone else's domain. Two
+// different Instagram accounts are two different artists, not one directory.
+test('businessOf names a social profile by its handle and everything else by its domain', () => {
+  assert.equal(businessOf('https://www.instagram.com/dianaelizabethbeauty/'), 'instagram.com/dianaelizabethbeauty');
+  assert.equal(businessOf('https://www.instagram.com/MarisaRoseMPH/?hl=en'), 'instagram.com/marisarosemph');
+  assert.equal(businessOf('https://www.instagram.com/p/C8xyz/'), 'instagram.com');
+  assert.equal(businessOf('https://www.instagram.com/reel/C8xyz/'), 'instagram.com');
+  assert.equal(businessOf('https://www.facebook.com/SimplyMindyHair/'), 'facebook.com/simplymindyhair');
+  assert.equal(businessOf('https://www.facebook.com/groups/utahweddings/posts/123/'), 'facebook.com');
+  assert.equal(businessOf('https://www.facebook.com/share/p/abc/'), 'facebook.com');
+  assert.equal(businessOf('https://www.tiktok.com/@meshechbridal/video/7'), 'tiktok.com/@meshechbridal');
+  assert.equal(businessOf('https://www.mariahannifinmakeup.com/bridal/'), 'mariahannifinmakeup.com');
+  assert.equal(businessOf('https://www.reddit.com/r/SaltLakeCity/comments/x/'), 'reddit.com');
+});
+
+test('classify treats a social profile as a homepage and a post or group as a directory', () => {
+  assert.equal(classify({ url: 'https://www.instagram.com/dianaelizabethbeauty/', title: 'Hairstylist (@dianaelizabethbeauty)' }), 'Homepage');
+  assert.equal(classify({ url: 'https://www.facebook.com/SimplyMindyHair/', title: 'Simply Mindy Hair & Makeup Artistry' }), 'Homepage');
+  assert.equal(classify({ url: 'https://www.tiktok.com/@meshechbridal', title: 'MESHECH Bridal' }), 'Homepage');
+  assert.equal(classify({ url: 'https://www.instagram.com/p/C8xyz/', title: 'A wedding at @lacailleutah' }), 'Directory');
+  assert.equal(classify({ url: 'https://www.facebook.com/groups/utahweddings/posts/123/', title: 'Looking for makeup artist suggestions' }), 'Directory');
+  assert.equal(classify({ url: 'https://www.reddit.com/r/SaltLakeCity/comments/x/', title: 'Wedding makeup and hair' }), 'Directory');
+});
+
+test('comparePair tells two social profiles apart and counts a shared one as a business', () => {
+  const ig = (h) => r(`https://www.instagram.com/${h}/`, 'Homepage');
+  const a = [ig('diana'), ig('marisa'), r('https://x.com/'), r('https://y.com/'), dr('https://www.weddingwire.com/utah')];
+  const b = [ig('diana'), ig('sarah'), r('https://x.com/'), r('https://z.com/'), dr('https://www.weddingwire.com/utah')];
+  const c = comparePair(a, b);
+  assert.equal(c.businessesA, 4);
+  assert.equal(c.sharedBusinesses, 2, 'diana and x.com, not marisa/sarah');
+  assert.equal(c.sameDomain, 3, 'two profiles on one host are not one business');
+  assert.deepEqual(c.sharedDomains.sort(), ['instagram.com/diana', 'weddingwire.com', 'x.com']);
+});
+
+test('migrateStudy reclassifies auto-typed results with the current rules and leaves edits alone', () => {
+  const study = emptyStudy('s');
+  const round = openRound(study);
+  round.keywords = [{ id: 'k1', text: 'utah bridal makeup' }];
+  round.serps.k1 = { capturedAt: '2026-09-17T00:00:00Z', query: 'q', results: [
+    { rank: 1, url: 'https://www.instagram.com/diana/', title: 'Diana', domain: 'instagram.com', pageType: 'Directory', typeSource: 'auto' },
+    { rank: 2, url: 'https://www.instagram.com/p/abc/', title: 'A post', domain: 'instagram.com', pageType: 'Directory', typeSource: 'auto' },
+    { rank: 3, url: 'https://www.instagram.com/marisa/', title: 'Marisa', domain: 'instagram.com', pageType: 'Directory', typeSource: 'manual' },
+  ] };
+  const out = openRound(migrateStudy(study)).serps.k1.results;
+  assert.equal(out[0].pageType, 'Homepage');
+  assert.equal(out[0].domain, 'instagram.com/diana');
+  assert.equal(out[1].pageType, 'Directory');
+  assert.equal(out[1].domain, 'instagram.com');
+  assert.equal(out[2].pageType, 'Directory', 'a manual edit is the owner\'s call');
+  assert.equal(out[2].domain, 'instagram.com/marisa', 'but the business name still follows the URL');
+});
+
+test('applyCapture stores the business, not just the host', () => {
+  const study = emptyStudy('s');
+  openRound(study).keywords = [{ id: 'k1', text: 'q' }];
+  const out = applyCapture(study, 'k1', { q: 'q', results: [{ url: 'https://www.instagram.com/diana/', title: 'Diana' }] });
+  const [row] = openRound(out).serps.k1.results;
+  assert.equal(row.domain, 'instagram.com/diana');
+  assert.equal(row.pageType, 'Homepage');
 });

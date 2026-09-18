@@ -34,6 +34,31 @@ export function normalizeUrl(url) {
 
 export const domainOf = (url) => (parse(url)?.hostname ?? String(url ?? '')).toLowerCase().replace(/^www\./, '');
 
+// A social profile is a business's own page on someone else's domain: two
+// different Instagram accounts are two different artists, and one account
+// ranking for two searches is one artist answering both. Only a profile URL
+// gets the handle; a post, reel, group or thread is the platform speaking and
+// stays the bare host. The reserved first segments are the platform's own.
+const SOCIAL = {
+  __proto__: null,
+  'instagram.com': ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 'direct', 'about', 'legal'],
+  'facebook.com': ['groups', 'posts', 'share', 'watch', 'events', 'marketplace', 'people', 'pages', 'photo', 'photos', 'story.php', 'permalink.php', 'profile.php', 'login', 'help', 'public', 'hashtag', 'reel', 'videos'],
+  'tiktok.com': ['tag', 'discover', 'search', 'explore', 'music', 'foryou', 'live', 'embed', 'legal'],
+};
+export function businessOf(url) {
+  const u = parse(url);
+  const host = domainOf(url);
+  const reserved = u && SOCIAL[host];
+  if (!reserved) return host;
+  const segments = u.pathname.split('/').filter(Boolean);
+  const handle = segments[0]?.toLowerCase();
+  const profile = handle && !reserved.includes(handle)
+    && (host !== 'tiktok.com' || handle.startsWith('@'))
+    && (host === 'tiktok.com' || segments.length === 1);
+  return profile ? `${host}/${handle}` : host;
+}
+export const isProfile = (url) => businessOf(url) !== domainOf(url);
+
 const hasAny = (s, needles) => needles.some((n) => s.includes(n));
 
 export function classify({ url, title }, areas = []) {
@@ -41,6 +66,7 @@ export function classify({ url, title }, areas = []) {
   const domain = domainOf(url);
   const path = (u?.pathname ?? '/').toLowerCase().replace(/\/index\.html?$/, '/');
   const text = `${path} ${String(title ?? '')}`.toLowerCase();
+  if (isProfile(url)) return 'Homepage';
   if (DIRECTORIES.some((d) => domain === d || domain.endsWith(`.${d}`))) return 'Directory';
   if (u && (path === '' || path === '/')) return 'Homepage';
   if (areas.some((a) => a && text.includes(String(a).toLowerCase())) || hasAny(path, ['/locations/', '/service-area', '/areas-we-serve'])) return 'Location page';
@@ -97,10 +123,10 @@ const businessesOf = (results) => results.filter((x) => !isDirectory(x));
 
 export function comparePair(a, b) {
   const exactUrl = countIn(a, b, (x) => normalizeUrl(x.url));
-  const sameDomain = countIn(a, b, (x) => domainOf(x.url));
+  const sameDomain = countIn(a, b, (x) => businessOf(x.url));
   const samePageType = countIn(a, b, (x) => x.pageType);
   const sharedUrls = sharedIn(a, b, (x) => normalizeUrl(x.url));
-  const sharedDomains = sharedIn(a, b, (x) => domainOf(x.url));
+  const sharedDomains = sharedIn(a, b, (x) => businessOf(x.url));
   const aBiz = businessesOf(a);
   const bBiz = businessesOf(b);
   // Whichever side has fewer businesses sets the denominator, so a search
@@ -295,19 +321,37 @@ export function emptyStudy(slug, now = new Date()) {
   return { slug, createdAt: at, updatedAt: at, rounds: [emptyRound('r1', now)] };
 }
 
+// The classification rules move (social profiles stopped being directories
+// on 2026-09-18) and a capture is a snapshot of the rules as they stood. Every
+// read re-runs them on the rows the owner has not edited, so an old study is
+// judged the way a new one would be. A manual type is the owner's call and
+// stays; the business name follows the URL regardless, since it is not a
+// judgement.
+function refresh(round) {
+  const serps = {};
+  for (const [id, serp] of Object.entries(round.serps ?? {})) {
+    serps[id] = { ...serp, results: (serp.results ?? []).map((r) => ({
+      ...r, domain: businessOf(r.url),
+      pageType: r.typeSource === 'manual' ? r.pageType : classify(r, round.areas ?? []),
+    })) };
+  }
+  return { ...round, serps };
+}
+
 // Read-time migration, never a batch rewrite: a document written before rounds
 // existed is exactly one round's worth of work.
 export function migrateStudy(doc, now = new Date()) {
-  if (!doc || Array.isArray(doc.rounds)) return doc;
+  if (!doc) return doc;
+  if (Array.isArray(doc.rounds)) return { ...doc, rounds: doc.rounds.map(refresh) };
   const at = now.toISOString();
   return {
     slug: doc.slug, createdAt: doc.createdAt ?? at, updatedAt: doc.updatedAt ?? at,
-    rounds: [{
+    rounds: [refresh({
       ...emptyRound('r1', now),
       startedAt: doc.createdAt ?? at,
       areas: doc.areas ?? [], keywords: doc.keywords ?? [], serps: doc.serps ?? {},
       reads: doc.reads ?? {}, pages: doc.pages ?? [], reportedAt: doc.reportedAt ?? null,
-    }],
+    })],
   };
 }
 
@@ -436,7 +480,7 @@ export function findCaptureTargets(studies, q) {
 export function applyCapture(study, keywordId, capture, now = new Date()) {
   const round = openRound(study);
   const results = capture.results.map((r, i) => ({
-    rank: i + 1, url: r.url, title: r.title, domain: domainOf(r.url),
+    rank: i + 1, url: r.url, title: r.title, domain: businessOf(r.url),
     pageType: classify(r, round.areas), typeSource: 'auto',
   }));
   const serps = { ...round.serps, [keywordId]: { capturedAt: now.toISOString(), query: capture.q, results, related: capture.related ?? [] } };
