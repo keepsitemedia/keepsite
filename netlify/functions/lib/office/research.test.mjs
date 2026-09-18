@@ -330,9 +330,9 @@ test('pairs covers captured keywords only and carries the stored read', () => {
   assert.equal(p[1].read, null);
 });
 
-// Most gray pairs join two keywords already linked through other strong pairs.
-// Asking about them costs the owner time and changes nothing.
-test('a pair whose answer cannot change the page list is not decisive', () => {
+// A strong pair already has an answer — the signal settled it — so there is
+// no question to ask and decisive is null, not a verdict either way.
+test('a strong pair is not a question', () => {
   const serp = (urls) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: urls.map((u, i) => ({ rank: i + 1, ...r(u) })), related: [] });
   const all = ['https://a.com/', 'https://b.com/', 'https://c.com/', 'https://d.com/'];
   const round = {
@@ -340,8 +340,48 @@ test('a pair whose answer cannot change the page list is not decisive', () => {
     keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }, { id: 'k3', text: 'three', cluster: 'C' }],
     serps: { k1: serp(all), k2: serp(all), k3: serp(all) },
   };
-  // All three agree strongly, so every pair is already grouped: no answer moves anything.
-  for (const p of pairs(round)) assert.equal(p.decisive, false, `${p.a.text} · ${p.b.text}`);
+  for (const p of pairs(round)) {
+    assert.equal(p.signal, 'strong', `${p.a.text} · ${p.b.text}`);
+    assert.equal(p.decisive, null, `${p.a.text} · ${p.b.text}`);
+  }
+});
+
+// The real case this feature exists for: a gray pair whose two keywords are
+// already joined through a third, strong on both sides. The owner's answer
+// on A-C cannot change the page list, so it reports false, not null — the
+// question was asked of the signal, and the signal could answer it.
+test('a gray pair already joined through a third keyword is not decisive', () => {
+  const round = {
+    ...emptyRound('r1'),
+    keywords: [{ id: 'k1', text: 'A', cluster: 'C' }, { id: 'k2', text: 'B', cluster: 'C' }, { id: 'k3', text: 'C', cluster: 'C' }],
+    serps: {
+      // A-B: shares p,q of 3 -> 2/3, strong. B-C: shares q,s of 3 -> 2/3, strong.
+      // A-C: shares only q of 3 -> 1/3, gray — but A and C are already one
+      // group via B, so the gray answer changes nothing.
+      k1: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://p.com/', 'Service page') },
+        { rank: 2, ...r('https://q.com/', 'Location page') },
+        { rank: 3, ...r('https://r.com/', 'Homepage') },
+      ] },
+      k2: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://p.com/') },
+        { rank: 2, ...r('https://q.com/') },
+        { rank: 3, ...r('https://s.com/') },
+      ] },
+      k3: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://q.com/') },
+        { rank: 2, ...r('https://s.com/') },
+        { rank: 3, ...r('https://t.com/') },
+      ] },
+    },
+  };
+  const [ab, ac, bc] = pairs(round);
+  assert.equal(ab.signal, 'strong');
+  assert.equal(ab.decisive, null);
+  assert.equal(bc.signal, 'strong');
+  assert.equal(bc.decisive, null);
+  assert.equal(ac.signal, 'gray');
+  assert.equal(ac.decisive, false);
 });
 
 test('a pair that would split the page list is decisive', () => {

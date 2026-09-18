@@ -164,7 +164,11 @@ export function pairs(round) {
       const key = pairKey(ks[i].id, ks[j].id);
       const read = round.reads[key] ?? null;
       const row = { a: ks[i], b: ks[j], key, ...comparePair(round.serps[ks[i].id].results, round.serps[ks[j].id].results), read };
-      row.decisive = read ? null : decisiveFor(round, key);
+      // Only a pair the signal could not settle is a question. A strong or low
+      // pair has an answer already, and a pair with a read has been answered —
+      // both are null, meaning nothing to ask.
+      const askable = !read && (row.signal === 'gray' || row.signal === 'unmeasurable');
+      row.decisive = askable ? decisiveFor(round, key) : null;
       out.push(row);
     }
   }
