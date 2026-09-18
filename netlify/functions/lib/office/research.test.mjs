@@ -215,11 +215,12 @@ test('describePair says what the counts mean in one line', () => {
   // Both sides are all directories, so there are zero businesses to compare
   // and the pair is unmeasurable: the one shared directory is named apart,
   // never phrased as a share of businesses.
-  assert.equal(describePair(comparePair(D, one), 8), 'Almost every result is a directory, so there are too few businesses to compare. They also share one directory, which rank for almost everything in a field. Most results are directories.');
+  assert.equal(describePair(comparePair(D, one), 8), 'Too few businesses rank for these searches to compare them. They also share one directory, which rank for almost everything in a field. Most results are directories.');
   const tie = comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]);
   // One business each side is below MIN_BUSINESSES, so this is unmeasurable
-  // too, even though no directories are involved.
-  assert.equal(describePair(tie, 1), 'Almost every result is a directory, so there are too few businesses to compare. No page type leads on either side.');
+  // too, even though no directories are involved: the opener states the
+  // effect (too few businesses), never a guessed directory-heavy cause.
+  assert.equal(describePair(tie, 1), 'Too few businesses rank for these searches to compare them. No page type leads on either side.');
   assert.equal(describePair(comparePair([], []), 0), 'Nothing captured yet.');
 });
 
@@ -233,9 +234,19 @@ test('describePair counts businesses, and names the directories apart', () => {
 test('describePair says plainly when it cannot measure', () => {
   const c = { signal: 'unmeasurable', sharedBusinesses: 1, sharedDirectories: 5, denominator: 2, exactUrl: 6, sameDomainDifferentPage: 0, primaryPage: 'Directory' };
   const s = describePair(c, 8);
-  assert.match(s, /almost every result is a directory/i);
+  assert.match(s, /too few businesses rank for these searches to compare them/i);
   // No ratio may be quoted from two data points.
   assert.ok(!/of two businesses/.test(s));
+});
+
+test('describePair does not blame directories when none are shared', () => {
+  // Sparse SERPs with zero directories still land in unmeasurable once
+  // denominator is below MIN_BUSINESSES; the sentence must not assert a
+  // directory-heavy cause it cannot see in this fixture.
+  const c = { signal: 'unmeasurable', sharedBusinesses: 0, sharedDirectories: 0, denominator: 1, exactUrl: 0, sameDomainDifferentPage: 0, primaryPage: 'Service page' };
+  const s = describePair(c, 8);
+  assert.match(s, /too few businesses rank for these searches to compare them/i);
+  assert.ok(!/directory|directories/i.test(s));
 });
 
 test('comparePair primary page is the mode across both lists, tie reviewed, empty blank', () => {

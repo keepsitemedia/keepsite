@@ -150,9 +150,12 @@ export function describePair(c, total) {
   // the same thing.
   const dirs = c.sharedDirectories ? ` They also share ${word(c.sharedDirectories)} ${c.sharedDirectories === 1 ? 'directory' : 'directories'}, which rank for almost everything in a field.` : '';
   // unmeasurable means too few businesses to compute a share at all, so no
-  // ratio or count of businesses may appear in this branch.
+  // ratio or count of businesses may appear in this branch. State the effect,
+  // not a guessed cause: a sparse SERP with no directories at all also lands
+  // here, and the dirs clause already supplies the directory detail when one
+  // is actually present.
   if (c.signal === 'unmeasurable') {
-    return `Almost every result is a directory, so there are too few businesses to compare.${dirs}${type}`;
+    return `Too few businesses rank for these searches to compare them.${dirs}${type}`;
   }
   const same = c.sharedBusinesses === 0 ? 'None of the same businesses rank for both.'
     : `${cap(word(c.sharedBusinesses))} of ${word(c.denominator)} businesses ${c.sharedBusinesses === 1 ? 'ranks' : 'rank'} for both, with the same page.`;
