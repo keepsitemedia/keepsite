@@ -14,6 +14,33 @@ test('normalizeUrl folds the differences Google shows for one page', () => {
   assert.equal(normalizeUrl('not a url'), 'not a url');
 });
 
+// Google mints a fresh srsltid for every impression, so the same page
+// captured under two keywords arrives with two different URLs and the pair
+// reads as "same business, different page" when it is one page.
+test('normalizeUrl drops per-click tracking ids so one page stays one page', () => {
+  const a = 'https://www.mariahannifinmakeup.com/?srsltid=AU7gw4UxJDWAbRl3ioiDb';
+  const b = 'https://www.mariahannifinmakeup.com/?srsltid=AU7gw4YbQ2ZfLpVr8sKtN';
+  assert.equal(normalizeUrl(a), normalizeUrl(b));
+  assert.equal(normalizeUrl(a), 'mariahannifinmakeup.com');
+  for (const p of ['gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'igshid', 'yclid', 'mc_cid', 'mc_eid', '_hsenc', '_hsmi']) {
+    assert.equal(normalizeUrl(`https://x.com/a?${p}=1`), 'x.com/a', `${p} should be dropped`);
+  }
+});
+
+// classify already folds index.html into the directory; normalizeUrl must
+// agree, or the two disagree about what one URL means.
+test('normalizeUrl folds index.html the way classify does', () => {
+  assert.equal(normalizeUrl('https://x.com/index.html'), normalizeUrl('https://x.com/'));
+  assert.equal(normalizeUrl('https://x.com/weddings/index.htm'), normalizeUrl('https://x.com/weddings'));
+});
+
+// A query that selects content is not tracking, and dropping it would merge
+// two genuinely different pages.
+test('normalizeUrl keeps a query that chooses the page', () => {
+  assert.equal(normalizeUrl('https://x.com/shop?page=2'), 'x.com/shop?page=2');
+  assert.equal(normalizeUrl('https://x.com/p?id=7&utm_source=g'), 'x.com/p?id=7');
+});
+
 test('domainOf drops www and keeps the rest', () => {
   assert.equal(domainOf('https://www.example.com/a'), 'example.com');
   assert.equal(domainOf('https://shop.example.com/a'), 'shop.example.com');

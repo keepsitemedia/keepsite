@@ -12,7 +12,11 @@ const DIRECTORIES = [
   'quora.com', 'wikipedia.org', 'linkedin.com', 'pinterest.com', 'zola.com', 'bark.com', 'homeadvisor.com', 'expertise.com',
   'threebestrated.com',
 ];
-const TRACKING = /^(utm_|gclid$|fbclid$)/;
+// Per-click and per-impression ids: the same page carries a different one
+// every time it is captured, so leaving them in makes one page look like two
+// and the pair reads as "same business, different page". srsltid is the one
+// Google now appends to most organic results.
+const TRACKING = /^(utm_|(gclid|gbraid|wbraid|dclid|fbclid|msclkid|twclid|igshid|yclid|srsltid|mc_cid|mc_eid|_hsenc|_hsmi)$)/;
 
 const parse = (url) => { try { return new URL(String(url)); } catch { return null; } };
 
@@ -24,7 +28,7 @@ export function normalizeUrl(url) {
   const host = u.hostname.toLowerCase().replace(/^www\./, '');
   const params = [...u.searchParams.entries()].filter(([k]) => !TRACKING.test(k));
   const query = params.length ? `?${params.map(([k, v]) => `${k}=${v}`).join('&')}` : '';
-  const path = u.pathname.replace(/\/+$/, '');
+  const path = u.pathname.replace(/\/index\.html?$/i, '/').replace(/\/+$/, '');
   return `${host}${path}${query}`;
 }
 
