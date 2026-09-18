@@ -20,7 +20,7 @@ export async function exportData(request, _ctx, s = defaultStore(), now = new Da
   const type = url.searchParams.get('type') ?? '';
   const format = FORMATS[url.searchParams.get('format') ?? ''];
   if (!format || !EXPORTABLE.includes(type)) return problem(400, 'unknown type or format');
-  const rows = type === 'clients' ? await s.clients.list()
+  const rows = type === 'clients' ? await s.clients.listAll()
     : type === 'contacts' ? await s.contacts.list()
     : await s[type].listAll();
   const name = `${type}-${todayIn(undefined, now)}.${url.searchParams.get('format')}`;

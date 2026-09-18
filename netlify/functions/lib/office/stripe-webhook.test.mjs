@@ -78,7 +78,7 @@ test('a signed checkout.session.completed marks a pending document paid', async 
 
 test('an event that throws while applying still returns 200 with handled: false', async () => {
   const s = await make();
-  const throwing = { ...s, clients: { ...s.clients, list: async () => { throw new Error('store down'); } } };
+  const throwing = { ...s, clients: { ...s.clients, listAll: async () => { throw new Error('store down'); } } };
   const res = await send({ id: 'evt_3', type: 'invoice.paid', data: { object: { id: 'in_1', customer: 'cus_1', amount_paid: 100 } } }, throwing);
   assert.equal(res.status, 200);
   const body = await res.json();

@@ -137,6 +137,33 @@ test('a broken agreements store logs a failure but does not stop the digest from
   }
 });
 
+test('runDigest drops an archived client\'s overdue task and meetings', async () => {
+  process.env.RESEND_API_KEY = 'k'; process.env.KEEPSITE_NOTIFY_FROM = 'o@x'; process.env.KEEPSITE_NOTIFY_TO = 'me@x';
+  try {
+    const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
+    await s.clients.put('acme', { slug: 'acme', business: 'Acme', email: 'a@x' });
+    await s.clients.put('lova', {
+      slug: 'lova', business: 'Lova', email: 'l@x',
+      archivedAt: '2026-09-10T00:00:00.000Z', archivedReason: 'left',
+    });
+    const overdue = t('lova', '2026-09-01', { title: 'Ghost task' });
+    await s.tasks.put('lova', overdue.id, overdue);
+    const keep = t('acme', '2026-09-01', { title: 'Live task' });
+    await s.tasks.put('acme', keep.id, keep);
+    const meetingId = newId();
+    await s.meetings.put('lova', meetingId, { id: meetingId, slug: 'lova', title: 'Ghost meeting', ymd: today, time: '10:00', minutes: 30 });
+    const fetchFn = async () => new Response('{"id":"re"}');
+    await runDigest({ s, now, fetchFn });
+    const [log] = await s.emails.list('office');
+    assert.doesNotMatch(log.text, /Ghost task/);
+    assert.doesNotMatch(log.text, /Ghost meeting/);
+    assert.doesNotMatch(log.text, /lova/);
+    assert.match(log.text, /Live task/);
+  } finally {
+    delete process.env.RESEND_API_KEY; delete process.env.KEEPSITE_NOTIFY_FROM; delete process.env.KEEPSITE_NOTIFY_TO;
+  }
+});
+
 test('own tasks are named Office, with their project when they have one', () => {
   const tasks = [
     t('office', today, { title: 'Send invoices', project: 'Admin' }),
