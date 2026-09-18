@@ -47,7 +47,7 @@ test('the report text covers every section', async () => {
   s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: [r('https://a1.com/p')], related: [] });
   const lines = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
-  for (const needle of ['Search research', 'Acme Florist', 'What we did', 'The pages we recommend', 'wedding florist provo', 'Decisions from our call', 'What we saw', 'Appendix', 'a1.com']) {
+  for (const needle of ['Search research', 'Acme Florist', 'How we did it', 'Your pages', 'wedding florist provo', 'Decisions we made together', 'what we saw', 'Appendix', 'a1.com']) {
     assert.ok(text.includes(needle), `missing ${needle}`);
   }
 });
@@ -97,7 +97,7 @@ test('the page-grouping rationale never quotes seven-of-eight results', async ()
 
   const lines = reportLines({ client, round, renderedAt: new Date('2026-09-13T12:00:00Z') });
   const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
-  assert.ok(text.includes('The pages we recommend'), 'sanity: the page section rendered');
+  assert.ok(text.includes('Your pages'), 'sanity: the page section rendered');
   assert.ok(!/seven or more/i.test(text), 'no seven-of-eight phrasing anywhere in the report');
   assert.ok(!/top eight/i.test(text), 'no seven-of-eight phrasing anywhere in the report');
 });
@@ -133,11 +133,45 @@ test('the notes bracket the findings and empty ones print nothing', () => {
   const texts = L.map((x) => x.text ?? '');
   const intro = texts.indexOf('Why we looked.');
   const closing = texts.indexOf('What to do.');
-  const findings = texts.findIndex((t) => t === 'What we did');
+  const findings = texts.findIndex((t) => t === 'Your pages');
+  const appendix = texts.findIndex((t) => t.startsWith('Appendix'));
   assert.ok(intro > -1 && findings > -1 && intro < findings, 'intro prints before the findings');
-  assert.equal(closing, texts.length - 1, 'closing prints last');
+  // The closing note is the owner's last word to the client, so it prints
+  // where the client stops reading: after the findings, before the working.
+  assert.ok(closing > findings && closing < appendix, 'closing prints after the findings and before the appendix');
 
   const bare = reportLines({ client, round: { ...round, notes: { intro: '', closing: '' } }, renderedAt: new Date('2026-09-17T00:00:00Z') });
-  assert.ok(!bare.some((x) => (x.text ?? '') === ''), 'an empty note prints no empty line');
+  assert.ok(!bare.some((x) => x.text === ''), 'an empty note prints no empty line');
   assert.ok(!bare.some((x) => (x.text ?? '').includes('Notes')), 'an empty note prints no heading');
+});
+
+// The first page carries the story: three numbers, one figure, the pages.
+// A client who reads nothing else has still been told what was found.
+test('page one leads with the numbers and a bar per page, and the working sits behind a stop line', async () => {
+  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
+  s.rounds[0] = {
+    ...s.rounds[0],
+    keywords: [
+      { id: 'k1', text: 'wedding florist provo', cluster: '', arm: '', source: 'manual' },
+      { id: 'k2', text: 'provo wedding flowers', cluster: '', arm: '', source: 'manual' },
+      { id: 'k3', text: 'funeral flowers provo', cluster: '', arm: '', source: 'manual' },
+    ],
+  };
+  const A = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://a${n}.com/p`));
+  s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: A, related: [] });
+  s = applyCapture(s, 'k2', { q: 'provo wedding flowers', results: [...A.slice(0, 7), r('https://other.com/p')], related: [] });
+  s = applyCapture(s, 'k3', { q: 'funeral flowers provo', results: [1, 2, 3, 4].map((n) => r(`https://f${n}.com/p`)), related: [] });
+  const L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const kinds = L.map((x) => x.kind);
+  const stats = L.find((x) => x.kind === 'stats');
+  assert.deepEqual(stats.items, [['3', 'searches'], ['2', 'pages'], ['0', 'decisions we made together']]);
+  const bars = L.find((x) => x.kind === 'bars');
+  assert.deepEqual(bars.rows.map((b) => b.value).sort(), [1, 2], 'one bar per page, sized by the searches it answers');
+  const texts = L.map((x) => x.text ?? '');
+  const stop = texts.findIndex((t) => t.startsWith('You can stop here'));
+  const pages = texts.indexOf('Your pages');
+  const appendix = texts.findIndex((t) => t.startsWith('Appendix'));
+  assert.ok(pages < stop && stop < appendix, 'pages, then the stop line, then the appendix');
+  assert.ok(kinds.indexOf('stats') < pages, 'the numbers come before the page list');
+  assert.ok(!/businesses that rank most/.test(texts.join('\n')), 'the domain roll-call stays in the appendix');
 });

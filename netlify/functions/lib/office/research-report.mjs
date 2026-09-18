@@ -30,50 +30,62 @@ export function reportLines({ client, round, renderedAt }) {
   const ps = pairs(round);
   const pageRows = pageList(round);
   const captured = round.keywords.filter((k) => round.serps[k.id]);
+  const decided = ps.filter((x) => (x.signal === 'gray' || x.signal === 'unmeasurable') && x.read && x.read.sameCluster !== 'Undecided');
   const day = formatYmd(todayIn(undefined, renderedAt));
   const started = formatYmd(todayIn(undefined, new Date(round.startedAt)));
   const closed = round.closedAt ? formatYmd(todayIn(undefined, new Date(round.closedAt))) : null;
 
+  // Page one is the whole report for the reader with other things to do:
+  // what this is, three numbers, one figure, the page list. Everything that
+  // shows the working sits behind a line that says they can stop.
   h1('Search research');
   // The round's own dates, not just the print date: two rounds for the same
   // client can otherwise print an identical header on the same day.
   p(`${client.business} · ${client.tier ?? ''} · Round started ${started}${closed ? `, closed ${closed}` : ''} · Printed ${day}`.replace(' ·  ·', ' ·'));
-  p('Before we lay out a site we find out what people type into Google when they need what you do, and which of those searches Google answers with the same pages. Searches that share results belong on one page. Searches that do not need pages of their own. This report shows what we found and the page list that comes out of it.');
+  p('Before we build anything, we look at what people actually type into Google when they need what you do, and which of those searches Google answers with the same pages. Searches that share results share a page. Searches that do not get their own. This is what we found, and the page list that comes out of it.');
   if (round.notes?.intro) p(round.notes.intro);
 
-  h2('What we did');
-  p(`We searched ${plural(captured.length, 'term')} drawn from your questionnaire, each under the same conditions, and kept up to eight organic results for every one, ignoring ads and map listings. Then we compared every pair of searches: ${plural(ps.length, 'comparison')} in all. Directory sites — review sites, social profiles, forums — rank for almost every search in a field, so they tell us little about what a particular search means. We compare the individual businesses instead. When most of the same businesses answer two searches with the same page, the two searches are one question and one page should answer them. When they mostly differ, they are separate questions and need separate pages. When the businesses alone do not settle it, we also look at whether the two searches turn up the same kind of page — both homepages, say, or both blog posts — and let that decide.`);
+  L.push({ kind: 'stats', items: [
+    [String(captured.length), captured.length === 1 ? 'search' : 'searches'],
+    [String(pageRows.length), pageRows.length === 1 ? 'page' : 'pages'],
+    [String(decided.length), decided.length === 1 ? 'decision we made together' : 'decisions we made together'],
+  ] });
 
-  h2('The pages we recommend');
+  h2('Your pages');
   if (!pageRows.length) p('No searches have been captured yet.');
+  else {
+    p('Each bar is one page. Its length is how many searches that page answers.');
+    L.push({ kind: 'bars', rows: pageRows.map((row) => ({ label: row.title, value: row.keywords.length })) });
+  }
   for (const row of pageRows) {
     const ids = row.keywords;
-    const inside = ps.filter((x) => ids.includes(x.a.id) && ids.includes(x.b.id));
-    const strong = inside.filter((x) => x.signal === 'strong').length;
-    const results = ids.flatMap((id) => round.serps[id]?.results ?? []);
-    const doms = topDomains(results, 3).map(([d]) => d);
-    p(`${row.title}${row.type ? ` — ${row.type}` : ''}`);
-    small(`Targets: ${ids.map(text).join('; ')}`);
-    // 'strong' is a count of pairs whose businesses (directories aside)
-    // mostly overlap, not a fraction of eight results — say it in words a
-    // client can act on, not a number they might expect to reproduce by hand.
+    p(row.title);
+    small(`Answers: ${ids.map(text).join('; ')}`);
+    // 'strong' pairs share most of the smaller side's businesses, directories
+    // aside. Said in words, never as a count the client might try to
+    // reproduce from the appendix.
     const why = ids.length === 1
-      ? 'This search shares few results with any other, so it earns a page of its own.'
-      : `${plural(strong, 'pair', 'pairs')} of these searches bring up mostly the same businesses, so one page can answer all of them.`;
-    small(`${why}${doms.length ? ` The businesses that rank most across them: ${doms.join(', ')}.` : ''}${row.note ? ` ${row.note}` : ''}`);
+      ? 'No other search brings up the same businesses, so this one needs a page of its own.'
+      : `These ${plural(ids.length, 'search', 'searches')} bring up mostly the same businesses. One page can answer all of them.`;
+    small(`${why}${row.note ? ` ${row.note}` : ''}`);
   }
 
-  const decided = ps.filter((x) => (x.signal === 'gray' || x.signal === 'unmeasurable') && x.read && x.read.sameCluster !== 'Undecided');
-  h2('Decisions from our call');
+  h2('Decisions we made together');
   if (!decided.length) p('Every pair fell clearly on one side, so nothing needed a judgment call.');
-  else table([['Searches', 'Shared results', 'Read', 'Note'], ...decided.map((x) => [`${x.a.text} / ${x.b.text}`, x.signal === 'unmeasurable' ? 'too few businesses' : `${x.sharedBusinesses} of ${x.denominator} businesses, ${x.sharedDirectories} directories`, `${x.read.human}${x.read.sameCluster === 'Yes' ? ', same page' : ', separate pages'}`, x.read.notes ?? ''])]);
+  else table([['Searches', 'What we saw', 'What we decided', 'Note'], ...decided.map((x) => [`${x.a.text} / ${x.b.text}`, x.signal === 'unmeasurable' ? 'too few businesses to compare' : `${x.sharedBusinesses} of ${x.denominator} businesses in common, ${x.sharedDirectories} directories`, `${x.read.human}${x.read.sameCluster === 'Yes' ? ', same page' : ', separate pages'}`, x.read.notes ?? ''])]);
 
-  h2('What we saw');
+  h2('How we did it');
+  p(`We searched ${plural(captured.length, 'term')} from your questionnaire, the same way each time, and kept the first eight real results for each: no ads, no map pins. Then we compared every pair, ${plural(ps.length, 'comparison')} in all. Directory sites — review sites, forums, social feeds — rank for nearly everything, so they say little about any one search. We compare the individual businesses instead. When mostly the same businesses answer two searches, that is one question and one page. When they differ, it is two. Where the businesses do not settle it, we look at what kind of page ranks, homepages or blog posts, and let that decide.`);
+  if (round.notes?.closing) p(round.notes.closing);
+
+  p('You can stop here. Everything after this is our work, shown.');
+
+  h2('Appendix: what we saw');
   for (const row of pageRows) {
     const results = row.keywords.flatMap((id) => round.serps[id]?.results ?? []);
     const doms = topDomains(results);
     if (!doms.length) continue;
-    p(row.title);
+    p(`${row.title}${row.type ? ` — mostly ${row.type.toLowerCase()} results` : ''}`);
     table([['Business', 'Appearances'], ...doms.map(([d, n]) => [d, String(n)])]);
   }
 
@@ -83,7 +95,6 @@ export function reportLines({ client, round, renderedAt }) {
     p(`${k.text} · captured ${formatYmd(todayIn(undefined, new Date(serp.capturedAt)))}`);
     table([['#', 'Title', 'Business', 'Page type'], ...serp.results.map((x) => [String(x.rank), x.title, x.domain, x.pageType])]);
   }
-  if (round.notes?.closing) p(round.notes.closing);
   return L;
 }
 
@@ -100,6 +111,8 @@ export async function renderResearchReport({ client, round, renderedAt = new Dat
     else if (line.kind === 'p') w.text(line.text);
     else if (line.kind === 'small') w.text(line.text, { size: SIZES.small });
     else if (line.kind === 'table') w.table(line.rows);
+    else if (line.kind === 'stats') w.stats(line.items);
+    else if (line.kind === 'bars') w.bars(line.rows);
   }
   return doc.save();
 }

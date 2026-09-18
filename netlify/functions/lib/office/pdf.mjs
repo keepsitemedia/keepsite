@@ -125,6 +125,39 @@ export class Writer {
     }
     this.y -= gapAfter;
   }
+  // A row of big numbers with a caption under each: the whole story for the
+  // reader who stops after the first page.
+  stats(items) {
+    const big = 26; const cap = SIZES.small; const w = CONTENT / items.length;
+    const height = big + cap * LEADING + 18;
+    this.need(height);
+    items.forEach(([value, label], i) => {
+      const x = MARGIN + i * w;
+      this.page.drawText(toPdfText(value), { x, y: this.y - big, size: big, font: this.fonts.bold });
+      this.page.drawText(toPdfText(label), { x, y: this.y - big - cap * LEADING, size: cap, font: this.fonts.body, color: rgb(0.4, 0.4, 0.4) });
+    });
+    this.y -= height;
+  }
+  // One bar per row, scaled to the longest, the label to its left and the
+  // number at its end. No axes: the number is printed, so there is nothing
+  // to read off a scale.
+  bars(rows) {
+    if (!rows.length) return;
+    const max = Math.max(1, ...rows.map((r) => r.value));
+    const size = SIZES.table; const lh = size * LEADING; const h = 11; const gap = 6;
+    const labelW = CONTENT * 0.44; const barW = CONTENT - labelW - 36;
+    for (const row of rows) {
+      const lines = wrap(this.fonts.body, size, row.label, labelW - 10).slice(0, 2);
+      const rowH = Math.max(h, lines.length * lh) + gap;
+      this.need(rowH);
+      lines.forEach((line, i) => this.page.drawText(line, { x: MARGIN, y: this.y - size - i * lh, size, font: this.fonts.body }));
+      const width = Math.max(2, (row.value / max) * barW);
+      this.page.drawRectangle({ x: MARGIN + labelW, y: this.y - h - 1, width, height: h, color: rgb(0.635, 0.29, 0.149) });
+      this.page.drawText(toPdfText(String(row.value)), { x: MARGIN + labelW + width + 5, y: this.y - h + 1, size, font: this.fonts.bold });
+      this.y -= rowH;
+    }
+    this.y -= SIZES.p;
+  }
   table(rows) {
     if (!rows.length) return;
     const cols = Math.max(...rows.map((r) => r.length));
