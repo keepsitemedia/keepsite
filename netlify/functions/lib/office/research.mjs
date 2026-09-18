@@ -81,16 +81,29 @@ export function primaryPageOf(results) {
   return leaders.length > 1 ? 'Tie / review' : leaders[0][0];
 }
 
+// A directory ranks for every query in a field, so counting it as evidence
+// that two queries mean the same thing adds the same constant to every pair.
+// The businesses are what discriminate.
+const isDirectory = (x) => x.pageType === 'Directory';
+const businessesOf = (results) => results.filter((x) => !isDirectory(x));
+
 export function comparePair(a, b) {
   const exactUrl = countIn(a, b, (x) => normalizeUrl(x.url));
   const sameDomain = countIn(a, b, (x) => domainOf(x.url));
   const samePageType = countIn(a, b, (x) => x.pageType);
   const sharedUrls = sharedIn(a, b, (x) => normalizeUrl(x.url));
   const sharedDomains = sharedIn(a, b, (x) => domainOf(x.url));
+  const aBiz = businessesOf(a);
+  const bBiz = businessesOf(b);
+  const denominator = Math.min(aBiz.length, bBiz.length);
+  const sharedBusinesses = countIn(aBiz, bBiz, (x) => normalizeUrl(x.url));
+  const sharedDirectories = countIn(a.filter(isDirectory), b.filter(isDirectory), (x) => normalizeUrl(x.url));
+  const ratio = denominator ? sharedBusinesses / denominator : null;
   const branch = exactUrl >= 7 ? 'strong' : exactUrl >= 3 ? 'gray' : sameDomain >= 4 ? 'domain' : 'low';
   const [read, action] = READ_TEXT[branch];
   return {
     exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), samePageType, sharedUrls, sharedDomains,
+    sharedBusinesses, sharedDirectories, businessesA: aBiz.length, businessesB: bBiz.length, denominator, ratio,
     read, action, signal: branch === 'domain' ? 'low' : branch, primaryPage: primaryPageOf([...a, ...b]),
   };
 }

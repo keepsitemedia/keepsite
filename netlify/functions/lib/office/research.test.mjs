@@ -6,6 +6,7 @@ import {
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
+const dr = (url, title = 'D') => ({ url, title, domain: domainOf(url), pageType: 'Directory', typeSource: 'auto' });
 
 test('normalizeUrl folds the differences Google shows for one page', () => {
   assert.equal(normalizeUrl('https://www.Example.com/Weddings/?utm_source=x&gclid=1#top'), 'example.com/Weddings');
@@ -134,6 +135,28 @@ test('comparePair primary page is the mode across both lists, tie reviewed, empt
   assert.equal(comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]).primaryPage, 'Tie / review');
   assert.equal(comparePair([], []).primaryPage, '');
   assert.equal(comparePair([], []).read, 'Low overlap: likely a meaningfully different intent.');
+});
+
+test('comparePair counts businesses and directories apart', () => {
+  const a = [dr('https://yelp.com/a'), dr('https://weddingwire.com/b'), r('https://one.com/'), r('https://two.com/'), r('https://four.com/')];
+  const b = [dr('https://yelp.com/a'), dr('https://theknot.com/c'), r('https://one.com/'), r('https://two.com/'), r('https://five.com/')];
+  const c = comparePair(a, b);
+  assert.equal(c.sharedBusinesses, 2);
+  assert.equal(c.sharedDirectories, 1);
+  assert.equal(c.businessesA, 3);
+  assert.equal(c.businessesB, 3);
+  assert.equal(c.denominator, 3);
+  assert.equal(Number(c.ratio.toFixed(4)), Number((2 / 3).toFixed(4)));
+  // The old numbers keep their old meanings, directories included.
+  assert.equal(c.exactUrl, 3);
+});
+
+test('comparePair reports a null ratio when there is nothing to divide by', () => {
+  const a = [dr('https://yelp.com/a')];
+  const b = [dr('https://yelp.com/a')];
+  const c = comparePair(a, b);
+  assert.equal(c.denominator, 0);
+  assert.equal(c.ratio, null);
 });
 
 test('pairKey sorts', () => {
