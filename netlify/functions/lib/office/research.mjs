@@ -162,10 +162,25 @@ export function pairs(round) {
   for (let i = 0; i < ks.length; i += 1) {
     for (let j = i + 1; j < ks.length; j += 1) {
       const key = pairKey(ks[i].id, ks[j].id);
-      out.push({ a: ks[i], b: ks[j], key, ...comparePair(round.serps[ks[i].id].results, round.serps[ks[j].id].results), read: round.reads[key] ?? null });
+      const read = round.reads[key] ?? null;
+      const row = { a: ks[i], b: ks[j], key, ...comparePair(round.serps[ks[i].id].results, round.serps[ks[j].id].results), read };
+      row.decisive = read ? null : decisiveFor(round, key);
+      out.push(row);
     }
   }
   return out;
+}
+
+// Would the owner's answer change anything? Force the pair each way and
+// compare the page lists. When they match, the two keywords are already
+// joined (or already separated) through other pairs and the question is
+// rhetorical. Two group() passes per undecided pair; at forty keywords that
+// is milliseconds, and past a hundred it wants revisiting.
+function decisiveFor(round, key) {
+  const withRead = (sameCluster) => ({ ...round, reads: { ...round.reads, [key]: { human: 'Gray zone / discuss', sameCluster, notes: '' } } });
+  const asOne = pageList(withRead('Yes')).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
+  const asTwo = pageList(withRead('No')).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
+  return asOne !== asTwo;
 }
 
 // Union-find over captured keywords. A strong pair joins unless the owner

@@ -330,6 +330,58 @@ test('pairs covers captured keywords only and carries the stored read', () => {
   assert.equal(p[1].read, null);
 });
 
+// Most gray pairs join two keywords already linked through other strong pairs.
+// Asking about them costs the owner time and changes nothing.
+test('a pair whose answer cannot change the page list is not decisive', () => {
+  const serp = (urls) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: urls.map((u, i) => ({ rank: i + 1, ...r(u) })), related: [] });
+  const all = ['https://a.com/', 'https://b.com/', 'https://c.com/', 'https://d.com/'];
+  const round = {
+    ...emptyRound('r1'),
+    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }, { id: 'k3', text: 'three', cluster: 'C' }],
+    serps: { k1: serp(all), k2: serp(all), k3: serp(all) },
+  };
+  // All three agree strongly, so every pair is already grouped: no answer moves anything.
+  for (const p of pairs(round)) assert.equal(p.decisive, false, `${p.a.text} · ${p.b.text}`);
+});
+
+test('a pair that would split the page list is decisive', () => {
+  // Mixed page types on both sides so there is no leading type to settle the
+  // tie (see comparePair's tiebreaker) and the ratio alone decides: gray.
+  const round = {
+    ...emptyRound('r1'),
+    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }],
+    serps: {
+      k1: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://a.com/', 'Service page') },
+        { rank: 2, ...r('https://b.com/', 'Location page') },
+        { rank: 3, ...r('https://x.com/', 'Homepage') },
+      ] },
+      k2: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
+        { rank: 1, ...r('https://a.com/', 'Service page') },
+        { rank: 2, ...r('https://c.com/', 'Location page') },
+        { rank: 3, ...r('https://y.com/', 'Homepage') },
+      ] },
+    },
+  };
+  const [p] = pairs(round);
+  assert.equal(p.signal, 'gray');
+  assert.equal(p.decisive, true);
+});
+
+test('a pair that already has a read is not asked about again', () => {
+  const serp = (urls) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: urls.map((u, i) => ({ rank: i + 1, ...r(u) })), related: [] });
+  const round = {
+    ...emptyRound('r1'),
+    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }],
+    serps: {
+      k1: serp(['https://a.com/', 'https://b.com/', 'https://x.com/']),
+      k2: serp(['https://a.com/', 'https://c.com/', 'https://y.com/']),
+    },
+    reads: { 'k1|k2': { human: 'Same intent', sameCluster: 'Yes', notes: '' } },
+  };
+  assert.equal(pairs(round)[0].decisive, null);
+});
+
 test('group joins strong pairs, honours No and Yes, leaves uncaptured out', () => {
   const r = round();
   let g = group(r);
