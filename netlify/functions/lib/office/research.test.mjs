@@ -207,13 +207,35 @@ test('comparePair names the shared URLs and businesses the counts come from', ()
 
 test('describePair says what the counts mean in one line', () => {
   const B4 = [...A.slice(0, 4), r('https://a5.com/other'), r('https://a6.com/other'), r('https://x3.com'), r('https://x4.com')];
-  assert.equal(describePair(comparePair(A, B4), 8), 'Four of eight pages are the same. Two more businesses rank with a different page for each search. Most results are service pages.');
+  // Eight businesses each side, four shared exactly, two more sharing a
+  // domain but not a page: the business share, not the raw page count.
+  assert.equal(describePair(comparePair(A, B4), 8), 'Four of eight businesses rank for both, with the same page. Two more businesses rank with a different page for each search. Most results are service pages.');
   const D = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://d${n}.com/p`, 'Directory'));
   const one = [D[0], r('https://d2.com/other', 'Directory'), ...[3, 4, 5, 6, 7, 8].map((n) => r(`https://x${n}.com`, 'Directory'))];
-  assert.equal(describePair(comparePair(D, one), 8), 'One of eight pages is the same. One more business ranks with a different page for each search. Most results are directories.');
+  // Both sides are all directories, so there are zero businesses to compare
+  // and the pair is unmeasurable: the one shared directory is named apart,
+  // never phrased as a share of businesses.
+  assert.equal(describePair(comparePair(D, one), 8), 'Almost every result is a directory, so there are too few businesses to compare. They also share one directory, which rank for almost everything in a field. Most results are directories.');
   const tie = comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]);
-  assert.equal(describePair(tie, 1), 'None of the pages are the same. No page type leads on either side.');
+  // One business each side is below MIN_BUSINESSES, so this is unmeasurable
+  // too, even though no directories are involved.
+  assert.equal(describePair(tie, 1), 'Almost every result is a directory, so there are too few businesses to compare. No page type leads on either side.');
   assert.equal(describePair(comparePair([], []), 0), 'Nothing captured yet.');
+});
+
+test('describePair counts businesses, and names the directories apart', () => {
+  const c = { signal: 'gray', sharedBusinesses: 2, sharedDirectories: 3, denominator: 4, exactUrl: 5, sameDomainDifferentPage: 0, primaryPage: 'Homepage' };
+  const s = describePair(c, 8);
+  assert.match(s, /Two of four businesses/);
+  assert.match(s, /three directories/i);
+});
+
+test('describePair says plainly when it cannot measure', () => {
+  const c = { signal: 'unmeasurable', sharedBusinesses: 1, sharedDirectories: 5, denominator: 2, exactUrl: 6, sameDomainDifferentPage: 0, primaryPage: 'Directory' };
+  const s = describePair(c, 8);
+  assert.match(s, /almost every result is a directory/i);
+  // No ratio may be quoted from two data points.
+  assert.ok(!/of two businesses/.test(s));
 });
 
 test('comparePair primary page is the mode across both lists, tie reviewed, empty blank', () => {

@@ -143,13 +143,22 @@ const PLURAL = {
 };
 export function describePair(c, total) {
   if (!total) return 'Nothing captured yet.';
-  const same = c.exactUrl === 0 ? 'None of the pages are the same.'
-    : `${cap(word(c.exactUrl))} of ${word(total)} pages ${c.exactUrl === 1 ? 'is' : 'are'} the same.`;
-  const more = c.sameDomainDifferentPage === 0 ? ''
-    : ` ${cap(word(c.sameDomainDifferentPage))} more ${c.sameDomainDifferentPage === 1 ? 'business ranks' : 'businesses rank'} with a different page for each search.`;
   const type = c.primaryPage === 'Tie / review' ? ' No page type leads on either side.'
     : c.primaryPage ? ` Most results are ${PLURAL[c.primaryPage] ?? c.primaryPage.toLowerCase()}.` : '';
-  return `${same}${more}${type}`;
+  // Named apart from the business count, never folded into it: a directory
+  // ranking for both searches says nothing about whether the searches mean
+  // the same thing.
+  const dirs = c.sharedDirectories ? ` They also share ${word(c.sharedDirectories)} ${c.sharedDirectories === 1 ? 'directory' : 'directories'}, which rank for almost everything in a field.` : '';
+  // unmeasurable means too few businesses to compute a share at all, so no
+  // ratio or count of businesses may appear in this branch.
+  if (c.signal === 'unmeasurable') {
+    return `Almost every result is a directory, so there are too few businesses to compare.${dirs}${type}`;
+  }
+  const same = c.sharedBusinesses === 0 ? 'None of the same businesses rank for both.'
+    : `${cap(word(c.sharedBusinesses))} of ${word(c.denominator)} businesses ${c.sharedBusinesses === 1 ? 'ranks' : 'rank'} for both, with the same page.`;
+  const more = c.sameDomainDifferentPage === 0 ? ''
+    : ` ${cap(word(c.sameDomainDifferentPage))} more ${c.sameDomainDifferentPage === 1 ? 'business ranks' : 'businesses rank'} with a different page for each search.`;
+  return `${same}${more}${dirs}${type}`;
 }
 
 export const pairKey = (a, b) => [a, b].sort().join('|');
