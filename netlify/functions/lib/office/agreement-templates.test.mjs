@@ -16,8 +16,8 @@ test('the four current templates load, validate and carry their tier; the retire
   assert.deepEqual(all.map((t) => t.id), ['presence', 'growth', 'agile', 'range']);
   assert.deepEqual(all.map((t) => t.tier), ['Presence', 'Growth', 'Agile', 'Range']);
   for (const t of all) assert.deepEqual(validateAgreementTemplate(t), [], t.id);
-  assert.deepEqual(findAgreementTemplate('growth').defaults, { buildFee: '$1,800', monthlyFee: '$160', pages: 8 });
-  assert.deepEqual(findAgreementTemplate('range').defaults, { buildFee: '$2,100', monthlyFee: '$350', pages: 16 });
+  assert.deepEqual(findAgreementTemplate('growth').defaults, { buildFee: '$3,600', monthlyFee: '$225', pages: 8 });
+  assert.deepEqual(findAgreementTemplate('range').defaults, { buildFee: '$4,200', monthlyFee: '$490', pages: 16 });
   assert.equal(findAgreementTemplate('search').id, 'search');
   assert.equal(findAgreementTemplate('search-plus').id, 'search-plus');
   assert.ok(RETIRED.has('search') && RETIRED.has('search-plus'));

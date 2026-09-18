@@ -274,6 +274,14 @@ export const SEARCH_PREFIX = 'https://www.google.com/search?q=';
 export const RESEARCH_SCHEME = 'ks-research:';
 export const searchUrl = (q) => `${SEARCH_PREFIX}${encodeURIComponent(String(q ?? '').trim())}`;
 export const researchSearchUrl = (q) => `${RESEARCH_SCHEME}${searchUrl(q)}`;
+// Nothing in production calls this — only its own test below holds up the
+// mirror described above. The PowerShell side is the one that actually
+// gates a browser command line, and it is stricter than this prefix check:
+// a whole-string pattern that also refuses whitespace, because a browser's
+// argument list is space-delimited and unquoted flags there are how a
+// prefix match gets turned into an injection. If either side changes, so
+// must the other, and if this ever gets called from real code, it needs
+// the same whole-string, no-whitespace tightening first.
 export const isSearchUrl = (url) => String(url ?? '').startsWith(SEARCH_PREFIX);
 
 export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
