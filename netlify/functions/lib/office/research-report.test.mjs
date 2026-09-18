@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderResearchReport, reportName, reportLines } from './research-report.mjs';
-import { emptyStudy, emptyRound, applyCapture, openRound, domainOf } from './research.mjs';
+import { emptyStudy, emptyRound, applyCapture, openRound, domainOf, pairs } from './research.mjs';
 
 const r = (url) => ({ url, title: `Title ${domainOf(url)}` });
 const client = { business: 'Acme Florist', tier: 'Growth' };
@@ -64,6 +64,40 @@ test('the header names the round so two rounds are not confused', () => {
   assert.ok(closedHeader.includes('Jan 4'), "names the closed round's start");
   assert.ok(closedHeader.includes('closed'), 'names the closed round as closed');
   assert.ok(closedHeader.includes('Feb 9'), "names the closed round's close date");
+});
+
+test('the report explains why directories are set aside', () => {
+  const round = { ...emptyRound('r1'), keywords: [], serps: {} };
+  const L = reportLines({ client, round, renderedAt: new Date('2026-09-18T00:00:00Z') });
+  const words = L.map((x) => x.text ?? '').join('\n');
+  assert.match(words, /Directory sites/);
+  assert.match(words, /We compare the individual businesses instead/);
+  assert.ok(!/Seven or more shared results out of eight/.test(words));
+});
+
+test('a read on an unmeasurable pair still reaches the decisions table', async () => {
+  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
+  s.rounds[0] = {
+    ...s.rounds[0],
+    keywords: [
+      { id: 'k1', text: 'niche florist provo', cluster: '', arm: '', source: 'manual' },
+      { id: 'k2', text: 'provo niche florist', cluster: '', arm: '', source: 'manual' },
+    ],
+  };
+  // Two non-directory results each: fewer than MIN_BUSINESSES, so the pair
+  // is 'unmeasurable' no matter how they overlap — the numbers never speak.
+  s = applyCapture(s, 'k1', { q: 'niche florist provo', results: [r('https://a1.com/p'), r('https://a2.com/p')], related: [] });
+  s = applyCapture(s, 'k2', { q: 'provo niche florist', results: [r('https://a1.com/p'), r('https://a3.com/p')], related: [] });
+  s.rounds[0] = { ...s.rounds[0], reads: { 'k1|k2': { human: 'Probably different', sameCluster: 'No', notes: 'Different services, owner said.' } } };
+  const round = openRound(s);
+  const [pair] = pairs(round);
+  assert.equal(pair.signal, 'unmeasurable', 'fixture must exercise the unmeasurable branch');
+
+  const lines = reportLines({ client, round, renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
+  assert.ok(text.includes('niche florist provo / provo niche florist'), 'the owner-read unmeasurable pair appears in the decisions table');
+  assert.ok(text.includes('too few businesses'), 'the row states the effect, not a share');
+  assert.ok(!/\d+ of \d+ businesses/.test(text), 'no business share is quoted for an unmeasurable pair');
 });
 
 test('the notes bracket the findings and empty ones print nothing', () => {

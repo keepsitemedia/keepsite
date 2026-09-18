@@ -42,7 +42,7 @@ export function reportLines({ client, round, renderedAt }) {
   if (round.notes?.intro) p(round.notes.intro);
 
   h2('What we did');
-  p(`We searched ${plural(captured.length, 'term')} drawn from your questionnaire, each under the same conditions, and kept the top eight organic results for every one, ignoring ads and map listings. Then we compared every pair of searches: ${plural(ps.length, 'comparison')} in all. Seven or more shared results out of eight means Google treats the two searches as the same question. Three to six is a gray zone we decide together. Two or fewer means different questions, so different pages.`);
+  p(`We searched ${plural(captured.length, 'term')} drawn from your questionnaire, each under the same conditions, and kept the top eight organic results for every one, ignoring ads and map listings. Then we compared every pair of searches: ${plural(ps.length, 'comparison')} in all. Directory sites — wedding listings, social profiles, forums — rank for almost every search in a field, so they tell us little about what a particular search means. We compare the individual businesses instead. When most of the same businesses answer two searches with the same page, the two searches are one question and one page should answer them. When they mostly differ, they are separate questions and need separate pages.`);
 
   h2('The pages we recommend');
   if (!pageRows.length) p('No searches have been captured yet.');
@@ -60,10 +60,10 @@ export function reportLines({ client, round, renderedAt }) {
     small(`${why}${doms.length ? ` The businesses that rank most across them: ${doms.join(', ')}.` : ''}${row.note ? ` ${row.note}` : ''}`);
   }
 
-  const decided = ps.filter((x) => x.signal === 'gray' && x.read && x.read.sameCluster !== 'Undecided');
+  const decided = ps.filter((x) => (x.signal === 'gray' || x.signal === 'unmeasurable') && x.read && x.read.sameCluster !== 'Undecided');
   h2('Decisions from our call');
   if (!decided.length) p('Every pair fell clearly on one side, so nothing needed a judgment call.');
-  else table([['Searches', 'Shared results', 'Read', 'Note'], ...decided.map((x) => [`${x.a.text} / ${x.b.text}`, `${x.exactUrl} of 8`, `${x.read.human}${x.read.sameCluster === 'Yes' ? ', same page' : ', separate pages'}`, x.read.notes ?? ''])]);
+  else table([['Searches', 'Shared results', 'Read', 'Note'], ...decided.map((x) => [`${x.a.text} / ${x.b.text}`, x.signal === 'unmeasurable' ? 'too few businesses' : `${x.sharedBusinesses} of ${x.denominator} businesses, ${x.sharedDirectories} directories`, `${x.read.human}${x.read.sameCluster === 'Yes' ? ', same page' : ', separate pages'}`, x.read.notes ?? ''])]);
 
   h2('What we saw');
   for (const row of pageRows) {

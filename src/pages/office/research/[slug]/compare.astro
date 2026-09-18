@@ -36,7 +36,7 @@ const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const tab = `/office/clients/${slug}/?tab=research`;
 // The workbook's suggested read for this branch, so the select can name it.
 const suggested = c.signal === 'strong' ? 'Same intent' : c.signal === 'gray' ? 'Gray zone / discuss' : 'Probably different';
-const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray zone' : 'Differ';
+const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray zone' : c.signal === 'unmeasurable' ? 'Cannot tell' : 'Differ';
 ---
 <OfficeLayout title={`${a.text} vs ${b.text}`}>
   <div class="page-head">
@@ -46,6 +46,8 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
   </div>
 
   <dl class="glance">
+    <div><dt>Businesses in common</dt><dd>{c.signal === 'unmeasurable' ? 'too few to compare' : `${c.sharedBusinesses} of ${c.denominator}`}<span class="detail">{signalWord}</span></dd></div>
+    <div><dt>Directories in common</dt><dd>{c.sharedDirectories}<span class="detail">rank for almost everything</span></dd></div>
     <div><dt>Same exact URL</dt><dd>{c.exactUrl} of {total}<span class="detail">{signalWord}</span></dd></div>
     <div><dt>Same business</dt><dd>{c.sameDomain} of {total}<span class="detail">{c.sameDomainDifferentPage} with a different page</span></dd></div>
     <div><dt>Same page type</dt><dd>{c.samePageType} of {total}</dd></div>
