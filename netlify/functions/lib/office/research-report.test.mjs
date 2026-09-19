@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderResearchReport, reportName, reportLines } from './research-report.mjs';
-import { emptyStudy, emptyRound, applyCapture, openRound, domainOf, KINDS } from './research.mjs';
+import { emptyStudy, emptyRound, applyCapture, openRound, domainOf } from './research.mjs';
 
 const r = (url) => ({ url, title: `Title ${domainOf(url)}` });
 const client = { business: 'Acme Florist', tier: 'Growth' };

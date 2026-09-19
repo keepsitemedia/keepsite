@@ -75,7 +75,7 @@ export function reportLines({ client, round, renderedAt }) {
   h2('Your pages');
   if (!standing.length) p('No searches have been captured yet.');
   for (const row of standing) {
-    p(`${row.title}${row.kind ? ` — ${row.kind}` : ''}`);
+    p(`${row.title}${row.kind ? ` · ${row.kind}` : ''}`);
     small(`Answers: ${row.keywords.map(withVolume).join('; ')}`);
     if (row.reason) small(row.reason);
     if (row.confidence?.level === 'close') small(`This one could also sit with ${titles.get(row.confidence.near) ?? 'another page'}; the businesses differ enough to keep it apart.`);
@@ -108,7 +108,7 @@ export function reportLines({ client, round, renderedAt }) {
     const results = row.keywords.flatMap((id) => round.serps[id]?.results ?? []);
     const doms = topDomains(results);
     if (!doms.length) continue;
-    p(`${row.title}${row.kind ? ` — ${row.kind.toLowerCase()}` : ''}`);
+    p(`${row.title}${row.kind ? ` · ${row.kind.toLowerCase()}` : ''}`);
     table([['Business', 'Appearances'], ...doms.map(([d, n]) => [d, String(n)])]);
   }
 
