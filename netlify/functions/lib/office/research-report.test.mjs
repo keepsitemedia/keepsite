@@ -244,6 +244,13 @@ test('a page with no local results anywhere says so', () => {
   assert.ok(!/no local businesses/.test(words(some)));
 });
 
+test('a location page says why it stands', () => {
+  const round = { ...openRound(study()), pages: [
+    { id: 'p1', title: 'Moab', kind: 'Location page', keywords: ['k1'], confidence: { level: 'clear', near: null }, reason: 'Nothing else brings up the same businesses.', standing: 'page', standingWhy: 'place', note: '', auto: true },
+  ], closedAt: '2026-09-14T00:00:00.000Z' };
+  assert.match(words(reportLines({ client, round, renderedAt: new Date('2026-09-20T00:00:00Z') })), /Worth a page for the place, whatever the search numbers say\./);
+});
+
 test('a closed round reports its stored pages, not a fresh clustering', () => {
   const s = study();
   const open = openRound(s);

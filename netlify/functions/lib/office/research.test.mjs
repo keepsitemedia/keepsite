@@ -982,6 +982,27 @@ test('standingOf: under the floor is low, unknown is never zero', () => {
   assert.equal(standingOf(['k1', 'k4'], round), 'page');
 });
 
+// Nobody searches a town's name often, and the page is how the site says the
+// business works there.
+test('a location page stands whatever its search numbers say', () => {
+  const round = roundWith({
+    k1: { text: 'moab wedding makeup', urls: ['https://a.com/'] },
+    k2: { text: 'mature skin bridal makeup', urls: ['https://b.com/'] },
+  }, ['Moab']);
+  for (const k of round.keywords) k.volume = { min: 0, max: 1, source: 'planner', at: 'x' };
+  const list = pageList(round);
+  const moab = list.find((p) => p.keywords.includes('k1'));
+  const other = list.find((p) => p.keywords.includes('k2'));
+  assert.equal(moab.kind, 'Location page');
+  assert.equal(moab.standing, 'page');
+  assert.equal(moab.standingWhy, 'place');
+  assert.equal(other.standing, 'low', 'a service page with the same volumes is set aside');
+  assert.equal(other.standingWhy, undefined);
+  // A location page Planner can see says nothing about the place rule.
+  round.keywords[0].volume = { min: 0, max: 900, source: 'planner', at: 'x' };
+  assert.equal(pageList(round).find((p) => p.keywords.includes('k1')).standingWhy, undefined);
+});
+
 // Volume sets aside what the engine grouped; the owner pinning a page is a
 // decision to build it, so an edited row stands whatever Planner says.
 test('a page the owner pins stands even when its volume is under the floor', () => {

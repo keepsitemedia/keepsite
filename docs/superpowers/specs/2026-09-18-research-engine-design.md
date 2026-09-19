@@ -253,6 +253,11 @@ Volume never changes grouping. It decides `standing`:
   under "Not worth a page" with its volume and its nearest page; the report
   lists it in one sentence. "Give it a page" pins it as an edited singleton,
   which is `'page'` by virtue of being edited.
+- A **Location page is never low**, whatever its volume: it is `'page'` with
+  `standingWhy: 'place'` wherever the rules above would have said `low`.
+  Nobody searches a town's name often, so volume would set aside exactly the
+  pages that say where the business works. The tab and the report both say
+  "Worth a page for the place, whatever the search numbers say."
 
 ## 6. The Research tab
 

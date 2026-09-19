@@ -464,6 +464,11 @@ export function confidenceWords(row, titles) {
 
 const rowId = (ids) => `p-${ids.slice().sort().join('-')}`;
 
+// A town is worth a page for being a town. Nobody searches a place name often,
+// so volume would set aside exactly the pages that say where the business
+// works; the page is the answer to "do you come to us", not a traffic bet.
+const placePage = (kind, ids, round) => kind === 'Location page' && standingOf(ids, round) === 'low';
+
 // Edited rows are kept as they are and their keywords leave the clustering
 // pass; the rest are clustered. The matrix and the square are still the whole
 // study, so an edited page's keywords stay visible as outsiders and rarity
@@ -477,8 +482,9 @@ export function pageList(round) {
   // only ones that survive a round trip.
   const kept = (round.pages ?? []).filter((p) => p.auto === false).map((p) => {
     const lent = new Set((p.folded ?? []).flatMap((f) => f.keywords ?? []));
-    const { folded, keptApart, ...rest } = p;
-    return { ...rest, keywords: p.keywords.filter((id) => !lent.has(id)), standing: 'page' };
+    const { folded, keptApart, keptApartWhy, standingWhy, ...rest } = p;
+    const keywords = p.keywords.filter((id) => !lent.has(id));
+    return { ...rest, keywords, standing: 'page', ...(placePage(p.kind, keywords, round) ? { standingWhy: 'place' } : {}) };
   });
   const claimed = new Set(kept.flatMap((p) => p.keywords));
   const free = captured(round).filter((k) => !claimed.has(k.id)).map((k) => k.id);
@@ -491,10 +497,13 @@ export function pageList(round) {
   const keptIdOf = new Map(keptBlocks.map((block, i) => [block, kept[i].id]));
   const rows = groups.map((ids) => {
     const c = confidence(ids, allPages, sims);
+    const kind = kindOf(ids, round, home);
+    const place = placePage(kind, ids, round);
     return {
-      id: rowId(ids), title: titleOf(ids, round, sims), kind: kindOf(ids, round, home), keywords: ids,
+      id: rowId(ids), title: titleOf(ids, round, sims), kind, keywords: ids,
       confidence: { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? keptIdOf.get(c.near) ?? rowId(c.near) : null },
-      reason: reasonOf(ids, m, c.nearest), standing: standingOf(ids, round), note: '', auto: true,
+      reason: reasonOf(ids, m, c.nearest), standing: place ? 'page' : standingOf(ids, round), note: '', auto: true,
+      ...(place ? { standingWhy: 'place' } : {}),
     };
   });
   const byId = new Map(round.keywords.map((k) => [k.id, k]));
