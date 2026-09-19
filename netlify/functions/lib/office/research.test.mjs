@@ -4,6 +4,7 @@ import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
   rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band,
+  KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, standingOf,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -998,4 +999,93 @@ test('band cuts similarity into none, faint, some, most', () => {
   assert.equal(band(0.2, 0.25), 2);
   assert.equal(band(0.25, 0.25), 3);
   assert.equal(band(1, 0.25), 3);
+});
+
+test('homeAreas is any area named in more than half the keywords', () => {
+  const round = { ...emptyRound('r1'), areas: ['Utah', 'Park City', 'Moab'], keywords: [
+    { id: 'k1', text: 'utah bridal makeup' }, { id: 'k2', text: 'Utah wedding makeup artist' }, { id: 'k3', text: 'park city utah hair and makeup' }, { id: 'k4', text: 'moab wedding makeup' },
+  ] };
+  assert.deepEqual(homeAreas(round), ['Utah']);
+});
+
+test('kindOf: a non-home area is a location page, a question is an article, else a service page', () => {
+  const round = roundWith({
+    k1: { text: 'park city utah hair and makeup', urls: ['https://a.com/'] },
+    k2: { text: 'utah bridal makeup', urls: ['https://a.com/'] },
+    k3: { text: 'soft glam vs full glam', urls: ['https://a.com/'] },
+    k4: { text: 'bridal party hair and makeup cost', urls: ['https://a.com/'] },
+    k5: { text: 'mature skin bridal makeup', urls: ['https://a.com/blog/one', 'https://b.com/blog/two', 'https://c.com/'] },
+    k6: { text: 'bridal party makeup', urls: ['https://a.com/services/', 'https://www.yelp.com/search'] },
+  }, ['Utah', 'Park City']);
+  const home = ['Utah'];
+  assert.equal(kindOf(['k1'], round, home), 'Location page');
+  assert.equal(kindOf(['k2'], round, home), 'Service page');
+  assert.equal(kindOf(['k3'], round, home), 'Article');
+  assert.equal(kindOf(['k4'], round, home), 'Article');
+  assert.equal(kindOf(['k5'], round, home), 'Article', 'half the business results are blog posts');
+  assert.equal(kindOf(['k6'], round, home), 'Service page', 'a directory does not count toward the blog share');
+  assert.equal(kindOf(['k1', 'k2'], round, home), 'Location page', 'one member with an area makes the group a location page');
+  assert.equal(kindOf(['k2', 'k3'], round, home), 'Article', 'and one question member makes it an article');
+});
+
+test('kindOf matches areas on whole words, case-insensitively', () => {
+  const round = roundWith({ k1: { text: 'Moab wedding makeup', urls: ['https://a.com/'] }, k2: { text: 'moabite bridal', urls: ['https://a.com/'] } }, ['moab']);
+  assert.equal(kindOf(['k1'], round, []), 'Location page');
+  assert.equal(kindOf(['k2'], round, []), 'Service page');
+});
+
+test('decodeCsv reads UTF-8 and UTF-16 by their marks', () => {
+  assert.equal(decodeCsv(new TextEncoder().encode('Keyword,Volume\r\na,1\r\n')), 'Keyword,Volume\r\na,1\r\n');
+  const utf16 = new Uint8Array([0xff, 0xfe, ...Buffer.from('Keyword\tVolume\n', 'utf16le')]);
+  assert.equal(decodeCsv(utf16), 'Keyword\tVolume\n');
+});
+
+test('parseVolumeCsv reads a Keyword Planner export with a preamble, tabs, ranges and min/max', () => {
+  const planner = [
+    'Keyword Stats 2026-09-18',
+    'Sep 1, 2025 - Aug 31, 2026',
+    'Keyword\tCurrency\tAvg. monthly searches\tMin search volume\tMax search volume\tCompetition',
+    'utah bridal makeup artist\tUSD\t210\t100\t1000\tLow',
+    '"la caille, utah makeup"\tUSD\t\t0\t10\t',
+    'soft glam vs full glam\tUSD\t1K – 10K\t\t\tLow',
+  ].join('\r\n');
+  const { rows, error } = parseVolumeCsv(planner);
+  assert.equal(error, null);
+  assert.deepEqual(rows, [
+    { keyword: 'utah bridal makeup artist', min: 210, max: 210 },
+    { keyword: 'la caille, utah makeup', min: 0, max: 10 },
+    { keyword: 'soft glam vs full glam', min: 1000, max: 10000 },
+  ]);
+});
+
+test('parseVolumeCsv reads a plain two-column file and refuses one with no keyword column', () => {
+  assert.deepEqual(parseVolumeCsv('keyword,volume\nbridal makeup,"1,200"\nmakeup,\n').rows, [
+    { keyword: 'bridal makeup', min: 1200, max: 1200 },
+  ]);
+  assert.match(parseVolumeCsv('a,b\n1,2\n').error, /Keyword column/);
+  assert.match(parseVolumeCsv('').error, /empty/);
+});
+
+test('applyVolume matches on normalized text, lists both kinds of miss, and keeps unmentioned volumes', () => {
+  const round = { ...emptyRound('r1'), keywords: [
+    { id: 'k1', text: ' Utah  Bridal Makeup ' }, { id: 'k2', text: 'moab makeup', volume: { min: 5, max: 5, source: 'csv', at: 'old' } }, { id: 'k3', text: 'never mentioned' },
+  ] };
+  const at = new Date('2026-09-18T12:00:00Z');
+  const next = applyVolume(round, [{ keyword: 'utah bridal makeup', min: 100, max: 1000 }, { keyword: 'not in study', min: 1, max: 1 }], at);
+  assert.deepEqual(next.keywords[0].volume, { min: 100, max: 1000, source: 'csv', at: at.toISOString() });
+  assert.equal(next.keywords[1].volume.at, 'old', 'a keyword the file does not name keeps what it had');
+  assert.equal(next.keywords[2].volume, undefined);
+  assert.deepEqual(next.volumeImport, { at: at.toISOString(), matched: 1, unmatchedRows: ['not in study'], unmatchedKeywords: ['k2', 'k3'] });
+});
+
+test('standingOf: under the floor is low, unknown is never zero', () => {
+  const v = (max) => ({ min: 0, max, source: 'csv', at: 'x' });
+  const round = { ...emptyRound('r1'), keywords: [
+    { id: 'k1', text: 'a', volume: v(0) }, { id: 'k2', text: 'b', volume: v(5) }, { id: 'k3', text: 'c', volume: v(100) }, { id: 'k4', text: 'd' },
+  ] };
+  assert.equal(standingOf(['k1'], round), 'low');
+  assert.equal(standingOf(['k1', 'k2'], round), 'low', 'summed max 5 is under the floor');
+  assert.equal(standingOf(['k1', 'k3'], round), 'page');
+  assert.equal(standingOf(['k4'], round), 'page', 'unknown volume does not sink a page');
+  assert.equal(standingOf(['k1', 'k4'], round), 'page');
 });

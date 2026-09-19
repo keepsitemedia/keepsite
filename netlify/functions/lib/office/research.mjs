@@ -290,6 +290,155 @@ export function reasonOf(ids, m, nearest = 0) {
   return `${cap(word(shared.length))} ${shared.length === 1 ? 'business ranks' : 'businesses rank'} for ${all}, led by ${led}.`;
 }
 
+export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+// ---- Page kinds --------------------------------------------------------------
+
+// What the tool can recommend building. The result classifications in
+// PAGE_TYPES describe what ranks; these describe what to build, and a
+// Directory is never something to build.
+export const KINDS = ['Homepage', 'Service page', 'Location page', 'Article', 'Other'];
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const wordIn = (needle, text) => new RegExp(`(^|[^a-z0-9])${escapeRe(String(needle).toLowerCase())}($|[^a-z0-9])`).test(String(text).toLowerCase());
+
+// The area the whole study is about is not a location page's area: "Utah"
+// in most keywords means the client works in Utah, not that every keyword
+// wants its own town page.
+export function homeAreas(round) {
+  const ks = round.keywords ?? [];
+  return (round.areas ?? []).filter((a) => a && ks.filter((k) => wordIn(a, k.text)).length > ks.length / 2);
+}
+
+// A question or a comparison in the keyword itself, or an answer that
+// Google fills with articles: the searcher wants to read, not to hire.
+const ARTICLE = /(^|[^a-z0-9])(vs|versus|or|how|what|why|when|should|cost|price|prices|tips|ideas)($|[^a-z0-9])|\?\s*$/i;
+
+export function kindOf(ids, round, home = homeAreas(round)) {
+  const byId = new Map(round.keywords.map((k) => [k.id, k]));
+  const texts = ids.map((id) => byId.get(id)?.text ?? '');
+  const areas = (round.areas ?? []).filter((a) => a && !home.includes(a));
+  if (texts.some((t) => areas.some((a) => wordIn(a, t)))) return 'Location page';
+  const results = ids.flatMap((id) => round.serps[id]?.results ?? []).filter((x) => x.pageType !== 'Directory');
+  const blog = results.filter((x) => x.pageType === 'Blog/FAQ').length;
+  if (texts.some((t) => ARTICLE.test(t)) || (results.length && blog * 2 >= results.length)) return 'Article';
+  return 'Service page';
+}
+
+// ---- Volume ------------------------------------------------------------------
+
+// PROVISIONAL. Searches a month, summed over a page's keywords, under which
+// a page is not worth building. Keyword Planner's lowest bucket is 0-10, so
+// this is "Planner cannot see it". Revisit after the first import against
+// the Makeup by Brinley study.
+export const FLOOR = 10;
+
+// Keyword Planner exports UTF-16 with a byte-order mark; everything else is
+// UTF-8. Decode by the mark, never by guessing.
+export function decodeCsv(bytes) {
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2));
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder('utf-16be').decode(bytes.subarray(2));
+  return new TextDecoder('utf-8').decode(bytes).replace(/^﻿/, '');
+}
+
+// One delimited line into cells, honouring quotes. Enough for Planner and
+// for a hand-made file; not a general CSV reader.
+function splitLine(line, delim) {
+  const out = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const c = line[i];
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') { cell += '"'; i += 1; } else if (c === '"') quoted = false; else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === delim) { out.push(cell); cell = ''; } else cell += c;
+  }
+  out.push(cell);
+  return out.map((s) => s.trim());
+}
+
+// "1,200", "1K", "10K – 100K", "1.5M": Planner writes volume every one of
+// these ways depending on the account and the column.
+const num = (s) => {
+  const t = String(s ?? '').trim().replace(/,/g, '');
+  const m = /^(\d+(?:\.\d+)?)\s*([KkMm])?$/.exec(t);
+  if (!m) return null;
+  const mult = m[2] ? (m[2].toLowerCase() === 'k' ? 1000 : 1000000) : 1;
+  return Math.round(Number(m[1]) * mult);
+};
+const range = (s) => {
+  const m = /^(.+?)\s*[–-]\s*(.+)$/.exec(String(s ?? '').trim());
+  if (!m) return null;
+  const lo = num(m[1]);
+  const hi = num(m[2]);
+  return lo == null || hi == null ? null : { min: lo, max: hi };
+};
+
+export function parseVolumeCsv(text) {
+  const lines = String(text ?? '').split(/\r?\n/).filter((l) => l.trim());
+  if (!lines.length) return { rows: [], error: 'the file is empty' };
+  // Planner puts two title lines above the header; the header is the first
+  // line with a Keyword cell.
+  const headerAt = lines.findIndex((l) => /(^|[\t,])"?keyword"?([\t,]|$)/i.test(l));
+  if (headerAt < 0) return { rows: [], error: 'no Keyword column found' };
+  const delim = lines[headerAt].includes('\t') ? '\t' : ',';
+  const header = splitLine(lines[headerAt], delim).map((h) => h.toLowerCase());
+  const col = (...names) => header.findIndex((h) => names.includes(h));
+  const kw = col('keyword');
+  const avg = col('avg. monthly searches', 'volume', 'searches', 'search volume');
+  const lo = col('min search volume');
+  const hi = col('max search volume');
+  if (avg < 0 && (lo < 0 || hi < 0)) return { rows: [], error: 'no volume column found: expected Avg. monthly searches, Min/Max search volume, or volume' };
+  const rows = [];
+  for (const line of lines.slice(headerAt + 1)) {
+    const cells = splitLine(line, delim);
+    const keyword = cells[kw];
+    if (!keyword) continue;
+    const single = avg >= 0 ? num(cells[avg]) : null;
+    const spread = avg >= 0 ? range(cells[avg]) : null;
+    const bounds = lo >= 0 && hi >= 0 && num(cells[lo]) != null && num(cells[hi]) != null ? { min: num(cells[lo]), max: num(cells[hi]) } : null;
+    const v = single != null ? { min: single, max: single } : spread ?? bounds;
+    if (v) rows.push({ keyword, ...v });
+  }
+  return { rows, error: null };
+}
+
+// Volume lands on the keyword; the import's misses land on the round, so the
+// tab can show what did not match until the next import replaces it.
+export function applyVolume(round, rows, now = new Date(), source = 'csv') {
+  const at = now.toISOString();
+  const byText = new Map(rows.map((r) => [normalizeQuery(r.keyword), r]));
+  const hit = new Set();
+  const keywords = round.keywords.map((k) => {
+    const row = byText.get(normalizeQuery(k.text));
+    if (!row) return k;
+    hit.add(normalizeQuery(k.text));
+    return { ...k, volume: { min: row.min, max: row.max, source, at } };
+  });
+  const matchedIds = new Set(keywords.filter((k, i) => k !== round.keywords[i]).map((k) => k.id));
+  return {
+    ...round,
+    keywords,
+    volumeImport: {
+      at,
+      matched: matchedIds.size,
+      unmatchedRows: rows.filter((r) => !hit.has(normalizeQuery(r.keyword))).map((r) => r.keyword),
+      unmatchedKeywords: keywords.filter((k) => !matchedIds.has(k.id)).map((k) => k.id),
+    },
+  };
+}
+
+// Volume never moves a keyword between pages; it says whether the page is
+// worth building. Unknown is unknown: a page with any unmeasured keyword
+// stands, because "Planner was not asked" is not "nobody searches".
+export function standingOf(ids, round) {
+  const byId = new Map(round.keywords.map((k) => [k.id, k]));
+  const vols = ids.map((id) => byId.get(id)?.volume);
+  if (vols.some((v) => !v)) return 'page';
+  return vols.reduce((n, v) => n + v.max, 0) < FLOOR ? 'low' : 'page';
+}
+
 // A directory ranks for every query in a field, so counting it as evidence
 // that two queries mean the same thing adds the same constant to every pair.
 // The businesses are what discriminate.
@@ -613,8 +762,6 @@ export const researchSearchUrl = (q) => `${RESEARCH_SCHEME}${searchUrl(q)}`;
 // must the other, and if this ever gets called from real code, it needs
 // the same whole-string, no-whitespace tightening first.
 export const isSearchUrl = (url) => String(url ?? '').startsWith(SEARCH_PREFIX);
-
-export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 
 export function validateCapture(text) {
   const errors = [];
