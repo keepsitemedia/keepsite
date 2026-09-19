@@ -231,6 +231,23 @@ test('a fold and a kept-apart page are both explained, and nothing asks the clie
   assert.ok(!/merge them/.test(w));
 });
 
+// An edited page is a call we made whether or not the owner wrote a note, and
+// a page that is both edited and a fold target is one call, not two.
+test('the calls table says an edited page with no note, and an edited fold target once', () => {
+  const s = study();
+  const closed = { ...openRound(s), closedAt: '2026-09-14T00:00:00.000Z', pages: [
+    { id: 'p9', title: 'Wedding flowers', kind: 'Service page', keywords: ['k1', 'k2'], standing: 'page', note: '', auto: false,
+      folded: [{ title: 'provo wedding flowers', into: 'Wedding flowers', keywords: ['k2'], kind: 'Service page' }] },
+    { id: 'p8', title: 'Funeral flowers', kind: 'Service page', keywords: ['k3'], standing: 'page', note: '', auto: false },
+  ] };
+  const L = reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') });
+  const table = L.find((x) => x.kind === 'table' && x.rows[0][0] === 'Page');
+  assert.equal(table.rows.filter((row) => row[0] === 'Wedding flowers').length, 1, 'the edited fold target is one row');
+  assert.deepEqual(table.rows[1], ['Wedding flowers', 'wedding florist provo; provo wedding flowers',
+    'Set by us. We folded in provo wedding flowers, which bring up mostly the same businesses.']);
+  assert.deepEqual(table.rows[2], ['Funeral flowers', 'funeral flowers provo', 'Set by us.']);
+});
+
 test('the report names the place it searched from', () => {
   const s = study();
   s.rounds[0] = { ...openRound(s), location: 'Utah, United States' };

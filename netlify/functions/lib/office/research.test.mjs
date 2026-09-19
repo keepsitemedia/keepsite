@@ -575,14 +575,73 @@ test('an edited page takes in the close call that names it, and gives it back', 
   const list = pageList(round);
   assert.deepEqual(list.map((p) => p.id), ['p9'], 'the auto row folded into the edited one');
   assert.deepEqual(list[0].keywords, ['kx', 'ky']);
-  assert.deepEqual(list[0].folded, [{ title: 'clustered', into: 'Edited', keywords: ['ky'] }]);
+  assert.deepEqual(list[0].folded, [{ title: 'clustered', into: 'Edited', keywords: ['ky'], kind: 'Service page' }]);
   assert.deepEqual(round.pages[0].keywords, ['kx'], 'the row the owner saved is untouched');
   // touch() stores the list it is given, so the next read starts from the grown
   // row: it must hand the lent keyword back before regrouping, or the edited
   // page would swallow it for good.
   const again = pageList({ ...round, pages: list });
   assert.deepEqual(again[0].keywords, ['kx', 'ky']);
-  assert.deepEqual(again[0].folded, [{ title: 'clustered', into: 'Edited', keywords: ['ky'] }]);
+  assert.deepEqual(again[0].folded, [{ title: 'clustered', into: 'Edited', keywords: ['ky'], kind: 'Service page' }]);
+});
+
+// The tab's "Give it its own page" posts the kind the record carries, so a
+// released row must not carry the job the page it left is now doing.
+test('a folded row records the kind it would keep on its own, never Homepage', () => {
+  const round = closeCall();
+  round.pages = [{ id: 'p9', title: 'Edited', kind: 'Service page', keywords: ['kx'], note: '', auto: false }];
+  const [row] = pageList(round);
+  assert.equal(row.kind, 'Homepage', 'the page that absorbs the homepage takes the job');
+  assert.deepEqual(row.folded.map((f) => f.kind), ['Service page']);
+});
+
+// A close call the reader cannot act on is worse than no close call: the page
+// it named is inside this one now.
+test('a fold target is measured again against the pages that remain', () => {
+  const round = closeCall();
+  const [row] = pageList(round);
+  const folded = new Set(row.folded.map((f) => `p-${f.keywords.slice().sort().join('-')}`));
+  assert.ok(!folded.has(row.confidence.near), 'the near page is not one this page swallowed');
+  assert.equal(row.confidence.near, null);
+  assert.equal(row.confidence.level, 'clear', 'nothing else is left to be close to');
+});
+
+// A fold target can itself fold into a bigger page: the middle page takes the
+// smallest in, then goes into the head page. The report prints one line per
+// fold, so every line has to travel.
+test('a fold target folded in its turn carries the folds it had taken', () => {
+  const round = roundWith({
+    x1: { text: 'head one', urls: ['https://x1.com/', 'https://x2.com/', 'https://d1.com/', 'https://x3.com/', 'https://x4.com/'] },
+    x2: { text: 'head two', urls: ['https://x1.com/', 'https://x2.com/', 'https://x3.com/', 'https://x4.com/', 'https://b1.com/'] },
+    x3: { text: 'head three', urls: ['https://x1.com/', 'https://x2.com/', 'https://x3.com/', 'https://x4.com/', 'https://u3.com/'] },
+    r: { text: 'the smallest', urls: ['https://r0.com/', 'https://r1.com/', 'https://rr.com/', 'https://r3.com/', 'https://r4.com/'] },
+    b: { text: 'the middle', urls: ['https://b1.com/', 'https://b2.com/', 'https://b3.com/', 'https://rr.com/'] },
+    d: { text: 'the other one', urls: ['https://d1.com/', 'https://d2.com/', 'https://d3.com/', 'https://d4.com/', 'https://d5.com/'] },
+  });
+  const vols = { x1: 1000, x2: 900, x3: 800, r: 10, b: 100, d: 50 };
+  round.keywords.forEach((k) => { k.volume = { min: vols[k.id], max: vols[k.id], source: 'planner', at: 'x' }; });
+  const list = pageList(round);
+  assert.equal(list.length, 1);
+  assert.deepEqual(list[0].folded.map((f) => f.title), ['the other one', 'the middle', 'the smallest']);
+  // Each line names only the searches its own row brought, so releasing one
+  // page does not take another's searches with it.
+  assert.deepEqual(list[0].folded.map((f) => f.keywords), [['d'], ['b'], ['r']]);
+});
+
+// The page is named after the search most people make, and a fold can bring a
+// bigger one in.
+test('a fold renames the page after the search it now leads with', () => {
+  const round = roundWith({
+    g1: { text: 'head one', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'] },
+    g2: { text: 'head two', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'] },
+    s1: { text: 'busiest search', urls: ['https://a.com/', 'https://c1.com/', 'https://c2.com/', 'https://c3.com/'] },
+  });
+  const vols = { g1: 300, g2: 100, s1: OWN_PAGE_VOLUME - 150 };
+  round.keywords.forEach((k) => { k.volume = { min: vols[k.id], max: vols[k.id], source: 'planner', at: 'x' }; });
+  const [row] = pageList(round);
+  assert.deepEqual(row.keywords, ['g1', 'g2', 's1']);
+  assert.equal(row.title, 'busiest search');
+  assert.deepEqual(row.folded.map((f) => f.into), ['busiest search'], 'the record names the page as it now reads');
 });
 
 test('pageList assigns exactly one Homepage, by volume when volume is loaded', () => {
@@ -725,6 +784,25 @@ test('the Makeup by Brinley study comes out as a site structure, not a pile of s
     assert.ok(['clear', 'close'].includes(p.confidence.level));
   }
   assert.equal(list.filter((p) => p.kind === 'Homepage').length, 1);
+});
+
+// "Give it its own page" posts the kind the fold recorded. The released row
+// is a service page; the homepage stays with the page the fold went into, or
+// the site comes out with its homepage on a search nobody makes.
+test('releasing a fold from under the Homepage leaves the Homepage where it is', () => {
+  const doc = JSON.parse(readFileSync(new URL('./fixtures/makeup-by-brinley.json', import.meta.url), 'utf8'));
+  const round = openRound(migrateStudy(doc));
+  const home = pageList(round).find((p) => p.kind === 'Homepage');
+  const released = home.folded.find((f) => f.title === 'Makeup Artist in Utah');
+  assert.ok(released, 'the fixture folds "Makeup Artist in Utah" into the homepage');
+  assert.equal(released.kind, 'Service page');
+  const edited = { id: `p-${released.keywords.join('-')}`, title: released.title, kind: released.kind, keywords: released.keywords, note: '', auto: false };
+  const list = pageList({ ...round, pages: [edited] });
+  const homes = list.filter((p) => p.kind === 'Homepage');
+  assert.equal(homes.length, 1);
+  assert.notDeepEqual(homes[0].keywords, released.keywords, 'the released row is not the homepage');
+  assert.ok(released.keywords.every((id) => !homes[0].keywords.includes(id)));
+  assert.equal(list.length, 11, 'the released row is a page of its own');
 });
 
 test('rankWeight is the DCG discount', () => {
@@ -1046,7 +1124,9 @@ test('applyNoVolume counts every unmeasured keyword as zero and leaves the rest 
   assert.deepEqual(next.keywords[0].volume, { min: 0, max: 0, source: 'none', at: at.toISOString() });
   assert.deepEqual(next.keywords[1].volume, { min: 5, max: 5, source: 'csv', at: 'old' }, 'a keyword Planner did report keeps its number');
   assert.deepEqual(next.keywords[2].volume, { min: 0, max: 0, source: 'none', at: at.toISOString() });
-  assert.deepEqual(next.volumeImport, { at: at.toISOString(), matched: 2, unmatchedRows: [], unmatchedKeywords: [] });
+  // "matched N of M" on the tab reads truthfully only if matched counts the
+  // keywords now carrying a volume, not the ones this click touched.
+  assert.deepEqual(next.volumeImport, { at: at.toISOString(), matched: 3, unmatchedRows: [], unmatchedKeywords: [] });
 });
 
 test('applyNoVolume is a no-op once every keyword already has volume', () => {

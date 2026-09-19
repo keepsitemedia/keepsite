@@ -442,7 +442,9 @@ export function applyNoVolume(round, now = new Date()) {
   if (!missing.length) return round;
   const ids = new Set(missing.map((k) => k.id));
   const keywords = round.keywords.map((k) => (ids.has(k.id) ? { ...k, volume: { min: 0, max: 0, source: 'none', at } } : k));
-  return { ...round, keywords, volumeImport: { at, matched: missing.length, unmatchedRows: [], unmatchedKeywords: [] } };
+  // The tab says "matched N of M" of whatever import came last, so N is the
+  // keywords carrying a volume, not the ones this click touched.
+  return { ...round, keywords, volumeImport: { at, matched: keywords.filter((k) => k.volume).length, unmatchedRows: [], unmatchedKeywords: [] } };
 }
 
 // Volume never moves a keyword between pages; it says whether the page is
@@ -585,8 +587,10 @@ export function pageList(round) {
   // Fewer pages unless there is a reason to split. A close call is two searches
   // the evidence could not tell apart, so it folds into the page it is close to
   // unless it wants a different kind of page or draws enough searches to earn
-  // its own. One pass over the confidences as they stood before any fold: a
-  // page that grows does not thereby become a better home for the next row.
+  // its own. One pass over the confidences as they stood before any fold, so
+  // no page becomes a close call by growing; the direction of each fold reads
+  // the sizes as they are by then, which is how the page a fold has already
+  // landed on goes on absorbing rather than being absorbed.
   const all = [...kept, ...rows];
   const byRowId = new Map(all.map((p) => [p.id, p]));
   const at = new Map(all.map((p, i) => [p.id, i]));
@@ -615,13 +619,39 @@ export function pageList(round) {
     // it would leave none; the page that absorbs it takes the job.
     if (r.kind === 'Homepage') t.kind = 'Homepage';
     t.keywords = [...t.keywords, ...r.keywords];
-    // The page now answers more searches than its reason was written for; only
-    // the reason moves, since the confidence is what decided the fold.
-    if (t.auto) t.reason = reasonOf(t.keywords, m, t.confidence.nearest);
-    t.folded = [...(t.folded ?? []), { title: r.title, into: t.title, keywords: r.keywords }];
+    // The page now answers more searches than its reason and its title were
+    // written for. The confidence is what decided the fold, so it is settled
+    // once below, over the pages that are left.
+    if (t.auto) {
+      t.reason = reasonOf(t.keywords, m, t.confidence.nearest);
+      t.title = titleOf(t.keywords, round, sims);
+    }
+    // A row that had taken folds of its own brings their lines with it, so the
+    // report still names every search this page answers. Each line names only
+    // the searches its own row brought, so releasing one page does not take
+    // another's searches with it. The kind is the row's own: released from
+    // under the homepage it is a service page, since the homepage is the page
+    // it was folded into.
+    const carried = r.folded ?? [];
+    const alreadyIn = new Set(carried.flatMap((f) => f.keywords));
+    t.folded = [...(t.folded ?? []),
+      { title: r.title, into: t.title, keywords: r.keywords.filter((id) => !alreadyIn.has(id)), kind: asKind(r.kind) },
+      ...carried];
     gone.add(r.id);
   }
-  return [...kept, ...rows.filter((p) => !gone.has(p.id))];
+  const left = [...kept, ...rows.filter((p) => !gone.has(p.id))];
+  // A page that took a fold in was measured against pages that no longer
+  // exist, and the one it called itself close to may be inside it now. Said
+  // again over what is left, so the tab never names a page the reader cannot
+  // find.
+  const blocks = left.map((p) => p.keywords.filter((id) => m.cells[id]));
+  const idAt = new Map(blocks.map((block, i) => [block, left[i].id]));
+  left.forEach((p, i) => {
+    if (!p.folded?.length || !p.confidence) return;
+    const c = confidence(blocks[i], blocks, sims);
+    p.confidence = { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? idAt.get(c.near) ?? null : null };
+  });
+  return left;
 }
 
 // A closed round is the record of what was recommended then; an open round

@@ -4,7 +4,7 @@ import { research } from './research.mjs';
 import { createStore } from '../store.mjs';
 import { memoryBackend } from '../backends.mjs';
 import { mintCsrf } from '../session.mjs';
-import { emptyStudy, emptyRound, openRound } from '../research.mjs';
+import { emptyStudy, emptyRound, openRound, pageList } from '../research.mjs';
 
 // createStore reads questionnaires and never writes them, so the test keeps
 // the backend and writes the envelope the questionnaire function would.
@@ -149,6 +149,31 @@ test('page, reset and type edits reshape the study; read is refused', async () =
   assert.equal(round.serps[ka].results[0].typeSource, 'manual');
 });
 
+// The edit pop checks only the page's own keywords, so saving a note does not
+// claim the searches a fold lent the page; the fold re-applies on the read
+// that follows and its record survives.
+test('saving an edited page that has a fold leaves the fold in place', async () => {
+  const s = await make();
+  for (const t of ['a', 'b', 'c']) await research(post({ csrf, slug: 'acme', op: 'add', text: t, cluster: 'W', arm: '' }), ctx(), s, now);
+  let round = openRound(await s.research.get('acme'));
+  const [ka, kb, kc] = round.keywords.map((k) => k.id);
+  for (const t of ['a', 'b', 'c']) await research(post({ csrf, op: 'capture', payload: capture(t) }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'C and B', kind: 'Service page', note: '', keywords: `${kc},${kb}` }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  assert.deepEqual(round.pages[0].folded.map((f) => f.keywords), [[ka]]);
+
+  const boxes = new FormData();
+  for (const [k, v] of Object.entries({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'C and B', kind: 'Service page', note: 'client asked' })) boxes.append(k, v);
+  for (const id of [kc, kb]) boxes.append(`kw:${id}`, '1');
+  await research(new Request('https://site.test/office/api/research', { method: 'POST', body: boxes }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  const page = round.pages.find((p) => p.id === 'p9');
+  assert.equal(page.note, 'client asked');
+  assert.deepEqual(page.folded.map((f) => f.keywords), [[ka]], 'still a fold, not part of the page');
+  assert.deepEqual(page.keywords.filter((id) => id !== ka).sort(), [kb, kc].sort(), "the page's own keywords are what the pop posted");
+  assert.deepEqual(pageList(round).find((p) => p.id === 'p9').folded.map((f) => f.keywords), [[ka]]);
+});
+
 test('volume imports a Planner CSV, stores ranges, and reports both unmatched lists', async () => {
   const s = await make();
   for (const t of ['utah bridal makeup', 'moab makeup']) await research(post({ csrf, slug: 'acme', op: 'add', text: t, cluster: 'W', arm: '' }), ctx(), s, now);
@@ -184,7 +209,7 @@ test('volume-none counts the keywords Planner left out as zero and refuses once 
   round = openRound(await s.research.get('acme'));
   assert.deepEqual(round.keywords.find((k) => k.id === silent.id).volume, { min: 0, max: 0, source: 'none', at: now.toISOString() });
   assert.deepEqual(round.keywords.find((k) => k.id === named.id).volume, { min: 50, max: 50, source: 'csv', at: now.toISOString() });
-  assert.deepEqual(round.volumeImport, { at: now.toISOString(), matched: 1, unmatchedRows: [], unmatchedKeywords: [] });
+  assert.deepEqual(round.volumeImport, { at: now.toISOString(), matched: 2, unmatchedRows: [], unmatchedKeywords: [] }, 'both keywords carry a volume now');
 
   const again = await research(post({ csrf, slug: 'acme', op: 'volume-none' }), ctx(), s, now);
   assert.match(location(again), /error=.*already/);

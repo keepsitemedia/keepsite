@@ -5,7 +5,7 @@
 // study matrix opens the compare page, where the two result lists are.
 import Mark from './Mark.astro';
 import StudyMatrix from './StudyMatrix.astro';
-import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, KINDS, PAGE_TYPES, FLOOR, keptApartWords, keptApartPairs, standingWhyWords, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, uule, KINDS, PAGE_TYPES, FLOOR, keptApartWords, keptApartPairs, standingWhyWords, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -25,6 +25,11 @@ const low = pages.filter((p) => p.standing === 'low');
 const closeCalls = standing.filter((p) => p.confidence?.level === 'close').length;
 const edited = pages.filter((p) => !p.auto).length;
 const titles = new Map<string, string>(pages.map((p) => [p.id, p.title]));
+// A fold lends the page its keywords on every read. Saving the pop would make
+// the loan permanent and lose the fold's record, so only the page's own
+// keywords are checked and the lent ones are named instead.
+const lent = (p: any): string[] => (p.folded ?? []).flatMap((f: any) => f.keywords ?? []);
+const own = (p: any) => new Set<string>(p.keywords.filter((id: string) => !lent(p).includes(id)));
 // A mutual split is one decision, said on the smaller page.
 const apart = new Set<string>((keptApartPairs(pages) as any[]).map((p) => p.id));
 const view = studyView(round, pages) as any;
@@ -93,6 +98,10 @@ const external = (href: string) => href.startsWith('http');
     {round.areas.length === 0 && !round.location && ' '}
     {!round.location && <>No search location set, so Google will search from wherever the research profile happens to be. Set it under Service areas.</>}
   </p>
+)}
+
+{round.location && uule(round.location) === '' && (
+  <p class="notice">The search location is too long for Google's location parameter; shorten it to a city or state.</p>
 )}
 
 <details class="fold" open={captures.length === 0}>
@@ -229,7 +238,7 @@ const external = (href: string) => href.startsWith('http');
         {round.volumeImport.unmatchedRows.length > 0 && <> In the file but not in the study: {round.volumeImport.unmatchedRows.join('; ')}.</>}
       </p>
     )}
-    {volumeLoaded && round.keywords.some((k: any) => !k.volume) && (
+    {round.volumeImport && round.keywords.some((k: any) => !k.volume) && (
       <form method="POST" action={api} class="toolbar">
         {hidden({ csrf, slug, op: 'volume-none', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
         <button class="btn-quiet">Planner returned nothing for the other {round.keywords.filter((k: any) => !k.volume).length}: count them as 0</button>
@@ -270,7 +279,7 @@ const external = (href: string) => href.startsWith('http');
           {(p.folded ?? []).map((f: any) => (
             <span class="meta line">Folded in: {f.title}
               <form method="POST" action={api} class="inline">
-                {hidden({ csrf, slug, op: 'page', id: `p-${f.keywords.slice().sort().join('-')}`, title: f.title, kind: p.kind, note: '', keywords: f.keywords.join(','), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                {hidden({ csrf, slug, op: 'page', id: `p-${f.keywords.slice().sort().join('-')}`, title: f.title, kind: f.kind, note: '', keywords: f.keywords.join(','), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
                 <button class="link-quiet">Give it its own page</button>
               </form>
             </span>
@@ -287,8 +296,9 @@ const external = (href: string) => href.startsWith('http');
               <label class="field"><span>Kind</span><select name="kind">{KINDS.map((t) => <option selected={p.kind === t}>{t}</option>)}</select></label>
               <fieldset class="field"><legend>Keywords on this page</legend>
                 {round.keywords.filter((k: any) => round.serps[k.id]).map((k: any) => (
-                  <label class="field check"><input type="checkbox" name={`kw:${k.id}`} value="1" checked={p.keywords.includes(k.id)} /> <span>{k.text}</span></label>
+                  <label class="field check"><input type="checkbox" name={`kw:${k.id}`} value="1" checked={own(p).has(k.id)} /> <span>{k.text}</span></label>
                 ))}
+                {lent(p).length > 0 && <p class="quiet">Also answering, folded in: {lent(p).map(text).join(' · ')}</p>}
               </fieldset>
               <label class="field"><span>Note for the report</span><input name="note" value={p.note} /></label>
               <div class="pop-actions">

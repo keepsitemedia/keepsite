@@ -40,7 +40,6 @@ export function reportLines({ client, round, renderedAt }) {
   const pages = pagesOf(round);
   const standing = pages.filter((x) => x.standing !== 'low');
   const low = pages.filter((x) => x.standing === 'low');
-  const titles = new Map(pages.map((x) => [x.id, x.title]));
   const view = studyView(round, pages);
   const captured = round.keywords.filter((k) => round.serps[k.id]);
   const volumeLoaded = round.keywords.some((k) => k.volume);
@@ -85,10 +84,13 @@ export function reportLines({ client, round, renderedAt }) {
   }
 
   h2('Where we made a call');
+  // A page the owner edited is one call however many folds it also took, and
+  // an edit is a call even when the owner left the note empty.
+  const foldWords = (x) => `We folded in ${x.folded.map((f) => f.title).join('; ')}, which bring up mostly the same businesses.`;
   const calls = [
-    ...pages.flatMap((x) => (x.folded ?? []).map((f) => [x.title, f.title, 'We folded it in: the two bring up many of the same businesses and want the same kind of page.'])),
+    ...pages.filter((x) => x.auto !== false).flatMap((x) => (x.folded ?? []).map((f) => [x.title, f.title, 'We folded it in: the two bring up many of the same businesses and want the same kind of page.'])),
     ...keptApartPairs(pages).map((x) => [x.title, x.keptApart, `We kept it separate: ${keptApartWords(x)}`]),
-    ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), x.note ?? '']),
+    ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), [x.note || 'Set by us.', ...(x.folded?.length ? [foldWords(x)] : [])].join(' ')]),
   ];
   if (!calls.length) p('The search results settled every page on their own. Nothing here needed a call from us.');
   else table([['Page', 'Searches', 'Why'], ...calls]);
