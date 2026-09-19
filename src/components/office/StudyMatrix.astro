@@ -19,7 +19,7 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
   <div class="table-scroll">
     <table class="study">
       <thead>
-        <tr><th class="corner"></th>{order.map((id) => <th class="col" scope="col"><span>{texts.get(id)}</span></th>)}</tr>
+        <tr><th class="corner"></th>{order.map((id) => <th class="col" scope="col" title={texts.get(id)}><span>{texts.get(id)}</span></th>)}</tr>
       </thead>
       <tbody>
         {order.map((a) => (
@@ -28,8 +28,9 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
             {order.map((b) => {
               const same = blockOf.get(a) === blockOf.get(b);
               const cls = ['cell', a === b ? 'diag' : `s${band(sims[a][b])}`, same ? 'blk' : '', last.has(b) ? 'edge-r' : '', last.has(a) ? 'edge-b' : ''].filter(Boolean).join(' ');
+              const alike = `${texts.get(a)} · ${texts.get(b)}: ${pct(sims[a][b])} alike`;
               return a === b ? <td class={cls}></td>
-                : <td class={cls}><a href={compare(pairKey(a, b))} title={`${texts.get(a)} · ${texts.get(b)}: ${pct(sims[a][b])} alike`}><span class="sr-only">{pct(sims[a][b])}</span></a></td>;
+                : <td class={cls}><a href={compare(pairKey(a, b))} title={alike}><span class="sr-only">{alike}</span></a></td>;
             })}
           </tr>
         ))}
