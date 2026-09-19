@@ -5,7 +5,7 @@ import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, describePair, pairKey, pageList, pagesOf, studyView, confidenceWords, titleOf, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
   rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band,
-  KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, standingOf,
+  KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, standingOf,
 } from './research.mjs';
 
 test('normalizeUrl folds the differences Google shows for one page', () => {
@@ -831,6 +831,31 @@ test('applyVolume matches on normalized text, lists both kinds of miss, and keep
   assert.equal(next.keywords[1].volume.at, 'old', 'a keyword the file does not name keeps what it had');
   assert.equal(next.keywords[2].volume, undefined);
   assert.deepEqual(next.volumeImport, { at: at.toISOString(), matched: 1, unmatchedRows: ['not in study'], unmatchedKeywords: ['k2', 'k3'] });
+});
+
+test('applyNoVolume counts every unmeasured keyword as zero and leaves the rest alone', () => {
+  const round = { ...emptyRound('r1'), keywords: [
+    { id: 'k1', text: 'a' }, { id: 'k2', text: 'b', volume: { min: 5, max: 5, source: 'csv', at: 'old' } }, { id: 'k3', text: 'c' },
+  ] };
+  const at = new Date('2026-09-18T12:00:00Z');
+  const next = applyNoVolume(round, at);
+  assert.deepEqual(next.keywords[0].volume, { min: 0, max: 0, source: 'none', at: at.toISOString() });
+  assert.deepEqual(next.keywords[1].volume, { min: 5, max: 5, source: 'csv', at: 'old' }, 'a keyword Planner did report keeps its number');
+  assert.deepEqual(next.keywords[2].volume, { min: 0, max: 0, source: 'none', at: at.toISOString() });
+  assert.deepEqual(next.volumeImport, { at: at.toISOString(), matched: 2, unmatchedRows: [], unmatchedKeywords: [] });
+});
+
+test('applyNoVolume is a no-op once every keyword already has volume', () => {
+  const round = { ...emptyRound('r1'), keywords: [
+    { id: 'k1', text: 'a', volume: { min: 5, max: 5, source: 'csv', at: 'old' } },
+  ] };
+  assert.equal(applyNoVolume(round, new Date()), round);
+});
+
+test('a page made only of Planner-silent keywords stands as low', () => {
+  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'a' }, { id: 'k2', text: 'b' }] };
+  const next = applyNoVolume(round, new Date());
+  assert.equal(standingOf(['k1', 'k2'], next), 'low');
 });
 
 test('standingOf: under the floor is low, unknown is never zero', () => {

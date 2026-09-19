@@ -405,6 +405,19 @@ export function applyVolume(round, rows, now = new Date(), source = 'csv') {
   };
 }
 
+// Planner leaves a keyword out of its export when it has no data for it,
+// which is the same fact as "under the floor". The owner records that with
+// one click instead of a hand-made file of zeros. Only keywords with no
+// volume at all are touched; a keyword Planner did report keeps its number.
+export function applyNoVolume(round, now = new Date()) {
+  const at = now.toISOString();
+  const missing = round.keywords.filter((k) => !k.volume);
+  if (!missing.length) return round;
+  const ids = new Set(missing.map((k) => k.id));
+  const keywords = round.keywords.map((k) => (ids.has(k.id) ? { ...k, volume: { min: 0, max: 0, source: 'none', at } } : k));
+  return { ...round, keywords, volumeImport: { at, matched: missing.length, unmatchedRows: [], unmatchedKeywords: [] } };
+}
+
 // Volume never moves a keyword between pages; it says whether the page is
 // worth building. Unknown is unknown: a page with any unmeasured keyword
 // stands, because "Planner was not asked" is not "nobody searches".

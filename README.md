@@ -525,7 +525,9 @@ Search volume comes in by CSV: paste the keywords into Google Keyword
 Planner, download, import under Search volume. Volume never moves a keyword
 between pages; a page whose keywords add up to fewer than ten searches a
 month is set aside as not worth building. Unknown volume is shown as
-unknown and never treated as zero.
+unknown and never treated as zero. When Planner leaves a keyword out of its
+export, one button counts the rest as zero, since Planner's silence means
+fewer than ten searches a month.
 
 You review pages, not pairs. Edit a page to move keywords in or out, merge
 or split; a released keyword is regrouped on its own. Starting a new round

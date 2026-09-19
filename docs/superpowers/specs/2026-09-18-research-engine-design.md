@@ -235,6 +235,12 @@ mention. The Volume fold shows both lists until the next import. Nothing is
 dropped silently. A second import replaces volumes for the keywords it names
 and leaves the others.
 
+**Planner's silence.** Planner leaves a keyword out of its export when it has
+no data for it. The Volume fold offers one button, op `volume-none`, that
+sets `volume: { min: 0, max: 0, source: 'none', at }` on every keyword still
+without volume and records the import as matched with empty unmatched lists.
+A keyword Planner did report is never touched.
+
 ### 5.2 Standing
 
 Volume never changes grouping. It decides `standing`:

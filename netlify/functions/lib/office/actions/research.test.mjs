@@ -167,6 +167,27 @@ test('volume imports a Planner CSV, stores ranges, and reports both unmatched li
   assert.match(location(junk), /error=.*Keyword/);
 });
 
+test('volume-none counts the keywords Planner left out as zero and refuses once none remain', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'add', text: 'named keyword', cluster: 'W', arm: '' }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'add', text: 'silent keyword', cluster: 'W', arm: '' }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'volume', file: new File(['keyword,volume\nnamed keyword,50\n'], 'v.csv') }), ctx(), s, now);
+  let round = openRound(await s.research.get('acme'));
+  const [named, silent] = round.keywords;
+  assert.deepEqual(named.volume, { min: 50, max: 50, source: 'csv', at: now.toISOString() });
+  assert.equal(silent.volume, undefined);
+
+  const res = await research(post({ csrf, slug: 'acme', op: 'volume-none' }), ctx(), s, now);
+  assert.equal(location(res), '/office/clients/acme/?tab=research');
+  round = openRound(await s.research.get('acme'));
+  assert.deepEqual(round.keywords.find((k) => k.id === silent.id).volume, { min: 0, max: 0, source: 'none', at: now.toISOString() });
+  assert.deepEqual(round.keywords.find((k) => k.id === named.id).volume, { min: 50, max: 50, source: 'csv', at: now.toISOString() });
+  assert.deepEqual(round.volumeImport, { at: now.toISOString(), matched: 1, unmatchedRows: [], unmatchedKeywords: [] });
+
+  const again = await research(post({ csrf, slug: 'acme', op: 'volume-none' }), ctx(), s, now);
+  assert.match(location(again), /error=.*already/);
+});
+
 test('remove drops the keyword from the last import\'s unmatched list too', async () => {
   const s = await make();
   await research(post({ csrf, slug: 'acme', op: 'add', text: 'a', cluster: 'W', arm: '' }), ctx(), s, now);

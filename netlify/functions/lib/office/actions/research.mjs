@@ -2,7 +2,7 @@ import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../
 import { store as defaultStore, SLUG } from '../store.mjs';
 import {
   PAGE_TYPES, KINDS, emptyStudy, emptyRound, migrateStudy, openRound, touch, newKeywordId, normalizeQuery, splitList, draftFromQuestionnaire,
-  validateCapture, findCaptureTargets, applyCapture, decodeCsv, parseVolumeCsv, applyVolume, pageList,
+  validateCapture, findCaptureTargets, applyCapture, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, pageList,
 } from '../research.mjs';
 import { renderResearchReport, reportName } from '../research-report.mjs';
 
@@ -80,6 +80,10 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
     if (error) return back(slug, error);
     const source = /avg\. monthly searches|min search volume/i.test(csvText) ? 'planner' : 'csv';
     return saveRound(applyVolume(round, rows, now, source));
+  }
+  if (op === 'volume-none') {
+    if (round.keywords.every((k) => k.volume)) return back(slug, 'every keyword already has a volume');
+    return saveRound(applyNoVolume(round, now));
   }
   // Reads went with the pair ladder. A stale form is told so rather than
   // silently accepted into a field nothing reads.

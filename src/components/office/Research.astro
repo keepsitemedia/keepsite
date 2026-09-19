@@ -203,6 +203,13 @@ const external = (href: string) => href.startsWith('http');
         {round.volumeImport.unmatchedRows.length > 0 && <> In the file but not in the study: {round.volumeImport.unmatchedRows.join('; ')}.</>}
       </p>
     )}
+    {volumeLoaded && round.keywords.some((k: any) => !k.volume) && (
+      <form method="POST" action={api} class="toolbar">
+        {hidden({ csrf, slug, op: 'volume-none', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+        <button class="btn-quiet">Planner returned nothing for the other {round.keywords.filter((k: any) => !k.volume).length}: count them as 0</button>
+        <span class="quiet">Planner leaves a search out of its export when it has no data for it, which means fewer than {FLOOR} a month.</span>
+      </form>
+    )}
   </div>
 </details>
 
