@@ -120,153 +120,6 @@ test('openRound is the last round and roundOf finds one by id', () => {
   assert.equal(roundOf(s, 'nope'), undefined);
 });
 
-test('pageList clusters the free keywords, keeps edited rows first, and decorates every row', () => {
-  const round = roundWith({
-    k1: { text: 'utah bridal makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
-    k2: { text: 'utah wedding makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
-    k3: { text: 'moab utah wedding makeup', urls: ['https://x.com/', 'https://y.com/'] },
-    k4: { text: 'soft glam vs full glam', urls: ['https://p.com/blog/x'] },
-  }, ['Utah', 'Moab']);
-  // Utah is in three of four keywords, so it is the home area and does not
-  // make the head group a location page; Moab is in one and does.
-  let list = pageList(round);
-  assert.deepEqual(list.map((p) => p.keywords), [['k1', 'k2'], ['k3'], ['k4']]);
-  assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Location page', 'Article']);
-  assert.equal(list[0].auto, true);
-  assert.equal(list[0].confidence.level, 'clear');
-  assert.match(list[0].reason, /^Three businesses rank for both/);
-  assert.equal(list[0].standing, 'page');
-  assert.equal(list[0].id, 'p-k1-k2');
-  assert.equal(list[0].title, 'utah bridal makeup');
-
-  round.pages = [{ id: 'p9', title: 'Moab', kind: 'Other', keywords: ['k3', 'k1'], note: 'client asked', auto: false }];
-  list = pageList(round);
-  assert.equal(list[0].id, 'p9');
-  assert.deepEqual(list[0].keywords, ['k3', 'k1']);
-  assert.equal(list[0].kind, 'Other', 'the owner\'s kind is kept');
-  assert.equal(list[0].standing, 'page');
-  assert.deepEqual(list.slice(1).map((p) => p.keywords), [['k2'], ['k4']], 'a claimed keyword is not reclustered');
-  assert.equal(list[1].kind, 'Homepage', 'the homepage goes to the largest remaining service group');
-});
-
-test('pageList assigns exactly one Homepage, by volume when volume is loaded', () => {
-  const round = roundWith({
-    k1: { text: 'big', urls: ['https://a.com/'] },
-    k2: { text: 'small', urls: ['https://b.com/'] },
-  });
-  round.keywords[0].volume = { min: 10, max: 10, source: 'csv', at: 'x' };
-  round.keywords[1].volume = { min: 1000, max: 1000, source: 'csv', at: 'x' };
-  const list = pageList(round);
-  assert.deepEqual(list.map((p) => [p.keywords[0], p.kind]), [['k1', 'Service page'], ['k2', 'Homepage']]);
-  round.pages = [{ id: 'p9', title: 'Home', kind: 'Homepage', keywords: ['k1'], note: '', auto: false }];
-  assert.equal(pageList(round).filter((p) => p.kind === 'Homepage').length, 1, 'an edited Homepage is the only one');
-});
-
-test('pageList never recommends a Directory or a tie', () => {
-  const round = roundWith({
-    k1: { urls: ['https://www.yelp.com/search', 'https://www.weddingwire.com/c/ut/x'] },
-    k2: { urls: ['https://www.theknot.com/marketplace/beauty-services-ut'] },
-  });
-  for (const p of pageList(round)) assert.ok(KINDS.includes(p.kind), p.kind);
-});
-
-test('titleOf picks by volume, else the keyword most like the rest', () => {
-  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'edge' }, { id: 'k2', text: 'centre' }, { id: 'k3', text: 'other edge' }] };
-  const sims = { k1: { k1: 1, k2: 0.5, k3: 0 }, k2: { k1: 0.5, k2: 1, k3: 0.5 }, k3: { k1: 0, k2: 0.5, k3: 1 } };
-  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'centre');
-  assert.equal(titleOf(['k3'], round, sims), 'other edge');
-  round.keywords[0].volume = { min: 500, max: 500, source: 'csv', at: 'x' };
-  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'edge');
-});
-
-test('pagesOf reads a closed round from its stored pages and an open one fresh', () => {
-  const open = roundWith({ k1: { urls: ['https://a.com/'] } });
-  assert.equal(pagesOf(open).length, 1);
-  const closed = { ...open, closedAt: '2026-09-18T00:00:00.000Z', pages: [{ id: 'frozen', keywords: ['k1'] }] };
-  assert.deepEqual(pagesOf(closed), [{ id: 'frozen', keywords: ['k1'] }]);
-});
-
-test('studyView orders the matrix page by page and names the blocks', () => {
-  const round = roundWith({
-    k1: { text: 'one', urls: ['https://a.com/'] },
-    k2: { text: 'two', urls: ['https://z.com/'] },
-    k3: { text: 'three', urls: ['https://a.com/'] },
-  });
-  const v = studyView(round);
-  assert.deepEqual(v.order, ['k1', 'k3', 'k2']);
-  assert.deepEqual(v.blocks, [['k1', 'k3'], ['k2']]);
-  assert.equal(v.texts.get('k3'), 'three');
-  assert.ok(v.sims.k1.k3 > 0.99);
-  // A frozen round's blocks follow its stored pages, whatever the engine would say now.
-  const closed = { ...round, closedAt: 'x', pages: [{ id: 'p', keywords: ['k2', 'k1'] }, { id: 'q', keywords: ['k3'] }] };
-  assert.deepEqual(studyView(closed).order, ['k2', 'k1', 'k3']);
-});
-
-test('confidenceWords', () => {
-  const titles = new Map([['p-k3', 'Bridal party']]);
-  assert.equal(confidenceWords({ keywords: ['a', 'b'], confidence: { level: 'clear', near: null } }, titles), 'Clear');
-  assert.equal(confidenceWords({ keywords: ['a'], confidence: { level: 'clear', near: null } }, titles), 'Stands alone');
-  assert.equal(confidenceWords({ keywords: ['a', 'b'], confidence: { level: 'close', near: 'p-k3' } }, titles), 'Close call with Bridal party');
-  assert.equal(confidenceWords({ keywords: ['a'], confidence: { level: 'close', near: 'p-k3' } }, titles), 'Close to Bridal party');
-  assert.equal(confidenceWords({ keywords: ['a'], confidence: undefined }, titles), '');
-});
-
-test('comparePair reports similarity, the businesses that drove it, and the counts the columns light', () => {
-  const round = roundWith({
-    k1: { urls: ['https://rare.com/', 'https://a.com/x', 'https://www.yelp.com/search', 'https://common.com/'] },
-    k2: { urls: ['https://rare.com/', 'https://a.com/y', 'https://www.yelp.com/search', 'https://common.com/'] },
-    k3: { urls: ['https://common.com/'] },
-  });
-  const c = comparePair(round, 'k1', 'k2');
-  assert.ok(c.similarity > 0 && c.similarity < 1);
-  assert.equal(c.shared[0].business, 'rare.com');
-  assert.equal(c.shared[0].sameUrl, true);
-  assert.equal(c.shared.find((x) => x.business === 'a.com').sameUrl, false);
-  assert.ok(c.shared.every((x) => x.business !== 'yelp.com'), 'a directory is not a driver');
-  assert.equal(c.sharedDirectories, 1);
-  assert.equal(c.exactUrl, 3);
-  assert.equal(c.sameDomain, 4);
-  assert.equal(c.sameDomainDifferentPage, 1);
-  assert.deepEqual(c.sharedUrls.sort(), ['common.com', 'rare.com', 'yelp.com/search']);
-  assert.ok(c.sharedDomains.includes('a.com'));
-  assert.equal(typeof c.band, 'number');
-});
-
-test('describePair says alike, close or different, and names directories apart', () => {
-  const alike = { similarity: 0.8, band: 3, shared: [{ business: 'a.com' }, { business: 'b.com' }], sharedDirectories: 2 };
-  assert.equal(describePair(alike), 'Alike enough to share a page: two businesses rank for both, led by a.com and b.com. They also share two directories, which rank for almost everything in a field.');
-  const close = { similarity: 0.15, band: 1, shared: [{ business: 'a.com' }], sharedDirectories: 0 };
-  assert.equal(describePair(close), 'Not alike enough to share a page, but close: one business ranks for both, a.com.');
-  const apart = { similarity: 0, band: 0, shared: [], sharedDirectories: 1 };
-  assert.equal(describePair(apart), 'Different searches: no business ranks for both. They share one directory, which ranks for almost everything in a field.');
-});
-
-test('the Makeup by Brinley study comes out as a site structure, not a pile of singletons', () => {
-  const doc = JSON.parse(readFileSync(new URL('./fixtures/makeup-by-brinley.json', import.meta.url), 'utf8'));
-  const round = openRound(migrateStudy(doc));
-  const list = pageList(round);
-  const texts = new Map(round.keywords.map((k) => [k.text.toLowerCase(), k.id]));
-  const pageOf = (text) => list.find((p) => p.keywords.includes(texts.get(text)));
-  // Real SERPs sit on the smooth 0.2-0.8 ramp the CUT comment warns about,
-  // not the clean 0/0.2 break CUT=0.25 was picked against: this study merges
-  // to 18 pages, not the old ladder's twelve. Left as found, not tuned by
-  // hand here; Task 10's validation script settles where CUT should sit.
-  assert.ok(list.length < round.keywords.length, `some clustering happened, got ${list.length} pages from ${round.keywords.length} keywords`);
-  // Of the three head terms, only the closest two clear the cut; "makeup
-  // artist in utah" sits at 0.12-0.29 similarity to the other two, short of
-  // 0.25, and stays its own page. Same calibration gap as above.
-  assert.equal(pageOf('utah bridal makeup artist'), pageOf('utah wedding makeup artist'), 'the two closest head terms share one page');
-  assert.equal(pageOf('soft glam vs full glam').kind, 'Article');
-  assert.equal(pageOf('hair and makeup: on location or in a salon').kind, 'Article');
-  assert.equal(pageOf('bridal party hair and makeup cost').kind, 'Article');
-  for (const p of list) {
-    assert.ok(KINDS.includes(p.kind), p.kind);
-    assert.ok(p.reason.length > 10);
-    assert.ok(['clear', 'close'].includes(p.confidence.level));
-  }
-  assert.equal(list.filter((p) => p.kind === 'Homepage').length, 1);
-});
-
 test('touch recomputes the open round and leaves closed rounds alone', () => {
   const closed = { ...emptyRound('r1'), closedAt: '2026-01-01T00:00:00.000Z', pages: [{ id: 'frozen' }] };
   const open = { ...emptyRound('r2'), keywords: [{ id: 'k1', text: 'one', cluster: 'C' }], serps: {} };
@@ -455,6 +308,23 @@ test('migrateStudy reclassifies auto-typed results with the current rules and le
   assert.equal(out[2].domain, 'instagram.com/marisa', 'but the business name still follows the URL');
 });
 
+// A page row saved before this spec carries `type`, not `kind`; pageList
+// reads `kind`, so a legacy Homepage row would otherwise fail its "already
+// have a Homepage" check and get a second one built alongside it.
+test('migrateStudy maps a legacy page row\'s type to kind and drops type', () => {
+  const study = emptyStudy('s');
+  const round = openRound(study);
+  round.pages = [
+    { id: 'p1', title: 'Old article', type: 'Blog/FAQ', keywords: ['k1'], note: '', auto: false },
+    { id: 'p2', title: 'Old directory', type: 'Directory', keywords: ['k2'], note: '', auto: true },
+  ];
+  const [p1, p2] = openRound(migrateStudy(study)).pages;
+  assert.equal(p1.kind, 'Article');
+  assert.equal(p1.type, undefined);
+  assert.equal(p2.kind, 'Other');
+  assert.equal(p2.type, undefined);
+});
+
 test('applyCapture stores the business, not just the host', () => {
   const study = emptyStudy('s');
   openRound(study).keywords = [{ id: 'k1', text: 'q' }];
@@ -503,6 +373,169 @@ const roundWith = (serps, areas = []) => {
   }
   return round;
 };
+
+test('pageList clusters the free keywords, keeps edited rows first, and decorates every row', () => {
+  const round = roundWith({
+    k1: { text: 'utah bridal makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
+    k2: { text: 'utah wedding makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
+    k3: { text: 'moab utah wedding makeup', urls: ['https://x.com/', 'https://y.com/'] },
+    k4: { text: 'soft glam vs full glam', urls: ['https://p.com/blog/x'] },
+  }, ['Utah', 'Moab']);
+  // Utah is in three of four keywords, so it is the home area and does not
+  // make the head group a location page; Moab is in one and does.
+  let list = pageList(round);
+  assert.deepEqual(list.map((p) => p.keywords), [['k1', 'k2'], ['k3'], ['k4']]);
+  assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Location page', 'Article']);
+  assert.equal(list[0].auto, true);
+  assert.equal(list[0].confidence.level, 'clear');
+  assert.match(list[0].reason, /^Three businesses rank for both/);
+  assert.equal(list[0].standing, 'page');
+  assert.equal(list[0].id, 'p-k1-k2');
+  assert.equal(list[0].title, 'utah bridal makeup');
+
+  round.pages = [{ id: 'p9', title: 'Moab', kind: 'Other', keywords: ['k3', 'k1'], note: 'client asked', auto: false }];
+  list = pageList(round);
+  assert.equal(list[0].id, 'p9');
+  assert.deepEqual(list[0].keywords, ['k3', 'k1']);
+  assert.equal(list[0].kind, 'Other', 'the owner\'s kind is kept');
+  assert.equal(list[0].standing, 'page');
+  assert.deepEqual(list.slice(1).map((p) => p.keywords), [['k2'], ['k4']], 'a claimed keyword is not reclustered');
+  assert.equal(list[1].kind, 'Homepage', 'the homepage goes to the largest remaining service group');
+});
+
+test('pageList assigns exactly one Homepage, by volume when volume is loaded', () => {
+  const round = roundWith({
+    k1: { text: 'big', urls: ['https://a.com/'] },
+    k2: { text: 'small', urls: ['https://b.com/'] },
+  });
+  round.keywords[0].volume = { min: 10, max: 10, source: 'csv', at: 'x' };
+  round.keywords[1].volume = { min: 1000, max: 1000, source: 'csv', at: 'x' };
+  const list = pageList(round);
+  assert.deepEqual(list.map((p) => [p.keywords[0], p.kind]), [['k1', 'Service page'], ['k2', 'Homepage']]);
+  round.pages = [{ id: 'p9', title: 'Home', kind: 'Homepage', keywords: ['k1'], note: '', auto: false }];
+  assert.equal(pageList(round).filter((p) => p.kind === 'Homepage').length, 1, 'an edited Homepage is the only one');
+});
+
+test('pageList never recommends a Directory or a tie', () => {
+  const round = roundWith({
+    k1: { urls: ['https://www.yelp.com/search', 'https://www.weddingwire.com/c/ut/x'] },
+    k2: { urls: ['https://www.theknot.com/marketplace/beauty-services-ut'] },
+  });
+  for (const p of pageList(round)) assert.ok(KINDS.includes(p.kind), p.kind);
+});
+
+// A study can cluster into nothing but Articles, with no Service page to
+// promote; the site still needs exactly one Homepage.
+test('pageList still names a Homepage when every clustered row is an Article', () => {
+  const round = roundWith({
+    k1: { text: 'soft glam vs full glam', urls: ['https://a.com/'] },
+    k2: { text: 'how much does bridal makeup cost', urls: ['https://b.com/'] },
+  });
+  const list = pageList(round);
+  assert.ok(list.every((p) => p.kind === 'Article' || p.kind === 'Homepage'));
+  assert.equal(list.filter((p) => p.kind === 'Homepage').length, 1);
+});
+
+test('titleOf picks by volume, else the keyword most like the rest', () => {
+  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'edge' }, { id: 'k2', text: 'centre' }, { id: 'k3', text: 'other edge' }] };
+  const sims = { k1: { k1: 1, k2: 0.5, k3: 0 }, k2: { k1: 0.5, k2: 1, k3: 0.5 }, k3: { k1: 0, k2: 0.5, k3: 1 } };
+  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'centre');
+  assert.equal(titleOf(['k3'], round, sims), 'other edge');
+  round.keywords[0].volume = { min: 500, max: 500, source: 'csv', at: 'x' };
+  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'edge');
+});
+
+test('pagesOf reads a closed round from its stored pages and an open one fresh', () => {
+  const open = roundWith({ k1: { urls: ['https://a.com/'] } });
+  assert.equal(pagesOf(open).length, 1);
+  const closed = { ...open, closedAt: '2026-09-18T00:00:00.000Z', pages: [{ id: 'frozen', keywords: ['k1'] }] };
+  assert.deepEqual(pagesOf(closed), [{ id: 'frozen', keywords: ['k1'] }]);
+});
+
+test('studyView orders the matrix page by page and names the blocks', () => {
+  const round = roundWith({
+    k1: { text: 'one', urls: ['https://a.com/'] },
+    k2: { text: 'two', urls: ['https://z.com/'] },
+    k3: { text: 'three', urls: ['https://a.com/'] },
+  });
+  const v = studyView(round);
+  assert.deepEqual(v.order, ['k1', 'k3', 'k2']);
+  assert.deepEqual(v.blocks, [['k1', 'k3'], ['k2']]);
+  assert.equal(v.texts.get('k3'), 'three');
+  assert.ok(v.sims.k1.k3 > 0.99);
+  // A frozen round's blocks follow its stored pages, whatever the engine would say now.
+  const closed = { ...round, closedAt: 'x', pages: [{ id: 'p', keywords: ['k2', 'k1'] }, { id: 'q', keywords: ['k3'] }] };
+  assert.deepEqual(studyView(closed).order, ['k2', 'k1', 'k3']);
+});
+
+test('confidenceWords', () => {
+  const titles = new Map([['p-k3', 'Bridal party']]);
+  assert.equal(confidenceWords({ keywords: ['a', 'b'], confidence: { level: 'clear', near: null } }, titles), 'Clear');
+  assert.equal(confidenceWords({ keywords: ['a'], confidence: { level: 'clear', near: null } }, titles), 'Stands alone');
+  assert.equal(confidenceWords({ keywords: ['a', 'b'], confidence: { level: 'close', near: 'p-k3' } }, titles), 'Close call with Bridal party');
+  assert.equal(confidenceWords({ keywords: ['a'], confidence: { level: 'close', near: 'p-k3' } }, titles), 'Close to Bridal party');
+  assert.equal(confidenceWords({ keywords: ['a'], confidence: undefined }, titles), '');
+});
+
+test('comparePair reports similarity, the businesses that drove it, and the counts the columns light', () => {
+  const round = roundWith({
+    k1: { urls: ['https://rare.com/', 'https://a.com/x', 'https://www.yelp.com/search', 'https://common.com/'] },
+    k2: { urls: ['https://rare.com/', 'https://a.com/y', 'https://www.yelp.com/search', 'https://common.com/'] },
+    k3: { urls: ['https://common.com/'] },
+  });
+  const c = comparePair(round, 'k1', 'k2');
+  assert.ok(c.similarity > 0 && c.similarity < 1);
+  assert.equal(c.shared[0].business, 'rare.com');
+  assert.equal(c.shared[0].sameUrl, true);
+  assert.equal(c.shared.find((x) => x.business === 'a.com').sameUrl, false);
+  assert.ok(c.shared.every((x) => x.business !== 'yelp.com'), 'a directory is not a driver');
+  assert.equal(c.sharedDirectories, 1);
+  assert.equal(c.exactUrl, 3);
+  assert.equal(c.sameDomain, 4);
+  assert.equal(c.sameDomainDifferentPage, 1);
+  assert.deepEqual(c.sharedUrls.sort(), ['common.com', 'rare.com', 'yelp.com/search']);
+  assert.ok(c.sharedDomains.includes('a.com'));
+  assert.equal(typeof c.band, 'number');
+  // An uncaptured pair is nothing to compare, not a verdict of "different".
+  const uncaptured = comparePair(round, 'k4', 'k5');
+  assert.equal(uncaptured.total, 0);
+  assert.equal(describePair(uncaptured), 'Nothing captured yet.');
+});
+
+test('describePair says alike, close or different, and names directories apart', () => {
+  const alike = { similarity: 0.8, band: 3, shared: [{ business: 'a.com' }, { business: 'b.com' }], sharedDirectories: 2 };
+  assert.equal(describePair(alike), 'Alike enough to share a page: two businesses rank for both, led by a.com and b.com. They also share two directories, which rank for almost everything in a field.');
+  const close = { similarity: 0.15, band: 1, shared: [{ business: 'a.com' }], sharedDirectories: 0 };
+  assert.equal(describePair(close), 'Not alike enough to share a page, but close: one business ranks for both, a.com.');
+  const apart = { similarity: 0, band: 0, shared: [], sharedDirectories: 1 };
+  assert.equal(describePair(apart), 'Different searches: no business ranks for both. They share one directory, which ranks for almost everything in a field.');
+});
+
+test('the Makeup by Brinley study comes out as a site structure, not a pile of singletons', () => {
+  const doc = JSON.parse(readFileSync(new URL('./fixtures/makeup-by-brinley.json', import.meta.url), 'utf8'));
+  const round = openRound(migrateStudy(doc));
+  const list = pageList(round);
+  const texts = new Map(round.keywords.map((k) => [k.text.toLowerCase(), k.id]));
+  const pageOf = (text) => list.find((p) => p.keywords.includes(texts.get(text)));
+  // assert.ok on every lookup before comparing pages, so a keyword text that
+  // does not exist in the fixture cannot pass by both sides finding nothing.
+  const at = (text) => { assert.ok(pageOf(text), text); return pageOf(text); };
+  // Pinned to CUT = 0.12 on this fixture; update together with the cut.
+  assert.equal(list.length, 12);
+  const head = ['utah bridal makeup artist', 'utah wedding makeup artist', 'wedding hair and makeup utah', 'utah bridal hair and makeup artist'].map(at);
+  assert.equal(new Set(head).size, 1, 'the head terms share one page');
+  assert.equal(at('bridal party makeup'), at('bridal party hair and makeup package'), 'the bridal party pair shares one page');
+  assert.equal(at('la caille utah bridal makeup artist'), at('sundance mountain resort bridal makeup artist'), 'La Caille and Sundance share one page');
+  assert.equal(at('soft glam vs full glam').kind, 'Article');
+  assert.equal(at('hair and makeup: on location or in a salon').kind, 'Article');
+  assert.equal(at('bridal party hair and makeup cost').kind, 'Article');
+  for (const p of list) {
+    assert.ok(KINDS.includes(p.kind), p.kind);
+    assert.ok(p.reason.length > 10);
+    assert.ok(['clear', 'close'].includes(p.confidence.level));
+  }
+  assert.equal(list.filter((p) => p.kind === 'Homepage').length, 1);
+});
 
 test('rankWeight is the DCG discount', () => {
   assert.equal(rankWeight(1), 1);

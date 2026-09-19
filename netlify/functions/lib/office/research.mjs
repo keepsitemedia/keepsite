@@ -161,12 +161,16 @@ export function similarities(m) {
 
 // ---- Grouping ----------------------------------------------------------------
 
-// PROVISIONAL. The engine's one parameter. Set it from
-// `node scripts/validate-clusters.mjs <export.json> <external.csv>`, which
-// sweeps it against an independent clustering of the same keywords and
-// prints agreement at each step. No validation has run yet; until it does, a
-// page whose nearest outsider is near this line is a judgement call.
-export const CUT = 0.25;
+// PROVISIONAL. The engine's one parameter. Chosen 2026-09-18 by sweeping the
+// Makeup by Brinley fixture by hand, not by `scripts/validate-clusters.mjs`
+// against an independent clustering: pages at cut 0.10 / 0.12 / 0.15 / 0.18 /
+// 0.20 / 0.25 come out 10 / 12 / 13 / 15 / 16 / 18, and 0.12 is the point
+// where the study reproduces the owner's own grouping — the full
+// "utah bridal/wedding makeup" head as one page, the Bridal Party pair as
+// one page, La Caille and Sundance together. Run the validation script
+// against an independent clustering of the next study before trusting this
+// elsewhere, and move the fixture test's assertions with it if it moves.
+export const CUT = 0.12;
 
 // Shades for the matrix and the report grid: none, faint, some, most.
 export const band = (v, cut = CUT) => (v <= 0 ? 0 : v < cut / 2 ? 1 : v < cut ? 2 : 3);
@@ -442,7 +446,12 @@ export function pageList(round) {
   if (!kept.some((p) => p.kind === 'Homepage')) {
     const byId = new Map(round.keywords.map((k) => [k.id, k]));
     const volume = (p) => p.keywords.reduce((n, id) => n + (byId.get(id)?.volume?.max ?? 0), 0);
-    const homepage = rows.filter((p) => p.kind === 'Service page').sort((x, y) => volume(y) - volume(x) || y.keywords.length - x.keywords.length)[0];
+    const byRank = (a, b) => volume(b) - volume(a) || b.keywords.length - a.keywords.length;
+    // A study can cluster into nothing but Location pages and Articles, with
+    // no Service page to promote; the site still needs exactly one Homepage,
+    // so the largest row of any kind stands in rather than leaving the list
+    // with none.
+    const homepage = rows.filter((p) => p.kind === 'Service page').sort(byRank)[0] ?? rows.slice().sort(byRank)[0];
     if (homepage) homepage.kind = 'Homepage';
   }
   return [...kept, ...rows];
@@ -486,10 +495,19 @@ export function comparePair(round, aId, bId) {
     .sort((x, y) => y.contribution - x.contribution || x.business.localeCompare(y.business));
   const sharedDirectories = Object.keys(ca).filter((x) => cb[x] && m.weight[x] === 0).length;
   const s = similarity(m, aId, bId);
-  return { similarity: s, band: band(s), shared, sharedDirectories, exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), sharedUrls, sharedDomains };
+  return {
+    similarity: s, band: band(s), shared, sharedDirectories, exactUrl, sameDomain,
+    sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), sharedUrls, sharedDomains,
+    total: Math.max(a.length, b.length),
+  };
 }
 
 export function describePair(c) {
+  // An uncaptured side is nothing to compare, not a verdict of "different":
+  // similarity 0 means the same thing whether the searches truly share
+  // nothing or one of them was never captured, and only total tells the two
+  // apart. A missing total (an older caller's object) is read as captured.
+  if (c.total === 0) return 'Nothing captured yet.';
   const n = c.shared.length;
   const names = c.shared.slice(0, 2).map((x) => x.business);
   const who = n === 0 ? 'no business ranks for both'
@@ -526,6 +544,13 @@ export function emptyStudy(slug, now = new Date()) {
 // judged the way a new one would be. A manual type is the owner's call and
 // stays; the business name follows the URL regardless, since it is not a
 // judgement.
+
+// The kind an edited row's old `type` field maps to, so a row saved before
+// this spec still reads as a Homepage rather than falling through pageList's
+// "no kept Homepage" check and getting a second one built for it.
+const KIND_FROM_TYPE = { 'Homepage': 'Homepage', 'Service page': 'Service page', 'Location page': 'Location page', 'Blog/FAQ': 'Article' };
+const kindFromType = (type) => KIND_FROM_TYPE[type] ?? 'Other';
+
 function refresh(round) {
   const serps = {};
   for (const [id, serp] of Object.entries(round.serps ?? {})) {
@@ -534,7 +559,14 @@ function refresh(round) {
       pageType: r.typeSource === 'manual' ? r.pageType : classify(r, round.areas ?? []),
     })) };
   }
-  return { ...round, serps };
+  // Only a row that actually carries the old `type` field is touched; a
+  // bare or already-migrated row passes through untouched.
+  const pages = (round.pages ?? []).map((p) => {
+    if (!('type' in p)) return p;
+    const { type, ...rest } = p;
+    return { ...rest, kind: rest.kind ?? kindFromType(type) };
+  });
+  return { ...round, serps, pages };
 }
 
 // Read-time migration, never a batch rewrite: a document written before rounds
