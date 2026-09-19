@@ -5,7 +5,7 @@
 // study matrix opens the compare page, where the two result lists are.
 import Mark from './Mark.astro';
 import StudyMatrix from './StudyMatrix.astro';
-import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, KINDS, PAGE_TYPES, FLOOR, keptApartWords, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, KINDS, PAGE_TYPES, FLOOR, keptApartWords, keptApartPairs, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -25,6 +25,8 @@ const low = pages.filter((p) => p.standing === 'low');
 const closeCalls = standing.filter((p) => p.confidence?.level === 'close').length;
 const edited = pages.filter((p) => !p.auto).length;
 const titles = new Map<string, string>(pages.map((p) => [p.id, p.title]));
+// A mutual split is one decision, said on the smaller page.
+const apart = new Set<string>((keptApartPairs(pages) as any[]).map((p) => p.id));
 const view = studyView(round, pages) as any;
 const volumeLoaded = round.keywords.some((k: any) => k.volume);
 const vol = (k: any) => (k?.volume ? (k.volume.min === k.volume.max ? String(k.volume.max) : `${k.volume.min}–${k.volume.max}`) : null);
@@ -270,7 +272,7 @@ const external = (href: string) => href.startsWith('http');
               </form>
             </span>
           ))}
-          {p.keptApart && <span class="meta line">Kept apart from {p.keptApart}: {keptApartWords(p)}.</span>}
+          {p.keptApart && apart.has(p.id) && <span class="meta line">Kept apart from {p.keptApart}: {keptApartWords(p)}.</span>}
           {p.note && <span class="meta line">Note: {p.note}</span>}
         </span>
         <span class="act">

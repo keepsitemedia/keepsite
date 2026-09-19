@@ -3,7 +3,7 @@
 // the split lets a test read the words without decoding a PDF stream.
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Writer, SIZES } from './pdf.mjs';
-import { pagesOf, studyView, band, FLOOR, keptApartWords } from './research.mjs';
+import { pagesOf, studyView, band, FLOOR, keptApartWords, keptApartPairs } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 // The round's start date, not today's: a report re-rendered next week is still
@@ -87,7 +87,7 @@ export function reportLines({ client, round, renderedAt }) {
   h2('Where we made a call');
   const calls = [
     ...pages.flatMap((x) => (x.folded ?? []).map((f) => [x.title, f.title, 'We folded it in: the two bring up many of the same businesses and want the same kind of page.'])),
-    ...pages.filter((x) => x.keptApart).map((x) => [x.title, x.keptApart, `We kept it separate: ${keptApartWords(x)}`]),
+    ...keptApartPairs(pages).map((x) => [x.title, x.keptApart, `We kept it separate: ${keptApartWords(x)}`]),
     ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), x.note ?? '']),
   ];
   if (!calls.length) p('The search results settled every page on their own. Nothing here needed a call from us.');

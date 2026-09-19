@@ -290,15 +290,26 @@ export function homeAreas(round) {
 // Google fills with articles: the searcher wants to read, not to hire.
 const ARTICLE = /(^|[^a-z0-9])(vs|versus|or|how|what|why|when|should|cost|price|prices|tips|ideas)($|[^a-z0-9])|\?\s*$/i;
 
+// Ties go to the first of these: a page that is as much a service page as it is
+// anything else is a service page.
+const KINDS_BY_RANK = ['Service page', 'Location page', 'Article'];
+
+// Each member is typed on its own, and the group takes the majority. One
+// keyword naming a town does not make nine head terms a location page.
 export function kindOf(ids, round, home = homeAreas(round)) {
   const byId = new Map(round.keywords.map((k) => [k.id, k]));
-  const texts = ids.map((id) => byId.get(id)?.text ?? '');
   const areas = (round.areas ?? []).filter((a) => a && !home.includes(a));
-  if (texts.some((t) => areas.some((a) => wordIn(a, t)))) return 'Location page';
-  const results = ids.flatMap((id) => round.serps[id]?.results ?? []).filter((x) => x.pageType !== 'Directory');
-  const blog = results.filter((x) => x.pageType === 'Blog/FAQ').length;
-  if (texts.some((t) => ARTICLE.test(t)) || (results.length && blog * 2 >= results.length)) return 'Article';
-  return 'Service page';
+  const own = (id) => {
+    const text = byId.get(id)?.text ?? '';
+    if (areas.some((a) => wordIn(a, text))) return 'Location page';
+    const results = (round.serps?.[id]?.results ?? []).filter((x) => x.pageType !== 'Directory');
+    const blog = results.filter((x) => x.pageType === 'Blog/FAQ').length;
+    if (ARTICLE.test(text) || (results.length && blog * 2 >= results.length)) return 'Article';
+    return 'Service page';
+  };
+  const counts = new Map(KINDS_BY_RANK.map((k) => [k, 0]));
+  for (const id of ids) counts.set(own(id), counts.get(own(id)) + 1);
+  return KINDS_BY_RANK.reduce((best, k) => (counts.get(k) > counts.get(best) ? k : best), KINDS_BY_RANK[0]);
 }
 
 // ---- Volume ------------------------------------------------------------------
@@ -428,6 +439,27 @@ export function standingOf(ids, round) {
   return vols.reduce((n, v) => n + v.max, 0) < FLOOR ? 'low' : 'page';
 }
 
+// Two rows that name each other are one decision, not two. It is said from the
+// side of the smaller page, so the page the site is built around is never the
+// one described as kept separate.
+export function keptApartPairs(pages) {
+  const byTitle = new Map(pages.map((p) => [p.title, p]));
+  const said = new Set();
+  const out = [];
+  pages.forEach((p, i) => {
+    if (!p.keptApart || said.has(p.id)) return;
+    const other = byTitle.get(p.keptApart);
+    said.add(p.id);
+    if (!other || other.id === p.id || other.keptApart !== p.title) { out.push(p); return; }
+    said.add(other.id);
+    const j = pages.indexOf(other);
+    out.push(p.keywords.length < other.keywords.length ? p
+      : other.keywords.length < p.keywords.length ? other
+      : (i > j ? p : other));
+  });
+  return out;
+}
+
 // Why a close call kept a page of its own, in the words the tab and the report
 // both say it in.
 export const keptApartWords = (row) => (row?.keptApartWhy === 'volume'
@@ -539,6 +571,9 @@ export function pageList(round) {
     // it would leave none; the page that absorbs it takes the job.
     if (r.kind === 'Homepage') t.kind = 'Homepage';
     t.keywords = [...t.keywords, ...r.keywords];
+    // The page now answers more searches than its reason was written for; only
+    // the reason moves, since the confidence is what decided the fold.
+    if (t.auto) t.reason = reasonOf(t.keywords, m, t.confidence.nearest);
     t.folded = [...(t.folded ?? []), { title: r.title, into: t.title, keywords: r.keywords }];
     gone.add(r.id);
   }

@@ -5,7 +5,7 @@ import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, describePair, pairKey, pageList, pagesOf, studyView, confidenceWords, titleOf, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, uule, localResults, suggestedSearches, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
   rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band, OWN_PAGE_VOLUME,
-  KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, standingOf,
+  KINDS, FLOOR, homeAreas, kindOf, keptApartPairs, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, standingOf,
 } from './research.mjs';
 
 test('normalizeUrl folds the differences Google shows for one page', () => {
@@ -505,6 +505,15 @@ test('a close call of the same kind folds into the page it is close to', () => {
   assert.equal(row.keptApart, undefined);
 });
 
+// The page answers more searches than its reason was written for, and the
+// singleton sentence would still be sitting above a list of ten.
+test('a page that takes in a fold says why the searches it now answers belong together', () => {
+  const [row] = pageList(closeCall());
+  assert.deepEqual(row.keywords.slice().sort(), ['kx', 'ky']);
+  assert.match(row.reason, /both of these/);
+  assert.ok(!/needs a page of its own|not enough to share a page/.test(row.reason), row.reason);
+});
+
 test('a close call of a different kind is kept apart and says which page from', () => {
   const round = closeCall({}, { text: 'soft glam vs full glam' });
   const list = pageList(round);
@@ -514,6 +523,23 @@ test('a close call of a different kind is kept apart and says which page from', 
   assert.equal(list[0].keptApartWhy, 'kind');
   assert.equal(list[1].keptApart, 'edited');
   assert.ok(list.every((p) => p.folded === undefined));
+});
+
+// Two rows that name each other are one decision. Said from the smaller side,
+// so the page the site is built around is never the one kept separate.
+test('keptApartPairs says a mutual split once, from the smaller page', () => {
+  const head = { id: 'p1', title: 'Head', keywords: ['a', 'b', 'c'], keptApart: 'Small', keptApartWhy: 'kind' };
+  const small = { id: 'p2', title: 'Small', keywords: ['d'], keptApart: 'Head', keptApartWhy: 'kind' };
+  const lone = { id: 'p3', title: 'Lone', keywords: ['e'], keptApart: 'Head', keptApartWhy: 'volume' };
+  const plain = { id: 'p4', title: 'Plain', keywords: ['f'] };
+  assert.deepEqual(keptApartPairs([head, small, plain]).map((p) => p.id), ['p2']);
+  assert.deepEqual(keptApartPairs([head, small, lone, plain]).map((p) => p.id), ['p2', 'p3'], 'a one-sided split is still said');
+  // A tie in size is said by the later row, so the row a page was measured
+  // against is the one named.
+  const a = { id: 'pa', title: 'A', keywords: ['x'], keptApart: 'B' };
+  const b = { id: 'pb', title: 'B', keywords: ['y'], keptApart: 'A' };
+  assert.deepEqual(keptApartPairs([a, b]).map((p) => p.id), ['pb']);
+  assert.deepEqual(keptApartPairs([plain]), []);
 });
 
 test('a close call that draws enough searches of its own keeps its page', () => {
@@ -899,6 +925,7 @@ test('kindOf: a non-home area is a location page, a question is an article, else
     k4: { text: 'bridal party hair and makeup cost', urls: ['https://a.com/'] },
     k5: { text: 'mature skin bridal makeup', urls: ['https://a.com/blog/one', 'https://b.com/blog/two', 'https://c.com/'] },
     k6: { text: 'bridal party makeup', urls: ['https://a.com/services/', 'https://www.yelp.com/search'] },
+    k7: { text: 'park city bridal makeup', urls: ['https://a.com/'] },
   }, ['Utah', 'Park City']);
   const home = ['Utah'];
   assert.equal(kindOf(['k1'], round, home), 'Location page');
@@ -907,8 +934,23 @@ test('kindOf: a non-home area is a location page, a question is an article, else
   assert.equal(kindOf(['k4'], round, home), 'Article');
   assert.equal(kindOf(['k5'], round, home), 'Article', 'half the business results are blog posts');
   assert.equal(kindOf(['k6'], round, home), 'Service page', 'a directory does not count toward the blog share');
-  assert.equal(kindOf(['k1', 'k2'], round, home), 'Location page', 'one member with an area makes the group a location page');
-  assert.equal(kindOf(['k2', 'k3'], round, home), 'Article', 'and one question member makes it an article');
+});
+
+// A group is what most of its searches are. One keyword naming a town used to
+// turn a whole head group into a location page.
+test('kindOf takes the majority of its members, ties to a service page', () => {
+  const round = roundWith({
+    k1: { text: 'park city utah hair and makeup', urls: ['https://a.com/'] },
+    k2: { text: 'utah bridal makeup', urls: ['https://a.com/'] },
+    k3: { text: 'soft glam vs full glam', urls: ['https://a.com/'] },
+    k6: { text: 'bridal party makeup', urls: ['https://a.com/services/', 'https://www.yelp.com/search'] },
+    k7: { text: 'park city bridal makeup', urls: ['https://a.com/'] },
+  }, ['Utah', 'Park City']);
+  const home = ['Utah'];
+  assert.equal(kindOf(['k1', 'k2', 'k6'], round, home), 'Service page', 'one member with an area does not make the group a location page');
+  assert.equal(kindOf(['k3', 'k2', 'k6'], round, home), 'Service page', 'nor one question member an article');
+  assert.equal(kindOf(['k1', 'k7'], round, home), 'Location page', 'two towns and nothing else is a location page');
+  assert.equal(kindOf(['k1', 'k2'], round, home), 'Service page', 'a tie goes to the service page');
 });
 
 test('kindOf matches areas on whole words, case-insensitively', () => {

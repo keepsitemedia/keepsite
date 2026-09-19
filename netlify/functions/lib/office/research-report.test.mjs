@@ -251,6 +251,19 @@ test('a page with no local results anywhere says so', () => {
   assert.ok(!/no local businesses/.test(words(some)));
 });
 
+// Two pages kept apart from each other is one decision, not two, and the head
+// page is not the one described as kept separate.
+test('a mutual split prints one row, from the smaller page', () => {
+  const round = { ...openRound(study()), closedAt: '2026-09-14T00:00:00.000Z', pages: [
+    { id: 'p1', title: 'Wedding flowers', kind: 'Service page', keywords: ['k1', 'k2'], confidence: { level: 'close', near: 'p2' }, reason: 'Seven businesses rank for both.', standing: 'page', note: '', auto: true, keptApart: 'Funeral flowers', keptApartWhy: 'kind' },
+    { id: 'p2', title: 'Funeral flowers', kind: 'Article', keywords: ['k3'], confidence: { level: 'close', near: 'p1' }, reason: 'Nothing else brings up the same businesses.', standing: 'page', note: '', auto: true, keptApart: 'Wedding flowers', keptApartWhy: 'kind' },
+  ] };
+  const L = reportLines({ client, round, renderedAt: new Date('2026-09-20T00:00:00Z') });
+  const table = L.find((x) => x.kind === 'table' && x.rows[0][0] === 'Page');
+  assert.equal(table.rows.length, 2, 'the header and one row');
+  assert.deepEqual(table.rows[1], ['Funeral flowers', 'Wedding flowers', 'We kept it separate: it wants a different kind of page']);
+});
+
 test('a location page says why it stands', () => {
   const round = { ...openRound(study()), pages: [
     { id: 'p1', title: 'Moab', kind: 'Location page', keywords: ['k1'], confidence: { level: 'clear', near: null }, reason: 'Nothing else brings up the same businesses.', standing: 'page', standingWhy: 'place', note: '', auto: true },

@@ -194,22 +194,24 @@ There is no ladder, no `signal`, no `read`, no `action`.
 Four the tool assigns: **Homepage**, **Service page**, **Location page**,
 **Article**. **Other** is available to the owner only. The result
 classifications (Directory, Portfolio/Gallery, About page, Blog/FAQ) stay on
-results and never become a page kind. `kind` is decided per group after
-clustering, first match wins:
+results and never become a page kind. **A group's kind is the majority of its
+members' kinds, ties to Service page** (then Location page, then Article).
+Each member is typed on its own after clustering, first match wins:
 
-1. **Location page** when any member keyword contains an area from the
-   round's `areas`, except the home area. The home area is any area whose
-   name appears in more than half the captured keywords: "Utah" does not turn
-   the study into location pages; "Park City" and "Moab" do. Matching is
+1. **Location page** when the keyword contains an area from the round's
+   `areas`, except the home area. The home area is any area whose name
+   appears in more than half the captured keywords: "Utah" does not turn the
+   study into location pages; "Park City" and "Moab" do. Matching is
    case-insensitive on whole words.
-2. **Article** when any member keyword matches a question or comparison
-   pattern — a whole word among `vs`, `versus`, `or`, `how`, `what`, `why`,
-   `when`, `should`, `cost`, `price`, `prices`, `tips`, `ideas`, or ends in
-   `?` — or when at least half the group's non-directory results are
-   Blog/FAQ.
-3. **Homepage** for exactly one group: the one with the most total volume,
-   or the largest group when no volume is loaded, or the first when tied.
-4. **Service page** otherwise.
+2. **Article** when the keyword matches a question or comparison pattern — a
+   whole word among `vs`, `versus`, `or`, `how`, `what`, `why`, `when`,
+   `should`, `cost`, `price`, `prices`, `tips`, `ideas`, or ends in `?` — or
+   when at least half that keyword's own non-directory results are Blog/FAQ.
+3. **Service page** otherwise.
+
+**Homepage** is then given to exactly one group, whatever the majority said:
+the one with the most total volume, or the largest group when no volume is
+loaded, or the first when tied.
 
 The owner's kind on an edited page is kept. When `areas` is empty and
 keywords exist, the glance says so, because rule 1 is silently off.
