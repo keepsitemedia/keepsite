@@ -74,11 +74,13 @@ that hosts one page per business, each with its profile path spelled out:
 | yelp.com | first segment `biz` | platform |
 | weddingwire.com | first segment `biz` | platform |
 | theknot.com | first segment `marketplace` and the last segment ends in a run of digits (a vendor id); `marketplace/beauty-services-salt-lake-city-ut` is a category list, not a vendor | platform |
-| houzz.com, bark.com | first segment `pro` or `professionals` | platform |
+| houzz.com | first segment `pro` | platform |
 
 A profile resolves to `host/handle` as today; anything else resolves to the
 bare host, and `classify` calls the bare host of a listed platform a
-Directory.
+Directory. Bark and Thumbtack stay plain directories: their profile URLs
+carry a locale or a city that varies by market, and a rule guessed wrong
+would split one business into several.
 
 **Known gap, recorded not solved:** a business's own site and its profile on
 a platform are two columns. The tool cannot know that
