@@ -3,7 +3,7 @@
 // the split lets a test read the words without decoding a PDF stream.
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Writer, SIZES } from './pdf.mjs';
-import { pagesOf, studyView, band, FLOOR } from './research.mjs';
+import { pagesOf, studyView, band, FLOOR, KEPT_APART_WHY } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 // The round's start date, not today's: a report re-rendered next week is still
@@ -82,14 +82,19 @@ export function reportLines({ client, round, renderedAt }) {
     p(`${row.title} · ${KIND_LABEL[row.kind] ?? 'page'}`);
     small(`Brings in people searching for: ${row.keywords.map(withVolume).join('; ')}`);
     if (row.reason) small(row.reason);
-    if (row.confidence?.level === 'close') small(`This one is close to ${titles.get(row.confidence.near) ?? 'another page'}. If you'd rather have one page instead of two, say so and we'll merge them.`);
+    if (row.folded?.length) small(`Also answers ${row.folded.map((f) => f.title).join('; ')}, which bring up mostly the same businesses.`);
     if (row.keywords.every((id) => round.serps[id]?.local === false)) small('Google shows no local businesses for this search; people search it from everywhere.');
     if (row.note) small(row.note);
   }
 
   h2('Where we made a call');
-  if (!edited.length) p('The search results settled every page on their own. Nothing here needed a call from us.');
-  else table([['Page', 'Searches', 'Why'], ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), x.note ?? ''])]);
+  const calls = [
+    ...pages.flatMap((x) => (x.folded ?? []).map((f) => [x.title, f.title, 'We folded it in: the two bring up many of the same businesses and want the same kind of page.'])),
+    ...pages.filter((x) => x.keptApart).map((x) => [x.title, x.keptApart, `We kept it separate: ${KEPT_APART_WHY[x.keptApartWhy] ?? KEPT_APART_WHY.kind}`]),
+    ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), x.note ?? '']),
+  ];
+  if (!calls.length) p('The search results settled every page on their own. Nothing here needed a call from us.');
+  else table([['Page', 'Searches', 'Why'], ...calls]);
 
   if (volumeLoaded && low.length) {
     h2("Searches we're leaving out");

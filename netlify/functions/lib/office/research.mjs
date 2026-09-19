@@ -428,6 +428,16 @@ export function standingOf(ids, round) {
   return vols.reduce((n, v) => n + v.max, 0) < FLOOR ? 'low' : 'page';
 }
 
+// Why a close call kept a page of its own, in the words the tab and the report
+// both say it in.
+export const KEPT_APART_WHY = { kind: 'it wants a different kind of page', volume: 'it draws enough searches of its own' };
+
+// PROVISIONAL. A page that is a close call to another of the same kind keeps
+// its own page only when its searches add up to at least this many a month.
+// Planner rounds its numbers, so this is what separates a real head term from
+// the 50-a-month long tail. Revisit after the next study with volume.
+export const OWN_PAGE_VOLUME = 500;
+
 // ---- The page list -----------------------------------------------------------
 
 // The keyword that names a page: the one people search most when volume is
@@ -461,7 +471,15 @@ const rowId = (ids) => `p-${ids.slice().sort().join('-')}`;
 // Homepage: the owner's if they named one, else the service group with the
 // most volume, else the largest.
 export function pageList(round) {
-  const kept = (round.pages ?? []).filter((p) => p.auto === false).map((p) => ({ ...p, standing: 'page' }));
+  // touch() stores whatever this returns, so an edited row comes back carrying
+  // the keywords last read's fold pass lent it. They are subtracted again here,
+  // and the fold pass is what puts them back: the owner's own keywords are the
+  // only ones that survive a round trip.
+  const kept = (round.pages ?? []).filter((p) => p.auto === false).map((p) => {
+    const lent = new Set((p.folded ?? []).flatMap((f) => f.keywords ?? []));
+    const { folded, keptApart, ...rest } = p;
+    return { ...rest, keywords: p.keywords.filter((id) => !lent.has(id)), standing: 'page' };
+  });
   const claimed = new Set(kept.flatMap((p) => p.keywords));
   const free = captured(round).filter((k) => !claimed.has(k.id)).map((k) => k.id);
   const m = matrix(round);
@@ -479,9 +497,9 @@ export function pageList(round) {
       reason: reasonOf(ids, m, c.nearest), standing: standingOf(ids, round), note: '', auto: true,
     };
   });
+  const byId = new Map(round.keywords.map((k) => [k.id, k]));
+  const volume = (p) => p.keywords.reduce((n, id) => n + (byId.get(id)?.volume?.max ?? 0), 0);
   if (!kept.some((p) => p.kind === 'Homepage')) {
-    const byId = new Map(round.keywords.map((k) => [k.id, k]));
-    const volume = (p) => p.keywords.reduce((n, id) => n + (byId.get(id)?.volume?.max ?? 0), 0);
     const byRank = (a, b) => volume(b) - volume(a) || b.keywords.length - a.keywords.length;
     // A study can cluster into nothing but Location pages and Articles, with
     // no Service page to promote; the site still needs exactly one Homepage,
@@ -490,7 +508,30 @@ export function pageList(round) {
     const homepage = rows.filter((p) => p.kind === 'Service page').sort(byRank)[0] ?? rows.slice().sort(byRank)[0];
     if (homepage) homepage.kind = 'Homepage';
   }
-  return [...kept, ...rows];
+  // Fewer pages unless there is a reason to split. A close call is two searches
+  // the evidence could not tell apart, so it folds into the page it is close to
+  // unless it wants a different kind of page or draws enough searches to earn
+  // its own. One pass over the confidences as they stood before any fold: a
+  // page that grows does not thereby become a better home for the next row.
+  const byRowId = new Map([...kept, ...rows].map((p) => [p.id, p]));
+  const asKind = (kind) => (kind === 'Homepage' ? 'Service page' : kind);
+  const gone = new Set();
+  for (const r of rows) {
+    const t = r.confidence.level === 'close' && r.confidence.near ? byRowId.get(r.confidence.near) : null;
+    if (!t || gone.has(t.id)) continue;
+    if (asKind(t.kind) !== asKind(r.kind) || volume(r) >= OWN_PAGE_VOLUME) {
+      r.keptApart = t.title;
+      r.keptApartWhy = asKind(t.kind) !== asKind(r.kind) ? 'kind' : 'volume';
+      continue;
+    }
+    // A site has exactly one homepage, and folding the row that was picked for
+    // it would leave none; the page that absorbs it takes the job.
+    if (r.kind === 'Homepage') t.kind = 'Homepage';
+    t.keywords = [...t.keywords, ...r.keywords];
+    t.folded = [...(t.folded ?? []), { title: r.title, into: t.title, keywords: r.keywords }];
+    gone.add(r.id);
+  }
+  return [...kept, ...rows.filter((p) => !gone.has(p.id))];
 }
 
 // A closed round is the record of what was recommended then; an open round

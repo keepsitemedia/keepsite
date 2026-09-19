@@ -186,16 +186,24 @@ test('the searches left out appear only with volume, and a close call is explain
   assert.match(w, /0 to 500 a month/, 'volume ranges print beside the searches');
 });
 
-// The tab and the report have to agree about a close call, and the report is
-// the only place the reason is spelled out for the client.
-test('a close call names the page it could have joined', () => {
+// The client is not asked to make the call: a close call is folded in by
+// default, and the report says what was folded and what was kept apart.
+test('a fold and a kept-apart page are both explained, and nothing asks the client to merge', () => {
   const s = study();
   const closed = { ...openRound(s), closedAt: '2026-09-14T00:00:00.000Z', pages: [
-    { id: 'p-weddings', title: 'Wedding flowers', kind: 'Service page', keywords: ['k1', 'k2'], confidence: { level: 'clear', near: null }, reason: 'Seven businesses rank for both.', standing: 'page', note: '', auto: true },
-    { id: 'p-sympathy', title: 'Funeral flowers', kind: 'Service page', keywords: ['k3'], confidence: { level: 'close', near: 'p-weddings' }, reason: 'The businesses that rank here mostly rank for nothing else in the study.', standing: 'page', note: '', auto: true },
+    { id: 'p-weddings', title: 'Wedding flowers', kind: 'Service page', keywords: ['k1', 'k2'], confidence: { level: 'clear', near: null }, reason: 'Seven businesses rank for both.', standing: 'page', note: '', auto: true,
+      folded: [{ title: 'provo wedding flowers', into: 'Wedding flowers', keywords: ['k2'] }] },
+    { id: 'p-sympathy', title: 'Funeral flowers', kind: 'Service page', keywords: ['k3'], confidence: { level: 'close', near: 'p-weddings' }, reason: 'The businesses that rank here mostly rank for nothing else in the study.', standing: 'page', note: '', auto: true,
+      keptApart: 'Wedding flowers', keptApartWhy: 'volume' },
   ] };
-  const w = words(reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') }));
-  assert.match(w, /This one is close to Wedding flowers\. If you'd rather have one page instead of two, say so and we'll merge them\./);
+  const L = reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') });
+  const w = words(L);
+  assert.match(w, /Also answers provo wedding flowers, which bring up mostly the same businesses\./);
+  const table = L.find((x) => x.kind === 'table' && x.rows[0][0] === 'Page');
+  assert.deepEqual(table.rows[1], ['Wedding flowers', 'provo wedding flowers', 'We folded it in: the two bring up many of the same businesses and want the same kind of page.']);
+  assert.deepEqual(table.rows[2], ['Funeral flowers', 'Wedding flowers', 'We kept it separate: it draws enough searches of its own']);
+  assert.ok(!/close to/.test(w), 'no close-call sentence anywhere');
+  assert.ok(!/merge them/.test(w));
 });
 
 test('the report names the place it searched from', () => {

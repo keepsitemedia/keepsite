@@ -5,7 +5,7 @@
 // study matrix opens the compare page, where the two result lists are.
 import Mark from './Mark.astro';
 import StudyMatrix from './StudyMatrix.astro';
-import { bookmarklet, pageList, studyView, confidenceWords, KINDS, PAGE_TYPES, FLOOR, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pageList, studyView, confidenceWords, KINDS, PAGE_TYPES, FLOOR, KEPT_APART_WHY, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -247,6 +247,15 @@ const external = (href: string) => href.startsWith('http');
           <span class="title">{p.title}</span><span class="meta"> · {p.auto ? confidenceWords(p, titles) : 'Edited'}</span>
           {p.keywords.length > 1 && <span class="meta line">{p.keywords.map((id: string) => `${text(id)}${vol(byId.get(id)) ? ` (${vol(byId.get(id))})` : ''}`).join(' · ')}</span>}
           {p.reason && <span class="meta line">{p.reason}</span>}
+          {(p.folded ?? []).map((f: any) => (
+            <span class="meta line">Folded in: {f.title}
+              <form method="POST" action={api} class="inline">
+                {hidden({ csrf, slug, op: 'page', id: `p-${f.keywords.slice().sort().join('-')}`, title: f.title, kind: p.kind, note: '', keywords: f.keywords.join(','), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                <button class="link-quiet">Give it its own page</button>
+              </form>
+            </span>
+          ))}
+          {p.keptApart && <span class="meta line">Kept apart from {p.keptApart}: {KEPT_APART_WHY[p.keptApartWhy] ?? KEPT_APART_WHY.kind}.</span>}
           {p.note && <span class="meta line">Note: {p.note}</span>}
         </span>
         <span class="act">

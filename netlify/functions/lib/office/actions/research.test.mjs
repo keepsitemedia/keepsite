@@ -114,12 +114,14 @@ test('page, reset and type edits reshape the study; read is refused', async () =
   assert.equal(round.pages[0].kind, 'Article');
   assert.equal(round.pages[0].note, 'client asked');
 
-  // Pull b into the edited page: a comma-joined list works too, and the
-  // released keyword is reclustered on its own.
+  // Pull b into the edited page: a comma-joined list works too. The released
+  // keyword is reclustered on its own, and since all three searches bring up
+  // the same businesses it is a close call to the edited page and folds into
+  // it; the fold is recorded, so the page the owner saved is still two.
   await research(post({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'C and B', kind: 'Service page', note: '', keywords: `${kc},${kb}` }), ctx(), s, now);
   round = openRound(await s.research.get('acme'));
-  assert.deepEqual(round.pages.map((p) => p.keywords.length), [2, 1]);
-  assert.equal(round.pages[1].keywords[0], ka);
+  assert.deepEqual(round.pages.map((p) => p.keywords.length), [3]);
+  assert.deepEqual(round.pages[0].folded.map((f) => f.keywords), [[ka]]);
 
   const badKind = await research(post({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'x', kind: 'Directory', note: '', keywords: kc }), ctx(), s, now);
   assert.match(location(badKind), /error=.*kind/);

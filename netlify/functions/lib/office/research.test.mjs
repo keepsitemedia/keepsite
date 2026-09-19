@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, describePair, pairKey, pageList, pagesOf, studyView, confidenceWords, titleOf, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, uule, localResults, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
-  rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band,
+  rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band, OWN_PAGE_VOLUME,
   KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, standingOf,
 } from './research.mjs';
 
@@ -472,21 +472,60 @@ test('pageList clusters the free keywords, keeps edited rows first, and decorate
   assert.equal(list[1].kind, 'Homepage', 'the homepage goes to the largest remaining service group');
 });
 
-// The matrix and the square are the whole study, so a keyword the owner
-// pulled onto an edited page is still an outsider the clustered rows are
-// measured against.
-test('pageList sees an edited page\'s keywords as the nearest outsider', () => {
-  const round = roundWith({
-    kx: { text: 'edited', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'] },
-    ky: { text: 'clustered', urls: ['https://a.com/', 'https://c1.com/', 'https://c2.com/', 'https://c3.com/'] },
-  });
+// A close call is two searches the evidence could not tell apart, so it folds
+// into the page it is close to. The matrix and the square are the whole study,
+// so the edited page an auto row is measured against is a page it can fold into.
+const closeCall = (a = {}, b = {}) => roundWith({
+  kx: { text: 'edited', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'], ...a },
+  ky: { text: 'clustered', urls: ['https://a.com/', 'https://c1.com/', 'https://c2.com/', 'https://c3.com/'], ...b },
+});
+
+test('a close call of the same kind folds into the page it is close to', () => {
+  const round = closeCall();
+  const list = pageList(round);
+  assert.equal(list.length, 1, 'two close calls come out as one page');
+  const [row] = list;
+  assert.deepEqual(row.keywords.slice().sort(), ['kx', 'ky']);
+  assert.deepEqual(row.folded.map((f) => [f.title, f.into, f.keywords]), [['edited', 'clustered', ['kx']]]);
+  assert.equal(row.keptApart, undefined);
+});
+
+test('a close call of a different kind is kept apart and says which page from', () => {
+  const round = closeCall({}, { text: 'soft glam vs full glam' });
+  const list = pageList(round);
+  assert.equal(list.length, 2, 'an article and a service page are different kinds of page');
+  assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Article']);
+  assert.equal(list[0].keptApart, 'soft glam vs full glam');
+  assert.equal(list[0].keptApartWhy, 'kind');
+  assert.equal(list[1].keptApart, 'edited');
+  assert.ok(list.every((p) => p.folded === undefined));
+});
+
+test('a close call that draws enough searches of its own keeps its page', () => {
+  const round = closeCall();
+  for (const k of round.keywords) k.volume = { min: OWN_PAGE_VOLUME, max: OWN_PAGE_VOLUME, source: 'planner', at: 'x' };
+  const list = pageList(round);
+  assert.equal(list.length, 2);
+  assert.equal(list[0].keptApart, 'clustered');
+  assert.equal(list[0].keptApartWhy, 'volume');
+  round.keywords.forEach((k) => { k.volume = { min: 0, max: OWN_PAGE_VOLUME - 1, source: 'planner', at: 'x' }; });
+  assert.equal(pageList(round).length, 1, 'one search short of the threshold folds in');
+});
+
+test('an edited page takes in the close call that names it, and gives it back', () => {
+  const round = closeCall();
   round.pages = [{ id: 'p9', title: 'Edited', kind: 'Service page', keywords: ['kx'], note: '', auto: false }];
   const list = pageList(round);
-  const row = list.find((p) => p.auto);
-  assert.deepEqual(row.keywords, ['ky']);
-  assert.ok(row.confidence.nearest >= CUT / 2 && row.confidence.nearest < CUT, `fixture: ${row.confidence.nearest} sits between the half cut and the cut`);
-  assert.equal(row.confidence.level, 'close');
-  assert.equal(row.confidence.near, 'p9', 'named as the edited page, not as a keyword group');
+  assert.deepEqual(list.map((p) => p.id), ['p9'], 'the auto row folded into the edited one');
+  assert.deepEqual(list[0].keywords, ['kx', 'ky']);
+  assert.deepEqual(list[0].folded, [{ title: 'clustered', into: 'Edited', keywords: ['ky'] }]);
+  assert.deepEqual(round.pages[0].keywords, ['kx'], 'the row the owner saved is untouched');
+  // touch() stores the list it is given, so the next read starts from the grown
+  // row: it must hand the lent keyword back before regrouping, or the edited
+  // page would swallow it for good.
+  const again = pageList({ ...round, pages: list });
+  assert.deepEqual(again[0].keywords, ['kx', 'ky']);
+  assert.deepEqual(again[0].folded, [{ title: 'clustered', into: 'Edited', keywords: ['ky'] }]);
 });
 
 test('pageList assigns exactly one Homepage, by volume when volume is loaded', () => {
@@ -610,12 +649,16 @@ test('the Makeup by Brinley study comes out as a site structure, not a pile of s
   // assert.ok on every lookup before comparing pages, so a keyword text that
   // does not exist in the fixture cannot pass by both sides finding nothing.
   const at = (text) => { assert.ok(pageOf(text), text); return pageOf(text); };
-  // Pinned to CUT = 0.12 on this fixture; update together with the cut.
-  assert.equal(list.length, 12);
+  // Pinned to CUT = 0.12 and OWN_PAGE_VOLUME on this fixture: the cut says what
+  // clusters, the fold rule says which close call keeps a page of its own.
+  // Update together with either.
+  assert.equal(list.length, 11);
   const head = ['utah bridal makeup artist', 'utah wedding makeup artist', 'wedding hair and makeup utah', 'utah bridal hair and makeup artist'].map(at);
   assert.equal(new Set(head).size, 1, 'the head terms share one page');
   assert.equal(at('bridal party makeup'), at('bridal party hair and makeup package'), 'the bridal party pair shares one page');
   assert.equal(at('la caille utah bridal makeup artist'), at('sundance mountain resort bridal makeup artist'), 'La Caille and Sundance share one page');
+  assert.equal(at('makeup artist in utah'), at('utah wedding makeup artist'), 'the close call folded into the head page');
+  assert.notEqual(at('hair and makeup: on location or in a salon'), at('on location hair and makeup'), 'an article is not folded into a service page');
   assert.equal(at('soft glam vs full glam').kind, 'Article');
   assert.equal(at('hair and makeup: on location or in a salon').kind, 'Article');
   assert.equal(at('bridal party hair and makeup cost').kind, 'Article');
