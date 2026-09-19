@@ -4,6 +4,7 @@ import {
   PAGE_TYPES, KINDS, emptyStudy, emptyRound, migrateStudy, openRound, touch, newKeywordId, normalizeQuery, splitList, draftFromQuestionnaire,
   validateCapture, findCaptureTargets, applyCapture, decodeCsv, parseVolumeCsv, applyVolume, pageList,
 } from '../research.mjs';
+import { renderResearchReport, reportName } from '../research-report.mjs';
 
 const KEYWORD_ID = /^k[a-z0-9]{8}$/;
 const tab = (slug, extra = '') => `/office/clients/${slug}/?tab=research${extra}`;
@@ -134,10 +135,6 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
   }
   if (op === 'notes') return saveRound({ ...round, notes: { intro: text('intro'), closing: text('closing') } });
   if (op === 'report') {
-    // Loaded lazily: research-report.mjs still imports the pair ladder this
-    // engine dropped, so a static import here would break every op above
-    // rather than only the one report op that depends on it (Task 7 fixes it).
-    const { renderResearchReport, reportName } = await import('../research-report.mjs');
     const bytes = await renderResearchReport({ client, round, renderedAt: now });
     const name = reportName(now, round);
     await s.documents.put(slug, name, new Uint8Array(bytes), { type: 'application/pdf', source: 'research', createdBy: ctx.admin?.email ?? null }, now);

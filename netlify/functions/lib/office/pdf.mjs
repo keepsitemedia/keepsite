@@ -158,6 +158,36 @@ export class Writer {
     }
     this.y -= SIZES.p;
   }
+  // The study as squares: one row and column per search, shaded by how
+  // alike the two are, page blocks outlined. Labels down the side only; the
+  // columns are the same list in the same order. Gray, not colour, so the
+  // shades survive a black-and-white print.
+  grid({ labels, bands, blocks }) {
+    const n = labels.length;
+    if (!n) return;
+    const size = SIZES.small; const labelW = 150;
+    const cell = Math.max(4, Math.min(14, Math.floor((CONTENT - labelW) / n)));
+    const height = n * cell + 14;
+    this.need(height);
+    const x0 = MARGIN + labelW; const y0 = this.y;
+    const grays = [null, 0.86, 0.66, 0.35];
+    labels.forEach((label, i) => {
+      const [line] = wrap(this.fonts.body, Math.min(size, cell - 1), label, labelW - 8);
+      this.page.drawText(line, { x: MARGIN, y: y0 - (i + 1) * cell + 2, size: Math.min(size, cell - 1), font: this.fonts.body });
+      for (let j = 0; j < n; j += 1) {
+        const x = x0 + j * cell; const y = y0 - (i + 1) * cell;
+        if (i === j) { this.page.drawRectangle({ x, y, width: cell, height: cell, color: rgb(0.95, 0.95, 0.95) }); continue; }
+        const g = grays[bands[i][j]];
+        if (g != null) this.page.drawRectangle({ x, y, width: cell, height: cell, color: rgb(g, g, g) });
+      }
+    });
+    let at = 0;
+    for (const len of blocks) {
+      this.page.drawRectangle({ x: x0 + at * cell, y: y0 - (at + len) * cell, width: len * cell, height: len * cell, borderColor: rgb(0.1, 0.1, 0.1), borderWidth: 0.8 });
+      at += len;
+    }
+    this.y -= height;
+  }
   table(rows) {
     if (!rows.length) return;
     const cols = Math.max(...rows.map((r) => r.length));

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderResearchReport, reportName, reportLines } from './research-report.mjs';
-import { emptyStudy, emptyRound, applyCapture, openRound, domainOf, pairs } from './research.mjs';
+import { emptyStudy, emptyRound, applyCapture, openRound, domainOf, KINDS } from './research.mjs';
 
 const r = (url) => ({ url, title: `Title ${domainOf(url)}` });
 const client = { business: 'Acme Florist', tier: 'Growth' };
@@ -47,7 +47,7 @@ test('the report text covers every section', async () => {
   s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: [r('https://a1.com/p')], related: [] });
   const lines = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
-  for (const needle of ['Search research', 'Acme Florist', 'How we did it', 'Your pages', 'wedding florist provo', 'Decisions we made together', 'what we saw', 'Appendix', 'a1.com']) {
+  for (const needle of ['Search research', 'Acme Florist', 'How we did it', 'Your pages', 'wedding florist provo', 'Where we used judgement', 'what we saw', 'Appendix', 'a1.com']) {
     assert.ok(text.includes(needle), `missing ${needle}`);
   }
 });
@@ -64,67 +64,6 @@ test('the header names the round so two rounds are not confused', () => {
   assert.ok(closedHeader.includes('Jan 4'), "names the closed round's start");
   assert.ok(closedHeader.includes('closed'), 'names the closed round as closed');
   assert.ok(closedHeader.includes('Feb 9'), "names the closed round's close date");
-});
-
-test('the report explains why directories are set aside', () => {
-  const round = { ...emptyRound('r1'), keywords: [], serps: {} };
-  const L = reportLines({ client, round, renderedAt: new Date('2026-09-18T00:00:00Z') });
-  const words = L.map((x) => x.text ?? '').join('\n');
-  assert.match(words, /Directory sites/);
-  assert.match(words, /We compare the individual businesses instead/);
-  assert.ok(!/Seven or more shared results out of eight/.test(words));
-});
-
-// The page-grouping rationale used to say "share seven or more of their top
-// eight results" long after strong stopped meaning that: it means most of
-// the smaller side's businesses, directories aside. That line is read by the
-// client, in a PDF, as the reason for the page list — it has to describe
-// what is actually measured now, nowhere in the report.
-test('the page-grouping rationale never quotes seven-of-eight results', async () => {
-  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
-  s.rounds[0] = {
-    ...s.rounds[0],
-    keywords: [
-      { id: 'k1', text: 'wedding florist provo', cluster: 'Weddings', arm: '', source: 'manual' },
-      { id: 'k2', text: 'provo wedding flowers', cluster: 'Weddings', arm: '', source: 'manual' },
-    ],
-  };
-  const A = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://a${n}.com/p`));
-  s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: A, related: [] });
-  s = applyCapture(s, 'k2', { q: 'provo wedding flowers', results: [...A.slice(0, 7), r('https://other.com/p')], related: [] });
-  const round = openRound(s);
-  assert.equal(pairs(round)[0].signal, 'strong', 'fixture must exercise the strong, multi-keyword page branch');
-
-  const lines = reportLines({ client, round, renderedAt: new Date('2026-09-13T12:00:00Z') });
-  const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
-  assert.ok(text.includes('Your pages'), 'sanity: the page section rendered');
-  assert.ok(!/seven or more/i.test(text), 'no seven-of-eight phrasing anywhere in the report');
-  assert.ok(!/top eight/i.test(text), 'no seven-of-eight phrasing anywhere in the report');
-});
-
-test('a read on an unmeasurable pair still reaches the decisions table', async () => {
-  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
-  s.rounds[0] = {
-    ...s.rounds[0],
-    keywords: [
-      { id: 'k1', text: 'niche florist provo', cluster: '', arm: '', source: 'manual' },
-      { id: 'k2', text: 'provo niche florist', cluster: '', arm: '', source: 'manual' },
-    ],
-  };
-  // Two non-directory results each: fewer than MIN_BUSINESSES, so the pair
-  // is 'unmeasurable' no matter how they overlap — the numbers never speak.
-  s = applyCapture(s, 'k1', { q: 'niche florist provo', results: [r('https://a1.com/p'), r('https://a2.com/p')], related: [] });
-  s = applyCapture(s, 'k2', { q: 'provo niche florist', results: [r('https://a1.com/p'), r('https://a3.com/p')], related: [] });
-  s.rounds[0] = { ...s.rounds[0], reads: { 'k1|k2': { human: 'Probably different', sameCluster: 'No', notes: 'Different services, owner said.' } } };
-  const round = openRound(s);
-  const [pair] = pairs(round);
-  assert.equal(pair.signal, 'unmeasurable', 'fixture must exercise the unmeasurable branch');
-
-  const lines = reportLines({ client, round, renderedAt: new Date('2026-09-13T12:00:00Z') });
-  const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
-  assert.ok(text.includes('niche florist provo / provo niche florist'), 'the owner-read unmeasurable pair appears in the decisions table');
-  assert.ok(text.includes('too few businesses'), 'the row states the effect, not a share');
-  assert.ok(!/\d+ of \d+ businesses/.test(text), 'no business share is quoted for an unmeasurable pair');
 });
 
 test('the notes bracket the findings and empty ones print nothing', () => {
@@ -145,33 +84,105 @@ test('the notes bracket the findings and empty ones print nothing', () => {
   assert.ok(!bare.some((x) => (x.text ?? '').includes('Notes')), 'an empty note prints no heading');
 });
 
-// The first page carries the story: three numbers, one figure, the pages.
-// A client who reads nothing else has still been told what was found.
-test('page one leads with the numbers and a bar per page, and the working sits behind a stop line', async () => {
+// A study with two alike searches and one unlike, used by the page-one tests.
+const study = () => {
   let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
-  s.rounds[0] = {
-    ...s.rounds[0],
-    keywords: [
-      { id: 'k1', text: 'wedding florist provo', cluster: '', arm: '', source: 'manual' },
-      { id: 'k2', text: 'provo wedding flowers', cluster: '', arm: '', source: 'manual' },
-      { id: 'k3', text: 'funeral flowers provo', cluster: '', arm: '', source: 'manual' },
-    ],
-  };
+  s.rounds[0] = { ...s.rounds[0], keywords: [
+    { id: 'k1', text: 'wedding florist provo', cluster: '', arm: '', source: 'manual' },
+    { id: 'k2', text: 'provo wedding flowers', cluster: '', arm: '', source: 'manual' },
+    { id: 'k3', text: 'funeral flowers provo', cluster: '', arm: '', source: 'manual' },
+  ] };
   const A = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://a${n}.com/p`));
   s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: A, related: [] });
   s = applyCapture(s, 'k2', { q: 'provo wedding flowers', results: [...A.slice(0, 7), r('https://other.com/p')], related: [] });
   s = applyCapture(s, 'k3', { q: 'funeral flowers provo', results: [1, 2, 3, 4].map((n) => r(`https://f${n}.com/p`)), related: [] });
-  const L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  return s;
+};
+const words = (L) => L.map((l) => l.text ?? l.rows?.flat().join(' ') ?? '').join('\n');
+
+test('page one leads with the numbers and the grid, then the pages with their reasons', () => {
+  const L = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const kinds = L.map((x) => x.kind);
   const stats = L.find((x) => x.kind === 'stats');
-  assert.deepEqual(stats.items, [['3', 'searches'], ['2', 'pages'], ['0', 'decisions we made together']]);
-  const bars = L.find((x) => x.kind === 'bars');
-  assert.deepEqual(bars.rows.map((b) => b.value).sort(), [1, 2], 'one bar per page, sized by the searches it answers');
+  assert.deepEqual(stats.items, [['3', 'searches'], ['2', 'pages']], 'no third stat until volume is loaded');
+  const grid = L.find((x) => x.kind === 'grid');
+  assert.deepEqual(grid.labels.length, 3);
+  assert.deepEqual(grid.blocks, [2, 1]);
+  assert.equal(grid.bands.length, 3);
+  assert.ok(grid.bands[0][1] >= 2, 'the alike pair is shaded');
+  assert.equal(grid.bands[0][2], 0, 'the unlike pair is not');
   const texts = L.map((x) => x.text ?? '');
-  const stop = texts.findIndex((t) => t.startsWith('You can stop here'));
   const pages = texts.indexOf('Your pages');
+  const stop = texts.findIndex((t) => t.startsWith('You can stop here'));
   const appendix = texts.findIndex((t) => t.startsWith('Appendix'));
-  assert.ok(pages < stop && stop < appendix, 'pages, then the stop line, then the appendix');
-  assert.ok(kinds.indexOf('stats') < pages, 'the numbers come before the page list');
-  assert.ok(!/businesses that rank most/.test(texts.join('\n')), 'the domain roll-call stays in the appendix');
+  assert.ok(kinds.indexOf('stats') < kinds.indexOf('grid') && kinds.indexOf('grid') < pages, 'numbers, grid, pages');
+  assert.ok(pages < stop && stop < appendix);
+  assert.ok(!kinds.includes('bars'), 'the bar chart is gone');
+  assert.match(words(L), /businesses rank for both, led by/);
+  assert.match(words(L), /Homepage|Service page/);
+  assert.ok(!/Directory/.test(words(L).split('Appendix')[0]), 'no page kind Directory before the appendix');
+});
+
+test('the grid moves to the appendix past thirty keywords', () => {
+  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
+  const ids = Array.from({ length: 31 }, (_, i) => `k${i}`);
+  s.rounds[0] = { ...s.rounds[0], keywords: ids.map((id) => ({ id, text: `search ${id}`, cluster: '', arm: '', source: 'manual' })) };
+  for (const id of ids) s = applyCapture(s, id, { q: id, results: [r(`https://${id}.com/`)], related: [] });
+  const L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const kinds = L.map((x) => x.kind);
+  const texts = L.map((x) => x.text ?? '');
+  assert.ok(kinds.indexOf('grid') > texts.findIndex((t) => t.startsWith('Appendix')), 'grid sits in the appendix');
+  assert.ok(texts.some((t) => /grid is in the appendix/i.test(t)), 'page one says so');
+});
+
+test('the method paragraph explains rarity and volume, and the directories paragraph is gone', () => {
+  const L = reportLines({ client, round: { ...emptyRound('r1'), keywords: [], serps: {} }, renderedAt: new Date('2026-09-18T00:00:00Z') });
+  const w = words(L);
+  assert.match(w, /A business that ranks for nearly every search in your field/);
+  assert.match(w, /Search volume tells us which pages are worth building at all/);
+  assert.ok(!/Directory sites/.test(w));
+  assert.ok(!/Seven or more shared results/.test(w));
+  assert.ok(!/We compare the individual businesses instead/.test(w));
+});
+
+test('judgement lists the edited pages with their notes, and says so when there are none', () => {
+  const s = study();
+  let L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.match(words(L), /The businesses settled every page without a judgement call\./);
+  s.rounds[0] = { ...s.rounds[0], pages: [{ id: 'p9', title: 'Sympathy', kind: 'Service page', keywords: ['k3'], note: 'Owner wants this separate.', auto: false }] };
+  L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const table = L.find((x) => x.kind === 'table' && x.rows[0][0] === 'Page');
+  assert.ok(table, 'a table of edited pages');
+  assert.deepEqual(table.rows[1], ['Sympathy', 'funeral flowers provo', 'Owner wants this separate.']);
+});
+
+test('not built for appears only with volume, and a close call is explained', () => {
+  const s = study();
+  let L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.ok(!/Not built for/.test(words(L)));
+  s.rounds[0].keywords = s.rounds[0].keywords.map((k) => ({ ...k, volume: { min: 0, max: k.id === 'k3' ? 0 : 500, source: 'csv', at: 'x' } }));
+  L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const w = words(L);
+  assert.match(w, /Not built for/);
+  assert.match(w, /funeral flowers provo/);
+  const stats = L.find((x) => x.kind === 'stats');
+  assert.deepEqual(stats.items[2], ['1', 'search not worth a page']);
+  assert.match(w, /0 – 500|0–500|0 to 500/, 'volume ranges print beside the searches');
+});
+
+test('a closed round reports its stored pages, not a fresh clustering', () => {
+  const s = study();
+  const open = openRound(s);
+  const closed = { ...open, closedAt: '2026-09-14T00:00:00.000Z', pages: [
+    { id: 'frozen', title: 'Everything', kind: 'Homepage', keywords: ['k1', 'k2', 'k3'], confidence: { level: 'clear', near: null }, reason: 'Frozen reason.', standing: 'page', note: '', auto: true },
+  ] };
+  const L = reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') });
+  assert.match(words(L), /Frozen reason\./);
+  assert.deepEqual(L.find((x) => x.kind === 'stats').items[1], ['1', 'page']);
+});
+
+test('the PDF writer draws a grid', async () => {
+  const bytes = await renderResearchReport({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.equal(Buffer.from(bytes.slice(0, 5)).toString(), '%PDF-');
+  assert.ok(bytes.byteLength > 2000);
 });

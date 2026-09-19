@@ -3,7 +3,7 @@
 // the split lets a test read the words without decoding a PDF stream.
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Writer, SIZES } from './pdf.mjs';
-import { pairs, pageList } from './research.mjs';
+import { pagesOf, studyView, band } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 // The round's start date, not today's: a report re-rendered next week is still
@@ -18,6 +18,10 @@ function topDomains(results, limit = 5) {
   return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit);
 }
 
+const GRID_ON_PAGE_ONE = 30;
+
+const vol = (k) => (k?.volume ? (k.volume.min === k.volume.max ? String(k.volume.max) : `${k.volume.min} – ${k.volume.max}`) : null);
+
 export function reportLines({ client, round, renderedAt }) {
   const L = [];
   const h1 = (text) => L.push({ kind: 'h1', text });
@@ -27,65 +31,84 @@ export function reportLines({ client, round, renderedAt }) {
   const table = (rows) => L.push({ kind: 'table', rows });
   const byId = new Map(round.keywords.map((k) => [k.id, k]));
   const text = (id) => byId.get(id)?.text ?? id;
-  const ps = pairs(round);
-  const pageRows = pageList(round);
+  const withVolume = (id) => { const v = vol(byId.get(id)); return v ? `${text(id)} (${v} a month)` : text(id); };
+  const pages = pagesOf(round);
+  const standing = pages.filter((x) => x.standing !== 'low');
+  const low = pages.filter((x) => x.standing === 'low');
+  const titles = new Map(pages.map((x) => [x.id, x.title]));
+  const view = studyView(round, pages);
   const captured = round.keywords.filter((k) => round.serps[k.id]);
-  const decided = ps.filter((x) => (x.signal === 'gray' || x.signal === 'unmeasurable') && x.read && x.read.sameCluster !== 'Undecided');
+  const volumeLoaded = round.keywords.some((k) => k.volume);
+  const edited = pages.filter((x) => x.auto === false);
   const day = formatYmd(todayIn(undefined, renderedAt));
   const started = formatYmd(todayIn(undefined, new Date(round.startedAt)));
   const closed = round.closedAt ? formatYmd(todayIn(undefined, new Date(round.closedAt))) : null;
+  const grid = {
+    kind: 'grid',
+    labels: view.order.map(text),
+    bands: view.order.map((a) => view.order.map((b) => (a === b ? 0 : band(view.sims[a][b])))),
+    blocks: view.blocks.map((b) => b.length),
+  };
+  const gridOnPageOne = view.order.length > 0 && view.order.length <= GRID_ON_PAGE_ONE;
 
   // Page one is the whole report for the reader with other things to do:
-  // what this is, three numbers, one figure, the page list. Everything that
+  // what this is, the numbers, the grid, the page list. Everything that
   // shows the working sits behind a line that says they can stop.
   h1('Search research');
-  // The round's own dates, not just the print date: two rounds for the same
-  // client can otherwise print an identical header on the same day.
   p(`${client.business} · ${client.tier ?? ''} · Round started ${started}${closed ? `, closed ${closed}` : ''} · Printed ${day}`.replace(' ·  ·', ' ·'));
-  p('Before we build anything, we look at what people actually type into Google when they need what you do, and which of those searches Google answers with the same pages. Searches that share results share a page. Searches that do not get their own. This is what we found, and the page list that comes out of it.');
+  p('Before we build anything, we look at what people actually type into Google when they need what you do, and which of those searches Google answers with the same businesses. Searches answered by the same businesses share a page. Searches that are not get their own. This is what we found, and the page list that comes out of it.');
   if (round.notes?.intro) p(round.notes.intro);
 
   L.push({ kind: 'stats', items: [
     [String(captured.length), captured.length === 1 ? 'search' : 'searches'],
-    [String(pageRows.length), pageRows.length === 1 ? 'page' : 'pages'],
-    [String(decided.length), decided.length === 1 ? 'decision we made together' : 'decisions we made together'],
+    [String(standing.length), standing.length === 1 ? 'page' : 'pages'],
+    ...(volumeLoaded ? [[String(low.length), low.length === 1 ? 'search not worth a page' : 'searches not worth a page']] : []),
   ] });
 
-  h2('Your pages');
-  if (!pageRows.length) p('No searches have been captured yet.');
-  else {
-    p('Each bar is one page. Its length is how many searches that page answers.');
-    L.push({ kind: 'bars', rows: pageRows.map((row) => ({ label: row.title, value: row.keywords.length })) });
-  }
-  for (const row of pageRows) {
-    const ids = row.keywords;
-    p(row.title);
-    small(`Answers: ${ids.map(text).join('; ')}`);
-    // 'strong' pairs share most of the smaller side's businesses, directories
-    // aside. Said in words, never as a count the client might try to
-    // reproduce from the appendix.
-    const why = ids.length === 1
-      ? 'No other search brings up the same businesses, so this one needs a page of its own.'
-      : `These ${plural(ids.length, 'search', 'searches')} bring up mostly the same businesses. One page can answer all of them.`;
-    small(`${why}${row.note ? ` ${row.note}` : ''}`);
+  if (gridOnPageOne) {
+    p('Each square is two searches. The darker it is, the more the same businesses answer both. The outlined blocks are the pages.');
+    L.push(grid);
+  } else if (view.order.length) {
+    p('The study grid is in the appendix; with this many searches it needs a page of its own.');
   }
 
-  h2('Decisions we made together');
-  if (!decided.length) p('Every pair fell clearly on one side, so nothing needed a judgment call.');
-  else table([['Searches', 'What we saw', 'What we decided', 'Note'], ...decided.map((x) => [`${x.a.text} / ${x.b.text}`, x.signal === 'unmeasurable' ? 'too few businesses to compare' : `${x.sharedBusinesses} of ${x.denominator} businesses in common, ${x.sharedDirectories} directories`, `${x.read.human}${x.read.sameCluster === 'Yes' ? ', same page' : ', separate pages'}`, x.read.notes ?? ''])]);
+  h2('Your pages');
+  if (!standing.length) p('No searches have been captured yet.');
+  for (const row of standing) {
+    p(`${row.title}${row.kind ? ` — ${row.kind}` : ''}`);
+    small(`Answers: ${row.keywords.map(withVolume).join('; ')}`);
+    if (row.reason) small(row.reason);
+    if (row.confidence?.level === 'close') small(`This one could also sit with ${titles.get(row.confidence.near) ?? 'another page'}; the businesses differ enough to keep it apart.`);
+    if (row.note) small(row.note);
+  }
+
+  h2('Where we used judgement');
+  if (!edited.length) p('The businesses settled every page without a judgement call.');
+  else table([['Page', 'Searches', 'Note'], ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), x.note ?? ''])]);
+
+  if (volumeLoaded && low.length) {
+    h2('Not built for');
+    p(`${low.flatMap((x) => x.keywords).map(withVolume).join('; ')}: searched too rarely to build for. They stay in the study, and a later round can bring them back.`);
+  }
 
   h2('How we did it');
-  p(`We searched ${plural(captured.length, 'term')} from your questionnaire, the same way each time, and kept the first eight real results for each: no ads, no map pins. Then we compared every pair, ${plural(ps.length, 'comparison')} in all. Directory sites — review sites, forums, social feeds — rank for nearly everything, so they say little about any one search. We compare the individual businesses instead. When mostly the same businesses answer two searches, that is one question and one page. When they differ, it is two. Where the businesses do not settle it, we look at what kind of page ranks, homepages or blog posts, and let that decide.`);
+  p(`We searched ${plural(captured.length, 'term')} from your questionnaire, the same way each time, and kept the first eight real results for each: no ads, no map pins. For each search we look at which businesses Google ranks and how high. A business that ranks for nearly every search in your field, a listing site or a big competitor, tells us little about any one search, so it counts for little. The businesses that show up for some searches and not others are what tell us two searches mean the same thing. When two searches are answered by mostly the same businesses, they are one question and one page answers both. When they are not, they need their own pages. Search volume tells us which pages are worth building at all.`);
   if (round.notes?.closing) p(round.notes.closing);
 
   p('You can stop here. Everything after this is our work, shown.');
 
+  if (!gridOnPageOne && view.order.length) {
+    h2('Appendix: the study grid');
+    p('Each square is two searches. The darker it is, the more the same businesses answer both. The outlined blocks are the pages.');
+    L.push(grid);
+  }
+
   h2('Appendix: what we saw');
-  for (const row of pageRows) {
+  for (const row of pages) {
     const results = row.keywords.flatMap((id) => round.serps[id]?.results ?? []);
     const doms = topDomains(results);
     if (!doms.length) continue;
-    p(`${row.title}${row.type ? ` — mostly ${row.type.toLowerCase()} results` : ''}`);
+    p(`${row.title}${row.kind ? ` — ${row.kind.toLowerCase()}` : ''}`);
     table([['Business', 'Appearances'], ...doms.map(([d, n]) => [d, String(n)])]);
   }
 
@@ -112,7 +135,7 @@ export async function renderResearchReport({ client, round, renderedAt = new Dat
     else if (line.kind === 'small') w.text(line.text, { size: SIZES.small });
     else if (line.kind === 'table') w.table(line.rows);
     else if (line.kind === 'stats') w.stats(line.items);
-    else if (line.kind === 'bars') w.bars(line.rows);
+    else if (line.kind === 'grid') w.grid(line);
   }
   return doc.save();
 }
