@@ -39,7 +39,7 @@ const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([
 type Fact = { label: string; state: 'done' | 'waiting' | 'late' | 'none'; text: string; detail?: string; href?: string; search?: boolean };
 const facts: Fact[] = [
   round.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
-    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${round.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text), search: true }
+    : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${round.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text, round.location), search: true }
     : { label: 'Captured', state: 'done', text: `All ${round.keywords.length}` },
   standing.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
     : { label: 'Pages', state: closeCalls ? 'waiting' : 'done', text: `${standing.length} ${standing.length === 1 ? 'page' : 'pages'}`, detail: closeCalls ? `${closeCalls} close ${closeCalls === 1 ? 'call' : 'calls'}` : edited ? `${edited} edited by you` : 'Grouped automatically' },
@@ -83,13 +83,19 @@ const external = (href: string) => href.startsWith('http');
   ))}
 </dl>
 {captured && byId.has(captured) && <p class="notice notice-ok">Captured “{text(captured)}”.</p>}
-{round.keywords.length > 0 && round.areas.length === 0 && <p class="notice">No service areas set, so location pages cannot be spotted. Add them under Service areas below.</p>}
+{round.keywords.length > 0 && (round.areas.length === 0 || !round.location) && (
+  <p class="notice">
+    {round.areas.length === 0 && <>No service areas set, so location pages cannot be spotted. Add them under Service areas below.</>}
+    {round.areas.length === 0 && !round.location && ' '}
+    {!round.location && <>No search location set, so Google will search from wherever the research profile happens to be. Set it under Service areas.</>}
+  </p>
+)}
 
 <details class="fold" open={captures.length === 0}>
   <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : round.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
   <div class="fold-body">
     <p class="quiet">Drag this to your bookmarks bar once: <a class="btn-quiet btn-small" href={link} onclick="return false">Capture results</a>. It is the same button for every client: a capture is filed under the keyword whose text matches the search, and the capture page asks you to pick when none or several match.</p>
-    <p class="quiet">For each keyword, open the search in the research profile and click the button on the results page.{next && <> Start with <a href={searchUrl(next.text)} data-search target="_blank" rel="noopener">{next.text}</a>.</>}</p>
+    <p class="quiet">For each keyword, open the search in the research profile and click the button on the results page.{next && <> Start with <a href={searchUrl(next.text, round.location)} data-search target="_blank" rel="noopener">{next.text}</a>.</>}</p>
     <p class="quiet"><label><input type="checkbox" id="research-search" /> Open searches in the research profile when I click Search.</label> Captures must be made signed in — signed out, Google hides the web addresses. The research profile is signed into an account with its activity paused, so the results are not shaped by your own searching. A page cannot pick a profile on its own, so this needs the handler installed: see <code>scripts/research-search/README.md</code>.</p>
   </div>
 </details>
@@ -133,7 +139,9 @@ const external = (href: string) => href.startsWith('http');
           const related = (serp?.related ?? []).filter((r: string) => !round.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase()));
           return (
             <li class="no-tick">
-              <span class="when"><Mark state={serp ? 'done' : 'none'}>{serp ? day(serp.capturedAt) : 'Not captured'}</Mark></span>
+              <span class="when">{serp?.local === false
+                ? <Mark state="late">No local results</Mark>
+                : <Mark state={serp ? 'done' : 'none'}>{serp ? day(serp.capturedAt) : 'Not captured'}</Mark>}</span>
               <span class="what">
                 <span class="title">{k.text}</span>{vol(k) && <span class="meta"> · {vol(k)} a month</span>}{isRange && k.arm && <span class="meta"> · {k.arm}</span>}
                 {related.length > 0 && (
@@ -148,7 +156,7 @@ const external = (href: string) => href.startsWith('http');
                 )}
               </span>
               <span class="act">
-                <a href={searchUrl(k.text)} data-search target="_blank" rel="noopener">{serp ? 'Recapture' : 'Search'}</a>
+                <a href={searchUrl(k.text, round.location)} data-search target="_blank" rel="noopener">{serp ? 'Recapture' : 'Search'}</a>
                 <details class="pop">
                   <summary class="link-quiet">Edit</summary>
                   <form method="POST" action={api} class="pop-sheet">
@@ -184,8 +192,10 @@ const external = (href: string) => href.startsWith('http');
     <form method="POST" action={api} class="toolbar">
       {hidden({ csrf, slug, op: 'areas', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
       <label class="field grow"><span>Towns and areas, for spotting location pages</span><input name="areas" value={round.areas.join(', ')} /></label>
+      <label class="field grow"><span>Search from</span><input name="location" value={round.location ?? ''} /></label>
       <button class="btn-quiet">Save areas</button>
     </form>
+    <p class="quiet">The place Google should think it is searching from, e.g. "Utah, United States" or "Provo, Utah". Set the same place in Keyword Planner. Leave it empty only if you want Google to use wherever the research profile happens to be.</p>
   </div>
 </details>
 <details class="fold" open={!volumeLoaded && !next && round.keywords.length > 0}>
@@ -288,8 +298,10 @@ const external = (href: string) => href.startsWith('http');
 {captures.length === 0 && <p class="empty">Each captured keyword's top eight appear here.</p>}
 {captures.map((k: any) => (
   <details class="fold">
-    <summary>{k.text}<span class="sub">{day(round.serps[k.id].capturedAt)}</span></summary>
-    <div class="fold-body"><div class="table-scroll"><table>
+    <summary>{k.text}<span class="sub">{round.serps[k.id].local === false ? <Mark state="late">No local results</Mark> : day(round.serps[k.id].capturedAt)}</span></summary>
+    <div class="fold-body">
+      {round.serps[k.id].local === false && <p class="quiet">None of these results names your area. Either the search location was wrong when this was captured, or this is a search people make from everywhere. Recapture from the study's location to find out.</p>}
+      <div class="table-scroll"><table>
       <thead><tr><th>#</th><th>Result</th><th>Business</th><th>Type</th></tr></thead>
       <tbody>
         {round.serps[k.id].results.map((r: any) => (

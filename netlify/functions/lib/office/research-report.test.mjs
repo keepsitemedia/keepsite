@@ -198,6 +198,29 @@ test('a close call names the page it could have joined', () => {
   assert.match(w, /This one is close to Wedding flowers\. If you'd rather have one page instead of two, say so and we'll merge them\./);
 });
 
+test('the report names the place it searched from', () => {
+  const s = study();
+  s.rounds[0] = { ...openRound(s), location: 'Utah, United States' };
+  const L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.match(L[1].text, /\u00b7 Searched from Utah, United States \u00b7 Printed/);
+  assert.match(words(L), /We searched each of the 3 terms from Utah, United States \(Google's own search numbers are for the same place\)/);
+  const bare = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.match(bare[1].text, /Searched from the research profile's location/);
+  assert.match(words(bare), /terms from where the research profile was/);
+});
+
+// A page nobody local ranks for is either a bad capture or a search people
+// make from everywhere, and the client is told which question is open.
+test('a page with no local results anywhere says so', () => {
+  const s = study();
+  const round = openRound(s);
+  const serps = Object.fromEntries(Object.entries(round.serps).map(([id, serp]) => [id, { ...serp, local: false }]));
+  const L = reportLines({ client, round: { ...round, serps }, renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.match(words(L), /Google shows no local businesses for this search; people search it from everywhere\./);
+  const some = reportLines({ client, round, renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.ok(!/no local businesses/.test(words(some)));
+});
+
 test('a closed round reports its stored pages, not a fresh clustering', () => {
   const s = study();
   const open = openRound(s);

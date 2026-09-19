@@ -70,7 +70,7 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
       : undefined;
     return saveRound({ ...round, keywords: round.keywords.filter((k) => k.id !== id), serps, pages, ...(volumeImport ? { volumeImport } : {}) });
   }
-  if (op === 'areas') return saveRound({ ...round, areas: splitList(data.get('areas')) });
+  if (op === 'areas') return saveRound({ ...round, areas: splitList(data.get('areas')), location: text('location') });
   if (op === 'volume') {
     const file = data.get('file');
     if (!(file instanceof File) || !file.size) return back(slug, 'choose a CSV to import');
@@ -124,6 +124,9 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
     const next = {
       ...emptyRound(`r${study.rounds.length + 1}`, now),
       areas: [...round.areas],
+      // The location travels with the areas: a new round searches the same
+      // place as the one it re-runs, or its numbers cannot be compared.
+      location: round.location ?? '',
       keywords: round.keywords.map((k) => ({ ...k })),
     };
     await s.research.put(slug, touch({ ...study, rounds: [...study.rounds.slice(0, -1), closed, next] }, now));

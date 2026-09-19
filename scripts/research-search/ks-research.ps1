@@ -27,12 +27,14 @@ function Stop-With($message) {
   exit 1
 }
 
-# Mirrors isSearchUrl in netlify/functions/lib/office/research.mjs — but this
-# side must be stricter, because $target below reaches a browser command
-# line: a whole-string match is the only thing that can't be defeated by
-# appending a flag after the prefix. The two must change together.
+# Mirrors isSearchUrl in netlify/functions/lib/office/research.mjs, which now
+# says exactly this. $target below reaches a browser command line, so the match
+# is whole-string: nothing can be appended after it. The optional group is the
+# study's location parameter; `&` is already in the query class, which is why
+# that group has to be anchored to the end and why the query class must not be
+# widened. The two patterns must change together.
 $prefix = 'https://www.google.com/search?q='
-$pattern = '^https://www\.google\.com/search\?q=[A-Za-z0-9%._~!$&''()*+,;=:@/-]*$'
+$pattern = '^https://www\.google\.com/search\?q=[A-Za-z0-9%._~!$&''()*+,;=:@/-]*(&uule=[A-Za-z0-9%+/=_-]+)?$'
 
 $target = $Url -replace '^ks-research:', ''
 # Some browsers hand the scheme's payload back percent-encoded whole.

@@ -63,7 +63,7 @@ export function reportLines({ client, round, renderedAt }) {
   // what this is, the numbers, the page list. Everything that shows the
   // working, the grid included, sits behind a line that says they can stop.
   h1('Search research');
-  p(`${client.business} · ${client.tier ?? ''} · Research started ${started}${closed ? `, finished ${closed}` : ''} · Printed ${day}`.replace(' ·  ·', ' ·'));
+  p(`${client.business} · ${client.tier ?? ''} · Research started ${started}${closed ? `, finished ${closed}` : ''} · Searched from ${round.location || 'the research profile\'s location'} · Printed ${day}`.replace(' ·  ·', ' ·'));
   p('This is the plan for your website\'s pages, worked out from what people actually type into Google when they need what you do. We build every page on this list. You don\'t need to do anything with it. If a page you expected is missing, it is under "Searches we\'re leaving out" and we can add it back.');
   if (round.notes?.intro) p(round.notes.intro);
 
@@ -83,6 +83,7 @@ export function reportLines({ client, round, renderedAt }) {
     small(`Brings in people searching for: ${row.keywords.map(withVolume).join('; ')}`);
     if (row.reason) small(row.reason);
     if (row.confidence?.level === 'close') small(`This one is close to ${titles.get(row.confidence.near) ?? 'another page'}. If you'd rather have one page instead of two, say so and we'll merge them.`);
+    if (row.keywords.every((id) => round.serps[id]?.local === false)) small('Google shows no local businesses for this search; people search it from everywhere.');
     if (row.note) small(row.note);
   }
 
@@ -105,7 +106,7 @@ export function reportLines({ client, round, renderedAt }) {
   }
 
   h2('How we worked this out');
-  p(`We searched each of the ${captured.length} terms the same way and kept the first eight real results, skipping ads and map pins. Then we looked at which businesses came up for each search. Listing sites and big names that appear for nearly everything tell us little, so we set them aside and paid attention to the businesses that show up for some searches and not others. When two searches bring up mostly the same businesses, they are one question, and one page answers both. When they don't, they need their own pages. Google's own search numbers tell us which pages are worth building at all.`);
+  p(`We searched each of the ${captured.length} terms ${round.location ? `from ${round.location}` : 'from where the research profile was'} (Google's own search numbers are for the same place), the same way each time, and kept the first eight real results, skipping ads and map pins. Then we looked at which businesses came up for each search. Listing sites and big names that appear for nearly everything tell us little, so we set them aside and paid attention to the businesses that show up for some searches and not others. When two searches bring up mostly the same businesses, they are one question, and one page answers both. When they don't, they need their own pages. Google's own search numbers tell us which pages are worth building at all.`);
 
   h2('Appendix: what we saw');
   for (const row of pages) {

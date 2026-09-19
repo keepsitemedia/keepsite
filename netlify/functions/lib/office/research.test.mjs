@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, describePair, pairKey, pageList, pagesOf, studyView, confidenceWords, titleOf, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
-  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
+  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, uule, localResults, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
   rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band,
   KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, standingOf,
 } from './research.mjs';
@@ -101,7 +101,8 @@ test('migrateStudy wraps a legacy document into r1', () => {
   assert.equal(round.closedAt, null);
   assert.deepEqual(round.areas, ['Provo']);
   assert.deepEqual(round.keywords, legacy.keywords);
-  assert.deepEqual(round.serps, legacy.serps);
+  // Every read recomputes the off-area flag, so a legacy capture gains one.
+  assert.deepEqual(round.serps, { k1: { ...legacy.serps.k1, local: false } });
   assert.deepEqual(round.reads, legacy.reads);
   assert.deepEqual(round.pages, legacy.pages);
   assert.equal(round.reportedAt, '2026-09-14T00:00:00.000Z');
@@ -170,11 +171,40 @@ test('searchUrl spells the one search the handler will open', () => {
   assert.equal(researchSearchUrl('wedding florist'), 'ks-research:https://www.google.com/search?q=wedding%20florist');
 });
 
+// The structure of Google's scheme, not a remembered example: a fixed prefix,
+// the canonical name's byte length as one character, then that name.
+test('uule spells the location the way Google does', () => {
+  const u = uule('Utah, United States');
+  assert.ok(u.startsWith('w+CAIQICI'), u);
+  assert.equal(u[9], 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'[18], 'the length character stands for 18 bytes');
+  assert.equal(Buffer.from(u.slice(10), 'base64').toString('utf8'), 'Utah,United States');
+  assert.equal(uule('  Utah,   United States  '), u, 'the canonical form is trimmed and its commas closed up');
+  assert.equal(uule(''), '');
+  assert.equal(uule(null), '');
+});
+
+test('searchUrl carries the study location and researchSearchUrl passes it on', () => {
+  assert.ok(searchUrl('x', 'Utah, United States').includes('&uule=w%2BCAIQICI'));
+  assert.equal(searchUrl('x', ''), 'https://www.google.com/search?q=x');
+  assert.ok(researchSearchUrl('x', 'Utah, United States').startsWith('ks-research:https://www.google.com/search?q=x&uule='));
+});
+
 // The rule the PowerShell handler mirrors: anything it would refuse to open,
 // this refuses too, so the two stay arguable against one another.
 test('isSearchUrl accepts a Google search and nothing else', () => {
   assert.equal(isSearchUrl(searchUrl('x')), true);
+  assert.equal(isSearchUrl(searchUrl('x', 'Utah, United States')), true);
   assert.equal(isSearchUrl('https://www.google.com/search?q='), true);
+  assert.equal(isSearchUrl('https://www.google.com/search?q=x&uule=abc-_%2B/='), true);
+  assert.equal(isSearchUrl('https://www.google.com/search?q=x&uule=a b'), false);
+  assert.equal(isSearchUrl('https://www.google.com/search?q=x&uule=a"b'), false);
+  assert.equal(isSearchUrl('https://www.google.com/search?q=x\n'), false, 'a trailing newline is whitespace, not the end of the string');
+  // `&` and `=` are part of a query value, so both sides read a further
+  // parameter as more query rather than refusing it. What the rule is for is
+  // the browser's command line, and nothing there can be reached without a
+  // space or a character outside the set.
+  assert.equal(isSearchUrl('https://www.google.com/search?q=x&hl=en'), true);
+  assert.equal(isSearchUrl('https://www.google.com/search?q=x&path=C:\\Windows'), false);
   assert.equal(isSearchUrl('https://www.google.com.evil.test/search?q=x'), false);
   assert.equal(isSearchUrl('http://www.google.com/search?q=x'), false);
   assert.equal(isSearchUrl('https://google.com/search?q=x'), false);
@@ -203,6 +233,15 @@ test('validateCapture accepts the bookmarklet shape and rejects the rest', () =>
   assert.match(validateCapture(JSON.stringify({ ...good, results: [{ url: 'ftp://x', title: 'x' }] })).errors[0], /http/);
   assert.match(validateCapture(JSON.stringify({ ...good, results: Array(9).fill(good.results[0]) })).errors[0], /at most 8/);
   assert.match(validateCapture(JSON.stringify({ ...good, related: Array(11).fill('r') })).errors[0], /at most 10/);
+  assert.equal(validateCapture(JSON.stringify({ ...good, uule: 'w+CAIQICIS' })).value.uule, 'w+CAIQICIS');
+  assert.equal(validateCapture(JSON.stringify(good)).value.uule, '', 'a capture without one carries no location');
+  assert.match(validateCapture(JSON.stringify({ ...good, uule: 'x'.repeat(201) })).errors[0], /too long/);
+});
+
+test('the bookmarklet sends back the location Google searched from', () => {
+  const code = decodeURIComponent(bookmarklet('https://x.test').slice('javascript:'.length));
+  assert.ok(code.includes("get('uule')"));
+  assert.ok(code.includes('picked.uule=uule'));
 });
 
 test('findCaptureTargets matches keywords in the open round, across studies', () => {
@@ -233,6 +272,36 @@ test('applyCapture stores a classified snapshot and refreshes the auto pages', (
   assert.deepEqual(round.serps.k1.related, ['y']);
   assert.equal(round.pages.length, 1);
   assert.equal(out.updatedAt, '2026-09-14T00:00:00.000Z');
+});
+
+test('localResults asks whether anyone from around here ranks', () => {
+  const serp = (urls, location = '') => ({ location, results: urls.map((url) => ({ url, title: url })) });
+  assert.equal(localResults(serp(['https://a.com/provo-makeup/']), ['Provo']), true);
+  assert.equal(localResults(serp(['https://a.com/'], 'Utah, United States'), []), false);
+  assert.equal(localResults(serp(['https://a.com/'], 'Utah, United States'), ['Provo']), false);
+  assert.equal(localResults({ ...serp(['https://a.com/x'], 'Utah, United States'), results: [{ url: 'https://a.com/x', title: 'Makeup in Utah' }] }, []), true, 'a title names the place as well as a URL');
+  assert.equal(localResults(serp(['https://a.com/'], 'Provo, Utah'), []), false, 'the location names the place it searched from first');
+  assert.equal(localResults(serp(['https://a.com/provo/'], 'Provo, Utah'), []), true);
+  assert.equal(localResults(serp(['https://a.com/']), []), null, 'nothing to recognise an area by');
+  assert.equal(localResults(serp(['https://moabites.com/']), ['Moab']), false, 'whole words only');
+});
+
+test('applyCapture records where it searched from and whether the results are local', () => {
+  const study = emptyStudy('s');
+  study.rounds[0] = { ...study.rounds[0], areas: ['Provo'], location: 'Utah, United States', keywords: [{ id: 'k1', text: 'q' }, { id: 'k2', text: 'r' }] };
+  let out = applyCapture(study, 'k1', { q: 'q', results: [{ url: 'https://a.com/provo/', title: 'A' }], related: [], uule: 'w+CAIQICISUtah' });
+  let serp = openRound(out).serps.k1;
+  assert.equal(serp.location, 'Utah, United States');
+  assert.equal(serp.uule, 'w+CAIQICISUtah');
+  assert.equal(serp.local, true);
+  out = applyCapture(out, 'k2', { q: 'r', results: [{ url: 'https://denver.example/', title: 'Denver' }], related: [] });
+  serp = openRound(out).serps.k2;
+  assert.equal(serp.uule, '', 'a capture that carried no location parameter says so');
+  assert.equal(serp.local, false);
+  // The flag follows the areas list, so adding an area answers the question
+  // for captures already taken.
+  out.rounds[0] = { ...openRound(out), areas: ['Denver'] };
+  assert.equal(openRound(migrateStudy(out)).serps.k2.local, true);
 });
 
 test('applyCapture files into the open round only', () => {

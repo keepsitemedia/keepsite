@@ -243,10 +243,20 @@ test('a legacy document is migrated on the way in and saved with rounds', async 
   assert.equal(saved.keywords, undefined);
 });
 
+test('areas saves the service areas and the place Google searches from', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'areas', areas: 'Provo, Moab', location: ' Utah, United States ' }), ctx(), s, now);
+  const round = openRound(await s.research.get('acme'));
+  assert.deepEqual(round.areas, ['Provo', 'Moab']);
+  assert.equal(round.location, 'Utah, United States');
+  await research(post({ csrf, slug: 'acme', op: 'areas', areas: 'Provo', location: '' }), ctx(), s, now);
+  assert.equal(openRound(await s.research.get('acme')).location, '', 'clearing it is allowed');
+});
+
 test('starting a round closes the old one and inherits keywords with their ids', async () => {
   const s = await make();
   await research(post({ csrf, slug: 'acme', op: 'add', text: 'one', cluster: 'C', arm: '' }), ctx(), s, now);
-  await research(post({ csrf, slug: 'acme', op: 'areas', areas: 'Provo' }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'areas', areas: 'Provo', location: 'Utah, United States' }), ctx(), s, now);
   await research(post({ csrf, op: 'capture', payload: capture('one') }), ctx(), s, now);
   const keyword = openRound(await s.research.get('acme')).keywords[0];
   const opened = new Date('2027-03-02T00:00:00Z');
@@ -257,6 +267,7 @@ test('starting a round closes the old one and inherits keywords with their ids',
   assert.equal(saved.rounds[1].id, 'r2');
   assert.deepEqual(saved.rounds[1].keywords, [keyword]);
   assert.deepEqual(saved.rounds[1].areas, ['Provo']);
+  assert.equal(saved.rounds[1].location, 'Utah, United States', 'and the place it searches from');
   assert.deepEqual(saved.rounds[1].serps, {});
   assert.deepEqual(saved.rounds[1].reads, {});
   assert.equal(saved.rounds[1].reportedAt, null);

@@ -47,10 +47,12 @@ Double-click `ks-research-uninstall.reg`, and untick the box in the office.
 ## What it opens
 
 `ks-research.ps1` refuses anything that is not exactly
-`https://www.google.com/search?q=…` — the URL reaches a browser command line,
-so a wider rule would let a stray link pass browser flags or a local path. That
-rule is `isSearchUrl` in `netlify/functions/lib/office/research.mjs`; the two
-must keep saying the same thing.
+`https://www.google.com/search?q=…`, optionally followed by `&uule=…`, the
+parameter that tells Google which place to search from. The URL reaches a
+browser command line, so a wider rule would let a stray link pass browser flags
+or a local path. That rule is `isSearchUrl` in
+`netlify/functions/lib/office/research.mjs`; the two must keep saying the same
+thing.
 
 To check it without touching the registry:
 

@@ -566,7 +566,7 @@ export function describePair(c) {
 export function emptyRound(id = 'r1', now = new Date()) {
   return {
     id, startedAt: now.toISOString(), closedAt: null,
-    areas: [], keywords: [], serps: {}, reads: {}, pages: [],
+    areas: [], location: '', keywords: [], serps: {}, reads: {}, pages: [],
     notes: { intro: '', closing: '' }, reportedAt: null,
   };
 }
@@ -592,10 +592,15 @@ const kindFromType = (type) => KIND_FROM_TYPE[type] ?? 'Other';
 function refresh(round) {
   const serps = {};
   for (const [id, serp] of Object.entries(round.serps ?? {})) {
-    serps[id] = { ...serp, results: (serp.results ?? []).map((r) => ({
+    const results = (serp.results ?? []).map((r) => ({
       ...r, domain: businessOf(r.url),
       pageType: r.typeSource === 'manual' ? r.pageType : classify(r, round.areas ?? []),
-    })) };
+    }));
+    // The off-area flag is recomputed, never stored-and-trusted, so that
+    // adding a service area answers the question for every capture already
+    // taken rather than only the next one.
+    const next = { ...serp, results };
+    serps[id] = { ...next, local: localResults(next, round.areas ?? []) };
   }
   // Only a row that actually carries the old `type` field is touched; a
   // bare or already-migrated row passes through untouched.
@@ -604,7 +609,7 @@ function refresh(round) {
     const { type, ...rest } = p;
     return { ...rest, kind: rest.kind ?? kindFromType(type) };
   });
-  return { ...round, serps, pages };
+  return { ...round, location: round.location ?? '', serps, pages };
 }
 
 // Read-time migration, never a batch rewrite: a document written before rounds
@@ -668,7 +673,9 @@ export const PICK_SOURCE = pickResults.toString().replace(/\s*\n\s*/g, ' ');
 // Signed out, Google replaces every result link with /goto?url=<opaque blob>,
 // which carries no destination and which pickResults drops as a google.com
 // host. Counting them is what lets a short capture say why it is short
-// instead of looking like a thin results page.
+// instead of looking like a thin results page. The `uule` on the results page
+// is recorded too: it is the only proof of where Google actually searched
+// from, and a capture taken by hand from the wrong profile will not carry it.
 export function bookmarklet(origin) {
   const code = `(function(){
 var PICK=${PICK_SOURCE};
@@ -683,6 +690,7 @@ cands.push({href:a.href,title:h.textContent,ad:!!h.closest('#tads,#bottomads,[da
 });
 var related=[];document.querySelectorAll('#botstuff a[href*="/search?"]').forEach(function(a){related.push(a.textContent);});
 var picked=PICK({q:q,candidates:cands,related:related});
+var uule=new URLSearchParams(location.search).get('uule');if(uule)picked.uule=uule;
 var signedOut='Google gave no web addresses for these results, which is what it does when you are not signed in. Search again in the research account and capture from there.';
 if(!picked.results.length){alert(hidden?signedOut:'No results found on this page');return;}
 if(hidden&&picked.results.length<8){alert(hidden+' of these results had no web address and were skipped, so this capture would be short. '+signedOut);return;}
@@ -701,17 +709,43 @@ window.open(${JSON.stringify(`${origin}/office/research/capture/#`)}+encodeURICo
 // isSearchUrl and the PowerShell regex saying the same thing.
 export const SEARCH_PREFIX = 'https://www.google.com/search?q=';
 export const RESEARCH_SCHEME = 'ks-research:';
-export const searchUrl = (q) => `${SEARCH_PREFIX}${encodeURIComponent(String(q ?? '').trim())}`;
-export const researchSearchUrl = (q) => `${RESEARCH_SCHEME}${searchUrl(q)}`;
-// Nothing in production calls this — only its own test below holds up the
-// mirror described above. The PowerShell side is the one that actually
-// gates a browser command line, and it is stricter than this prefix check:
-// a whole-string pattern that also refuses whitespace, because a browser's
-// argument list is space-delimited and unquoted flags there are how a
-// prefix match gets turned into an injection. If either side changes, so
-// must the other, and if this ever gets called from real code, it needs
-// the same whole-string, no-whitespace tightening first.
-export const isSearchUrl = (url) => String(url ?? '').startsWith(SEARCH_PREFIX);
+
+// The length character's alphabet: Google's own, standard base64 order.
+const UULE_LENGTHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+// Where Google should think it is searching from. The scheme is Google's own,
+// undocumented but long stable: a fixed prefix, one character standing for the
+// canonical name's byte length, then that name in base64. Canonical means the
+// place name with commas and no space after them. The capture page's off-area
+// warning is the backstop if it ever stops working.
+export function uule(location) {
+  const canonical = String(location ?? '').trim().replace(/,\s+/g, ',');
+  if (!canonical) return '';
+  const bytes = new TextEncoder().encode(canonical);
+  // The length character runs out at 64 bytes, and a parameter without one is
+  // not a location at all; an unsayable place reads as no place, which the tab
+  // and the capture page already warn about.
+  if (bytes.length >= UULE_LENGTHS.length) return '';
+  return `w+CAIQICI${UULE_LENGTHS[bytes.length]}${btoa(String.fromCharCode(...bytes))}`;
+}
+
+export const searchUrl = (q, location = '') => {
+  const u = uule(location);
+  return `${SEARCH_PREFIX}${encodeURIComponent(String(q ?? '').trim())}${u ? `&uule=${encodeURIComponent(u)}` : ''}`;
+};
+export const researchSearchUrl = (q, location = '') => `${RESEARCH_SCHEME}${searchUrl(q, location)}`;
+// The same rule the PowerShell handler enforces, character for character: the
+// prefix, a query in the URL's own character set, then at most the location
+// parameter, anchored to the end so nothing can be appended after it. The
+// whitespace test is spelled out on its own because JavaScript's `$` also
+// matches before a trailing newline, and a browser's argument list is
+// space-delimited: unquoted flags there are how a prefix match becomes an
+// injection. If either side changes, so must the other.
+const SEARCH_URL = /^https:\/\/www\.google\.com\/search\?q=[A-Za-z0-9%._~!$&'()*+,;=:@\/-]*(&uule=[A-Za-z0-9%+\/=_-]+)?$/;
+export const isSearchUrl = (url) => {
+  const s = String(url ?? '');
+  return !/\s/.test(s) && SEARCH_URL.test(s);
+};
 
 export function validateCapture(text) {
   const errors = [];
@@ -728,8 +762,10 @@ export function validateCapture(text) {
   });
   const related = Array.isArray(v.related) ? v.related.map((x) => String(x ?? '').trim()).filter(Boolean) : [];
   if (related.length > 10) errors.push('at most 10 related searches');
+  const uule = v.uule == null ? '' : String(v.uule);
+  if (uule.length > 200) errors.push('the location parameter is too long');
   return {
-    value: errors.length ? null : { q, results: results.map((r, i) => ({ rank: i + 1, url: String(r.url), title: String(r.title).trim().slice(0, 200) })), related },
+    value: errors.length ? null : { q, results: results.map((r, i) => ({ rank: i + 1, url: String(r.url), title: String(r.title).trim().slice(0, 200) })), related, uule },
     errors,
   };
 }
@@ -744,13 +780,29 @@ export function findCaptureTargets(studies, q) {
   return out;
 }
 
+// Whether this capture found anyone from around here. A study captured from
+// the wrong place looks exactly like a search people make from everywhere, and
+// the two have opposite answers, so the flag asks the question rather than
+// settling it. Unknown when there is nothing to recognise an area by.
+export function localResults(serp, areas = []) {
+  // "Utah, United States" names the state first; a one-part location is the
+  // whole of it.
+  const state = String(serp?.location ?? '').split(',')[0].trim();
+  const tokens = [...(areas ?? []).filter(Boolean), ...(state ? [state] : [])];
+  if (!tokens.length) return null;
+  return (serp?.results ?? []).some((r) => tokens.some((t) => wordIn(t, `${r.url ?? ''} ${r.title ?? ''}`)));
+}
+
 export function applyCapture(study, keywordId, capture, now = new Date()) {
   const round = openRound(study);
   const results = capture.results.map((r, i) => ({
     rank: i + 1, url: r.url, title: r.title, domain: businessOf(r.url),
     pageType: classify(r, round.areas), typeSource: 'auto',
   }));
-  const serps = { ...round.serps, [keywordId]: { capturedAt: now.toISOString(), query: capture.q, results, related: capture.related ?? [] } };
+  // The study's location as it stood at capture time: changing it later does
+  // not move the searches already run.
+  const serp = { capturedAt: now.toISOString(), query: capture.q, results, related: capture.related ?? [], location: round.location ?? '', uule: capture.uule ?? '' };
+  const serps = { ...round.serps, [keywordId]: { ...serp, local: localResults(serp, round.areas) } };
   const rounds = study.rounds.slice();
   rounds[rounds.length - 1] = { ...round, serps };
   return touch({ ...study, rounds }, now);
