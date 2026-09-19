@@ -102,6 +102,18 @@ function wrap(font, size, text, width) {
   return lines;
 }
 
+// A grid row's number and its search, cut to the label column. A label that
+// did not fit ends in periods, so a clipped phrase does not read as the whole
+// search.
+function rowLabel(font, size, num, label, width) {
+  const full = toPdfText(`${num}  ${label}`);
+  const [line] = wrap(font, size, full, width);
+  if (line.length >= full.length) return line;
+  let cut = line;
+  while (cut && font.widthOfTextAtSize(`${cut}...`, size) > width) cut = cut.slice(0, -1);
+  return `${cut}...`;
+}
+
 const fmtDate = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: TZ, dateStyle: 'long', timeStyle: 'short' }).format(new Date(iso));
 
 export class Writer {
@@ -158,34 +170,50 @@ export class Writer {
     }
     this.y -= SIZES.p;
   }
-  // The study as squares: one row and column per search, shaded by how
-  // alike the two are, page blocks outlined. Labels down the side only; the
-  // columns are the same list in the same order. Gray, not colour, so the
-  // shades survive a black-and-white print.
+  // The study as squares: one row and column per search, numbered down the
+  // side and across the top. The figure answers how many pages there are
+  // first, so the page bands are ruled across the whole grid and numbered in
+  // the margin; the shades that say how alike two searches are come second.
   grid({ labels, bands, blocks }) {
     const n = labels.length;
     if (!n) return;
-    const size = SIZES.small; const labelW = 150;
-    const cell = Math.max(4, Math.min(14, Math.floor((CONTENT - labelW) / n)));
-    const height = n * cell + 14;
+    const size = SIZES.small; const pageColW = 22; const labelW = 150;
+    // Under 4pt a square is too small to read a shade off, so the floor is
+    // where the figure stops working rather than where it stops fitting: a
+    // study wide enough to reach it has outgrown a portrait page.
+    const cell = Math.max(4, Math.min(14, Math.floor((CONTENT - pageColW - labelW) / n)));
+    const height = (n + 1) * cell + 14;
     this.need(height);
-    const x0 = MARGIN + labelW; const y0 = this.y;
-    const grays = [null, 0.86, 0.66, 0.35];
+    const x0 = MARGIN + pageColW + labelW;
+    const y0 = this.y; const top = y0 - cell;
+    const right = x0 + n * cell; const bottom = top - n * cell;
+    const shades = [null, rgb(0.92, 0.78, 0.71), rgb(0.56, 0.72, 0.63), rgb(0.24, 0.49, 0.36)];
+    const ink = rgb(0.07, 0.07, 0.07);
+    const labelSize = Math.min(size, cell - 1);
+    for (let j = 0; j < n; j += 1) {
+      const num = toPdfText(String(j + 1));
+      const w = this.fonts.body.widthOfTextAtSize(num, size);
+      this.page.drawText(num, { x: x0 + j * cell + (cell - w) / 2, y: top + Math.max(1, (cell - size) / 2), size, font: this.fonts.body, color: rgb(0.4, 0.4, 0.4) });
+    }
     labels.forEach((label, i) => {
-      const [line] = wrap(this.fonts.body, Math.min(size, cell - 1), label, labelW - 8);
-      this.page.drawText(line, { x: MARGIN, y: y0 - (i + 1) * cell + 2, size: Math.min(size, cell - 1), font: this.fonts.body });
+      this.page.drawText(rowLabel(this.fonts.body, labelSize, i + 1, label, labelW - 8), { x: MARGIN + pageColW, y: top - (i + 1) * cell + 2, size: labelSize, font: this.fonts.body });
       for (let j = 0; j < n; j += 1) {
-        const x = x0 + j * cell; const y = y0 - (i + 1) * cell;
-        if (i === j) { this.page.drawRectangle({ x, y, width: cell, height: cell, color: rgb(0.95, 0.95, 0.95) }); continue; }
-        const g = grays[bands[i][j]];
-        if (g != null) this.page.drawRectangle({ x, y, width: cell, height: cell, color: rgb(g, g, g) });
+        const color = i === j ? rgb(0.93, 0.93, 0.93) : shades[bands[i][j]];
+        if (color) this.page.drawRectangle({ x: x0 + j * cell, y: top - (i + 1) * cell, width: cell, height: cell, color });
       }
     });
     let at = 0;
-    for (const len of blocks) {
-      this.page.drawRectangle({ x: x0 + at * cell, y: y0 - (at + len) * cell, width: len * cell, height: len * cell, borderColor: rgb(0.1, 0.1, 0.1), borderWidth: 0.8 });
+    blocks.forEach((len, b) => {
+      const bandTop = top - at * cell; const bandBottom = bandTop - len * cell;
+      const num = toPdfText(String(b + 1));
+      this.page.drawText(num, { x: MARGIN + (pageColW - this.fonts.bold.widthOfTextAtSize(num, size)) / 2, y: (bandTop + bandBottom) / 2 - size * 0.35, size, font: this.fonts.bold });
+      // A page of one search is already a band of its own between two rules;
+      // only a page holding several needs its square called out.
+      if (len >= 2) this.page.drawRectangle({ x: x0 + at * cell, y: bandBottom, width: len * cell, height: len * cell, borderColor: ink, borderWidth: 1.2 });
       at += len;
-    }
+      this.page.drawLine({ start: { x: MARGIN, y: bandBottom }, end: { x: right, y: bandBottom }, thickness: 0.8, color: ink });
+      this.page.drawLine({ start: { x: x0 + at * cell, y: y0 }, end: { x: x0 + at * cell, y: bottom }, thickness: 0.8, color: ink });
+    });
     this.y -= height;
   }
   table(rows) {
