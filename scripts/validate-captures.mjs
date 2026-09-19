@@ -8,8 +8,11 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { migrateStudy, openRound, businessOf } from '../netlify/functions/lib/office/research.mjs';
 
 const args = process.argv.slice(2);
-const file = args.find((a) => !a.startsWith('--'));
-const location = args.includes('--location') ? args[args.indexOf('--location') + 1] : 'Utah, United States';
+// The location is a value, not a file: without this, --location "Utah, United
+// States" is read as the export to open.
+const flag = args.indexOf('--location');
+const file = args.find((a, i) => !a.startsWith('--') && (flag < 0 || i !== flag + 1));
+const location = flag >= 0 ? args[flag + 1] : 'Utah, United States';
 const key = process.env.SERPAPI_KEY;
 if (!file || !key) { console.error('usage: SERPAPI_KEY=... node scripts/validate-captures.mjs <export.json> [--location "Utah, United States"]'); process.exit(1); }
 

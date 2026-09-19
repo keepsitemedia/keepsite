@@ -22,17 +22,27 @@ const textOf = new Map(m.keywords.map((k) => [normalizeQuery(k.text), k.id]));
 // cell says keyword.
 const theirs = new Map();
 const unmatched = [];
+let skipped = 0;
 for (const line of readFileSync(external, 'utf8').split(/\r?\n/)) {
   if (!line.trim()) continue;
-  const cells = line.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map((c) => c.replace(/,$/, '').replace(/^"|"$/g, '').replace(/""/g, '"').trim());
-  if (cells.length < 2 || /^keyword$/i.test(cells[0])) continue;
+  // The regex matches the empty string after the last comma, so every line
+  // ends in a cell that is not there.
+  const cells = (line.match(/("([^"]|"")*"|[^,]*)(,|$)/g) ?? [])
+    .map((c) => c.replace(/,$/, '').replace(/^"|"$/g, '').replace(/""/g, '"').trim())
+    .filter(Boolean);
+  if (/^keyword$/i.test(cells[0] ?? '')) continue;
+  if (cells.length < 2) { skipped += 1; continue; }
   const id = textOf.get(normalizeQuery(cells[0]));
   if (id) theirs.set(id, cells[1]); else unmatched.push(cells[0]);
 }
 const scored = ids.filter((id) => theirs.has(id));
 console.log(`${scored.length} of ${ids.length} keywords matched the external file${unmatched.length ? `; not in the study: ${unmatched.join('; ')}` : ''}`);
+if (skipped) console.log(`skipped ${skipped} line${skipped === 1 ? '' : 's'} with fewer than two cells`);
 const missing = ids.filter((id) => !theirs.has(id)).map((id) => m.keywords.find((k) => k.id === id).text);
 if (missing.length) console.log(`not in the external file: ${missing.join('; ')}`);
+// Every score below needs pairs; one keyword makes none, and the ARI prints
+// NaN rather than saying so.
+if (scored.length < 2) { console.log('fewer than two keywords matched; nothing to score'); process.exit(1); }
 
 const together = (labels) => (a, b) => labels.get(a) === labels.get(b);
 const pairsOf = (xs) => { const out = []; for (let i = 0; i < xs.length; i += 1) for (let j = i + 1; j < xs.length; j += 1) out.push([xs[i], xs[j]]); return out; };

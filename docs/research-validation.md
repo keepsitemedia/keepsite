@@ -16,6 +16,9 @@ Adjusted Rand index at the shipped cut:
 Sweep result (best cut, and whether the peak was sharp or a plateau):
 Cut chosen, and why:
 
+Note: this study's service areas were empty, so the Location-page rule was
+off; Park City, Moab and Salt Lake City were typed as service pages.
+
 ## Captures against a SERP API
 
 Script: `SERPAPI_KEY=... node scripts/validate-captures.mjs <export.json>`
