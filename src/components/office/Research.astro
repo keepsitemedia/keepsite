@@ -5,7 +5,7 @@
 // study matrix opens the compare page, where the two result lists are.
 import Mark from './Mark.astro';
 import StudyMatrix from './StudyMatrix.astro';
-import { bookmarklet, pageList, studyView, confidenceWords, KINDS, PAGE_TYPES, FLOOR, KEPT_APART_WHY, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, KINDS, PAGE_TYPES, FLOOR, keptApartWords, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -29,6 +29,8 @@ const view = studyView(round, pages) as any;
 const volumeLoaded = round.keywords.some((k: any) => k.volume);
 const vol = (k: any) => (k?.volume ? (k.volume.min === k.volume.max ? String(k.volume.max) : `${k.volume.min}–${k.volume.max}`) : null);
 const clusters = [...new Set(round.keywords.map((k: any) => k.cluster))] as string[];
+const suggested = suggestedSearches(round) as any[];
+const SUGGESTED_SHOWN = 40;
 const isRange = client.tier === 'Range';
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const link = bookmarklet(origin);
@@ -136,7 +138,6 @@ const external = (href: string) => href.startsWith('http');
       <ul class="ledger">
         {round.keywords.filter((k: any) => k.cluster === c).map((k: any) => {
           const serp = round.serps[k.id];
-          const related = (serp?.related ?? []).filter((r: string) => !round.keywords.some((x: any) => x.text.toLowerCase() === r.toLowerCase()));
           return (
             <li class="no-tick">
               <span class="when">{serp?.local === false
@@ -144,16 +145,6 @@ const external = (href: string) => href.startsWith('http');
                 : <Mark state={serp ? 'done' : 'none'}>{serp ? day(serp.capturedAt) : 'Not captured'}</Mark>}</span>
               <span class="what">
                 <span class="title">{k.text}</span>{vol(k) && <span class="meta"> · {vol(k)} a month</span>}{isRange && k.arm && <span class="meta"> · {k.arm}</span>}
-                {related.length > 0 && (
-                  <span class="meta line">Related:
-                    {related.map((r: string) => (
-                      <form method="POST" action={api} class="inline">
-                        {hidden({ csrf, slug, op: 'add', text: r, cluster: k.cluster, arm: k.arm ?? '', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
-                        <button class="link-quiet">+ {r}</button>
-                      </form>
-                    ))}
-                  </span>
-                )}
               </span>
               <span class="act">
                 <a href={searchUrl(k.text, round.location)} data-search target="_blank" rel="noopener">{serp ? 'Recapture' : 'Search'}</a>
@@ -186,6 +177,29 @@ const external = (href: string) => href.startsWith('http');
   {isRange && <input name="arm" placeholder="Arm" aria-label="Arm" />}
   <button class="btn-quiet">Add</button>
 </form>
+{suggested.length > 0 && (
+  <details class="fold">
+    <summary>Suggested by Google<span class="sub">{suggested.length}</span></summary>
+    <div class="fold-body">
+      <p class="quiet">Google offered these beside the searches we ran. The ones that keep coming back are worth a look. Add only the ones your client would want to be found for.</p>
+      <ul class="ledger">
+        {suggested.slice(0, SUGGESTED_SHOWN).map((x) => (
+          <li class="no-tick">
+            <span class="when"><Mark state="none">in {x.count} {x.count === 1 ? 'search' : 'searches'}</Mark></span>
+            <span class="what"><span class="title">{x.text}</span></span>
+            <span class="act">
+              <form method="POST" action={api} class="inline">
+                {hidden({ csrf, slug, op: 'add', text: x.text, cluster: 'General', arm: '', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+                <button class="link-quiet">+ add</button>
+              </form>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {suggested.length > SUGGESTED_SHOWN && <p class="quiet">and {suggested.length - SUGGESTED_SHOWN} more</p>}
+    </div>
+  </details>
+)}
 <details class="fold">
   <summary>Service areas<span class="sub">{round.areas.length ? round.areas.join(', ') : 'None set'}</span></summary>
   <div class="fold-body">
@@ -256,7 +270,7 @@ const external = (href: string) => href.startsWith('http');
               </form>
             </span>
           ))}
-          {p.keptApart && <span class="meta line">Kept apart from {p.keptApart}: {KEPT_APART_WHY[p.keptApartWhy] ?? KEPT_APART_WHY.kind}.</span>}
+          {p.keptApart && <span class="meta line">Kept apart from {p.keptApart}: {keptApartWords(p)}.</span>}
           {p.note && <span class="meta line">Note: {p.note}</span>}
         </span>
         <span class="act">

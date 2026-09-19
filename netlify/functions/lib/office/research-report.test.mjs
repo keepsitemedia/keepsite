@@ -52,6 +52,13 @@ test('the report text covers every section', async () => {
   }
 });
 
+// The client asked where the list came from; the answer is the second thing
+// the report says.
+test('the intro says where the searches came from', () => {
+  const L = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  assert.match(L[2].text, /The 3 searches came from your questionnaire and the ones we added; every one is listed at the back\./);
+});
+
 test('the header names the round so two rounds are not confused', () => {
   const open = { ...emptyRound('r1'), startedAt: '2026-09-13T00:00:00.000Z', closedAt: null };
   const closed = { ...emptyRound('r0'), startedAt: '2026-01-05T00:00:00.000Z', closedAt: '2026-02-10T00:00:00.000Z' };

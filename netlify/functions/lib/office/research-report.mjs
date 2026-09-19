@@ -3,7 +3,7 @@
 // the split lets a test read the words without decoding a PDF stream.
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Writer, SIZES } from './pdf.mjs';
-import { pagesOf, studyView, band, FLOOR, KEPT_APART_WHY } from './research.mjs';
+import { pagesOf, studyView, band, FLOOR, keptApartWords } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 // The round's start date, not today's: a report re-rendered next week is still
@@ -66,7 +66,7 @@ export function reportLines({ client, round, renderedAt }) {
   // working, the grid included, sits behind a line that says they can stop.
   h1('Search research');
   p(`${client.business} · ${client.tier ?? ''} · Research started ${started}${closed ? `, finished ${closed}` : ''} · Searched from ${round.location || 'the research profile\'s location'} · Printed ${day}`.replace(' ·  ·', ' ·'));
-  p('This is the plan for your website\'s pages, worked out from what people actually type into Google when they need what you do. We build every page on this list. You don\'t need to do anything with it. If a page you expected is missing, it is under "Searches we\'re leaving out" and we can add it back.');
+  p(`This is the plan for your website's pages, worked out from what people actually type into Google when they need what you do. The ${captured.length} searches came from your questionnaire and the ones we added; every one is listed at the back. You don't need to do anything with it. If a page you expected is missing, it is under "Searches we're leaving out" and we can add it back.`);
   if (round.notes?.intro) p(round.notes.intro);
 
   // The searches set aside, not the pages they would have made: the label
@@ -93,7 +93,7 @@ export function reportLines({ client, round, renderedAt }) {
   h2('Where we made a call');
   const calls = [
     ...pages.flatMap((x) => (x.folded ?? []).map((f) => [x.title, f.title, 'We folded it in: the two bring up many of the same businesses and want the same kind of page.'])),
-    ...pages.filter((x) => x.keptApart).map((x) => [x.title, x.keptApart, `We kept it separate: ${KEPT_APART_WHY[x.keptApartWhy] ?? KEPT_APART_WHY.kind}`]),
+    ...pages.filter((x) => x.keptApart).map((x) => [x.title, x.keptApart, `We kept it separate: ${keptApartWords(x)}`]),
     ...edited.map((x) => [x.title, x.keywords.map(text).join('; '), x.note ?? '']),
   ];
   if (!calls.length) p('The search results settled every page on their own. Nothing here needed a call from us.');

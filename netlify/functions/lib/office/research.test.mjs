@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, describePair, pairKey, pageList, pagesOf, studyView, confidenceWords, titleOf, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
-  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, uule, localResults, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
+  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, uule, localResults, suggestedSearches, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
   rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band, OWN_PAGE_VOLUME,
   KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, standingOf,
 } from './research.mjs';
@@ -311,6 +311,21 @@ test('applyCapture files into the open round only', () => {
   const next = applyCapture(s, 'k1', { q: 'one', results: [{ rank: 1, url: 'https://a.com/x', title: 'A' }], related: [] }, new Date('2026-09-17T00:00:00Z'));
   assert.deepEqual(next.rounds[0].serps, {});
   assert.equal(next.rounds[1].serps.k1.results[0].url, 'https://a.com/x');
+});
+
+test('suggestedSearches counts what Google offered beside the searches we ran', () => {
+  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'bridal makeup' }, { id: 'k2', text: 'wedding makeup' }, { id: 'k3', text: 'never captured' }],
+    serps: {
+      k1: { related: ['Bridal Hair', 'airbrush makeup', 'wedding makeup', 'bridal hair'] },
+      k2: { related: ['bridal hair', 'airbrush makeup'] },
+    } };
+  assert.deepEqual(suggestedSearches(round), [
+    { text: 'airbrush makeup', count: 2 },
+    { text: 'Bridal Hair', count: 2 },
+  ], 'a phrase already on the list is left out, and a tie is alphabetical');
+  round.serps.k2.related.push('lash extensions');
+  assert.deepEqual(suggestedSearches(round).map((x) => x.text), ['airbrush makeup', 'Bridal Hair', 'lash extensions'], 'the commonest first');
+  assert.deepEqual(suggestedSearches({ ...emptyRound('r1'), keywords: [], serps: {} }), []);
 });
 
 test('splitList and draftFromQuestionnaire', () => {

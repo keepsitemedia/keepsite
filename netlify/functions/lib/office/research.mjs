@@ -430,7 +430,9 @@ export function standingOf(ids, round) {
 
 // Why a close call kept a page of its own, in the words the tab and the report
 // both say it in.
-export const KEPT_APART_WHY = { kind: 'it wants a different kind of page', volume: 'it draws enough searches of its own' };
+export const keptApartWords = (row) => (row?.keptApartWhy === 'volume'
+  ? 'it draws enough searches of its own'
+  : 'it wants a different kind of page');
 
 // PROVISIONAL. A page that is a close call to another of the same kind keeps
 // its own page only when its searches add up to at least this many a month.
@@ -818,6 +820,24 @@ export function validateCapture(text) {
     value: errors.length ? null : { q, results: results.map((r, i) => ({ rank: i + 1, url: String(r.url), title: String(r.title).trim().slice(0, 200) })), related, uule },
     errors,
   };
+}
+
+// Google's related searches, gathered from every capture. A phrase that comes
+// back beside search after search is the field saying what it calls itself, and
+// the owner decides which of those the client wants to be found for.
+export function suggestedSearches(round) {
+  const have = new Set((round.keywords ?? []).map((k) => normalizeQuery(k.text)));
+  const counts = new Map();
+  for (const serp of Object.values(round.serps ?? {})) {
+    const texts = (serp.related ?? []).map((r) => String(r ?? '').trim()).filter(Boolean);
+    // One capture counts a phrase once, however many times that capture lists it.
+    for (const key of new Set(texts.map(normalizeQuery))) {
+      if (have.has(key)) continue;
+      const row = counts.get(key) ?? { text: texts.find((t) => normalizeQuery(t) === key), count: 0 };
+      counts.set(key, { ...row, count: row.count + 1 });
+    }
+  }
+  return [...counts.values()].sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
 }
 
 export function findCaptureTargets(studies, q) {
