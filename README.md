@@ -503,41 +503,43 @@ file at a time, up to 4 MB, and only uploads can be removed.
 
 ### Search research
 
-Growth, Agile and Range clients get a Research tab. It replaces the SERP
-overlap spreadsheet in `docs/` with the same rules: gather the top eight
-organic results for each keyword, count the results two keywords share,
-and group keywords that share seven or more onto one page. Three to six
-is the gray zone, decided on the client call and recorded on the pair's
-compare page.
+Growth, Agile and Range clients get a Research tab. It answers one question
+before Stage 2: which searches share a page and which need their own. Results
+come from your own browser through a bookmarklet, one click per keyword on
+the results page, filed under the keyword whose text matches the search. No
+search API and nothing to configure. The keyword list drafts itself from the
+build questionnaire and is edited on the tab.
 
-Results come from your own browser. The tab shows a bookmarklet to drag to
-the bookmarks bar; open each keyword's search in an incognito window, click
-it on the results page, and a capture page in the office saves the top eight
-under that keyword. No search API and nothing to configure. The keyword
-list drafts itself from the build questionnaire and is edited on the tab.
-Page types are guessed from each result's address and can be overridden.
-The bookmarklet is the same for every client: a capture is filed under the
-keyword whose text matches the search, across all clients, and the capture
-page asks you to pick when none or several match. Nothing changes when you
-move between clients.
+The engine builds one keyword-by-business matrix from the captures. Every
+business is weighted by rank and by how rarely it appears across the study,
+so a listing site or a competitor that ranks for everything counts for
+almost nothing and a business that ranks for two searches counts for a lot.
+Directories count for nothing outright. Keywords are clustered into pages
+by how alike their businesses are, and each page gets a kind (homepage,
+service page, location page, article), a confidence ("clear" or "close call
+with …") and a one-line reason naming the businesses that decided it. The
+Study section shows the whole matrix, keywords ordered so pages sit as dark
+blocks on the diagonal; any cell opens the two searches side by side.
 
-The tab opens with a glance: how many keywords are captured, how many
-pairs are still to decide, how many pages the study proposes, and whether
-the report is written, each with the next thing to do. Keywords, pairs and
-pages are ledger rows with edits behind a pop. The counts, the suggested
-read and the page grouping are automatic; the read, the same-cluster call,
-the note and any page edit are decisions, and the marks say which is
-which. Compare on any pair opens the workbook's Quick Compare block: the
-two result lists side by side with shared URLs and shared businesses
-marked, a one-line reading of the counts, and the read form, so the
-decision is made with the evidence in view.
+Search volume comes in by CSV: paste the keywords into Google Keyword
+Planner, download, import under Search volume. Volume never moves a keyword
+between pages; a page whose keywords add up to fewer than ten searches a
+month is set aside as not worth building. Unknown volume is shown as
+unknown and never treated as zero.
 
-The tab's page list is the recommendation for Stage 2. "Write the report to
-Documents" renders it as a PDF in the client's Documents, and the send
-screen offers to attach the newest one to any email, checked by default on
-the seeded "Search research report" template. Advancing a Growth, Agile or
-Range client into Demo creates the "Run search research" task, which links
-to the tab.
+You review pages, not pairs. Edit a page to move keywords in or out, merge
+or split; a released keyword is regrouped on its own. Starting a new round
+freezes the page list on the round it closes, so an old report keeps saying
+what it said. "Write the report to Documents" renders the study grid, the
+pages and their reasons as a PDF; the send screen offers to attach the
+newest one. Advancing a Growth, Agile or Range client into Demo creates the
+"Run search research" task, which links to the tab.
+
+The engine's one parameter, the clustering cut, and the volume floor are
+provisional. `scripts/validate-clusters.mjs` scores the page list against
+an independent SERP-overlap tool and sweeps the cut;
+`scripts/validate-captures.mjs` compares captures with a SERP API. Their
+findings live in `docs/research-validation.md`.
 
 ## Enabling the CMS (/admin)
 

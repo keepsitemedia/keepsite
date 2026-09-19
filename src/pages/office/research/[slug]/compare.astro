@@ -5,7 +5,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { comparePair, describePair, normalizeUrl, businessOf, pairKey, migrateStudy, openRound, pagesOf } from '../../../../../netlify/functions/lib/office/research.mjs';
+import { comparePair, describePair, normalizeUrl, businessOf, migrateStudy, openRound, pagesOf } from '../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../netlify/functions/lib/office/dates.mjs';
 
 const slug = Astro.params.slug ?? '';
