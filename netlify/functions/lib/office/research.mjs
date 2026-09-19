@@ -3,8 +3,6 @@
 // every sentence a client might read lives here and nowhere else.
 
 export const PAGE_TYPES = ['Homepage', 'Service page', 'Location page', 'Directory', 'Blog/FAQ', 'Portfolio/Gallery', 'About page', 'Other'];
-export const READS = ['Same intent', 'Probably same', 'Gray zone / discuss', 'Probably different', 'Different intent'];
-export const SAME = ['Yes', 'No', 'Undecided'];
 
 const DIRECTORIES = [
   'yelp.com', 'angi.com', 'angieslist.com', 'thumbtack.com', 'yellowpages.com', 'bbb.org', 'facebook.com', 'instagram.com',
@@ -89,49 +87,6 @@ export function classify({ url, title }, areas = []) {
   if (hasAny(path, ['/gallery', '/portfolio', '/projects', '/our-work', '/photos', '/case-stud'])) return 'Portfolio/Gallery';
   if (hasAny(path, ['/about', '/team', '/our-story', '/staff', '/meet-'])) return 'About page';
   return 'Service page';
-}
-
-// Reasoned, not measured, and measured once without finding a better place
-// for them. Calibrated 2026-09-18 against the Makeup by Brinley study (22
-// keywords, 231 pairs, social profiles counted as businesses): the only
-// natural break in the ratio distribution is between 0 and 0.2 — "shares
-// nothing" against "shares something". From 0.2 to 0.8 it is a smooth ramp
-// with no gap, so the cuts below are arbitrary by the spec's own test and
-// stay where they were. A pair near a boundary is a judgement call, not a
-// verdict. Re-run `node scripts/calibrate-pairs.mjs <export.json>` on the
-// next study in a different field before trusting them there.
-export const STRONG_RATIO = 2 / 3;
-export const GRAY_RATIO = 1 / 3;
-export const MIN_BUSINESSES = 3;
-
-const READ_TEXT = {
-  strong: ['Strong overlap: very likely the same search intent.', 'Keep these keywords in the same cluster/page.'],
-  gray: ['GRAY ZONE: some of the same businesses rank for both. Review page types and client priorities.', 'Discuss on the client call before deciding whether to split.'],
-  unmeasurable: ['Too few businesses rank for these searches to compare them.', 'Decide this one on what the client does, not on the numbers.'],
-  low: ['Low overlap: likely a meaningfully different intent.', 'Consider separate clusters/pages if page types also differ.'],
-};
-
-// The workbook's SUMPRODUCT/COUNTIF: one count per row of A that has a
-// match anywhere in B, so eight rows give at most eight.
-const countIn = (as, bs, key) => {
-  const set = new Set(bs.map(key));
-  return as.filter((x) => set.has(key(x))).length;
-};
-// The distinct keys behind that count, in A's order. The compare page
-// highlights every row carrying one, so the rows lit on A's side equal the
-// count even when two of A's rows share a key.
-const sharedIn = (as, bs, key) => {
-  const set = new Set(bs.map(key));
-  return [...new Set(as.map(key).filter((k) => set.has(k)))];
-};
-
-export function primaryPageOf(results) {
-  const counts = new Map();
-  for (const x of results) if (x.pageType) counts.set(x.pageType, (counts.get(x.pageType) ?? 0) + 1);
-  if (!counts.size) return '';
-  const top = Math.max(...counts.values());
-  const leaders = [...counts].filter(([, n]) => n === top);
-  return leaders.length > 1 ? 'Tie / review' : leaders[0][0];
 }
 
 // ---- The matrix ------------------------------------------------------------
@@ -439,188 +394,113 @@ export function standingOf(ids, round) {
   return vols.reduce((n, v) => n + v.max, 0) < FLOOR ? 'low' : 'page';
 }
 
-// A directory ranks for every query in a field, so counting it as evidence
-// that two queries mean the same thing adds the same constant to every pair.
-// The businesses are what discriminate.
-const isDirectory = (x) => x.pageType === 'Directory';
-const businessesOf = (results) => results.filter((x) => !isDirectory(x));
+// ---- The page list -----------------------------------------------------------
 
-export function comparePair(a, b) {
-  const exactUrl = countIn(a, b, (x) => normalizeUrl(x.url));
-  const sameDomain = countIn(a, b, (x) => businessOf(x.url));
-  const samePageType = countIn(a, b, (x) => x.pageType);
-  const sharedUrls = sharedIn(a, b, (x) => normalizeUrl(x.url));
-  const sharedDomains = sharedIn(a, b, (x) => businessOf(x.url));
-  const aBiz = businessesOf(a);
-  const bBiz = businessesOf(b);
-  // Whichever side has fewer businesses sets the denominator, so a search
-  // whose businesses are a strict subset of the other's always scores a
-  // perfect 1.0 — no gray zone, no question asked. That is the same shape
-  // MIN_BUSINESSES=3 is meant to guard against: the thinnest measurable SERP
-  // is the one likeliest to look like a perfect match. Nobody has measured
-  // how often this actually fires; run `node scripts/calibrate-pairs.mjs`
-  // against a real study before trusting a 'strong' result on a lopsided pair.
-  const denominator = Math.min(aBiz.length, bBiz.length);
-  const sharedBusinesses = countIn(aBiz, bBiz, (x) => normalizeUrl(x.url));
-  const sharedDirectories = countIn(a.filter(isDirectory), b.filter(isDirectory), (x) => normalizeUrl(x.url));
-  const ratio = denominator ? sharedBusinesses / denominator : null;
-  const branch = denominator < MIN_BUSINESSES ? 'unmeasurable'
-    : ratio >= STRONG_RATIO ? 'strong'
-    : ratio >= GRAY_RATIO ? 'gray'
-    : 'low';
-  // Only where the share of businesses was already inconclusive. A pair that
-  // is clearly one thing or the other is never second-guessed by page type.
-  // samePageType is deliberately not used: it counts a row of A whose type
-  // appears anywhere in B, so across eight results and a handful of types it
-  // is 8 almost always. The leading type on each side is what discriminates.
-  // Over the businesses, not the raw results: directories lead the count in a
-  // directory-heavy field, so comparing the raw leaders would put 'Directory'
-  // on both sides of almost every pair and reintroduce the constant the ratio
-  // strips out. What discriminates is the shape the individual businesses use.
-  const primaryA = primaryPageOf(aBiz);
-  const primaryB = primaryPageOf(bBiz);
-  const comparable = primaryA && primaryB && primaryA !== 'Tie / review' && primaryB !== 'Tie / review';
-  const tie = branch !== 'gray' || !comparable ? null : primaryA === primaryB ? 'strong' : 'low';
-  const [read, action] = READ_TEXT[tie ?? branch];
-  return {
-    exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), samePageType, sharedUrls, sharedDomains,
-    sharedBusinesses, sharedDirectories, businessesA: aBiz.length, businessesB: bBiz.length, denominator, ratio,
-    read, action, signal: tie ?? branch, resolvedBy: tie ? 'type' : undefined, primaryPage: primaryPageOf([...a, ...b]),
-  };
-}
-
-// The compare page's plain-English line over the two columns: the same
-// counts as comparePair, read the way the owner would say them on a call.
-const PLURAL = {
-  'Service page': 'service pages', 'Location page': 'location pages', 'Homepage': 'homepages', 'Directory': 'directories',
-  'Blog/FAQ': 'blog or FAQ pages', 'Portfolio/Gallery': 'portfolio or gallery pages', 'About page': 'about pages',
-};
-export function describePair(c, total) {
-  if (!total) return 'Nothing captured yet.';
-  const type = c.primaryPage === 'Tie / review' ? ' No page type leads on either side.'
-    : c.primaryPage ? ` Most results are ${PLURAL[c.primaryPage] ?? c.primaryPage.toLowerCase()}.` : '';
-  // Named apart from the business count, never folded into it: a directory
-  // ranking for both searches says nothing about whether the searches mean
-  // the same thing.
-  const dirs = c.sharedDirectories ? ` They also share ${word(c.sharedDirectories)} ${c.sharedDirectories === 1 ? 'directory, which ranks' : 'directories, which rank'} for almost everything in a field.` : '';
-  // unmeasurable means too few businesses to compute a share at all, so no
-  // ratio or count of businesses may appear in this branch. State the effect,
-  // not a guessed cause: a sparse SERP with no directories at all also lands
-  // here, and the dirs clause already supplies the directory detail when one
-  // is actually present.
-  if (c.signal === 'unmeasurable') {
-    return `Too few businesses rank for these searches to compare them.${dirs}${type}`;
+// The keyword that names a page: the one people search most when volume is
+// known, else the one most like the rest of the group.
+export function titleOf(ids, round, sims) {
+  const byId = new Map(round.keywords.map((k) => [k.id, k]));
+  const vol = (id) => byId.get(id)?.volume?.max;
+  if (ids.some((id) => vol(id) != null)) {
+    return byId.get(ids.slice().sort((a, b) => (vol(b) ?? -1) - (vol(a) ?? -1))[0]).text;
   }
-  const same = c.sharedBusinesses === 0 ? 'None of the same businesses rank for both.'
-    : `${cap(word(c.sharedBusinesses))} of ${word(c.denominator)} businesses ${c.sharedBusinesses === 1 ? 'ranks' : 'rank'} for both, with the same page.`;
-  const more = c.sameDomainDifferentPage === 0 ? ''
-    : ` ${cap(word(c.sameDomainDifferentPage))} more ${c.sameDomainDifferentPage === 1 ? 'business ranks' : 'businesses rank'} with a different page for each search.`;
-  return `${same}${more}${dirs}${type}`;
+  if (ids.length === 1) return byId.get(ids[0]).text;
+  const central = ids.map((id) => ({ id, m: ids.filter((o) => o !== id).reduce((n, o) => n + sims[id][o], 0) })).sort((x, y) => y.m - x.m)[0].id;
+  return byId.get(central).text;
 }
+
+export function confidenceWords(row, titles) {
+  const c = row.confidence;
+  if (!c) return '';
+  const single = row.keywords.length === 1;
+  if (c.level === 'clear') return single ? 'Stands alone' : 'Clear';
+  const name = titles.get(c.near) ?? 'another page';
+  return single ? `Close to ${name}` : `Close call with ${name}`;
+}
+
+const rowId = (ids) => `p-${ids.slice().sort().join('-')}`;
+
+// Edited rows are kept as they are and their keywords leave the matrix; the
+// rest are clustered. Exactly one page is the Homepage: the owner's if they
+// named one, else the service group with the most volume, else the largest.
+export function pageList(round) {
+  const kept = (round.pages ?? []).filter((p) => p.auto === false).map((p) => ({ ...p, standing: 'page' }));
+  const claimed = new Set(kept.flatMap((p) => p.keywords));
+  const free = captured(round).filter((k) => !claimed.has(k.id)).map((k) => k.id);
+  const m = matrix(round, free);
+  const sims = similarities(m);
+  const { groups } = cluster(m, sims);
+  const home = homeAreas(round);
+  const rows = groups.map((ids) => {
+    const c = confidence(ids, groups, sims);
+    return {
+      id: rowId(ids), title: titleOf(ids, round, sims), kind: kindOf(ids, round, home), keywords: ids,
+      confidence: { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? rowId(c.near) : null },
+      reason: reasonOf(ids, m, c.nearest), standing: standingOf(ids, round), note: '', auto: true,
+    };
+  });
+  if (!kept.some((p) => p.kind === 'Homepage')) {
+    const byId = new Map(round.keywords.map((k) => [k.id, k]));
+    const volume = (p) => p.keywords.reduce((n, id) => n + (byId.get(id)?.volume?.max ?? 0), 0);
+    const homepage = rows.filter((p) => p.kind === 'Service page').sort((x, y) => volume(y) - volume(x) || y.keywords.length - x.keywords.length)[0];
+    if (homepage) homepage.kind = 'Homepage';
+  }
+  return [...kept, ...rows];
+}
+
+// A closed round is the record of what was recommended then; an open round
+// is recomputed every time it is read.
+export const pagesOf = (round) => (round.closedAt ? (round.pages ?? []) : pageList(round));
+
+// Everything the matrix table needs: the full square over every captured
+// keyword, in page order, with each page's keywords as one block.
+export function studyView(round, pages = pagesOf(round)) {
+  const m = matrix(round);
+  const sims = similarities(m);
+  const placed = new Set(pages.flatMap((p) => p.keywords));
+  const blocks = [...pages.map((p) => p.keywords.filter((id) => m.cells[id])).filter((b) => b.length),
+    ...m.keywords.filter((k) => !placed.has(k.id)).map((k) => [k.id])];
+  return { order: blocks.flat(), sims, blocks, texts: new Map(round.keywords.map((k) => [k.id, k.text])) };
+}
+
+// ---- One pair ------------------------------------------------------------------
 
 export const pairKey = (a, b) => [a, b].sort().join('|');
 
-// Rows without the decisive label, computed once per round. group() and
-// decisiveFor() both need the comparison but never the label — computing it
-// here would make decisiveFor recurse through every other askable pair —
-// and comparePair does not depend on reads, so every caller can share these
-// same rows instead of paying for comparePair again.
-function pairRows(round) {
-  const ks = captured(round);
-  const out = [];
-  for (let i = 0; i < ks.length; i += 1) {
-    for (let j = i + 1; j < ks.length; j += 1) {
-      const key = pairKey(ks[i].id, ks[j].id);
-      const read = round.reads[key] ?? null;
-      out.push({ a: ks[i], b: ks[j], key, ...comparePair(round.serps[ks[i].id].results, round.serps[ks[j].id].results), read });
-    }
-  }
-  return out;
+// The compare page's numbers: the similarity and what drove it, plus the
+// raw counts the two columns highlight so the reader can check by eye.
+export function comparePair(round, aId, bId) {
+  const m = matrix(round);
+  const a = round.serps[aId]?.results ?? [];
+  const b = round.serps[bId]?.results ?? [];
+  const urlsB = new Set(b.map((x) => normalizeUrl(x.url)));
+  const bizB = new Set(b.map((x) => businessOf(x.url)));
+  const sharedUrls = [...new Set(a.map((x) => normalizeUrl(x.url)).filter((u) => urlsB.has(u)))];
+  const sharedDomains = [...new Set(a.map((x) => businessOf(x.url)).filter((d) => bizB.has(d)))];
+  const exactUrl = a.filter((x) => urlsB.has(normalizeUrl(x.url))).length;
+  const sameDomain = a.filter((x) => bizB.has(businessOf(x.url))).length;
+  const ca = m.cells[aId] ?? {};
+  const cb = m.cells[bId] ?? {};
+  const shared = Object.keys(ca).filter((x) => cb[x] && (m.weight[x] ?? 0) > 0)
+    .map((x) => ({ business: x, sameUrl: ca[x].url === cb[x].url, contribution: m.weight[x] * Math.min(ca[x].w, cb[x].w) * (ca[x].url === cb[x].url ? 1 : 0.5) }))
+    .sort((x, y) => y.contribution - x.contribution || x.business.localeCompare(y.business));
+  const sharedDirectories = Object.keys(ca).filter((x) => cb[x] && m.weight[x] === 0).length;
+  const s = similarity(m, aId, bId);
+  return { similarity: s, band: band(s), shared, sharedDirectories, exactUrl, sameDomain, sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), sharedUrls, sharedDomains };
 }
 
-export function pairs(round) {
-  const rows = pairRows(round);
-  return rows.map((row) => {
-    // Only a pair the signal could not settle is a question. A strong or low
-    // pair has an answer already, and a pair with a read has been answered —
-    // both are null, meaning nothing to ask.
-    const askable = !row.read && (row.signal === 'gray' || row.signal === 'unmeasurable');
-    return { ...row, decisive: askable ? decisiveFor(rows, round, row.key) : null };
-  });
-}
-
-// Would the owner's answer change anything? Force the pair each way and
-// compare the resulting page lists — not the raw groups: a keyword claimed
-// by a hand-edited page never reaches group() at all (see pageListFrom), so
-// a pair touching one is never decisive no matter which way it is forced.
-// When the two page lists match, the two keywords are already joined (or
-// already separated, or one is spoken for) through other pairs and the
-// question is rhetorical. comparePair does not depend on reads — only the
-// forced pair's read differs between the two probes — so this reuses the
-// rows already built for the round instead of recomputing comparePair for
-// every pair, twice, for every askable pair. That recomputation is what made
-// this O(n^4): 39ms at 10 keywords, 7.4s at 40, ~25s on a directory-heavy
-// real study, on every render of the Research tab, the report and every
-// archived round.
-function decisiveFor(rows, round, key) {
-  const withRead = (sameCluster) => rows.map((row) => (row.key === key
-    ? { ...row, read: { human: 'Gray zone / discuss', sameCluster, notes: '' } }
-    : row));
-  const asOne = pageListFrom(withRead('Yes'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
-  const asTwo = pageListFrom(withRead('No'), round).map((p) => p.keywords.slice().sort().join(',')).sort().join('|');
-  return asOne !== asTwo;
-}
-
-// Union-find over captured keywords. A strong pair joins unless the owner
-// said No; a Yes joins whatever the numbers say. Takes already-built rows —
-// comparePair does not depend on reads, so a caller with rows in hand (see
-// decisiveFor) never has to recompute them.
-function groupFrom(ps, round) {
-  const ks = captured(round);
-  const parent = new Map(ks.map((k) => [k.id, k.id]));
-  const find = (x) => (parent.get(x) === x ? x : find(parent.get(x)));
-  const union = (x, y) => parent.set(find(x), find(y));
-  for (const p of ps) {
-    const same = p.read?.sameCluster;
-    if (same === 'No') continue;
-    if (same === 'Yes' || p.signal === 'strong') union(p.a.id, p.b.id);
-  }
-  const members = new Map();
-  for (const k of ks) {
-    const root = find(k.id);
-    if (!members.has(root)) members.set(root, []);
-    members.get(root).push(k.id);
-  }
-  const overlapWithin = (id, ids) => ps.filter((p) => ids.includes(p.a.id) && ids.includes(p.b.id) && (p.a.id === id || p.b.id === id)).reduce((n, p) => n + p.exactUrl, 0);
-  const rows = [...members.values()].map((ids) => {
-    const title = ids.map((id) => ({ id, n: overlapWithin(id, ids) })).sort((x, y) => y.n - x.n || ids.indexOf(x.id) - ids.indexOf(y.id))[0].id;
-    const results = ids.flatMap((id) => round.serps[id].results);
-    return { id: `p-${ids.slice().sort().join('-')}`, title: round.keywords.find((k) => k.id === title).text, type: primaryPageOf(results), keywords: ids, note: '', auto: true };
-  });
-  return rows.sort((x, y) => y.keywords.length - x.keywords.length || round.keywords.findIndex((k) => k.id === x.keywords[0]) - round.keywords.findIndex((k) => k.id === y.keywords[0]));
-}
-
-export function group(round) {
-  return groupFrom(pairRows(round), round);
-}
-
-// pageList's body, taking prebuilt pair rows so a caller who already has
-// them (decisiveFor) never pays for comparePair again. Rows touching a
-// claimed keyword are dropped, not just the keyword itself: left in, such a
-// row would still union its other, unclaimed keyword into a group through
-// groupFrom, resurrecting a keyword the kept page already accounts for. This
-// must keep matching rest's own filtering below, or a claimed keyword would
-// be groupable through one path and not the other.
-function pageListFrom(rows, round) {
-  const kept = (round.pages ?? []).filter((p) => p.auto === false);
-  const claimed = new Set(kept.flatMap((p) => p.keywords));
-  const rest = { ...round, keywords: round.keywords.filter((k) => !claimed.has(k.id)) };
-  const restRows = rows.filter((row) => !claimed.has(row.a.id) && !claimed.has(row.b.id));
-  return [...kept, ...groupFrom(restRows, rest)];
-}
-
-export function pageList(round) {
-  return pageListFrom(pairRows(round), round);
+export function describePair(c) {
+  const n = c.shared.length;
+  const names = c.shared.slice(0, 2).map((x) => x.business);
+  const who = n === 0 ? 'no business ranks for both'
+    : n === 1 ? `one business ranks for both, ${names[0]}`
+    : `${word(n)} businesses rank for both, led by ${names.join(' and ')}`;
+  const lead = c.band === 3 ? `Alike enough to share a page: ${who}.`
+    : c.band === 0 ? `Different searches: ${who}.`
+    : `Not alike enough to share a page, but close: ${who}.`;
+  const dirs = c.sharedDirectories === 0 ? ''
+    : ` They ${n ? 'also ' : ''}share ${word(c.sharedDirectories)} ${c.sharedDirectories === 1 ? 'directory, which ranks' : 'directories, which rank'} for almost everything in a field.`;
+  return `${lead}${dirs}`;
 }
 
 // A round is one complete run of a study. Keywords and areas live here, not

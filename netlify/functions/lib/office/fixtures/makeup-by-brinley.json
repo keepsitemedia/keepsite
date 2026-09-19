@@ -1,0 +1,2159 @@
+{
+  "slug": "makeupbybrinley",
+  "createdAt": "2026-09-18T05:03:45.045Z",
+  "updatedAt": "2026-09-18T14:57:04.171Z",
+  "rounds": [
+    {
+      "id": "r1",
+      "startedAt": "2026-09-18T05:03:45.045Z",
+      "closedAt": null,
+      "areas": [],
+      "keywords": [
+        {
+          "id": "kwj16n2tt",
+          "text": "Utah Bridal Makeup Artist",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "ko7fe8g6i",
+          "text": "Utah Wedding Makeup Artist",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kd92ufdyx",
+          "text": "Utah Bridal Hair and Makeup",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "knrlz8cvn",
+          "text": "Wedding Hair and Makeup Utah",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kdum4m1kj",
+          "text": "Utah Bridal Hair and Makeup Artist",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kynxdp8lf",
+          "text": "Makeup Artist in Utah",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "k06h90803",
+          "text": "Soft Glam Bridal Makeup Utah",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "krnmw17c0",
+          "text": "Natural Bridal Makeup Utah",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kurmav6uu",
+          "text": "Luxury Bridal Makeup Utah",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kmzaq3wul",
+          "text": "on location hair and makeup",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "ki32udbvr",
+          "text": "Bridal Party Makeup",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "k7d9nzwkt",
+          "text": "Bridal Party Hair and Makeup Package",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "k2obr04c8",
+          "text": "Bridal Party Hair and Makeup Cost",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "k3wyur99z",
+          "text": "wedding hair and makeup salt lake city",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kxc20d579",
+          "text": "Park city utah hair and makeup",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "k8v3np3aw",
+          "text": "Utah county wedding hair and makeup",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kdvp8k1q6",
+          "text": "Moab utah wedding hair and makeup",
+          "cluster": "destination",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "k4x9htu91",
+          "text": "soft glam vs full glam",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kl6jxtg7a",
+          "text": "hair and makeup: on location or in a salon",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kaemu44r8",
+          "text": "mature skin bridal makeup",
+          "cluster": "General",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kfvpmf648",
+          "text": "la caille utah bridal makeup artist",
+          "cluster": "destination",
+          "arm": "",
+          "source": "manual"
+        },
+        {
+          "id": "kikp9eqif",
+          "text": "sundance mountain resort bridal makeup artist",
+          "cluster": "destination",
+          "arm": "",
+          "source": "manual"
+        }
+      ],
+      "serps": {
+        "kwj16n2tt": {
+          "capturedAt": "2026-09-18T05:24:12.579Z",
+          "query": "Utah Bridal Makeup Artist",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Hairstylist (@dianaelizabethbeauty) - Utah Makeup Artist",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.reddit.com/r/UtahInfluencerDrama/comments/1gocdmx/makeup_artists_in_utah/",
+              "title": "Makeup artists in Utah : r/UtahInfluencerDrama",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.utahbridalmakeup.com/",
+              "title": "Utah Bridal Hair and Makeup | Utah | 801-318-4897",
+              "domain": "utahbridalmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.yuliawilcox.com/",
+              "title": "Yulia Wilcox Hair & Makeup | Bridal makeup artist in Utah ...",
+              "domain": "yuliawilcox.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.facebook.com/groups/569970016490615/posts/2867110236776570/",
+              "title": "Looking for makeup artist suggestions in the salt lake/utah ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.mariahannifinmakeup.com/?srsltid=AU7gw4VRMjCxgc4qOZwe_oCLtxDclOoUGuJEp_Q5XgL0lifXRX6Revwn",
+              "title": "Maria Hannifin Makeup | Utah Bridal Hair and Makeup Artist",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.instagram.com/marisarosemph/?hl=en",
+              "title": "Marisa Rose | Utah Makeup Artist (@marisarosemph)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Utah bridal makeup artist instagram",
+            "Utah bridal makeup artist prices",
+            "Utah bridal makeup artist near me",
+            "Best utah bridal makeup artist",
+            "Wedding makeup artist Salt Lake City",
+            "Diana elizabeth beauty",
+            "Sarah Michelle Artistry",
+            "Maggie's hair and bridal",
+            "2",
+            "3"
+          ]
+        },
+        "ko7fe8g6i": {
+          "capturedAt": "2026-09-18T05:24:31.021Z",
+          "query": "Utah Wedding Makeup Artist",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Hairstylist (@dianaelizabethbeauty) - Utah Makeup Artist",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.reddit.com/r/UtahInfluencerDrama/comments/1gocdmx/makeup_artists_in_utah/",
+              "title": "Makeup artists in Utah : r/UtahInfluencerDrama",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.theknot.com/marketplace/beauty-services/utah",
+              "title": "Wedding Hair & Make-Up in Utah - Beauty",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "http://www.lesleylind.com/",
+              "title": "Home - Lesley Lind Makeup & Hair",
+              "domain": "lesleylind.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.instagram.com/marisarosemph/?hl=en",
+              "title": "Utah Makeup Artist (@marisarosemph) - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.facebook.com/groups/569970016490615/posts/2867110236776570/",
+              "title": "Looking for makeup artist suggestions in the salt ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.mariahannifinmakeup.com/?srsltid=AU7gw4UgrPEZhzgjltyc-8xQ6H_wsd0_WBZg81ig0HFbmFXFTg47LjCn",
+              "title": "Maria Hannifin Makeup | Utah Bridal Hair and ...",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Utah wedding makeup artist near me",
+            "Best utah wedding makeup artist",
+            "Sarah Michelle Artistry",
+            "Bridal by Caitlin",
+            "Diana elizabeth beauty",
+            "J and l makeup",
+            "Salt Lake City hair and makeup artist",
+            "Kali chris hair and Makeup",
+            "2",
+            "3"
+          ]
+        },
+        "kd92ufdyx": {
+          "capturedAt": "2026-09-18T05:25:04.972Z",
+          "query": "Utah Bridal Hair and Makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.utahbridalmakeup.com/",
+              "title": "Utah Bridal Hair and Makeup | Utah | 801-318-4897",
+              "domain": "utahbridalmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.instagram.com/sarahmichelleartistry/?hl=en",
+              "title": "Utah Hair & Makeup (@sarahmichelleartistry)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.utahbridalmakeup.com/about-us.html",
+              "title": "About | Utah Bridal Hair and Makeup | 801-318-4897",
+              "domain": "utahbridalmakeup.com",
+              "pageType": "About page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.zola.com/wedding-vendors/wedding-hair-makeup/yulia-wilcox-utah-bridal-makeup-artist-hairstylist",
+              "title": "Yulia Wilcox - Utah Bridal Makeup Artist & Hairstylist",
+              "domain": "zola.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.yelp.com/biz/utah-bridal-hair-and-makeup-american-fork",
+              "title": "UTAH BRIDAL HAIR & MAKEUP - Updated August 2026",
+              "domain": "yelp.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.instagram.com/utahbridalhairandmakeup/?hl=en",
+              "title": "Utah Bridal Hair & Makeup (@utahbridalhairandmakeup)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "http://www.hairandmakeupbysteph.com/utah-wedding-hair-makeup",
+              "title": "Utah Wedding Hair and Makeup",
+              "domain": "hairandmakeupbysteph.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "Next"
+          ]
+        },
+        "knrlz8cvn": {
+          "capturedAt": "2026-09-18T05:25:18.132Z",
+          "query": "Wedding Hair and Makeup Utah",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Hairstylist (@dianaelizabethbeauty) - Utah Makeup Artist",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.utahbridalmakeup.com/",
+              "title": "Utah Bridal Hair and Makeup | Utah | 801-318-4897",
+              "domain": "utahbridalmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.theknot.com/marketplace/beauty-services/utah",
+              "title": "Wedding Hair & Make-Up in Utah - Beauty",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.reddit.com/r/UtahInfluencerDrama/comments/1gocdmx/makeup_artists_in_utah/",
+              "title": "Makeup artists in Utah : r/UtahInfluencerDrama",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "http://www.hairandmakeupbysteph.com/",
+              "title": "Hair and Makeup by Steph Utah Wedding Hairstylist",
+              "domain": "hairandmakeupbysteph.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "http://www.lesleylind.com/",
+              "title": "Home - Lesley Lind Makeup & Hair",
+              "domain": "lesleylind.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.instagram.com/sarahmichelleartistry/?hl=en",
+              "title": "Utah Hair & Makeup (@sarahmichelleartistry) - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "Next"
+          ]
+        },
+        "kdum4m1kj": {
+          "capturedAt": "2026-09-18T05:25:33.854Z",
+          "query": "Utah Bridal Hair and Makeup Artist",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Hairstylist (@dianaelizabethbeauty) - Utah Makeup Artist",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.utahbridalmakeup.com/",
+              "title": "Utah Bridal Hair and Makeup | Utah | 801-318-4897",
+              "domain": "utahbridalmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.reddit.com/r/UtahInfluencerDrama/comments/1gocdmx/makeup_artists_in_utah/",
+              "title": "Makeup artists in Utah : r/UtahInfluencerDrama",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://bridalbycaitlin.com/",
+              "title": "Luxury Bridal Hair and Makeup Services for Brides in Utah",
+              "domain": "bridalbycaitlin.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.mariahannifinmakeup.com/?srsltid=AU7gw4Ub41iMj4hpte1_qjL_uVtrnICgoYVLuQAFCpPvBYYUPXJUkU9m",
+              "title": "Maria Hannifin Makeup | Utah Bridal Hair and Makeup Artist",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.instagram.com/sarahmichelleartistry/?hl=en",
+              "title": "Utah Hair & Makeup (@sarahmichelleartistry) - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "http://www.hairandmakeupbysteph.com/",
+              "title": "Hair and Makeup by Steph Utah Wedding Hairstylist",
+              "domain": "hairandmakeupbysteph.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Utah bridal hair and makeup artist reviews",
+            "Utah bridal hair and makeup artist prices",
+            "Utah bridal hair and makeup artist instagram",
+            "Utah bridal hair and makeup artist near me",
+            "Best utah bridal hair and makeup artist",
+            "Carolee beauty",
+            "Maggie's hair and bridal",
+            "Utah hair and makeup artist",
+            "2",
+            "3"
+          ]
+        },
+        "kynxdp8lf": {
+          "capturedAt": "2026-09-18T05:25:46.530Z",
+          "query": "Makeup Artist in Utah",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.instagram.com/marisarosemph/?hl=en",
+              "title": "Marisa Rose | Utah Makeup Artist (@marisarosemph)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.reddit.com/r/UtahInfluencerDrama/comments/1gocdmx/makeup_artists_in_utah/",
+              "title": "Makeup artists in Utah : r/UtahInfluencerDrama",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "http://www.lesleylind.com/",
+              "title": "Home - Lesley Lind Makeup & Hair",
+              "domain": "lesleylind.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.theknot.com/marketplace/beauty-services-salt-lake-city-ut/makeup-artist",
+              "title": "Makeup Artists With Prices in Salt Lake City, UT",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Hairstylist (@dianaelizabethbeauty) - Utah Makeup Artist",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.facebook.com/groups/569970016490615/posts/2867110236776570/",
+              "title": "Looking for makeup artist suggestions in the salt lake/utah ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.ncstudioutah.com/",
+              "title": "Utah Makeup Artist | NC Studio by Nikra",
+              "domain": "ncstudioutah.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://christiandiazmakeup.com/",
+              "title": "home - Christian Diaz | Celebrity and Bridal Makeup Artist ...",
+              "domain": "christiandiazmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Black makeup artist in utah",
+            "Top makeup artist in utah",
+            "Wedding makeup artist in utah",
+            "Affordable makeup artist in utah",
+            "Best makeup artist in utah",
+            "Wedding makeup artist Salt Lake City",
+            "Salt Lake City hair and makeup artist",
+            "Makeup artist moab",
+            "2",
+            "3"
+          ]
+        },
+        "k06h90803": {
+          "capturedAt": "2026-09-18T05:26:01.086Z",
+          "query": "Soft Glam Bridal Makeup Utah",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.mariahannifinmakeup.com/?srsltid=AU7gw4Ux9JDWAbRl3ioiDb-h5VDoXLNRxufWQoqrK1YO9hLiDTThyoM2",
+              "title": "Maria Hannifin Makeup | Utah Bridal Hair and Makeup Artist",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Hairstylist (@dianaelizabethbeauty) - Utah Makeup Artist",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.yesibeauti.com/",
+              "title": "Yesi Beauti",
+              "domain": "yesibeauti.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.facebook.com/groups/569970016490615/posts/3580810015406585/",
+              "title": "Hypoallergenic makeup artists for soft glam bridal look in ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.havenmakeupstudios.com/",
+              "title": "Haven Makeup Studios Wedding and Event Hair and Makeup ...",
+              "domain": "havenmakeupstudios.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.theknot.com/marketplace/beauty-services-draper-ut/makeup-artist",
+              "title": "Makeup Artists With Prices in Draper, UT",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.yuliawilcox.com/",
+              "title": "Yulia Wilcox Hair & Makeup | Bridal makeup artist in Utah ...",
+              "domain": "yuliawilcox.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Soft glam bridal makeup utah reviews",
+            "Best soft glam bridal makeup utah",
+            "Soft glam bridal makeup utah cost",
+            "Maria Hannifin makeup",
+            "Diana elizabeth beauty",
+            "Wedding hair and makeup Salt Lake City",
+            "Bridal by Caitlin",
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        "krnmw17c0": {
+          "capturedAt": "2026-09-18T05:26:13.444Z",
+          "query": "Natural Bridal Makeup Utah",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.instagram.com/marisarosemph/?hl=en",
+              "title": "Utah Makeup Artist (@marisarosemph) - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.mariahannifinmakeup.com/?srsltid=AU7gw4XB84mP-AossWjN8ugRCofnFJ2L-5IT4OMJlInOJZ3R5zbLykc_",
+              "title": "Maria Hannifin Makeup | Utah Bridal Hair and ...",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.havenmakeupstudios.com/",
+              "title": "Haven Makeup Studios Wedding and Event Hair and Makeup ...",
+              "domain": "havenmakeupstudios.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Diana Henrie | Utah Makeup Artist - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://marisarosemakeup.com/",
+              "title": "Marisa Rose",
+              "domain": "marisarosemakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.yesibeauti.com/",
+              "title": "Yesi Beauti",
+              "domain": "yesibeauti.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.zola.com/wedding-vendors/wedding-hair-makeup/maria-hannifin-makeup-llc",
+              "title": "Maria Hannifin Makeup | Wedding Beauty Professionals",
+              "domain": "zola.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Best natural bridal makeup utah",
+            "Natural bridal makeup utah near me",
+            "Natural bridal makeup utah cost",
+            "Affordable natural bridal makeup utah",
+            "Hair and makeup utah",
+            "Maria Hannifin makeup",
+            "Sarah Michelle Artistry",
+            "J and l makeup",
+            "2",
+            "3"
+          ]
+        },
+        "kurmav6uu": {
+          "capturedAt": "2026-09-18T05:26:30.930Z",
+          "query": "Luxury Bridal Makeup Utah",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://bridalbycaitlin.com/",
+              "title": "Bridal by Caitlin",
+              "domain": "bridalbycaitlin.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.instagram.com/sarahmichelleartistry/?hl=en",
+              "title": "Utah Hair & Makeup (@sarahmichelleartistry)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.weddingwire.com/c/ut-utah/wedding-beauty-health/16-sca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Utah",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.mariahannifinmakeup.com/?srsltid=AU7gw4W-DiV6QMR0_6Nmk0bMo8r-1UBF8xnC3_InhoFbklN-t1VLTfOQ",
+              "title": "Maria Hannifin Makeup | Utah Bridal Hair and ...",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.yuliawilcox.com/",
+              "title": "Yulia Wilcox Hair & Makeup | Bridal makeup artist in Utah ...",
+              "domain": "yuliawilcox.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Diana Henrie | Utah Makeup Artist - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.theknot.com/marketplace/beauty-services-salt-lake-city-ut/makeup-artist",
+              "title": "Makeup Artists With Prices in Salt Lake City, UT",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.havenmakeupstudios.com/",
+              "title": "Haven Makeup Studios Wedding and Event Hair and Makeup ...",
+              "domain": "havenmakeupstudios.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Best luxury bridal makeup utah",
+            "Luxury bridal makeup utah prices",
+            "Luxury bridal makeup utah near me",
+            "Luxury bridal makeup utah cost",
+            "Bridal by Caitlin",
+            "Wedding makeup artist utah",
+            "Diana elizabeth beauty",
+            "Maggie's hair and bridal",
+            "2",
+            "3"
+          ]
+        },
+        "kmzaq3wul": {
+          "capturedAt": "2026-09-18T05:26:44.861Z",
+          "query": "on location hair and makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://beautyonlocationstudio.com/",
+              "title": "Wedding Hair and Makeup Denver Colorado & Northern ...",
+              "domain": "beautyonlocationstudio.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.yelp.com/biz/beauty-on-location-studio-denver",
+              "title": "BEAUTY ON LOCATION STUDIO - Updated August 2026",
+              "domain": "yelp.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://beautyonlocationstudio.com/portfolio/",
+              "title": "Portfolio",
+              "domain": "beautyonlocationstudio.com",
+              "pageType": "Portfolio/Gallery",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.weddingwire.com/biz/beauty-on-location-studio-denver/4850f69e0b8ab494.html",
+              "title": "Beauty on Location Studio - Reviews, Photos & Deals 2026",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.instagram.com/beautyonlocationstudio/?hl=en",
+              "title": "Beauty on Location Studio (@beautyonlocationstudio)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://aisle.wedding/vendors/hair-and-makeup/denver-co/beauty-on-location-studio-denver-co",
+              "title": "Bridal Hair & Makeup Denver | Beauty on Location · Aisle",
+              "domain": "aisle.wedding",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.thedaycolorado.com/",
+              "title": "On Location Hair and Makeup",
+              "domain": "thedaycolorado.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.facebook.com/beautyonlocationstudio/",
+              "title": "Beauty on Location Studio | Denver CO",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "On location hair and makeup near me",
+            "On location hair and makeup reviews",
+            "On location hair and makeup prices",
+            "On location hair and makeup artists",
+            "On location hair and makeup cost",
+            "Affordable wedding hair and makeup denver",
+            "Beauty on Location Denver",
+            "Beauty on Location Studio",
+            "2",
+            "3"
+          ]
+        },
+        "ki32udbvr": {
+          "capturedAt": "2026-09-18T05:27:01.076Z",
+          "query": "Bridal Party Makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.pinterest.com/dessygroup/bridesmaid-hair-+-makeup/",
+              "title": "Discover 400 BRIDESMAID HAIR + MAKEUP and ...",
+              "domain": "pinterest.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.vogue.com/article/bridesmaid-makeup-ideas",
+              "title": "17 Bridesmaid Makeup Ideas for Every Wedding ...",
+              "domain": "vogue.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.coloradobridalcompany.com/pricing",
+              "title": "Pricing",
+              "domain": "coloradobridalcompany.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://overthemoon.com/products/wedding-party-glam-bundle?srsltid=AU7gw4X60BRjAn1GSeucmqo667zyWwSSyZaqBW8SZkSfOT6tlbqmd0ef",
+              "title": "Bridal Party Hair & Makeup Package",
+              "domain": "overthemoon.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.reddit.com/r/weddingplanning/comments/1fnxlns/what_are_the_rules_of_hair_and_makeup_for_the/",
+              "title": "What are the rules of hair and makeup for the bridal party?",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.partyslate.com/find-vendors/wedding-shower-hair-makeup-stylist/area/denver",
+              "title": "Top Wedding Hair, Makeup & Stylists In Denver",
+              "domain": "partyslate.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.cedarhairdenver.com/services/bridal/bridal-makeup/",
+              "title": "Bridal Makeup",
+              "domain": "cedarhairdenver.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.weddingwire.com/c/co-colorado/denver-colorado-springs-boulder-vail/wedding-beauty-health/751-16-rca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Denver",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Simple bridal party makeup",
+            "Bridal party makeup looks",
+            "Bridal party makeup tutorial",
+            "Bridal party makeup ideas",
+            "Bridesmaid makeup natural",
+            "Bridesmaid makeup and hair",
+            "Bridal party makeup cost",
+            "Bridesmaid Makeup Black Girl",
+            "2",
+            "3"
+          ]
+        },
+        "k7d9nzwkt": {
+          "capturedAt": "2026-09-18T05:27:13.962Z",
+          "query": "Bridal Party Hair and Makeup Package",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.maesalon.com/wedding-hair-and-makeup-denver-co",
+              "title": "Wedding Hair & Makeup Denver - Mae Salon",
+              "domain": "maesalon.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.coloradobridalcompany.com/pricing",
+              "title": "Pricing",
+              "domain": "coloradobridalcompany.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://beautykitstudio.com/",
+              "title": "BeautyKit Studio",
+              "domain": "beautykitstudio.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.fluffbar.com/bridal-hair-denver/",
+              "title": "Bridal Hair In Denver | Fluff Colour Salon",
+              "domain": "fluffbar.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.reddit.com/r/wedding/comments/1gzs2ih/hair_and_makeup_costs_for_bride_bridesmaids_what/",
+              "title": "Hair and Makeup costs for Bride + Bridesmaids",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://overthemoon.com/products/wedding-party-glam-bundle?srsltid=AU7gw4WvhcDPIYzHFfZrp8pd54LfIiRO3UcucaHjNCJ2r9IVnKc1qcXj",
+              "title": "Bridal Party Hair & Makeup Package",
+              "domain": "overthemoon.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.jessicahairandmakeupartistry.com/bridal",
+              "title": "Bridal Hair and Makeup in Colorado",
+              "domain": "jessicahairandmakeupartistry.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.partyslate.com/find-vendors/wedding-hair-makeup-stylist/area/denver",
+              "title": "Top 15 Wedding Hair, Makeup & Stylists In Denver",
+              "domain": "partyslate.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Bridal party hair and makeup package near me",
+            "Bridal party hair and makeup package price",
+            "Best bridal party hair and makeup package",
+            "Bridal party hair and makeup package cost",
+            "Hair and makeup Denver",
+            "Beauty Kit Studio",
+            "Wedding hair and makeup Denver",
+            "Wedding makeup artist Denver",
+            "2",
+            "3"
+          ]
+        },
+        "k2obr04c8": {
+          "capturedAt": "2026-09-18T05:27:28.695Z",
+          "query": "Bridal Party Hair and Makeup Cost",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.theknot.com/content/average-cost-wedding-hair-makeup",
+              "title": "The Average Cost of Wedding Hair and Makeup, Explained",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.reddit.com/r/weddingplanning/comments/1if7ppn/brides_how_much_did_youare_you_paying_for_your/",
+              "title": "how much did you/are you paying for your makeup artists?",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.zola.com/expert-advice/a-guide-to-wedding-hair-and-makeup-costs",
+              "title": "Wedding Hair and Makeup Cost: Average Pricing and Tips",
+              "domain": "zola.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.facebook.com/groups/1075534819154175/posts/34014159648198267/",
+              "title": "Whats the average cost for bridal makeup? I was qouted ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.facesbyamelia.com/blog/how-much-does-wedding-hair-and-makeup-actually-cost",
+              "title": "How Much Does Wedding Hair & Makeup Actually Cost ...",
+              "domain": "facesbyamelia.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.weddingwire.com/cost/wedding-hair-and-makeup",
+              "title": "Wedding Hair and Makeup Cost Guide",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.katyreddellbeauty.com/blog/wedding-hair-makeup-cost-guide",
+              "title": "Wedding Makeup Ideas to Look Flawless on Your Big Day ...",
+              "domain": "katyreddellbeauty.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://paperlust.co/blog/how-much-does-wedding-hair-and-makeup-cost/",
+              "title": "How Much Does Wedding Hair and Makeup Cost? (2026 ...",
+              "domain": "paperlust.co",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "How much does wedding makeup cost per person",
+            "Bridal party hair and makeup cost usa",
+            "Bridal party hair and makeup cost near me",
+            "How much is wedding makeup for bridesmaids",
+            "How much does wedding makeup cost per person near me",
+            "Who pays for bridal party hair and makeup",
+            "How much does wedding hair cost per person",
+            "Hair and makeup for wedding near me",
+            "2",
+            "3"
+          ]
+        },
+        "k3wyur99z": {
+          "capturedAt": "2026-09-18T05:27:40.698Z",
+          "query": "wedding hair and makeup salt lake city",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.instagram.com/hairandmakeupbysteph/?hl=en",
+              "title": "Stephanie (@hairandmakeupbysteph) · Salt Lake City, UT",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.weddingwire.com/c/ut-utah/salt-lake-city/wedding-beauty-health/770-16-rca.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Salt Lake City",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.blushroseartistry.com/",
+              "title": "Blush + Rose Artistry | on location wedding hair and makeup ...",
+              "domain": "blushroseartistry.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.theknot.com/marketplace/beauty-services-salt-lake-city-ut/makeup-artist",
+              "title": "Makeup Artists With Prices in Salt Lake City, UT",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.reddit.com/r/SaltLakeCity/comments/13860vf/wedding_makeup_and_hair/",
+              "title": "Wedding makeup and hair : r/SaltLakeCity",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://bridalbycaitlin.com/",
+              "title": "Luxury Bridal Hair and Makeup Services for Brides in Utah",
+              "domain": "bridalbycaitlin.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.maggieshairandbridal.com/",
+              "title": "Maggie's Hair & Bridal | Award-Winning Bridal Hair & Makeup ...",
+              "domain": "maggieshairandbridal.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.redscarlettmakeupartistry.com/",
+              "title": "WEDDINGS - Makeup Artist Salt Lake City UT",
+              "domain": "redscarlettmakeupartistry.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Wedding hair and makeup salt lake city prices",
+            "Wedding hair and makeup salt lake city cost",
+            "Mobile wedding hair and makeup salt lake city",
+            "Best wedding hair and makeup salt lake city",
+            "Affordable wedding hair and makeup salt lake city",
+            "Sarah Michelle Artistry",
+            "Maggie's hair and bridal",
+            "Bridal and beauty by Edlin",
+            "2",
+            "3"
+          ]
+        },
+        "kxc20d579": {
+          "capturedAt": "2026-09-18T05:27:55.287Z",
+          "query": "Park city utah hair and makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.theknot.com/marketplace/beauty-services-park-city-ut/makeup-artist",
+              "title": "Makeup Artists With Prices in Park City, UT",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "http://www.jessicagrambau.com/",
+              "title": "Jessica Grambau: Park City Hair Salon | Utah Wedding Hair ...",
+              "domain": "jessicagrambau.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.yelp.com/search?cflt=makeupartists&find_loc=Park+City%2C+UT+84060",
+              "title": "THE BEST 10 Makeup Artists near PARK CITY, UT 84060",
+              "domain": "yelp.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.h2blowdrybar.com/",
+              "title": "h2blow the blowdry + beauty bar | Salt Lake City and Park City",
+              "domain": "h2blowdrybar.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.instagram.com/hairbymaika/",
+              "title": "Film Hairstylist | MUA (@hairbymaika) · Park City, UT",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.weddingwire.com/c/ut-utah/park-city/wedding-beauty-health/16-vendors.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Park City, UT",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://beautyzonepc.com/",
+              "title": "Hair Salon & Beauty Boutique in Park City, Utah",
+              "domain": "beautyzonepc.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.facebook.com/groups/askparkcityut/posts/4495597384003213/",
+              "title": "Makeup and hair artist for bride? | Park City, UT",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Park city utah hair and makeup reviews",
+            "Park city utah hair and makeup artists",
+            "Park city utah hair and makeup near me",
+            "Hair salon Park City",
+            "H2blow park city",
+            "Dry bar Salt Lake City",
+            "Hair and makeup Salt Lake City",
+            "Park City makeup artist",
+            "2",
+            "3"
+          ]
+        },
+        "k8v3np3aw": {
+          "capturedAt": "2026-09-18T05:28:13.310Z",
+          "query": "Utah county wedding hair and makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.instagram.com/dianaelizabethbeauty/?hl=en",
+              "title": "Diana Henrie | Utah Makeup Artist - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.theknot.com/marketplace/beauty-services/utah",
+              "title": "Wedding Hair & Make-Up in Utah - Beauty",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.yuliawilcox.com/",
+              "title": "Yulia Wilcox Hair and Makeup Artist",
+              "domain": "yuliawilcox.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.weddingwire.com/c/ut-utah/provo/wedding-beauty-health/16-vendors.html",
+              "title": "Wedding Hair & Makeup in Provo",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.utahbridalmakeup.com/",
+              "title": "Utah Bridal Hair and Makeup | Utah | 801-318-4897",
+              "domain": "utahbridalmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.facebook.com/groups/569970016490615/posts/2867110236776570/",
+              "title": "Looking for makeup artist suggestions in the salt ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.nikkibethmua.com/",
+              "title": "Nikki Beth Makeup Artistry | Enhance Your Beauty ...",
+              "domain": "nikkibethmua.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.yelp.com/search?cflt=makeupartists&find_loc=Utah+County%2C+UT",
+              "title": "THE BEST 10 Makeup Artists in UTAH COUNTY, UT",
+              "domain": "yelp.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Utah county wedding hair and makeup reviews",
+            "Utah county wedding hair and makeup prices",
+            "Utah county wedding hair and makeup artists",
+            "Utah county wedding hair and makeup near me",
+            "Utah county wedding hair and makeup cost",
+            "Carolee beauty",
+            "Diana elizabeth beauty",
+            "Bridal by Caitlin",
+            "2",
+            "3"
+          ]
+        },
+        "k4x9htu91": {
+          "capturedAt": "2026-09-18T05:28:28.302Z",
+          "query": "soft glam vs full glam",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.laurengarfitt.com/blog/whats-the-difference-between-soft-glam-and-full-glam-makeup",
+              "title": "What's the difference between soft glam and full ...",
+              "domain": "laurengarfitt.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.facebook.com/groups/597130180386196/posts/9162325307199931/",
+              "title": "Can someone explain the difference between soft glam ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://makeupbymaryllc.com/blog/soft-glam-vs-full-glam",
+              "title": "Soft Glam vs. Full Glam | Cleveland Makeup Guide",
+              "domain": "makeupbymaryllc.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.britebeauty.com/blog/bridal-makeup-styles-explained-how-to-choose-between-minimalist-natural-soft-glam-amp-full-glam",
+              "title": "Difference between Minimalist vs Natural vs Soft glam ...",
+              "domain": "britebeauty.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.yesmadam.com/blog/difference-between-soft-glam-and-full-glam-makeup/?srsltid=AU7gw4Wjxs9Fm-9iUIKrEgFFi7Hw_KHCfVGJnMRE7AFZgE07j1pTvM1X",
+              "title": "Difference Between Soft Glam and Full Glam Makeup ...",
+              "domain": "yesmadam.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://didibeauty.shop/blogs/beauty-tips-guides/soft-glam-vs-full-glam-what-s-the-difference?srsltid=AU7gw4Xn7SsoFhXcVm2ODDwCSrWR8rgA3fvHKdWxJnLRaD9juzj9Hd42",
+              "title": "Soft Glam vs Full Glam: What's the Difference? - Didi Beauty",
+              "domain": "didibeauty.shop",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.jagstudio.au/blog/natural-vs-soft-glam-vs-full-glam-makeup",
+              "title": "Natural vs Soft Glam vs Full Glam Makeup - JAG Studio",
+              "domain": "jagstudio.au",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Soft glam vs full glam vs natural glam",
+            "Soft glam vs full glam wedding makeup",
+            "Soft glam vs natural glam",
+            "Natural glam vs full glam",
+            "Soft glam makeup vs full glam pictures",
+            "Natural glam makeup",
+            "Soft glam hair",
+            "Soft glam outfit",
+            "2",
+            "3"
+          ]
+        },
+        "kl6jxtg7a": {
+          "capturedAt": "2026-09-18T05:28:45.832Z",
+          "query": "hair and makeup: on location or in a salon",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.reddit.com/r/weddingplanning/comments/gj4jee/hair_and_makeup_on_location_or_in_a_salon/",
+              "title": "Hair and makeup: on location or in a salon?",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://beautyonlocationstudio.com/",
+              "title": "Wedding Hair and Makeup Denver Colorado & Northern ...",
+              "domain": "beautyonlocationstudio.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.weddingwire.com/wedding-forums/salon-vs-on-site/76d870e08a8d0362.html",
+              "title": "Salon vs. On Site | Weddings, Hair and Makeup",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.dulcediemhairandmakeup.com/",
+              "title": "Dulce Diem",
+              "domain": "dulcediemhairandmakeup.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.theknot.com/marketplace/beauty-services-denver-co",
+              "title": "Beauty Salons With Prices in Denver, CO",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://getblys.com/us/locations/hair-and-makeup-denver-co/",
+              "title": "Best Home Hair & Makeup Services in Denver, CO | Blys",
+              "domain": "getblys.com",
+              "pageType": "Location page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.maesalon.com/wedding-hair-and-makeup-denver-co",
+              "title": "Wedding Hair & Makeup Denver | MAE Salon + Wellness",
+              "domain": "maesalon.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.yelp.com/search?find_desc=Hair+And+Makeup&find_loc=Denver%2C+CO",
+              "title": "TOP 10 BEST Hair and Makeup in Denver, CO",
+              "domain": "yelp.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Hair and makeup on location or in a salon reddit",
+            "Hair and makeup on location or in a salon near me",
+            "Hair and makeup on location or in a salon for wedding",
+            "Affordable wedding hair and makeup denver",
+            "Beauty on Location Denver",
+            "Beauty on Location Studio",
+            "REFeyeANCE makeup and hair",
+            "On location hair and makeup",
+            "2",
+            "3"
+          ]
+        },
+        "kaemu44r8": {
+          "capturedAt": "2026-09-18T05:28:59.273Z",
+          "query": "mature skin bridal makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://sixtyandme.com/wedding-makeup/",
+              "title": "The Best Wedding Makeup for Mature Women 2025",
+              "domain": "sixtyandme.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.charlottetilbury.com/eu/secrets/mature-bride-makeup?srsltid=AU7gw4WN_gK4LkZVCE9cb13wQizjFFF1BYK-5n9it1wTs3-QGUr__jH7",
+              "title": "Mature Bride Makeup Looks - Charlotte Tilbury",
+              "domain": "charlottetilbury.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.pinterest.com/ideas/older-bride-makeup/908020949270/",
+              "title": "Older Bride Makeup",
+              "domain": "pinterest.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://beautyandtheboutique.com/blogs/news/mature-bridal-makeup",
+              "title": "Mature Bridal Makeup | Natural Wedding Look",
+              "domain": "beautyandtheboutique.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.theweddingedition.co.uk/mother-of-the-bride-makeup-in-12-flawless-steps/",
+              "title": "Mother Of The Bride Makeup In 12 Flawless Steps",
+              "domain": "theweddingedition.co.uk",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.tiktok.com/@adrianamejiamakeup/video/7554958358315388174",
+              "title": "Bridal Makeup Routine for Mature Skin",
+              "domain": "tiktok.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Mature skin bridal makeup tutorial",
+            "Mature skin bridal makeup step by step",
+            "Mature skin bridal makeup looks",
+            "Mature skin bridal makeup products",
+            "Best mature skin bridal makeup",
+            "Mature skin bridal makeup kit",
+            "Wedding makeup for 60 year old woman",
+            "Simple makeup for mother of the bride over 60",
+            "2",
+            "3"
+          ]
+        },
+        "kdvp8k1q6": {
+          "capturedAt": "2026-09-18T05:29:22.692Z",
+          "query": "Moab utah wedding hair and makeup",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.weddingwire.com/c/ut-utah/moab/wedding-beauty-health/16-vendors.html",
+              "title": "The 10 Best Wedding Hair & Makeup Artists in Moab, UT",
+              "domain": "weddingwire.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.theknot.com/marketplace/beauty-services-moab-ut/makeup-artist",
+              "title": "Makeup Artists With Prices in Moab, UT",
+              "domain": "theknot.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.facebook.com/groups/569970016490615/posts/3347420872078835/",
+              "title": "Recommendations for Moab Utah wedding hair and ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.lvbridaldesigns.com/",
+              "title": "Wedding Hair & Makeup | Lindsey Vaccaro Bridal Design",
+              "domain": "lvbridaldesigns.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.instagram.com/hairby_linzy/",
+              "title": "Hair By Linzy (@hairby_linzy)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://bymannuzza.com/makeup-artists-in-moab/",
+              "title": "4 Makeup Artists In Moab for Stunning Wedding Styles",
+              "domain": "bymannuzza.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.zola.com/wedding-vendors/wedding-hair-makeup/hair-by-kenn",
+              "title": "Hair By Kenn | Wedding Beauty Professionals",
+              "domain": "zola.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.instagram.com/lv_bridaldesigns/?hl=en",
+              "title": "Lindsey | Utah Hair Stylist (@lv_bridaldesigns)",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Moab utah wedding hair and makeup reviews",
+            "Moab utah wedding hair and makeup artist",
+            "LV bridal Designs",
+            "Wedding makeup artist utah",
+            "Moab Hair Salon",
+            "Makeup artist provo utah",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        "kikp9eqif": {
+          "capturedAt": "2026-09-18T05:30:00.938Z",
+          "query": "sundance mountain resort bridal makeup artist",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.maggieshairandbridal.com/",
+              "title": "Maggie's Hair & Bridal | Award-Winning Bridal Hair & Makeup ...",
+              "domain": "maggieshairandbridal.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.facebook.com/jandlmakeup/",
+              "title": "J and L Makeup",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.yelp.com/search?find_desc=Makeup+Artists&find_loc=Sundance%2C+UT+84604",
+              "title": "Best Makeup Artists near Sundance, UT 84604",
+              "domain": "yelp.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.parkcitymag.com/weddings/2015/09/meet-the-makeup-artist-enhance-artistry",
+              "title": "Meet the Makeup Artist: Enhance Artistry",
+              "domain": "parkcitymag.com",
+              "pageType": "Blog/FAQ",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.instagram.com/reel/DdUSGWfIa4C/",
+              "title": "It's Wedding day! 👰🏼💍 I can't emphasize enough just how ...",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.mariahannifinmakeup.com/portfolio-collections/my-portfolio/olivia-emma?srsltid=AU7gw4WjarL1U0oEsWwBCNzLILNsa-jMji64_QQPHARV-TI4XxLA6t_u",
+              "title": "BRIDAL",
+              "domain": "mariahannifinmakeup.com",
+              "pageType": "Portfolio/Gallery",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://thebridalbeautycosaltlakecity.com/our-artists",
+              "title": "Our Artists | Licensed Bridal Makeup Artists Salt Lake City",
+              "domain": "thebridalbeautycosaltlakecity.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.reddit.com/r/UtahInfluencerDrama/comments/1gocdmx/makeup_artists_in_utah/",
+              "title": "Makeup artists in Utah : r/UtahInfluencerDrama",
+              "domain": "reddit.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "Sundance mountain resort bridal makeup artist photos",
+            "Wedding hair and makeup Salt Lake City",
+            "Bridal by Caitlin",
+            "Makeup artist Salt Lake City",
+            "Bridal and Beauty",
+            "Wedding hair and makeup reno nv",
+            "Bridal hair salt lake city",
+            "Reno makeup artist",
+            "2",
+            "3"
+          ]
+        },
+        "kfvpmf648": {
+          "capturedAt": "2026-09-18T05:30:42.162Z",
+          "query": "la caille utah bridal makeup artist",
+          "results": [
+            {
+              "rank": 1,
+              "url": "https://www.maggieshairandbridal.com/",
+              "title": "Maggie's Hair & Bridal | Award-Winning Bridal Hair & Makeup ...",
+              "domain": "maggieshairandbridal.com",
+              "pageType": "Homepage",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 2,
+              "url": "https://www.facebook.com/100064068762527/videos/a-wedding-at-la-caille-utah-is-literal-heaven-and-my-bride-looks-like-and-angel-/1052171644195101/",
+              "title": "A wedding at La Caille Utah is literal heaven. And my ...",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 3,
+              "url": "https://www.instagram.com/dawesbeauty/?hl=en",
+              "title": "SLC UTAH MAKEUP & HAIR (@dawesbeauty) - Instagram",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 4,
+              "url": "https://www.instagram.com/reel/DdPG4BkR9QT/",
+              "title": "A wedding at @lacailleutah is literal heaven. And my bride ...",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 5,
+              "url": "https://www.facebook.com/simplymindyk/",
+              "title": "Simply Mindy Hair & Makeup Artistry | Draper UT",
+              "domain": "facebook.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 6,
+              "url": "https://www.thewedstay.com/vendors/hair-makeup/maggie-s-hair-bridal",
+              "title": "Maggie's Hair & Bridal - Hair & Makeup",
+              "domain": "thewedstay.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 7,
+              "url": "https://www.tiktok.com/@meshechmakeupartist/video/7528246994259741966",
+              "title": "MESHECH Bridal Makeup & Hair Artistry in Utah",
+              "domain": "tiktok.com",
+              "pageType": "Service page",
+              "typeSource": "auto"
+            },
+            {
+              "rank": 8,
+              "url": "https://www.instagram.com/reel/DccHGjAvmCP/",
+              "title": "Erica Bogart | ATLANTA SOFT GLAM EXPERT ...",
+              "domain": "instagram.com",
+              "pageType": "Directory",
+              "typeSource": "auto"
+            }
+          ],
+          "related": [
+            "La caille utah bridal makeup artist instagram",
+            "La caille utah bridal makeup artist photos",
+            "Bridal by Caitlin",
+            "Reno makeup artist",
+            "Bridal and Beauty",
+            "Christian Diaz Makeup",
+            "Makeup artist Salt Lake City",
+            "Wedding hair and makeup Salt Lake City",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "reads": {
+        "ko7fe8g6i|kwj16n2tt": {
+          "human": "Same intent",
+          "sameCluster": "Yes",
+          "notes": ""
+        },
+        "knrlz8cvn|kwj16n2tt": {
+          "human": "Probably same",
+          "sameCluster": "Yes",
+          "notes": ""
+        },
+        "kdum4m1kj|kwj16n2tt": {
+          "human": "Same intent",
+          "sameCluster": "Yes",
+          "notes": ""
+        },
+        "kwj16n2tt|kynxdp8lf": {
+          "human": "Gray zone / discuss",
+          "sameCluster": "Undecided",
+          "notes": ""
+        },
+        "k06h90803|kwj16n2tt": {
+          "human": "Probably same",
+          "sameCluster": "Undecided",
+          "notes": ""
+        },
+        "krnmw17c0|kwj16n2tt": {
+          "human": "Probably same",
+          "sameCluster": "Undecided",
+          "notes": ""
+        },
+        "kurmav6uu|kwj16n2tt": {
+          "human": "Probably same",
+          "sameCluster": "Undecided",
+          "notes": ""
+        },
+        "k8v3np3aw|kwj16n2tt": {
+          "human": "Probably same",
+          "sameCluster": "Undecided",
+          "notes": ""
+        },
+        "ko7fe8g6i|kynxdp8lf": {
+          "human": "Same intent",
+          "sameCluster": "Yes",
+          "notes": ""
+        },
+        "k06h90803|kurmav6uu": {
+          "human": "Same intent",
+          "sameCluster": "Yes",
+          "notes": ""
+        },
+        "kd92ufdyx|kwj16n2tt": {
+          "human": "Probably different",
+          "sameCluster": "No",
+          "notes": "bringing up different instagram accounts, only similar is utah bridal hair and makeup and the wedding wire"
+        },
+        "kdvp8k1q6|kwj16n2tt": {
+          "human": "Different intent",
+          "sameCluster": "No",
+          "notes": "all different businesses or same business is a different page for a question in a Facebook group or directory on wedding wire"
+        }
+      },
+      "pages": [
+        {
+          "id": "p-k06h90803-k8v3np3aw-kdum4m1kj-knrlz8cvn-ko7fe8g6i-krnmw17c0-kurmav6uu-kwj16n2tt-kynxdp8lf",
+          "title": "Utah Bridal Makeup Artist",
+          "type": "Directory",
+          "keywords": [
+            "kwj16n2tt",
+            "ko7fe8g6i",
+            "knrlz8cvn",
+            "kdum4m1kj",
+            "kynxdp8lf",
+            "k06h90803",
+            "krnmw17c0",
+            "kurmav6uu",
+            "k8v3np3aw"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-k7d9nzwkt-ki32udbvr",
+          "title": "Bridal Party Makeup",
+          "type": "Service page",
+          "keywords": [
+            "ki32udbvr",
+            "k7d9nzwkt"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kd92ufdyx",
+          "title": "Utah Bridal Hair and Makeup",
+          "type": "Directory",
+          "keywords": [
+            "kd92ufdyx"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kmzaq3wul",
+          "title": "on location hair and makeup",
+          "type": "Directory",
+          "keywords": [
+            "kmzaq3wul"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-k2obr04c8",
+          "title": "Bridal Party Hair and Makeup Cost",
+          "type": "Directory",
+          "keywords": [
+            "k2obr04c8"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-k3wyur99z",
+          "title": "wedding hair and makeup salt lake city",
+          "type": "Tie / review",
+          "keywords": [
+            "k3wyur99z"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kxc20d579",
+          "title": "Park city utah hair and makeup",
+          "type": "Directory",
+          "keywords": [
+            "kxc20d579"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kdvp8k1q6",
+          "title": "Moab utah wedding hair and makeup",
+          "type": "Directory",
+          "keywords": [
+            "kdvp8k1q6"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-k4x9htu91",
+          "title": "soft glam vs full glam",
+          "type": "Blog/FAQ",
+          "keywords": [
+            "k4x9htu91"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kl6jxtg7a",
+          "title": "hair and makeup: on location or in a salon",
+          "type": "Directory",
+          "keywords": [
+            "kl6jxtg7a"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kaemu44r8",
+          "title": "mature skin bridal makeup",
+          "type": "Service page",
+          "keywords": [
+            "kaemu44r8"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kfvpmf648",
+          "title": "la caille utah bridal makeup artist",
+          "type": "Directory",
+          "keywords": [
+            "kfvpmf648"
+          ],
+          "note": "",
+          "auto": true
+        },
+        {
+          "id": "p-kikp9eqif",
+          "title": "sundance mountain resort bridal makeup artist",
+          "type": "Directory",
+          "keywords": [
+            "kikp9eqif"
+          ],
+          "note": "",
+          "auto": true
+        }
+      ],
+      "notes": {
+        "intro": "",
+        "closing": ""
+      },
+      "reportedAt": "2026-09-18T14:57:04.171Z"
+    }
+  ]
+}

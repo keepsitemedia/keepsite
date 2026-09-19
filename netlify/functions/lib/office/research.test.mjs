@@ -1,14 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
-  PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
+  PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, describePair, pairKey, pageList, pagesOf, studyView, confidenceWords, titleOf, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
   rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band,
   KINDS, FLOOR, homeAreas, kindOf, decodeCsv, parseVolumeCsv, applyVolume, standingOf,
 } from './research.mjs';
-
-const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
-const dr = (url, title = 'D') => ({ url, title, domain: domainOf(url), pageType: 'Directory', typeSource: 'auto' });
 
 test('normalizeUrl folds the differences Google shows for one page', () => {
   assert.equal(normalizeUrl('https://www.Example.com/Weddings/?utm_source=x&gclid=1#top'), 'example.com/Weddings');
@@ -67,224 +65,6 @@ test('classify follows the rules in order', () => {
   assert.equal(classify({ url: 'garbage', title: '' }, areas), 'Service page');
 });
 
-// Two SERPs sharing seven of eight URLs: the workbook's strong branch.
-const A = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://a${n}.com/p`));
-const B7 = [...A.slice(0, 7), r('https://other.com/p')];
-
-test('comparePair counts like the workbook and reads the strong branch', () => {
-  const c = comparePair(A, B7);
-  assert.equal(c.exactUrl, 7);
-  assert.equal(c.sameDomain, 7);
-  assert.equal(c.sameDomainDifferentPage, 0);
-  assert.equal(c.samePageType, 8);
-  assert.equal(c.signal, 'strong');
-  assert.equal(c.read, 'Strong overlap: very likely the same search intent.');
-  assert.equal(c.action, 'Keep these keywords in the same cluster/page.');
-  assert.equal(c.primaryPage, 'Service page');
-});
-
-test('comparePair gray zone and low, on the business ratio', () => {
-  // x1-x4 are Homepage, tying B4 4-4 against the 4 Service pages carried
-  // over from A: the tiebreaker only fires when a side actually leads, and
-  // this test is about the ratio branch, not page type, so it must stay out
-  // of the way.
-  const B4 = [...A.slice(0, 4), r('https://x1.com', 'Homepage'), r('https://x2.com', 'Homepage'), r('https://x3.com', 'Homepage'), r('https://x4.com', 'Homepage')];
-  const g = comparePair(A, B4);
-  assert.equal(g.signal, 'gray');
-  assert.equal(g.resolvedBy, undefined);
-  assert.equal(g.read, 'GRAY ZONE: some of the same businesses rank for both. Review page types and client priorities.');
-  assert.equal(g.action, 'Discuss on the client call before deciding whether to split.');
-
-  // Same businesses, different pages: five domains match (still counted by
-  // sameDomain, unchanged), but no URL does, so no business counts as shared
-  // and the ratio is 0 — there is no "domain" branch to catch this anymore.
-  const Bd = [1, 2, 3, 4, 5].map((n) => r(`https://a${n}.com/other`)).concat([r('https://y1.com'), r('https://y2.com'), r('https://y3.com')]);
-  const d = comparePair(A, Bd);
-  assert.equal(d.exactUrl, 0);
-  assert.equal(d.sameDomain, 5);
-  assert.equal(d.sameDomainDifferentPage, 5);
-  assert.equal(d.signal, 'low');
-  assert.equal(d.read, 'Low overlap: likely a meaningfully different intent.');
-  assert.equal(d.action, 'Consider separate clusters/pages if page types also differ.');
-
-  const Bn = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://z${n}.com/p`));
-  const l = comparePair(A, Bn);
-  assert.equal(l.read, 'Low overlap: likely a meaningfully different intent.');
-  assert.equal(l.action, 'Consider separate clusters/pages if page types also differ.');
-});
-
-// Ratios, not counts: strip the directories and a SERP may hold only three or
-// four businesses, so "seven of eight" stops meaning anything.
-test('the ladder branches on the share of businesses in common', () => {
-  // A alternates two types in a fixed 3-3 tie, so its leading type is
-  // always 'Tie / review' and the page-type tiebreaker never fires here:
-  // this test is about the ratio ladder alone.
-  const biz = (n, from = 0) => Array.from({ length: n }, (_, i) => r(`https://b${i + from}.com/`, (i + from) % 2 === 0 ? 'Homepage' : 'Service page'));
-  const pair = (shared, total) => comparePair(biz(total), [...biz(shared), ...biz(total - shared, 100)]);
-  assert.equal(pair(6, 6).signal, 'strong');
-  assert.equal(pair(4, 6).signal, 'strong');
-  assert.equal(pair(3, 6).signal, 'gray');
-  assert.equal(pair(2, 6).signal, 'gray');
-  assert.equal(pair(1, 6).signal, 'low');
-  assert.equal(pair(0, 6).signal, 'low');
-});
-
-// The reasoning an owner does by hand: matching SERP shape means one question.
-test('page type resolves a gray pair, in both directions', () => {
-  const at = (type, urls) => urls.map((u) => r(u, type));
-  const same = comparePair(at('Homepage', ['https://a.com/', 'https://b.com/', 'https://x1.com/']), at('Homepage', ['https://a.com/', 'https://c.com/', 'https://x2.com/']));
-  assert.equal(same.signal, 'strong');
-  assert.equal(same.resolvedBy, 'type');
-
-  const differ = comparePair(at('Homepage', ['https://a.com/', 'https://b.com/', 'https://x1.com/']), at('Blog/FAQ', ['https://a.com/', 'https://c.com/', 'https://x2.com/']));
-  assert.equal(differ.signal, 'low');
-  assert.equal(differ.resolvedBy, 'type');
-});
-
-// samePageType saturates and must not be what decides this.
-test('the tiebreaker reads the leading type, not the overlap count', () => {
-  // Only p.com is shared; q/s differ per side, so the business ratio (1 of
-  // 3) lands in the gray band, even though every row's type still turns up
-  // somewhere on the other side, which is what samePageType saturates on.
-  const mixed = (lead, side) => [r('https://p.com/', lead), r(`https://q-${side}.com/`, lead), r(`https://s-${side}.com/`, lead), r('https://z.com/', 'Directory')];
-  const c = comparePair(mixed('Homepage', 'a'), mixed('Blog/FAQ', 'b'));
-  assert.ok(c.samePageType > 0, 'the saturating count still sees a match');
-  assert.equal(c.resolvedBy, 'type');
-  assert.equal(c.signal, 'low', 'but the leading types differ, so the pair separates');
-});
-
-// A directory-heavy field is the normal case for these searches, and the
-// same directories rank on nearly every pair. If the tiebreaker read the raw
-// arrays, 'Directory' would lead both sides of almost every gray pair — the
-// exact constant the ratio was built to strip out — and this pair would
-// wrongly resolve to strong instead of separating on what the businesses do.
-test('the tiebreaker leads on the businesses, not the shared directories', () => {
-  const directories = ['https://yelp.com/a', 'https://angi.com/a', 'https://thumbtack.com/a', 'https://bbb.org/a', 'https://facebook.com/a'].map((u) => dr(u));
-  const a = [...directories, r('https://p.com/', 'Homepage'), r('https://q-a.com/', 'Homepage'), r('https://s-a.com/', 'Homepage')];
-  const b = [...directories, r('https://p.com/', 'Blog/FAQ'), r('https://q-b.com/', 'Blog/FAQ'), r('https://s-b.com/', 'Blog/FAQ')];
-  // The premise the fix addresses: read raw, both sides lead with Directory.
-  assert.equal(primaryPageOf(a), 'Directory');
-  assert.equal(primaryPageOf(b), 'Directory');
-  const c = comparePair(a, b);
-  assert.equal(c.resolvedBy, 'type');
-  assert.equal(c.signal, 'low', 'the businesses lead with different types even though the directories agree');
-});
-
-test('page type cannot move a pair that was not gray', () => {
-  const at = (type, urls) => urls.map((u) => r(u, type));
-  const strong = comparePair(at('Homepage', ['https://a.com/', 'https://b.com/', 'https://c.com/']), at('Blog/FAQ', ['https://a.com/', 'https://b.com/', 'https://c.com/']));
-  assert.equal(strong.signal, 'strong');
-  assert.equal(strong.resolvedBy, undefined);
-});
-
-// Two or three businesses is too little to compute a share of. Saying so is
-// more honest than dressing up noise as a measurement.
-test('a pair with too few businesses is unmeasurable, not low', () => {
-  const biz = (n) => Array.from({ length: n }, (_, i) => r(`https://b${i}.com/`));
-  const c = comparePair(biz(2), biz(2));
-  assert.equal(c.signal, 'unmeasurable');
-  // Asserted on meaning (too few businesses), not on a word like "cannot"
-  // that could vanish with a copy edit and leave this test blind.
-  assert.match(c.read, /too few businesses/i);
-});
-
-test('unmeasurable never groups automatically', () => {
-  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }], serps: {} };
-  const serp = (n) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: Array.from({ length: n }, (_, i) => ({ rank: i + 1, ...r(`https://b${i}.com/`) })), related: [] });
-  round.serps.k1 = serp(2); round.serps.k2 = serp(2);
-  assert.equal(pairs(round)[0].signal, 'unmeasurable');
-  assert.equal(group(round).length, 2, 'two ungrouped keywords, not one page');
-});
-
-test('comparePair names the shared URLs and businesses the counts come from', () => {
-  const B4 = [...A.slice(0, 4), r('https://a5.com/other'), r('https://x2.com'), r('https://x3.com'), r('https://x4.com')];
-  const c = comparePair(A, B4);
-  assert.deepEqual(c.sharedUrls, ['a1.com/p', 'a2.com/p', 'a3.com/p', 'a4.com/p']);
-  assert.deepEqual(c.sharedDomains, ['a1.com', 'a2.com', 'a3.com', 'a4.com', 'a5.com']);
-  assert.deepEqual(comparePair([], []).sharedUrls, []);
-  // Two rows of A under one business still count twice, as in the workbook,
-  // and the business is listed once.
-  const twice = comparePair([r('https://a1.com/p'), r('https://a1.com/q')], [r('https://a1.com/z')]);
-  assert.equal(twice.sameDomain, 2);
-  assert.deepEqual(twice.sharedDomains, ['a1.com']);
-});
-
-test('describePair says what the counts mean in one line', () => {
-  const B4 = [...A.slice(0, 4), r('https://a5.com/other'), r('https://a6.com/other'), r('https://x3.com'), r('https://x4.com')];
-  // Eight businesses each side, four shared exactly, two more sharing a
-  // domain but not a page: the business share, not the raw page count.
-  assert.equal(describePair(comparePair(A, B4), 8), 'Four of eight businesses rank for both, with the same page. Two more businesses rank with a different page for each search. Most results are service pages.');
-  const D = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://d${n}.com/p`, 'Directory'));
-  const one = [D[0], r('https://d2.com/other', 'Directory'), ...[3, 4, 5, 6, 7, 8].map((n) => r(`https://x${n}.com`, 'Directory'))];
-  // Both sides are all directories, so there are zero businesses to compare
-  // and the pair is unmeasurable: the one shared directory is named apart,
-  // never phrased as a share of businesses.
-  assert.equal(describePair(comparePair(D, one), 8), 'Too few businesses rank for these searches to compare them. They also share one directory, which ranks for almost everything in a field. Most results are directories.');
-  const tie = comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]);
-  // One business each side is below MIN_BUSINESSES, so this is unmeasurable
-  // too, even though no directories are involved: the opener states the
-  // effect (too few businesses), never a guessed directory-heavy cause.
-  assert.equal(describePair(tie, 1), 'Too few businesses rank for these searches to compare them. No page type leads on either side.');
-  assert.equal(describePair(comparePair([], []), 0), 'Nothing captured yet.');
-});
-
-test('describePair counts businesses, and names the directories apart', () => {
-  const c = { signal: 'gray', sharedBusinesses: 2, sharedDirectories: 3, denominator: 4, exactUrl: 5, sameDomainDifferentPage: 0, primaryPage: 'Homepage' };
-  const s = describePair(c, 8);
-  assert.match(s, /Two of four businesses/);
-  assert.match(s, /three directories/i);
-});
-
-test('describePair says plainly when it cannot measure', () => {
-  const c = { signal: 'unmeasurable', sharedBusinesses: 1, sharedDirectories: 5, denominator: 2, exactUrl: 6, sameDomainDifferentPage: 0, primaryPage: 'Directory' };
-  const s = describePair(c, 8);
-  assert.match(s, /too few businesses rank for these searches to compare them/i);
-  // No ratio may be quoted from two data points.
-  assert.ok(!/of two businesses/.test(s));
-});
-
-test('describePair does not blame directories when none are shared', () => {
-  // Sparse SERPs with zero directories still land in unmeasurable once
-  // denominator is below MIN_BUSINESSES; the sentence must not assert a
-  // directory-heavy cause it cannot see in this fixture.
-  const c = { signal: 'unmeasurable', sharedBusinesses: 0, sharedDirectories: 0, denominator: 1, exactUrl: 0, sameDomainDifferentPage: 0, primaryPage: 'Service page' };
-  const s = describePair(c, 8);
-  assert.match(s, /too few businesses rank for these searches to compare them/i);
-  assert.ok(!/directory|directories/i.test(s));
-});
-
-test('comparePair primary page is the mode across both lists, tie reviewed, empty blank', () => {
-  const a = [r('https://a.com/', 'Homepage'), r('https://b.com/x', 'Service page')];
-  const b = [r('https://c.com/', 'Homepage'), r('https://d.com/blog', 'Blog/FAQ')];
-  assert.equal(comparePair(a, b).primaryPage, 'Homepage');
-  assert.equal(comparePair([r('https://a.com/', 'Homepage')], [r('https://b.com/x', 'Service page')]).primaryPage, 'Tie / review');
-  assert.equal(comparePair([], []).primaryPage, '');
-  // Zero businesses on each side is zero to divide by, same as too few: unmeasurable, not a verdict of "low".
-  assert.equal(comparePair([], []).read, 'Too few businesses rank for these searches to compare them.');
-});
-
-test('comparePair counts businesses and directories apart', () => {
-  const a = [dr('https://yelp.com/a'), dr('https://weddingwire.com/b'), r('https://one.com/'), r('https://two.com/'), r('https://four.com/')];
-  const b = [dr('https://yelp.com/a'), dr('https://theknot.com/c'), r('https://one.com/'), r('https://two.com/'), r('https://five.com/')];
-  const c = comparePair(a, b);
-  assert.equal(c.sharedBusinesses, 2);
-  assert.equal(c.sharedDirectories, 1);
-  assert.equal(c.businessesA, 3);
-  assert.equal(c.businessesB, 3);
-  assert.equal(c.denominator, 3);
-  assert.equal(Number(c.ratio.toFixed(4)), Number((2 / 3).toFixed(4)));
-  // The old numbers keep their old meanings, directories included.
-  assert.equal(c.exactUrl, 3);
-});
-
-test('comparePair reports a null ratio when there is nothing to divide by', () => {
-  const a = [dr('https://yelp.com/a')];
-  const b = [dr('https://yelp.com/a')];
-  const c = comparePair(a, b);
-  assert.equal(c.denominator, 0);
-  assert.equal(c.ratio, null);
-});
-
 test('pairKey sorts', () => {
   assert.equal(pairKey('k2', 'k1'), 'k1|k2');
 });
@@ -340,255 +120,151 @@ test('openRound is the last round and roundOf finds one by id', () => {
   assert.equal(roundOf(s, 'nope'), undefined);
 });
 
-// Named for what it returns, not what it stands in for: a round fixture,
-// never a study — that conflation is exactly what this design prevents.
-const round = () => {
-  const r0 = {
-    ...emptyRound('r1', new Date('2026-09-13T00:00:00Z')),
-    keywords: [
-      { id: 'k1', text: 'wedding florist provo', cluster: 'Weddings', arm: '', source: 'manual' },
-      { id: 'k2', text: 'provo wedding flowers', cluster: 'Weddings', arm: '', source: 'manual' },
-      { id: 'k3', text: 'funeral flowers provo', cluster: 'Sympathy', arm: '', source: 'manual' },
-      { id: 'k4', text: 'not captured yet', cluster: 'Sympathy', arm: '', source: 'manual' },
-    ],
-  };
-  const cap = (results) => ({ capturedAt: '2026-09-13T01:00:00Z', query: 'q', results, related: [] });
-  r0.serps = { k1: cap(A), k2: cap(B7), k3: cap([1, 2, 3, 4, 5, 6, 7, 8].map((n) => r(`https://f${n}.com/p`))) };
-  return r0;
-};
+test('pageList clusters the free keywords, keeps edited rows first, and decorates every row', () => {
+  const round = roundWith({
+    k1: { text: 'utah bridal makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
+    k2: { text: 'utah wedding makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
+    k3: { text: 'moab utah wedding makeup', urls: ['https://x.com/', 'https://y.com/'] },
+    k4: { text: 'soft glam vs full glam', urls: ['https://p.com/blog/x'] },
+  }, ['Utah', 'Moab']);
+  // Utah is in three of four keywords, so it is the home area and does not
+  // make the head group a location page; Moab is in one and does.
+  let list = pageList(round);
+  assert.deepEqual(list.map((p) => p.keywords), [['k1', 'k2'], ['k3'], ['k4']]);
+  assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Location page', 'Article']);
+  assert.equal(list[0].auto, true);
+  assert.equal(list[0].confidence.level, 'clear');
+  assert.match(list[0].reason, /^Three businesses rank for both/);
+  assert.equal(list[0].standing, 'page');
+  assert.equal(list[0].id, 'p-k1-k2');
+  assert.equal(list[0].title, 'utah bridal makeup');
 
-test('pairs covers captured keywords only and carries the stored read', () => {
-  const r = round();
-  r.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Yes', notes: '' };
-  const p = pairs(r);
-  assert.deepEqual(p.map((x) => x.key), ['k1|k2', 'k1|k3', 'k2|k3']);
-  assert.equal(p[0].signal, 'strong');
-  assert.equal(p[0].read.human, 'Same intent');
-  assert.equal(p[1].read, null);
-});
-
-// A strong pair already has an answer — the signal settled it — so there is
-// no question to ask and decisive is null, not a verdict either way.
-test('a strong pair is not a question', () => {
-  const serp = (urls) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: urls.map((u, i) => ({ rank: i + 1, ...r(u) })), related: [] });
-  const all = ['https://a.com/', 'https://b.com/', 'https://c.com/', 'https://d.com/'];
-  const round = {
-    ...emptyRound('r1'),
-    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }, { id: 'k3', text: 'three', cluster: 'C' }],
-    serps: { k1: serp(all), k2: serp(all), k3: serp(all) },
-  };
-  for (const p of pairs(round)) {
-    assert.equal(p.signal, 'strong', `${p.a.text} · ${p.b.text}`);
-    assert.equal(p.decisive, null, `${p.a.text} · ${p.b.text}`);
-  }
-});
-
-// The real case this feature exists for: a gray pair whose two keywords are
-// already joined through a third, strong on both sides. The owner's answer
-// on A-C cannot change the page list, so it reports false, not null — the
-// question was asked of the signal, and the signal could answer it.
-test('a gray pair already joined through a third keyword is not decisive', () => {
-  const round = {
-    ...emptyRound('r1'),
-    keywords: [{ id: 'k1', text: 'A', cluster: 'C' }, { id: 'k2', text: 'B', cluster: 'C' }, { id: 'k3', text: 'C', cluster: 'C' }],
-    serps: {
-      // A-B: shares p,q of 3 -> 2/3, strong. B-C: shares q,s of 3 -> 2/3, strong.
-      // A-C: shares only q of 3 -> 1/3, gray — but A and C are already one
-      // group via B, so the gray answer changes nothing.
-      k1: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://p.com/', 'Service page') },
-        { rank: 2, ...r('https://q.com/', 'Location page') },
-        { rank: 3, ...r('https://r.com/', 'Homepage') },
-      ] },
-      k2: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://p.com/') },
-        { rank: 2, ...r('https://q.com/') },
-        { rank: 3, ...r('https://s.com/') },
-      ] },
-      k3: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://q.com/') },
-        { rank: 2, ...r('https://s.com/') },
-        { rank: 3, ...r('https://t.com/') },
-      ] },
-    },
-  };
-  const [ab, ac, bc] = pairs(round);
-  assert.equal(ab.signal, 'strong');
-  assert.equal(ab.decisive, null);
-  assert.equal(bc.signal, 'strong');
-  assert.equal(bc.decisive, null);
-  assert.equal(ac.signal, 'gray');
-  assert.equal(ac.decisive, false);
-});
-
-// decisiveFor calls group(), which must not recompute decisive for every
-// other askable pair — that recursion is factorial in the number of
-// simultaneously-gray pairs. Six keywords, all fifteen pairs gray and
-// unread, is the shape that caught it: each keyword shares exactly one
-// business with every other, so every pair sits at the 1/3 gray floor, and
-// mixed page types keep the tiebreaker from resolving any of them away.
-test('many simultaneous gray pairs resolve without recursing', () => {
-  const kw = (n) => ({ id: `k${n}`, text: `kw${n}`, cluster: 'C' });
-  const serpFor = (n) => ({
-    capturedAt: '2026-09-17T00:00:00.000Z',
-    related: [],
-    results: [
-      { rank: 1, ...r('https://shared.com/', 'Service page') },
-      { rank: 2, ...r(`https://u${n}a.com/`, 'Location page') },
-      { rank: 3, ...r(`https://u${n}b.com/`, 'Homepage') },
-    ],
-  });
-  const round = {
-    ...emptyRound('r1'),
-    keywords: [1, 2, 3, 4, 5, 6].map(kw),
-    serps: Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`k${n}`, serpFor(n)])),
-  };
-  const started = Date.now();
-  const rows = pairs(round);
-  const elapsed = Date.now() - started;
-  // The recursion this guards against took 6.4s on four keywords and did not
-  // finish on six. A bound this loose cannot flake, and anything approaching
-  // it means the nesting is back.
-  assert.ok(elapsed < 2000, `pairs() took ${elapsed}ms on six keywords; the decisive probe is recursing again`);
-  assert.equal(rows.length, 15);
-  // Nothing else joins any two of these keywords, so the owner's answer on
-  // any one pair is the only thing that could merge it: every pair decides.
-  for (const p of rows) {
-    assert.equal(p.signal, 'gray', `${p.a.text} · ${p.b.text}`);
-    assert.equal(p.decisive, true, `${p.a.text} · ${p.b.text}`);
-  }
-});
-
-// decisiveFor used to recompute comparePair for every pair, twice, for every
-// askable pair — measured 39ms at 10 keywords but 7.4s at 40, and ~25s on a
-// directory-heavy real study, because comparePair does not depend on reads
-// and was being redone anyway. Same shape as the six-keyword recursion test
-// above, scaled to 40 keywords (780 pairs, all gray, all decisive), which is
-// enough to have caught the old cost but not so much it flakes on a slow CI box.
-test('pairs() computes comparePair once per pair, not once per probe', () => {
-  const kw = (n) => ({ id: `k${n}`, text: `kw${n}`, cluster: 'C' });
-  const serpFor = (n) => ({
-    capturedAt: '2026-09-17T00:00:00.000Z',
-    related: [],
-    results: [
-      { rank: 1, ...r('https://shared.com/', 'Service page') },
-      { rank: 2, ...r(`https://u${n}a.com/`, 'Location page') },
-      { rank: 3, ...r(`https://u${n}b.com/`, 'Homepage') },
-    ],
-  });
-  const ids = Array.from({ length: 40 }, (_, i) => i + 1);
-  const round = {
-    ...emptyRound('r1'),
-    keywords: ids.map(kw),
-    serps: Object.fromEntries(ids.map((n) => [`k${n}`, serpFor(n)])),
-  };
-  const started = Date.now();
-  const rows = pairs(round);
-  const elapsed = Date.now() - started;
-  assert.equal(rows.length, 780);
-  for (const p of rows) {
-    assert.equal(p.signal, 'gray', `${p.a.text} · ${p.b.text}`);
-    assert.equal(p.decisive, true, `${p.a.text} · ${p.b.text}`);
-  }
-  assert.ok(elapsed < 3000, `pairs() took ${elapsed}ms on 40 keywords; comparePair is being recomputed per probe again`);
-});
-
-test('a pair that would split the page list is decisive', () => {
-  // Mixed page types on both sides so there is no leading type to settle the
-  // tie (see comparePair's tiebreaker) and the ratio alone decides: gray.
-  const round = {
-    ...emptyRound('r1'),
-    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }],
-    serps: {
-      k1: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://a.com/', 'Service page') },
-        { rank: 2, ...r('https://b.com/', 'Location page') },
-        { rank: 3, ...r('https://x.com/', 'Homepage') },
-      ] },
-      k2: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://a.com/', 'Service page') },
-        { rank: 2, ...r('https://c.com/', 'Location page') },
-        { rank: 3, ...r('https://y.com/', 'Homepage') },
-      ] },
-    },
-  };
-  const [p] = pairs(round);
-  assert.equal(p.signal, 'gray');
-  assert.equal(p.decisive, true);
-});
-
-// Same pair, same shape, but k1 is now claimed by a hand-edited page. Once
-// pageList sets that page aside, k1 never re-enters grouping — the owner's
-// answer on k1-k2 cannot change the page list either way, so this must
-// report false, not true. Regression test for 22a2dab, which swapped
-// decisiveFor's pageList() calls for groupFrom(), skipping the kept/claimed
-// filtering entirely.
-test('a gray pair is not decisive when one keyword is claimed by a hand-edited page', () => {
-  const round = {
-    ...emptyRound('r1'),
-    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }],
-    serps: {
-      k1: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://a.com/', 'Service page') },
-        { rank: 2, ...r('https://b.com/', 'Location page') },
-        { rank: 3, ...r('https://x.com/', 'Homepage') },
-      ] },
-      k2: { capturedAt: '2026-09-17T00:00:00.000Z', related: [], results: [
-        { rank: 1, ...r('https://a.com/', 'Service page') },
-        { rank: 2, ...r('https://c.com/', 'Location page') },
-        { rank: 3, ...r('https://y.com/', 'Homepage') },
-      ] },
-    },
-    pages: [{ id: 'p9', title: 'Hand-edited', type: 'Service page', keywords: ['k1'], note: 'client asked', auto: false }],
-  };
-  const [p] = pairs(round);
-  assert.equal(p.signal, 'gray');
-  assert.equal(p.decisive, false);
-});
-
-test('a pair that already has a read is not asked about again', () => {
-  const serp = (urls) => ({ capturedAt: '2026-09-17T00:00:00.000Z', results: urls.map((u, i) => ({ rank: i + 1, ...r(u) })), related: [] });
-  const round = {
-    ...emptyRound('r1'),
-    keywords: [{ id: 'k1', text: 'one', cluster: 'C' }, { id: 'k2', text: 'two', cluster: 'C' }],
-    serps: {
-      k1: serp(['https://a.com/', 'https://b.com/', 'https://x.com/']),
-      k2: serp(['https://a.com/', 'https://c.com/', 'https://y.com/']),
-    },
-    reads: { 'k1|k2': { human: 'Same intent', sameCluster: 'Yes', notes: '' } },
-  };
-  assert.equal(pairs(round)[0].decisive, null);
-});
-
-test('group joins strong pairs, honours No and Yes, leaves uncaptured out', () => {
-  const r = round();
-  let g = group(r);
-  assert.deepEqual(g.map((x) => x.keywords), [['k1', 'k2'], ['k3']]);
-  assert.equal(g[0].title, 'wedding florist provo');
-  assert.equal(g[0].type, 'Service page');
-  assert.equal(g[0].auto, true);
-
-  r.reads['k1|k2'] = { human: 'Different intent', sameCluster: 'No', notes: '' };
-  g = group(r);
-  assert.deepEqual(g.map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
-
-  r.reads['k1|k2'] = { human: 'Same intent', sameCluster: 'Undecided', notes: '' };
-  r.reads['k1|k3'] = { human: 'Probably same', sameCluster: 'Yes', notes: '' };
-  g = group(r);
-  assert.deepEqual(g.map((x) => x.keywords), [['k1', 'k2', 'k3']]);
-});
-
-test('pageList keeps an edited row and regroups the rest', () => {
-  const r = round();
-  r.pages = [{ id: 'p9', title: 'Sympathy flowers', type: 'Service page', keywords: ['k3'], note: 'client asked', auto: false }];
-  const list = pageList(r);
-  assert.equal(list.length, 2);
+  round.pages = [{ id: 'p9', title: 'Moab', kind: 'Other', keywords: ['k3', 'k1'], note: 'client asked', auto: false }];
+  list = pageList(round);
   assert.equal(list[0].id, 'p9');
-  assert.deepEqual(list[1].keywords, ['k1', 'k2']);
-  assert.equal(list[1].auto, true);
-  // A keyword claimed by an edited row is not regrouped, even if strong.
-  r.pages = [{ id: 'p9', title: 'One', type: 'Service page', keywords: ['k1'], note: '', auto: false }];
-  assert.deepEqual(pageList(r).map((x) => x.keywords), [['k1'], ['k2'], ['k3']]);
+  assert.deepEqual(list[0].keywords, ['k3', 'k1']);
+  assert.equal(list[0].kind, 'Other', 'the owner\'s kind is kept');
+  assert.equal(list[0].standing, 'page');
+  assert.deepEqual(list.slice(1).map((p) => p.keywords), [['k2'], ['k4']], 'a claimed keyword is not reclustered');
+  assert.equal(list[1].kind, 'Homepage', 'the homepage goes to the largest remaining service group');
+});
+
+test('pageList assigns exactly one Homepage, by volume when volume is loaded', () => {
+  const round = roundWith({
+    k1: { text: 'big', urls: ['https://a.com/'] },
+    k2: { text: 'small', urls: ['https://b.com/'] },
+  });
+  round.keywords[0].volume = { min: 10, max: 10, source: 'csv', at: 'x' };
+  round.keywords[1].volume = { min: 1000, max: 1000, source: 'csv', at: 'x' };
+  const list = pageList(round);
+  assert.deepEqual(list.map((p) => [p.keywords[0], p.kind]), [['k1', 'Service page'], ['k2', 'Homepage']]);
+  round.pages = [{ id: 'p9', title: 'Home', kind: 'Homepage', keywords: ['k1'], note: '', auto: false }];
+  assert.equal(pageList(round).filter((p) => p.kind === 'Homepage').length, 1, 'an edited Homepage is the only one');
+});
+
+test('pageList never recommends a Directory or a tie', () => {
+  const round = roundWith({
+    k1: { urls: ['https://www.yelp.com/search', 'https://www.weddingwire.com/c/ut/x'] },
+    k2: { urls: ['https://www.theknot.com/marketplace/beauty-services-ut'] },
+  });
+  for (const p of pageList(round)) assert.ok(KINDS.includes(p.kind), p.kind);
+});
+
+test('titleOf picks by volume, else the keyword most like the rest', () => {
+  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'edge' }, { id: 'k2', text: 'centre' }, { id: 'k3', text: 'other edge' }] };
+  const sims = { k1: { k1: 1, k2: 0.5, k3: 0 }, k2: { k1: 0.5, k2: 1, k3: 0.5 }, k3: { k1: 0, k2: 0.5, k3: 1 } };
+  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'centre');
+  assert.equal(titleOf(['k3'], round, sims), 'other edge');
+  round.keywords[0].volume = { min: 500, max: 500, source: 'csv', at: 'x' };
+  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'edge');
+});
+
+test('pagesOf reads a closed round from its stored pages and an open one fresh', () => {
+  const open = roundWith({ k1: { urls: ['https://a.com/'] } });
+  assert.equal(pagesOf(open).length, 1);
+  const closed = { ...open, closedAt: '2026-09-18T00:00:00.000Z', pages: [{ id: 'frozen', keywords: ['k1'] }] };
+  assert.deepEqual(pagesOf(closed), [{ id: 'frozen', keywords: ['k1'] }]);
+});
+
+test('studyView orders the matrix page by page and names the blocks', () => {
+  const round = roundWith({
+    k1: { text: 'one', urls: ['https://a.com/'] },
+    k2: { text: 'two', urls: ['https://z.com/'] },
+    k3: { text: 'three', urls: ['https://a.com/'] },
+  });
+  const v = studyView(round);
+  assert.deepEqual(v.order, ['k1', 'k3', 'k2']);
+  assert.deepEqual(v.blocks, [['k1', 'k3'], ['k2']]);
+  assert.equal(v.texts.get('k3'), 'three');
+  assert.ok(v.sims.k1.k3 > 0.99);
+  // A frozen round's blocks follow its stored pages, whatever the engine would say now.
+  const closed = { ...round, closedAt: 'x', pages: [{ id: 'p', keywords: ['k2', 'k1'] }, { id: 'q', keywords: ['k3'] }] };
+  assert.deepEqual(studyView(closed).order, ['k2', 'k1', 'k3']);
+});
+
+test('confidenceWords', () => {
+  const titles = new Map([['p-k3', 'Bridal party']]);
+  assert.equal(confidenceWords({ keywords: ['a', 'b'], confidence: { level: 'clear', near: null } }, titles), 'Clear');
+  assert.equal(confidenceWords({ keywords: ['a'], confidence: { level: 'clear', near: null } }, titles), 'Stands alone');
+  assert.equal(confidenceWords({ keywords: ['a', 'b'], confidence: { level: 'close', near: 'p-k3' } }, titles), 'Close call with Bridal party');
+  assert.equal(confidenceWords({ keywords: ['a'], confidence: { level: 'close', near: 'p-k3' } }, titles), 'Close to Bridal party');
+  assert.equal(confidenceWords({ keywords: ['a'], confidence: undefined }, titles), '');
+});
+
+test('comparePair reports similarity, the businesses that drove it, and the counts the columns light', () => {
+  const round = roundWith({
+    k1: { urls: ['https://rare.com/', 'https://a.com/x', 'https://www.yelp.com/search', 'https://common.com/'] },
+    k2: { urls: ['https://rare.com/', 'https://a.com/y', 'https://www.yelp.com/search', 'https://common.com/'] },
+    k3: { urls: ['https://common.com/'] },
+  });
+  const c = comparePair(round, 'k1', 'k2');
+  assert.ok(c.similarity > 0 && c.similarity < 1);
+  assert.equal(c.shared[0].business, 'rare.com');
+  assert.equal(c.shared[0].sameUrl, true);
+  assert.equal(c.shared.find((x) => x.business === 'a.com').sameUrl, false);
+  assert.ok(c.shared.every((x) => x.business !== 'yelp.com'), 'a directory is not a driver');
+  assert.equal(c.sharedDirectories, 1);
+  assert.equal(c.exactUrl, 3);
+  assert.equal(c.sameDomain, 4);
+  assert.equal(c.sameDomainDifferentPage, 1);
+  assert.deepEqual(c.sharedUrls.sort(), ['common.com', 'rare.com', 'yelp.com/search']);
+  assert.ok(c.sharedDomains.includes('a.com'));
+  assert.equal(typeof c.band, 'number');
+});
+
+test('describePair says alike, close or different, and names directories apart', () => {
+  const alike = { similarity: 0.8, band: 3, shared: [{ business: 'a.com' }, { business: 'b.com' }], sharedDirectories: 2 };
+  assert.equal(describePair(alike), 'Alike enough to share a page: two businesses rank for both, led by a.com and b.com. They also share two directories, which rank for almost everything in a field.');
+  const close = { similarity: 0.15, band: 1, shared: [{ business: 'a.com' }], sharedDirectories: 0 };
+  assert.equal(describePair(close), 'Not alike enough to share a page, but close: one business ranks for both, a.com.');
+  const apart = { similarity: 0, band: 0, shared: [], sharedDirectories: 1 };
+  assert.equal(describePair(apart), 'Different searches: no business ranks for both. They share one directory, which ranks for almost everything in a field.');
+});
+
+test('the Makeup by Brinley study comes out as a site structure, not a pile of singletons', () => {
+  const doc = JSON.parse(readFileSync(new URL('./fixtures/makeup-by-brinley.json', import.meta.url), 'utf8'));
+  const round = openRound(migrateStudy(doc));
+  const list = pageList(round);
+  const texts = new Map(round.keywords.map((k) => [k.text.toLowerCase(), k.id]));
+  const pageOf = (text) => list.find((p) => p.keywords.includes(texts.get(text)));
+  // Real SERPs sit on the smooth 0.2-0.8 ramp the CUT comment warns about,
+  // not the clean 0/0.2 break CUT=0.25 was picked against: this study merges
+  // to 18 pages, not the old ladder's twelve. Left as found, not tuned by
+  // hand here; Task 10's validation script settles where CUT should sit.
+  assert.ok(list.length < round.keywords.length, `some clustering happened, got ${list.length} pages from ${round.keywords.length} keywords`);
+  // Of the three head terms, only the closest two clear the cut; "makeup
+  // artist in utah" sits at 0.12-0.29 similarity to the other two, short of
+  // 0.25, and stays its own page. Same calibration gap as above.
+  assert.equal(pageOf('utah bridal makeup artist'), pageOf('utah wedding makeup artist'), 'the two closest head terms share one page');
+  assert.equal(pageOf('soft glam vs full glam').kind, 'Article');
+  assert.equal(pageOf('hair and makeup: on location or in a salon').kind, 'Article');
+  assert.equal(pageOf('bridal party hair and makeup cost').kind, 'Article');
+  for (const p of list) {
+    assert.ok(KINDS.includes(p.kind), p.kind);
+    assert.ok(p.reason.length > 10);
+    assert.ok(['clear', 'close'].includes(p.confidence.level));
+  }
+  assert.equal(list.filter((p) => p.kind === 'Homepage').length, 1);
 });
 
 test('touch recomputes the open round and leaves closed rounds alone', () => {
@@ -759,17 +435,6 @@ test('classify treats a social profile as a homepage and a post or group as a di
   assert.equal(classify({ url: 'https://www.instagram.com/p/C8xyz/', title: 'A wedding at @lacailleutah' }), 'Directory');
   assert.equal(classify({ url: 'https://www.facebook.com/groups/utahweddings/posts/123/', title: 'Looking for makeup artist suggestions' }), 'Directory');
   assert.equal(classify({ url: 'https://www.reddit.com/r/SaltLakeCity/comments/x/', title: 'Wedding makeup and hair' }), 'Directory');
-});
-
-test('comparePair tells two social profiles apart and counts a shared one as a business', () => {
-  const ig = (h) => r(`https://www.instagram.com/${h}/`, 'Homepage');
-  const a = [ig('diana'), ig('marisa'), r('https://x.com/'), r('https://y.com/'), dr('https://www.weddingwire.com/utah')];
-  const b = [ig('diana'), ig('sarah'), r('https://x.com/'), r('https://z.com/'), dr('https://www.weddingwire.com/utah')];
-  const c = comparePair(a, b);
-  assert.equal(c.businessesA, 4);
-  assert.equal(c.sharedBusinesses, 2, 'diana and x.com, not marisa/sarah');
-  assert.equal(c.sameDomain, 3, 'two profiles on one host are not one business');
-  assert.deepEqual(c.sharedDomains.sort(), ['instagram.com/diana', 'weddingwire.com', 'x.com']);
 });
 
 test('migrateStudy reclassifies auto-typed results with the current rules and leaves edits alone', () => {
