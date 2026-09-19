@@ -240,25 +240,25 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 // the group stands on, in the words the owner would use on a call.
 export function reasonOf(ids, m, nearest = 0) {
   if (ids.length === 1) {
-    if (nearest > 0) return 'The businesses that rank here mostly rank for nothing else in the study.';
+    if (nearest > 0) return 'This search shares a few results with others on your list, but not enough to share a page.';
     // Similarity ignores zero-weight columns, so a keyword whose only overlap
     // with the study is a listing site scores zero and would otherwise be
     // called wholly alone when it is not.
     const [id] = ids;
     const listings = Object.keys(m.cells[id] ?? {}).some((b) => (m.weight[b] ?? 0) === 0
       && m.keywords.some((k) => k.id !== id && m.cells[k.id]?.[b]));
-    return listings ? 'Only listing sites rank here alongside the rest of the study, and those rank for almost everything.'
-      : 'No business that ranks here ranks for anything else in the study.';
+    return listings ? 'The only results this shares with the rest of your list are listing sites, which show up for almost everything, so it needs a page of its own.'
+      : 'Nothing else on your list brings up the same businesses, so this search needs a page of its own.';
   }
   const shared = m.businesses
     .filter((b) => (m.weight[b] ?? 0) > 0 && ids.every((id) => m.cells[id]?.[b]))
     .map((b) => ({ b, load: m.weight[b] * Math.min(...ids.map((id) => m.cells[id][b].w)) }))
     .sort((x, y) => y.load - x.load || x.b.localeCompare(y.b));
-  const all = ids.length === 2 ? 'both' : `all ${word(ids.length)}`;
-  if (!shared.length) return `No single business ranks for ${all}; they are joined by the businesses most of them share.`;
-  if (shared.length === 1) return `One business ranks for ${all}, ${shared[0].b}.`;
+  const these = ids.length === 2 ? 'both of these' : 'all of these';
+  if (!shared.length) return 'No single business comes up for every one of these, but most of them bring up the same names, so one page answers them all.';
+  if (shared.length === 1) return `One business, ${shared[0].b}, comes up for all of these, and the rest of the results overlap enough to share a page.`;
   const led = shared.slice(0, 2).map((x) => x.b).join(' and ');
-  return `${cap(word(shared.length))} businesses rank for ${all}, led by ${led}.`;
+  return `${cap(word(shared.length))} of the same businesses come up for ${these}, led by ${led}, so one page answers them all.`;
 }
 
 export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');

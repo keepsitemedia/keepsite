@@ -388,7 +388,7 @@ test('pageList clusters the free keywords, keeps edited rows first, and decorate
   assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Location page', 'Article']);
   assert.equal(list[0].auto, true);
   assert.equal(list[0].confidence.level, 'clear');
-  assert.match(list[0].reason, /^Three businesses rank for both/);
+  assert.match(list[0].reason, /^Three of the same businesses come up for both of these/);
   assert.equal(list[0].standing, 'page');
   assert.equal(list[0].id, 'p-k1-k2');
   assert.equal(list[0].title, 'utah bridal makeup');
@@ -706,10 +706,10 @@ test('reasonOf names the heaviest shared businesses first and says when nothing 
   });
   const m = matrix(round);
   const text = reasonOf(['k1', 'k2'], m, 0);
-  assert.match(text, /^Three businesses rank for both, led by rare\.com and also\.com\./);
-  assert.equal(reasonOf(['k4'], m, 0), 'No business that ranks here ranks for anything else in the study.');
-  assert.equal(reasonOf(['k4'], m, 0.1), 'The businesses that rank here mostly rank for nothing else in the study.');
-  assert.match(reasonOf(['k1', 'k2', 'k3'], m, 0), /^One business ranks for all three, common\.com\./);
+  assert.match(text, /^Three of the same businesses come up for both of these, led by rare\.com and also\.com,/);
+  assert.equal(reasonOf(['k4'], m, 0), 'Nothing else on your list brings up the same businesses, so this search needs a page of its own.');
+  assert.equal(reasonOf(['k4'], m, 0.1), 'This search shares a few results with others on your list, but not enough to share a page.');
+  assert.match(reasonOf(['k1', 'k2', 'k3'], m, 0), /^One business, common\.com, comes up for all of these,/);
 });
 
 // A directory column weighs nothing, so similarity cannot see it: a keyword
@@ -722,9 +722,9 @@ test('reasonOf tells a singleton joined only by listing sites from one joined by
     k3: { urls: ['https://solo.com/'] },
   });
   const m = matrix(round);
-  assert.equal(reasonOf(['k1'], m, 0), 'Only listing sites rank here alongside the rest of the study, and those rank for almost everything.');
-  assert.equal(reasonOf(['k3'], m, 0), 'No business that ranks here ranks for anything else in the study.');
-  assert.equal(reasonOf(['k1'], m, 0.1), 'The businesses that rank here mostly rank for nothing else in the study.');
+  assert.equal(reasonOf(['k1'], m, 0), 'The only results this shares with the rest of your list are listing sites, which show up for almost everything, so it needs a page of its own.');
+  assert.equal(reasonOf(['k3'], m, 0), 'Nothing else on your list brings up the same businesses, so this search needs a page of its own.');
+  assert.equal(reasonOf(['k1'], m, 0.1), 'This search shares a few results with others on your list, but not enough to share a page.');
 });
 
 // Three keywords joined pairwise and never all at once: the group stands on
@@ -736,7 +736,7 @@ test('reasonOf says when no single business ranks for every member', () => {
     k3: { urls: ['https://c.com/', 'https://a.com/'] },
   });
   const m = matrix(round);
-  assert.equal(reasonOf(['k1', 'k2', 'k3'], m, 0), 'No single business ranks for all three; they are joined by the businesses most of them share.');
+  assert.equal(reasonOf(['k1', 'k2', 'k3'], m, 0), 'No single business comes up for every one of these, but most of them bring up the same names, so one page answers them all.');
 });
 
 test('band cuts similarity into none, faint, some, most', () => {

@@ -47,7 +47,7 @@ test('the report text covers every section', async () => {
   s = applyCapture(s, 'k1', { q: 'wedding florist provo', results: [r('https://a1.com/p')], related: [] });
   const lines = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const text = lines.map((l) => l.text ?? l.rows?.flat().join(' ')).join('\n');
-  for (const needle of ['Search research', 'Acme Florist', 'How we did it', 'Your pages', 'wedding florist provo', 'Where we used judgement', 'what we saw', 'Appendix', 'a1.com']) {
+  for (const needle of ['Search research', 'Acme Florist', 'How we worked this out', "The pages we'll build", 'wedding florist provo', 'Where we made a call', 'what we saw', 'Appendix', 'a1.com']) {
     assert.ok(text.includes(needle), `missing ${needle}`);
   }
 });
@@ -60,9 +60,9 @@ test('the header names the round so two rounds are not confused', () => {
   const closedHeader = reportLines({ client, round: closed, renderedAt })[1].text;
   assert.notEqual(openHeader, closedHeader, 'two rounds rendered on the same day print different headers');
   assert.ok(openHeader.includes('Sep 12'), "names the open round's start");
-  assert.ok(!openHeader.includes('closed'), 'an open round does not claim to be closed');
+  assert.ok(!openHeader.includes('finished'), 'an open round does not claim to be finished');
   assert.ok(closedHeader.includes('Jan 4'), "names the closed round's start");
-  assert.ok(closedHeader.includes('closed'), 'names the closed round as closed');
+  assert.ok(closedHeader.includes('finished'), 'names the closed round as finished');
   assert.ok(closedHeader.includes('Feb 9'), "names the closed round's close date");
 });
 
@@ -72,7 +72,7 @@ test('the notes bracket the findings and empty ones print nothing', () => {
   const texts = L.map((x) => x.text ?? '');
   const intro = texts.indexOf('Why we looked.');
   const closing = texts.indexOf('What to do.');
-  const findings = texts.findIndex((t) => t === 'Your pages');
+  const findings = texts.findIndex((t) => t === "The pages we'll build");
   const appendix = texts.findIndex((t) => t.startsWith('Appendix'));
   assert.ok(intro > -1 && findings > -1 && intro < findings, 'intro prints before the findings');
   // The closing note is the owner's last word to the client, so it prints
@@ -100,11 +100,11 @@ const study = () => {
 };
 const words = (L) => L.map((l) => l.text ?? l.rows?.flat().join(' ') ?? '').join('\n');
 
-test('page one leads with the numbers and the grid, then the pages with their reasons', () => {
+test('page one leads with the numbers and the pages, and the grid waits behind the stop line', () => {
   const L = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const kinds = L.map((x) => x.kind);
   const stats = L.find((x) => x.kind === 'stats');
-  assert.deepEqual(stats.items, [['3', 'searches'], ['2', 'pages']], 'no third stat until volume is loaded');
+  assert.deepEqual(stats.items, [['3', 'searches we looked at'], ['2', "pages we'll build"]], 'no third stat until volume is loaded');
   const grid = L.find((x) => x.kind === 'grid');
   assert.deepEqual(grid.labels.length, 3);
   assert.deepEqual(grid.blocks, [2, 1]);
@@ -112,18 +112,26 @@ test('page one leads with the numbers and the grid, then the pages with their re
   assert.ok(grid.bands[0][1] >= 2, 'the alike pair is shaded');
   assert.equal(grid.bands[0][2], 0, 'the unlike pair is not');
   const texts = L.map((x) => x.text ?? '');
-  const pages = texts.indexOf('Your pages');
+  const pages = texts.indexOf("The pages we'll build");
   const stop = texts.findIndex((t) => t.startsWith('You can stop here'));
+  const method = texts.indexOf('How we worked this out');
   const appendix = texts.findIndex((t) => t.startsWith('Appendix'));
-  assert.ok(kinds.indexOf('stats') < kinds.indexOf('grid') && kinds.indexOf('grid') < pages, 'numbers, grid, pages');
+  assert.ok(kinds.indexOf('stats') < pages, 'the numbers come before the page list');
   assert.ok(pages < stop && stop < appendix);
+  assert.ok(stop < kinds.indexOf('grid') && kinds.indexOf('grid') < method, 'the grid sits between the stop line and the method');
   assert.ok(!kinds.includes('bars'), 'the bar chart is gone');
-  assert.match(words(L), /businesses rank for both, led by/);
-  assert.match(words(L), /Homepage|Service page/);
+  assert.match(words(L), /of the same businesses come up for both of these, led by/);
+  assert.match(words(L), /your homepage|a service page/);
   assert.ok(!/Directory/.test(words(L).split('Appendix')[0]), 'no page kind Directory before the appendix');
 });
 
-test('the grid moves to the appendix past thirty keywords', () => {
+test('the caption counts the page bands in the grid', () => {
+  const L = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const caption = L.map((x) => x.text ?? '').find((t) => t.includes('bands'));
+  assert.match(caption, /split into 2 bands, one per page/);
+});
+
+test('a study too wide for page one keeps the grid where every other study has it', () => {
   let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
   const ids = Array.from({ length: 31 }, (_, i) => `k${i}`);
   s.rounds[0] = { ...s.rounds[0], keywords: ids.map((id) => ({ id, text: `search ${id}`, cluster: '', arm: '', source: 'manual' })) };
@@ -131,15 +139,15 @@ test('the grid moves to the appendix past thirty keywords', () => {
   const L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const kinds = L.map((x) => x.kind);
   const texts = L.map((x) => x.text ?? '');
-  assert.ok(kinds.indexOf('grid') > texts.findIndex((t) => t.startsWith('Appendix')), 'grid sits in the appendix');
-  assert.ok(texts.some((t) => /grid is in the appendix/i.test(t)), 'page one says so');
+  assert.ok(kinds.indexOf('grid') > texts.findIndex((t) => t.startsWith('You can stop here')), 'the grid still waits behind the stop line');
+  assert.ok(!texts.some((t) => /appendix/i.test(t) && /grid/i.test(t)), 'nothing sends the reader to an appendix for it');
 });
 
 test('the method paragraph explains rarity and volume, and the directories paragraph is gone', () => {
   const L = reportLines({ client, round: { ...emptyRound('r1'), keywords: [], serps: {} }, renderedAt: new Date('2026-09-18T00:00:00Z') });
   const w = words(L);
-  assert.match(w, /A business that ranks for nearly every search in your field/);
-  assert.match(w, /Search volume tells us which pages are worth building at all/);
+  assert.match(w, /Listing sites and big names that appear for nearly everything tell us little/);
+  assert.match(w, /Google's own search numbers tell us which pages are worth building at all/);
   assert.ok(!/Directory sites/.test(w));
   assert.ok(!/Seven or more shared results/.test(w));
   assert.ok(!/We compare the individual businesses instead/.test(w));
@@ -148,7 +156,7 @@ test('the method paragraph explains rarity and volume, and the directories parag
 test('judgement lists the edited pages with their notes, and says so when there are none', () => {
   const s = study();
   let L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
-  assert.match(words(L), /The businesses settled every page without a judgement call\./);
+  assert.match(words(L), /The search results settled every page on their own\. Nothing here needed a call from us\./);
   s.rounds[0] = { ...s.rounds[0], pages: [{ id: 'p9', title: 'Sympathy', kind: 'Service page', keywords: ['k3'], note: 'Owner wants this separate.', auto: false }] };
   L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const table = L.find((x) => x.kind === 'table' && x.rows[0][0] === 'Page');
@@ -156,22 +164,26 @@ test('judgement lists the edited pages with their notes, and says so when there 
   assert.deepEqual(table.rows[1], ['Sympathy', 'funeral flowers provo', 'Owner wants this separate.']);
 });
 
-test('not built for appears only with volume, and a close call is explained', () => {
+test('the searches left out appear only with volume, and a close call is explained', () => {
   const s = study();
+  // The intro names the section in quotes whatever happens, so the heading
+  // itself is what says whether the section printed.
+  const heading = (L) => L.some((x) => x.kind === 'h2' && x.text === "Searches we're leaving out");
   let L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
-  assert.ok(!/Not built for/.test(words(L)));
+  assert.ok(!heading(L));
   // The two wedding searches share one page, so the page set aside holds two
   // searches and the stat counts searches, not pages.
   s.rounds[0].keywords = s.rounds[0].keywords.map((k) => ({ ...k, volume: { min: 0, max: k.id === 'k3' ? 500 : 0, source: 'csv', at: 'x' } }));
   L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const w = words(L);
-  assert.match(w, /Not built for/);
-  const setAside = L.map((x) => x.text ?? '').find((t) => /searched too rarely to build for/.test(t));
+  assert.ok(heading(L));
+  const setAside = L.map((x) => x.text ?? '').find((t) => /too few people search for these each month/.test(t));
   assert.match(setAside, /wedding florist provo/);
   assert.match(setAside, /provo wedding flowers/);
+  assert.match(setAside, /too few for Google to count/, 'a search Google cannot count says so');
   const stats = L.find((x) => x.kind === 'stats');
-  assert.deepEqual(stats.items[2], ['2', 'searches not worth a page']);
-  assert.match(w, /0 – 500|0–500|0 to 500/, 'volume ranges print beside the searches');
+  assert.deepEqual(stats.items[2], ['2', "searches we're leaving out"]);
+  assert.match(w, /0 to 500 a month/, 'volume ranges print beside the searches');
 });
 
 // The tab and the report have to agree about a close call, and the report is
@@ -183,7 +195,7 @@ test('a close call names the page it could have joined', () => {
     { id: 'p-sympathy', title: 'Funeral flowers', kind: 'Service page', keywords: ['k3'], confidence: { level: 'close', near: 'p-weddings' }, reason: 'The businesses that rank here mostly rank for nothing else in the study.', standing: 'page', note: '', auto: true },
   ] };
   const w = words(reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') }));
-  assert.match(w, /This one could also sit with Wedding flowers; the businesses differ enough to keep it apart\./);
+  assert.match(w, /This one is close to Wedding flowers\. If you'd rather have one page instead of two, say so and we'll merge them\./);
 });
 
 test('a closed round reports its stored pages, not a fresh clustering', () => {
@@ -194,7 +206,7 @@ test('a closed round reports its stored pages, not a fresh clustering', () => {
   ] };
   const L = reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') });
   assert.match(words(L), /Frozen reason\./);
-  assert.deepEqual(L.find((x) => x.kind === 'stats').items[1], ['1', 'page']);
+  assert.deepEqual(L.find((x) => x.kind === 'stats').items[1], ['1', "page we'll build"]);
 });
 
 test('the PDF writer draws a grid', async () => {
