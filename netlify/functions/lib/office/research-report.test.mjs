@@ -204,6 +204,9 @@ test('a Planner number is said as a rounded one', () => {
   };
   assert.match(said({ min: 210, max: 210, source: 'planner', at: 'x' }), /around 210 a month; Google rounds these/);
   assert.match(said({ min: 100, max: 1000, source: 'planner', at: 'x' }), /100 to 1000 a month/);
+  const bucket = said({ min: 10, max: 100, source: 'planner', at: 'x' });
+  assert.match(bucket, /10 to 100 a month/, "Planner's bucket is printed as the range it is");
+  assert.ok(!/Google rounds these/.test(bucket), 'a range already says it is rounded');
   assert.match(said({ min: 0, max: 0, source: 'none', at: 'x' }), /too few for Google to count/);
   assert.match(said({ min: 5, max: 5, source: 'planner', at: 'x' }), /under 10 a month/);
 });
@@ -264,11 +267,12 @@ test('a mutual split prints one row, from the smaller page', () => {
   assert.deepEqual(table.rows[1], ['Funeral flowers', 'Wedding flowers', 'We kept it separate: it wants a different kind of page']);
 });
 
-test('a location page says why it stands', () => {
-  const round = { ...openRound(study()), pages: [
-    { id: 'p1', title: 'Moab', kind: 'Location page', keywords: ['k1'], confidence: { level: 'clear', near: null }, reason: 'Nothing else brings up the same businesses.', standing: 'page', standingWhy: 'place', note: '', auto: true },
-  ], closedAt: '2026-09-14T00:00:00.000Z' };
-  assert.match(words(reportLines({ client, round, renderedAt: new Date('2026-09-20T00:00:00Z') })), /Worth a page for the place, whatever the search numbers say\./);
+test('a page kept for the place or for the intent says which', () => {
+  const page = (standingWhy) => ({ ...openRound(study()), closedAt: '2026-09-14T00:00:00.000Z', pages: [
+    { id: 'p1', title: 'Moab', kind: 'Location page', keywords: ['k1'], confidence: { level: 'clear', near: null }, reason: 'Nothing else brings up the same businesses.', standing: 'page', standingWhy, note: '', auto: true },
+  ] });
+  assert.match(words(reportLines({ client, round: page('place'), renderedAt: new Date('2026-09-20T00:00:00Z') })), /Worth a page for the place, whatever the search numbers say\./);
+  assert.match(words(reportLines({ client, round: page('intent'), renderedAt: new Date('2026-09-20T00:00:00Z') })), /Worth a page because people searching this are ready to book, whatever the search numbers say\./);
 });
 
 test('a closed round reports its stored pages, not a fresh clustering', () => {

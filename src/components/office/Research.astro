@@ -5,7 +5,7 @@
 // study matrix opens the compare page, where the two result lists are.
 import Mark from './Mark.astro';
 import StudyMatrix from './StudyMatrix.astro';
-import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, KINDS, PAGE_TYPES, FLOOR, keptApartWords, keptApartPairs, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import { bookmarklet, pageList, studyView, suggestedSearches, confidenceWords, KINDS, PAGE_TYPES, FLOOR, keptApartWords, keptApartPairs, standingWhyWords, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -263,7 +263,7 @@ const external = (href: string) => href.startsWith('http');
           <span class="title">{p.title}</span><span class="meta"> · {p.auto ? confidenceWords(p, titles) : 'Edited'}</span>
           {p.keywords.length > 1 && <span class="meta line">{p.keywords.map((id: string) => `${text(id)}${vol(byId.get(id)) ? ` (${vol(byId.get(id))})` : ''}`).join(' · ')}</span>}
           {p.reason && <span class="meta line">{p.reason}</span>}
-          {p.standingWhy === 'place' && <span class="meta line">Worth a page for the place, whatever the search numbers say.</span>}
+          {p.standingWhy && <span class="meta line">{standingWhyWords(p)}</span>}
           {(p.folded ?? []).map((f: any) => (
             <span class="meta line">Folded in: {f.title}
               <form method="POST" action={api} class="inline">

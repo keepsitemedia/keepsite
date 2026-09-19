@@ -501,8 +501,24 @@ test('a close call of the same kind folds into the page it is close to', () => {
   assert.equal(list.length, 1, 'two close calls come out as one page');
   const [row] = list;
   assert.deepEqual(row.keywords.slice().sort(), ['kx', 'ky']);
-  assert.deepEqual(row.folded.map((f) => [f.title, f.into, f.keywords]), [['edited', 'clustered', ['kx']]]);
+  assert.deepEqual(row.folded.map((f) => [f.title, f.into, f.keywords]), [['clustered', 'edited', ['ky']]]);
   assert.equal(row.keptApart, undefined);
+});
+
+// A head group of nine searches does not disappear into the one search that
+// happened to sit beside it, whichever of the two names the other first.
+test('a fold moves the smaller page into the larger, never the reverse', () => {
+  const round = roundWith({
+    g1: { text: 'head one', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'] },
+    g2: { text: 'head two', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'] },
+    s1: { text: 'the singleton', urls: ['https://a.com/', 'https://c1.com/', 'https://c2.com/', 'https://c3.com/'] },
+  });
+  const list = pageList(round);
+  assert.equal(list.length, 1);
+  const [row] = list;
+  assert.equal(row.title, 'head one', 'the group keeps its own title');
+  assert.deepEqual(row.keywords, ['g1', 'g2', 's1']);
+  assert.deepEqual(row.folded.map((f) => f.title), ['the singleton']);
 });
 
 // The page answers more searches than its reason was written for, and the
@@ -519,9 +535,9 @@ test('a close call of a different kind is kept apart and says which page from', 
   const list = pageList(round);
   assert.equal(list.length, 2, 'an article and a service page are different kinds of page');
   assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Article']);
-  assert.equal(list[0].keptApart, 'soft glam vs full glam');
-  assert.equal(list[0].keptApartWhy, 'kind');
+  assert.equal(list[0].keptApart, undefined, 'the pair is one decision, said once');
   assert.equal(list[1].keptApart, 'edited');
+  assert.equal(list[1].keptApartWhy, 'kind');
   assert.ok(list.every((p) => p.folded === undefined));
 });
 
@@ -547,8 +563,8 @@ test('a close call that draws enough searches of its own keeps its page', () => 
   for (const k of round.keywords) k.volume = { min: OWN_PAGE_VOLUME, max: OWN_PAGE_VOLUME, source: 'planner', at: 'x' };
   const list = pageList(round);
   assert.equal(list.length, 2);
-  assert.equal(list[0].keptApart, 'clustered');
-  assert.equal(list[0].keptApartWhy, 'volume');
+  assert.equal(list[1].keptApart, 'edited');
+  assert.equal(list[1].keptApartWhy, 'volume');
   round.keywords.forEach((k) => { k.volume = { min: 0, max: OWN_PAGE_VOLUME - 1, source: 'planner', at: 'x' }; });
   assert.equal(pageList(round).length, 1, 'one search short of the threshold folds in');
 });
@@ -693,7 +709,7 @@ test('the Makeup by Brinley study comes out as a site structure, not a pile of s
   // Pinned to CUT = 0.12 and OWN_PAGE_VOLUME on this fixture: the cut says what
   // clusters, the fold rule says which close call keeps a page of its own.
   // Update together with either.
-  assert.equal(list.length, 11);
+  assert.equal(list.length, 10);
   const head = ['utah bridal makeup artist', 'utah wedding makeup artist', 'wedding hair and makeup utah', 'utah bridal hair and makeup artist'].map(at);
   assert.equal(new Set(head).size, 1, 'the head terms share one page');
   assert.equal(at('bridal party makeup'), at('bridal party hair and makeup package'), 'the bridal party pair shares one page');
@@ -983,6 +999,24 @@ test('parseVolumeCsv reads a Keyword Planner export with a preamble, tabs, range
   ]);
 });
 
+// Planner's file writes 50 where its screen shows "10 - 100": one number,
+// because a cell holds one, and the monthly columns left empty because it has
+// no month-by-month figures to give.
+test('parseVolumeCsv reads a Planner stand-in as the bucket it stands for', () => {
+  const planner = (avg, months = ['', '', '']) => [
+    'Keyword Stats 2026-09-19',
+    'Sep 1, 2025 - Aug 31, 2026',
+    'Keyword\tAvg. monthly searches\tCompetition\tSearches: Sep 2025\tSearches: Oct 2025\tSearches: Nov 2025',
+    ['bridal makeup', avg, 'Low', ...months].join('\t'),
+  ].join('\r\n');
+  assert.deepEqual(parseVolumeCsv(planner('50')).rows, [{ keyword: 'bridal makeup', min: 10, max: 100 }]);
+  assert.deepEqual(parseVolumeCsv(planner('5')).rows, [{ keyword: 'bridal makeup', min: 0, max: 10 }]);
+  assert.deepEqual(parseVolumeCsv(planner('500000')).rows, [{ keyword: 'bridal makeup', min: 100000, max: 1000000 }]);
+  assert.deepEqual(parseVolumeCsv(planner('210')).rows, [{ keyword: 'bridal makeup', min: 210, max: 210 }], 'a number that is not a stand-in is a number');
+  assert.deepEqual(parseVolumeCsv(planner('50', ['40', '60', '50'])).rows, [{ keyword: 'bridal makeup', min: 50, max: 50 }], 'a row Planner could count month by month is a count');
+  assert.deepEqual(parseVolumeCsv('keyword,volume\nbridal makeup,50\n').rows, [{ keyword: 'bridal makeup', min: 50, max: 50 }], 'a plain file is not Planner');
+});
+
 test('parseVolumeCsv reads a plain two-column file and refuses one with no keyword column', () => {
   assert.deepEqual(parseVolumeCsv('keyword,volume\nbridal makeup,"1,200"\nmakeup,\n').rows, [
     { keyword: 'bridal makeup', min: 1200, max: 1200 },
@@ -1042,23 +1076,42 @@ test('standingOf: under the floor is low, unknown is never zero', () => {
 
 // Nobody searches a town's name often, and the page is how the site says the
 // business works there.
-test('a location page stands whatever its search numbers say', () => {
+test('a location page and a price stand whatever the search numbers say', () => {
   const round = roundWith({
     k1: { text: 'moab wedding makeup', urls: ['https://a.com/'] },
     k2: { text: 'mature skin bridal makeup', urls: ['https://b.com/'] },
+    k3: { text: 'bridal makeup packages', urls: ['https://c.com/'] },
+    k4: { text: 'how much is bridal makeup', urls: ['https://d.com/'] },
   }, ['Moab']);
   for (const k of round.keywords) k.volume = { min: 0, max: 1, source: 'planner', at: 'x' };
   const list = pageList(round);
-  const moab = list.find((p) => p.keywords.includes('k1'));
-  const other = list.find((p) => p.keywords.includes('k2'));
-  assert.equal(moab.kind, 'Location page');
-  assert.equal(moab.standing, 'page');
-  assert.equal(moab.standingWhy, 'place');
-  assert.equal(other.standing, 'low', 'a service page with the same volumes is set aside');
-  assert.equal(other.standingWhy, undefined);
-  // A location page Planner can see says nothing about the place rule.
+  const page = (id) => list.find((p) => p.keywords.includes(id));
+  assert.equal(page('k1').kind, 'Location page');
+  assert.equal(page('k1').standing, 'page');
+  assert.equal(page('k1').standingWhy, 'place');
+  assert.equal(page('k3').standing, 'page');
+  assert.equal(page('k3').standingWhy, 'intent', 'someone searching a package is ready to book');
+  assert.equal(page('k4').standingWhy, 'intent');
+  assert.equal(page('k2').standing, 'low', 'a plain service page with the same volumes is set aside');
+  assert.equal(page('k2').standingWhy, undefined);
+  // A page Planner can see says nothing about either rule.
   round.keywords[0].volume = { min: 0, max: 900, source: 'planner', at: 'x' };
-  assert.equal(pageList(round).find((p) => p.keywords.includes('k1')).standingWhy, undefined);
+  round.keywords[2].volume = { min: 0, max: 900, source: 'planner', at: 'x' };
+  const seen = pageList(round);
+  assert.equal(seen.find((p) => p.keywords.includes('k1')).standingWhy, undefined);
+  assert.equal(seen.find((p) => p.keywords.includes('k3')).standingWhy, undefined);
+});
+
+// Both rules at once: the place is the one the client hears.
+test('a location page that also names a price says place', () => {
+  const round = roundWith({
+    k1: { text: 'bridal makeup', urls: ['https://z.com/'] },
+    k2: { text: 'moab bridal makeup cost', urls: ['https://a.com/'] },
+  }, ['Moab']);
+  for (const k of round.keywords) k.volume = { min: 0, max: 1, source: 'planner', at: 'x' };
+  const row = pageList(round).find((p) => p.keywords.includes('k2'));
+  assert.equal(row.kind, 'Location page');
+  assert.equal(row.standingWhy, 'place');
 });
 
 // Volume sets aside what the engine grouped; the owner pinning a page is a

@@ -362,6 +362,16 @@ const range = (s) => {
   return lo == null || hi == null ? null : { min: lo, max: hi };
 };
 
+// Planner's screen shows a range and its file has one cell to say it in, so it
+// writes the middle of the bucket and leaves the month columns empty. The
+// bucket is what Google measured; the single number is only how it fits in a
+// cell, and reading it as a count is how a client ends up told that 50 people
+// a month search something Google never counted more precisely than 10 to 100.
+const BUCKETS = new Map([
+  [5, { min: 0, max: 10 }], [50, { min: 10, max: 100 }], [500, { min: 100, max: 1000 }],
+  [5000, { min: 1000, max: 10000 }], [50000, { min: 10000, max: 100000 }], [500000, { min: 100000, max: 1000000 }],
+]);
+
 export function parseVolumeCsv(text) {
   const lines = String(text ?? '').split(/\r?\n/).filter((l) => l.trim());
   if (!lines.length) return { rows: [], error: 'the file is empty' };
@@ -376,6 +386,11 @@ export function parseVolumeCsv(text) {
   const avg = col('avg. monthly searches', 'volume', 'searches', 'search volume');
   const lo = col('min search volume');
   const hi = col('max search volume');
+  const monthly = header.map((h, i) => (h.startsWith('searches:') ? i : -1)).filter((i) => i >= 0);
+  // Only Planner's own column is read as a bucket; a hand-made file's number
+  // is whatever its author meant, and a file that carries the bounds has
+  // already said the range itself.
+  const bucketed = header.indexOf('avg. monthly searches') >= 0 && (lo < 0 || hi < 0);
   if (avg < 0 && (lo < 0 || hi < 0)) return { rows: [], error: 'no volume column found: expected Avg. monthly searches, Min/Max search volume, or volume' };
   const rows = [];
   for (const line of lines.slice(headerAt + 1)) {
@@ -385,7 +400,8 @@ export function parseVolumeCsv(text) {
     const single = avg >= 0 ? num(cells[avg]) : null;
     const spread = avg >= 0 ? range(cells[avg]) : null;
     const bounds = lo >= 0 && hi >= 0 && num(cells[lo]) != null && num(cells[hi]) != null ? { min: num(cells[lo]), max: num(cells[hi]) } : null;
-    const v = single != null ? { min: single, max: single } : spread ?? bounds;
+    let v = single != null ? { min: single, max: single } : spread ?? bounds;
+    if (v && single != null && bucketed && BUCKETS.has(single) && monthly.every((i) => !String(cells[i] ?? '').trim())) v = BUCKETS.get(single);
     if (v) rows.push({ keyword, ...v });
   }
   return { rows, error: null };
@@ -498,10 +514,24 @@ export function confidenceWords(row, titles) {
 
 const rowId = (ids) => `p-${ids.slice().sort().join('-')}`;
 
-// A town is worth a page for being a town. Nobody searches a place name often,
-// so volume would set aside exactly the pages that say where the business
-// works; the page is the answer to "do you come to us", not a traffic bet.
-const placePage = (kind, ids, round) => kind === 'Location page' && standingOf(ids, round) === 'low';
+// Someone typing a price is at the end of their search, not the start.
+const INTENT = /(^|[^a-z0-9])(cost|costs|price|prices|pricing|package|packages|how much)($|[^a-z0-9])/i;
+
+// Two pages are worth building whatever Planner says: the one that names a
+// place, and the one people reach when they are ready to book. Nobody searches
+// either often, so the floor would set aside exactly the pages that answer "do
+// you come to us" and "what does it cost".
+function standingWhyOf(kind, ids, round) {
+  if (standingOf(ids, round) !== 'low') return null;
+  if (kind === 'Location page') return 'place';
+  const byId = new Map(round.keywords.map((k) => [k.id, k]));
+  return ids.some((id) => INTENT.test(byId.get(id)?.text ?? '')) ? 'intent' : null;
+}
+
+// Why that page stands, in the words the tab and the report both say it in.
+export const standingWhyWords = (row) => (row?.standingWhy === 'intent'
+  ? 'Worth a page because people searching this are ready to book, whatever the search numbers say.'
+  : 'Worth a page for the place, whatever the search numbers say.');
 
 // Edited rows are kept as they are and their keywords leave the clustering
 // pass; the rest are clustered. The matrix and the square are still the whole
@@ -518,7 +548,8 @@ export function pageList(round) {
     const lent = new Set((p.folded ?? []).flatMap((f) => f.keywords ?? []));
     const { folded, keptApart, keptApartWhy, standingWhy, ...rest } = p;
     const keywords = p.keywords.filter((id) => !lent.has(id));
-    return { ...rest, keywords, standing: 'page', ...(placePage(p.kind, keywords, round) ? { standingWhy: 'place' } : {}) };
+    const why = standingWhyOf(p.kind, keywords, round);
+    return { ...rest, keywords, standing: 'page', ...(why ? { standingWhy: why } : {}) };
   });
   const claimed = new Set(kept.flatMap((p) => p.keywords));
   const free = captured(round).filter((k) => !claimed.has(k.id)).map((k) => k.id);
@@ -532,12 +563,12 @@ export function pageList(round) {
   const rows = groups.map((ids) => {
     const c = confidence(ids, allPages, sims);
     const kind = kindOf(ids, round, home);
-    const place = placePage(kind, ids, round);
+    const why = standingWhyOf(kind, ids, round);
     return {
       id: rowId(ids), title: titleOf(ids, round, sims), kind, keywords: ids,
       confidence: { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? keptIdOf.get(c.near) ?? rowId(c.near) : null },
-      reason: reasonOf(ids, m, c.nearest), standing: place ? 'page' : standingOf(ids, round), note: '', auto: true,
-      ...(place ? { standingWhy: 'place' } : {}),
+      reason: reasonOf(ids, m, c.nearest), standing: why ? 'page' : standingOf(ids, round), note: '', auto: true,
+      ...(why ? { standingWhy: why } : {}),
     };
   });
   const byId = new Map(round.keywords.map((k) => [k.id, k]));
@@ -556,12 +587,25 @@ export function pageList(round) {
   // unless it wants a different kind of page or draws enough searches to earn
   // its own. One pass over the confidences as they stood before any fold: a
   // page that grows does not thereby become a better home for the next row.
-  const byRowId = new Map([...kept, ...rows].map((p) => [p.id, p]));
+  const all = [...kept, ...rows];
+  const byRowId = new Map(all.map((p) => [p.id, p]));
+  const at = new Map(all.map((p, i) => [p.id, i]));
   const asKind = (kind) => (kind === 'Homepage' ? 'Service page' : kind);
   const gone = new Set();
-  for (const r of rows) {
-    const t = r.confidence.level === 'close' && r.confidence.near ? byRowId.get(r.confidence.near) : null;
-    if (!t || gone.has(t.id)) continue;
+  const settled = new Set();
+  for (const row of rows) {
+    const near = row.confidence.level === 'close' && row.confidence.near ? byRowId.get(row.confidence.near) : null;
+    if (!near || near.id === row.id) continue;
+    // Both rows of a pair can name each other; the pair is one decision.
+    const pair = [row.id, near.id].sort().join('|');
+    if (settled.has(pair)) continue;
+    settled.add(pair);
+    if (gone.has(row.id) || gone.has(near.id)) continue;
+    // The smaller page moves into the larger: a head group of nine searches
+    // does not disappear into the one search that happened to sit beside it.
+    const [t, r] = [row, near].sort((a, b) => b.keywords.length - a.keywords.length || volume(b) - volume(a) || at.get(a.id) - at.get(b.id));
+    // An edited page is the owner's; it is a home for a fold, never a fold.
+    if (r.auto !== true) continue;
     if (asKind(t.kind) !== asKind(r.kind) || volume(r) >= OWN_PAGE_VOLUME) {
       r.keptApart = t.title;
       r.keptApartWhy = asKind(t.kind) !== asKind(r.kind) ? 'kind' : 'volume';

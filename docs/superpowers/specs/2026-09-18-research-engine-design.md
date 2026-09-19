@@ -255,11 +255,17 @@ Volume never changes grouping. It decides `standing`:
   under "Not worth a page" with its volume and its nearest page; the report
   lists it in one sentence. "Give it a page" pins it as an edited singleton,
   which is `'page'` by virtue of being edited.
-- A **Location page is never low**, whatever its volume: it is `'page'` with
-  `standingWhy: 'place'` wherever the rules above would have said `low`.
-  Nobody searches a town's name often, so volume would set aside exactly the
-  pages that say where the business works. The tab and the report both say
-  "Worth a page for the place, whatever the search numbers say."
+- **Two kinds of page are never low**, whatever their volume, because nobody
+  searches either often and the floor would set aside exactly the pages that
+  answer "do you come to us" and "what does it cost":
+  - a **Location page**, with `standingWhy: 'place'`;
+  - a page any of whose keywords names a price — the whole words `cost`,
+    `costs`, `price`, `prices`, `pricing`, `package`, `packages`, `how much` —
+    with `standingWhy: 'intent'`. Place wins when both apply.
+
+  The tab and the report say "Worth a page for the place, whatever the search
+  numbers say." and "Worth a page because people searching this are ready to
+  book, whatever the search numbers say."
 
 ## 6. The Research tab
 
@@ -488,8 +494,9 @@ from the wrong place or is one people make from everywhere; a page whose
 searches are all off-area says the second in the report.
 
 **Close calls fold in (§3.5, §6, §7).** The owner's rule is fewer pages
-unless there is a compelling reason to split. After the rows are built, a
-close call folds into the page it is close to unless it wants a different
+unless there is a compelling reason to split. After the rows are built, each
+close-call pair is settled once, and the smaller page (fewer keywords, then
+less volume, then the later row) folds into the larger unless it wants a different
 kind of page or its searches reach `OWN_PAGE_VOLUME = 500` a month, in which
 case it is kept apart. The fold is recorded on the target as `folded` and the
 split as `keptApart`; the tab offers "Give it its own page" and the report
@@ -498,10 +505,16 @@ lists both under "Where we made a call". Nothing asks the client to merge.
 **Volume is coarse (§5, §7).** Planner reports rounded buckets, so a single
 Planner number is said as "around 210 a month; Google rounds these", and the
 method paragraph says the numbers are rounded and are not a ranking of pages.
-Planner's location must be set to the study's search location.
+Planner's location must be set to the study's search location. Where its export
+carries a stand-in for a bucket (5, 50, 500, 5000, 50000, 500000 with the
+monthly columns empty and no Min/Max columns), `parseVolumeCsv` reads it as the
+bucket Planner's screen shows (10 to 100, and so on) and the report prints the
+range.
 
-**Location pages are exempt (§5.2).** See the rule added there: a Location
-page is `'page'` whatever its volume, with `standingWhy: 'place'`.
+**The floor does not apply to place or intent (§5.2).** See the rule added
+there: a Location page is `'page'` whatever its volume, with `standingWhy:
+'place'`, and so is any page whose keywords name a price, with `standingWhy:
+'intent'`.
 
 **Suggested searches (§6).** `suggestedSearches(round)` counts every related
 search Google offered beside the captures, minus the ones already on the

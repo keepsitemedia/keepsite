@@ -3,7 +3,7 @@
 // the split lets a test read the words without decoding a PDF stream.
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Writer, SIZES } from './pdf.mjs';
-import { pagesOf, studyView, band, FLOOR, keptApartWords, keptApartPairs } from './research.mjs';
+import { pagesOf, studyView, band, FLOOR, keptApartWords, keptApartPairs, standingWhyWords } from './research.mjs';
 import { todayIn, formatYmd } from './dates.mjs';
 
 // The round's start date, not today's: a report re-rendered next week is still
@@ -78,7 +78,7 @@ export function reportLines({ client, round, renderedAt }) {
     p(`${row.title} · ${KIND_LABEL[row.kind] ?? 'page'}`);
     small(`Brings in people searching for: ${row.keywords.map(withVolume).join('; ')}`);
     if (row.reason) small(row.reason);
-    if (row.standingWhy === 'place') small('Worth a page for the place, whatever the search numbers say.');
+    if (row.standingWhy) small(standingWhyWords(row));
     if (row.folded?.length) small(`Also answers ${row.folded.map((f) => f.title).join('; ')}, which bring up mostly the same businesses.`);
     if (row.keywords.every((id) => round.serps[id]?.local === false)) small('Google shows no local businesses for this search; people search it from everywhere.');
     if (row.note) small(row.note);
