@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
-  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList,
+  pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -49,7 +49,7 @@ test('domainOf drops www and keeps the rest', () => {
 
 test('classify follows the rules in order', () => {
   const areas = ['Provo', 'Utah County'];
-  assert.equal(classify({ url: 'https://www.yelp.com/biz/x', title: 'Best' }, areas), 'Directory');
+  assert.equal(classify({ url: 'https://www.yelp.com/search?find_desc=x', title: 'Best' }, areas), 'Directory');
   assert.equal(classify({ url: 'https://maps.google.com/x', title: 'Map' }, areas), 'Directory');
   assert.equal(classify({ url: 'https://example.com/', title: 'Example' }, areas), 'Homepage');
   assert.equal(classify({ url: 'https://example.com/index.html', title: 'Example' }, areas), 'Homepage');
@@ -795,4 +795,31 @@ test('applyCapture stores the business, not just the host', () => {
   const [row] = openRound(out).serps.k1.results;
   assert.equal(row.domain, 'instagram.com/diana');
   assert.equal(row.pageType, 'Homepage');
+});
+
+// A vendor page on a listing site is that vendor, not the site: two Yelp
+// pages are two businesses, and one vendor ranking for two searches is one
+// business answering both. A category or search page on the same site is
+// the site speaking and stays the bare host.
+test('businessOf names a vendor profile on a listing site and leaves its lists as the site', () => {
+  assert.equal(businessOf('https://www.yelp.com/biz/utah-bridal-hair-and-makeup-american-fork'), 'yelp.com/utah-bridal-hair-and-makeup-american-fork');
+  assert.equal(businessOf('https://www.yelp.com/search?find_desc=makeup'), 'yelp.com');
+  assert.equal(businessOf('https://www.weddingwire.com/biz/beauty-on-location-studio-denver/abc123'), 'weddingwire.com/beauty-on-location-studio-denver');
+  assert.equal(businessOf('https://www.weddingwire.com/c/ut-utah/salt-lake-city/wedding-hair-makeup/12-vendors.html'), 'weddingwire.com');
+  assert.equal(businessOf('https://www.weddingwire.com/wedding-forums/salon-vs-on-site/1'), 'weddingwire.com');
+  assert.equal(businessOf('https://www.theknot.com/marketplace/makeup-by-brinley-provo-ut-2049211'), 'theknot.com/makeup-by-brinley-provo-ut-2049211');
+  assert.equal(businessOf('https://www.theknot.com/marketplace/beauty-services-salt-lake-city-ut'), 'theknot.com');
+  assert.equal(businessOf('https://www.theknot.com/content/average-cost-wedding-hair-makeup'), 'theknot.com');
+  assert.equal(businessOf('https://www.houzz.com/pro/brinley-beauty'), 'houzz.com/brinley-beauty');
+  assert.equal(businessOf('https://www.houzz.com/professionals/makeup-artists'), 'houzz.com');
+  assert.equal(businessOf('https://www.bark.com/en/us/b/brinley-beauty/abc/'), 'bark.com');
+  assert.equal(isProfile('https://www.yelp.com/biz/x'), true);
+  assert.equal(isProfile('https://www.yelp.com/search'), false);
+});
+
+test('classify keeps a vendor profile a Homepage and a listing-site list a Directory', () => {
+  assert.equal(classify({ url: 'https://www.yelp.com/biz/x', title: 'X' }), 'Homepage');
+  assert.equal(classify({ url: 'https://www.weddingwire.com/c/ut-utah/x', title: 'Best Makeup' }), 'Directory');
+  assert.equal(classify({ url: 'https://www.theknot.com/marketplace/x-provo-ut-12345', title: 'X' }), 'Homepage');
+  assert.equal(classify({ url: 'https://www.theknot.com/marketplace/beauty-services-provo-ut', title: 'Beauty' }), 'Directory');
 });

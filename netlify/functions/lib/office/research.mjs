@@ -34,27 +34,40 @@ export function normalizeUrl(url) {
 
 export const domainOf = (url) => (parse(url)?.hostname ?? String(url ?? '')).toLowerCase().replace(/^www\./, '');
 
-// A social profile is a business's own page on someone else's domain: two
-// different Instagram accounts are two different artists, and one account
-// ranking for two searches is one artist answering both. Only a profile URL
-// gets the handle; a post, reel, group or thread is the platform speaking and
-// stays the bare host. The reserved first segments are the platform's own.
+// A social profile or a vendor page on a listing site is a business's own
+// page on someone else's domain: two different Instagram accounts are two
+// different artists, and one account ranking for two searches is one artist
+// answering both. Only a profile URL gets the handle; a post, group, forum
+// thread, category list or search page is the platform speaking and stays
+// the bare host. `reserved` names the platform's own first segments; `under`
+// names the segment a profile sits beneath.
 const SOCIAL = {
   __proto__: null,
-  'instagram.com': ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 'direct', 'about', 'legal'],
-  'facebook.com': ['groups', 'posts', 'share', 'watch', 'events', 'marketplace', 'people', 'pages', 'photo', 'photos', 'story.php', 'permalink.php', 'profile.php', 'login', 'help', 'public', 'hashtag', 'reel', 'videos'],
-  'tiktok.com': ['tag', 'discover', 'search', 'explore', 'music', 'foryou', 'live', 'embed', 'legal'],
+  'instagram.com': { reserved: ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 'direct', 'about', 'legal'] },
+  'facebook.com': { reserved: ['groups', 'posts', 'share', 'watch', 'events', 'marketplace', 'people', 'pages', 'photo', 'photos', 'story.php', 'permalink.php', 'profile.php', 'login', 'help', 'public', 'hashtag', 'reel', 'videos'] },
+  'tiktok.com': { reserved: ['tag', 'discover', 'search', 'explore', 'music', 'foryou', 'live', 'embed', 'legal'], at: true },
+  'yelp.com': { under: 'biz' },
+  'weddingwire.com': { under: 'biz' },
+  // The Knot's category lists live under marketplace too; a vendor page ends
+  // in its numeric id and a category slug does not.
+  'theknot.com': { under: 'marketplace', endsInId: true },
+  'houzz.com': { under: 'pro' },
 };
 export function businessOf(url) {
   const u = parse(url);
   const host = domainOf(url);
-  const reserved = u && SOCIAL[host];
-  if (!reserved) return host;
+  const rule = u && SOCIAL[host];
+  if (!rule) return host;
   const segments = u.pathname.split('/').filter(Boolean);
+  if (rule.under) {
+    const handle = segments[0] === rule.under && segments[1] ? segments[1].toLowerCase() : null;
+    const profile = handle && (!rule.endsInId || /\d+$/.test(handle));
+    return profile ? `${host}/${handle}` : host;
+  }
   const handle = segments[0]?.toLowerCase();
-  const profile = handle && !reserved.includes(handle)
-    && (host !== 'tiktok.com' || handle.startsWith('@'))
-    && (host === 'tiktok.com' || segments.length === 1);
+  const profile = handle && !rule.reserved.includes(handle)
+    && (!rule.at || handle.startsWith('@'))
+    && (rule.at || segments.length === 1);
   return profile ? `${host}/${handle}` : host;
 }
 export const isProfile = (url) => businessOf(url) !== domainOf(url);
