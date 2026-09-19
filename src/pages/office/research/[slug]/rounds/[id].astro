@@ -5,8 +5,9 @@ export const prerender = false;
 import OfficeLayout from '../../../../../layouts/OfficeLayout.astro';
 import Mark from '../../../../../components/office/Mark.astro';
 import { store, SLUG } from '../../../../../../netlify/functions/lib/office/store.mjs';
-import { migrateStudy, roundOf, pairs, pageList } from '../../../../../../netlify/functions/lib/office/research.mjs';
+import { migrateStudy, roundOf, pagesOf, studyView, confidenceWords } from '../../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../../netlify/functions/lib/office/dates.mjs';
+import StudyMatrix from '../../../../../components/office/StudyMatrix.astro';
 
 const { slug, id } = Astro.params;
 if (!SLUG.test(slug ?? '')) return new Response('not found', { status: 404 });
@@ -16,11 +17,14 @@ const study = raw ? migrateStudy(raw) : null;
 const round = study ? roundOf(study, id) : null;
 if (!client || !round) return new Response('Not found', { status: 404 });
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
-const ps = pairs(round) as any[];
-const rows = pageList(round) as any[];
 const byId = new Map<string, any>(round.keywords.map((k: any) => [k.id, k]));
 const text = (kid: string) => byId.get(kid)?.text ?? kid;
 const captures = round.keywords.filter((k: any) => round.serps[k.id]);
+const rows = pagesOf(round) as any[];
+const titles = new Map<string, string>(rows.map((p: any) => [p.id, p.title]));
+const view = studyView(round, rows) as any;
+const compare = (key: string) => `/office/research/${slug}/compare/?pair=${encodeURIComponent(key)}`;
+const reads = Object.entries(round.reads ?? {}) as [string, any][];
 ---
 <OfficeLayout title={`${client.business} · research round`}>
   <div class="page-head">
@@ -33,25 +37,31 @@ const captures = round.keywords.filter((k: any) => round.serps[k.id]);
     {rows.map((p: any) => (
       <li class="no-tick">
         <span class="when"><Mark state={p.auto ? 'none' : 'done'}>{p.auto ? 'Automatic' : 'Edited'}</Mark></span>
-        <span class="what"><span class="title">{p.title}</span><span class="meta"> · {p.type}</span>
+        <span class="what"><span class="title">{p.title}</span><span class="meta"> · {p.kind ?? p.type ?? ''}{p.auto && p.confidence ? ` · ${confidenceWords(p, titles)}` : ''}</span>
           {p.keywords.length > 1 && <span class="meta line">{p.keywords.map(text).join(' · ')}</span>}
+          {p.reason && <span class="meta line">{p.reason}</span>}
           {p.note && <span class="meta line">Note: {p.note}</span>}
         </span>
       </li>
     ))}
   </ul>
-  <h2>Pairs <span class="count">{ps.length}</span></h2>
-  <ul class="ledger">
-    {ps.map((p: any) => (
-      <li class="no-tick">
-        <span class="when">{p.read ? <Mark state="done">{p.read.human}</Mark> : <Mark state="none">Not decided</Mark>}</span>
-        <span class="what"><span class="title">{p.a.text} · {p.b.text}</span>
-          <span class="meta line">{p.signal === 'unmeasurable' ? 'too few businesses to compare' : `${p.sharedBusinesses} of ${p.denominator} businesses`} · {p.sharedDirectories} shared {p.sharedDirectories === 1 ? 'directory' : 'directories'} · {p.samePageType} same type{p.resolvedBy === 'type' ? ' · settled on page type' : ''} · suggested: {p.action}</span>
-          {p.read?.notes && <span class="meta line">Note: {p.read.notes}</span>}
-        </span>
-      </li>
-    ))}
-  </ul>
+  <h2>Study</h2>
+  <StudyMatrix view={view} compare={compare} />
+  {reads.length > 0 && (
+    <>
+      <h2>Decisions recorded <span class="count">{reads.length}</span></h2>
+      <ul class="ledger">
+        {reads.map(([key, read]) => (
+          <li class="no-tick">
+            <span class="when"><Mark state="done">{read.human}</Mark></span>
+            <span class="what"><span class="title">{key.split('|').map(text).join(' · ')}</span><span class="meta"> · same cluster: {read.sameCluster}</span>
+              {read.notes && <span class="meta line">Note: {read.notes}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
   <h2>Results</h2>
   {captures.map((k: any) => (
     <details class="fold">

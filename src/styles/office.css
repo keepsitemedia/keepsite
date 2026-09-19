@@ -541,3 +541,7 @@
 .office .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .office .study-legend { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
 .office .study-legend .swatch { display: inline-block; width: 0.9rem; height: 0.9rem; vertical-align: -0.15rem; margin-right: 0.3rem; border: 1px solid var(--hairline-soft); }
+.office .study-legend .swatch.s0 { background: transparent; }
+.office .study-legend .swatch.s1 { background: color-mix(in srgb, var(--green) 18%, var(--paper)); }
+.office .study-legend .swatch.s2 { background: color-mix(in srgb, var(--green) 45%, var(--paper)); }
+.office .study-legend .swatch.s3 { background: var(--green); }

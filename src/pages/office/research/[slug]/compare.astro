@@ -5,7 +5,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { comparePair, describePair, normalizeUrl, businessOf, pairKey, migrateStudy, openRound, READS, SAME } from '../../../../../netlify/functions/lib/office/research.mjs';
+import { comparePair, describePair, normalizeUrl, businessOf, pairKey, migrateStudy, openRound, pagesOf } from '../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../netlify/functions/lib/office/dates.mjs';
 
 const slug = Astro.params.slug ?? '';
@@ -21,12 +21,9 @@ const a = round.keywords.find((k: any) => k.id === aId);
 const b = round.keywords.find((k: any) => k.id === bId);
 if (!a || !b || !round.serps[a.id] || !round.serps[b.id]) return new Response('not found', { status: 404 });
 
-const csrf = Astro.locals.csrf;
-const key = pairKey(a.id, b.id);
 const serpA = round.serps[a.id];
 const serpB = round.serps[b.id];
-const c = comparePair(serpA.results, serpB.results) as any;
-const read = round.reads[key] ?? null;
+const c = comparePair(round, a.id, b.id) as any;
 const total = Math.max(serpA.results.length, serpB.results.length);
 const urls = new Set(c.sharedUrls as string[]);
 const domains = new Set(c.sharedDomains as string[]);
@@ -39,12 +36,10 @@ const numbered = new Map<string, number>([...domains].sort().map((d, i) => [d, i
 const badge = (r: any) => numbered.get(businessOf(r.url)) ?? null;
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
 const tab = `/office/clients/${slug}/?tab=research`;
-// The workbook's suggested read for this branch, so the select can name it.
-// unmeasurable gets no suggestion at all: too few businesses to compute a
-// share means there is nothing for the numbers to recommend, and the page
-// says as much above the form — a pre-picked option would contradict it.
-const suggested = c.signal === 'strong' ? 'Same intent' : c.signal === 'gray' ? 'Gray zone / discuss' : c.signal === 'unmeasurable' ? null : 'Probably different';
-const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray zone' : c.signal === 'unmeasurable' ? 'Cannot tell' : 'Differ';
+const pages = pagesOf(round) as any[];
+const pageOf = (id: string) => pages.find((p) => p.keywords.includes(id));
+const pct = Math.round(c.similarity * 100);
+const alike = c.band === 3 ? 'Share a page' : c.band === 0 ? 'Separate' : 'Close';
 ---
 <OfficeLayout title={`${a.text} vs ${b.text}`}>
   <div class="page-head">
@@ -54,18 +49,17 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
   </div>
 
   <dl class="glance">
-    <div><dt>Businesses in common</dt><dd>{c.signal === 'unmeasurable' ? 'too few to compare' : `${c.sharedBusinesses} of ${c.denominator}`}<span class="detail">{signalWord}</span></dd></div>
-    <div><dt>Directories in common</dt><dd>{c.sharedDirectories}<span class="detail">rank for almost everything</span></dd></div>
-    {/* These three count every result, directories included — unlike "Businesses in
-        common" above, which is the measured signal. On an unmeasurable pair the "of
-        total" is dropped too, so a small, directory-padded field cannot read as a
-        near-total match next to a metric that says it cannot be compared. */}
-    <div><dt>Same exact URL — all results</dt><dd>{c.signal === 'unmeasurable' ? c.exactUrl : `${c.exactUrl} of ${total}`}<span class="detail">{signalWord}</span></dd></div>
-    <div><dt>Same business — all results</dt><dd>{c.signal === 'unmeasurable' ? c.sameDomain : `${c.sameDomain} of ${total}`}<span class="detail">{c.sameDomainDifferentPage} with a different page</span></dd></div>
-    <div><dt>Same page type — all results</dt><dd>{c.signal === 'unmeasurable' ? c.samePageType : `${c.samePageType} of ${total}`}</dd></div>
-    <div><dt>Primary page</dt><dd>{c.primaryPage || 'None'}{c.primaryPage === 'Tie / review' && <span class="detail">Yours to choose</span>}</dd></div>
+    <div><dt>Alike</dt><dd>{pct}%<span class="detail">{alike}</span></dd></div>
+    <div><dt>Businesses that decided it</dt><dd>{c.shared.length}<span class="detail">{c.shared.slice(0, 3).map((x: any) => x.business).join(', ') || 'none'}</span></dd></div>
+    <div><dt>Directories in common</dt><dd>{c.sharedDirectories}<span class="detail">count for nothing</span></dd></div>
+    <div><dt>Same exact URL</dt><dd>{c.exactUrl} of {total}</dd></div>
+    <div><dt>Same business</dt><dd>{c.sameDomain} of {total}<span class="detail">{c.sameDomainDifferentPage} with a different page</span></dd></div>
+    <div><dt>Pages</dt><dd>{pageOf(a.id)?.title ?? '—'}<span class="detail">{pageOf(a.id) === pageOf(b.id) ? 'both on this page' : `and ${pageOf(b.id)?.title ?? '—'}`}</span></dd></div>
   </dl>
-  <p><strong>{describePair(c, total)}</strong><br /><span class="quiet">Suggested: {c.action}</span></p>
+  <p><strong>{describePair(c)}</strong></p>
+  {c.shared.length > 0 && (
+    <p class="quiet">Weight each shared business carried, heaviest first: {c.shared.map((x: any) => `${x.business} ${x.contribution.toFixed(2)}${x.sameUrl ? '' : ' (different page)'}`).join(' · ')}.</p>
+  )}
 
   <h2>Results <span class="sub">top {total} for each search</span></h2>
   <p class="quiet legend"><span class="hl-url">Same exact URL</span> <span class="hl-domain">Same business, different page</span> <span class="legend-note">A number pairs one business across both columns; a solid line joins the same page, a dashed line the same business on a different page. Unmarked results appear in only one search.</span></p>
@@ -89,20 +83,6 @@ const signalWord = c.signal === 'strong' ? 'Agree' : c.signal === 'gray' ? 'Gray
       </section>
     ))}
   </div>
-
-  <h2>Your read <span class="sub">{read ? `recorded${read.notes ? ', with a note' : ''}` : 'not decided'}</span></h2>
-  <form method="POST" action="/office/api/research" class="sheet decision">
-    <input type="hidden" name="csrf" value={csrf} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="op" value="read" /><input type="hidden" name="key" value={key} /><input type="hidden" name="round" value={round.id} />
-    <div class="row">
-      <label class="field"><span>Read</span><select name="human">{READS.map((r) => <option value={r} selected={(read?.human ?? suggested) === r}>{r}{r === suggested ? ' (suggested)' : ''}</option>)}</select></label>
-      <label class="field"><span>Same cluster</span><select name="sameCluster">{SAME.map((r) => <option selected={(read?.sameCluster ?? 'Undecided') === r}>{r}</option>)}</select></label>
-      <label class="field grow"><span>Note for the report</span><input name="notes" value={read?.notes ?? ''} placeholder="What was said on the call" /></label>
-    </div>
-    <div class="form-foot">
-      <span class="quiet">A Yes groups the two onto one page; a No keeps them apart even when they agree.</span>
-      <button class="btn">Save read</button>
-    </div>
-  </form>
 </OfficeLayout>
 
 <script>

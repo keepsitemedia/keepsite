@@ -1,10 +1,11 @@
 ---
 // The Research tab: a glance of where the study stands, then capture,
-// keywords, pairs, pages, results and the report as ledgers and folds.
-// Editing sits behind pops so a row reads as a line; the read on a pair is
-// made on the compare page, where the two result lists are.
+// keywords, the study matrix, pages, results and the report as ledgers and
+// folds. Editing sits behind pops so a row reads as a line; a cell in the
+// study matrix opens the compare page, where the two result lists are.
 import Mark from './Mark.astro';
-import { bookmarklet, pairs, pageList, PAGE_TYPES, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
+import StudyMatrix from './StudyMatrix.astro';
+import { bookmarklet, pageList, studyView, confidenceWords, KINDS, PAGE_TYPES, FLOOR, emptyStudy, migrateStudy, openRound, searchUrl, RESEARCH_SCHEME } from '../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../netlify/functions/lib/office/dates.mjs';
 
 interface Props { client: any; study: any; csrf: string; origin: string; captured: string }
@@ -18,23 +19,18 @@ const byId = new Map<string, any>(round.keywords.map((k: any) => [k.id, k]));
 const text = (id: string) => byId.get(id)?.text ?? id;
 const captures = round.keywords.filter((k: any) => round.serps[k.id]);
 const next = round.keywords.find((k: any) => !round.serps[k.id]);
-const ps = pairs(round) as any[];
-const gray = ps.filter((p) => p.signal === 'gray');
-const strong = ps.filter((p) => p.signal === 'strong').length;
-const low = ps.filter((p) => p.signal === 'low').length;
-const unmeasurable = ps.filter((p) => p.signal === 'unmeasurable').length;
-const decisive = ps.filter((p) => p.decisive === true);
-const settled = ps.filter((p) => p.decisive === false);
-// A read made before directories left the signal may no longer match it.
-const revisit = ps.filter((p) => p.read && (
-  (p.read.sameCluster === 'Yes' && p.signal === 'low') || (p.read.sameCluster === 'No' && p.signal === 'strong')
-));
 const pages = pageList(round) as any[];
+const standing = pages.filter((p) => p.standing !== 'low');
+const low = pages.filter((p) => p.standing === 'low');
+const closeCalls = standing.filter((p) => p.confidence?.level === 'close').length;
 const edited = pages.filter((p) => !p.auto).length;
+const titles = new Map<string, string>(pages.map((p) => [p.id, p.title]));
+const view = studyView(round, pages) as any;
+const volumeLoaded = round.keywords.some((k: any) => k.volume);
+const vol = (k: any) => (k?.volume ? (k.volume.min === k.volume.max ? String(k.volume.max) : `${k.volume.min}–${k.volume.max}`) : null);
 const clusters = [...new Set(round.keywords.map((k: any) => k.cluster))] as string[];
 const isRange = client.tier === 'Range';
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
-const showPairs = Astro.url.searchParams.get('pairs') === '1';
 const link = bookmarklet(origin);
 const compare = (key: string) => `/office/research/${slug}/compare/?pair=${encodeURIComponent(key)}`;
 const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([name, value]) => ({ name, value }));
@@ -45,18 +41,10 @@ const facts: Fact[] = [
   round.keywords.length === 0 ? { label: 'Captured', state: 'none', text: 'No keywords yet' }
     : next ? { label: 'Captured', state: captures.length ? 'waiting' : 'none', text: `${captures.length} of ${round.keywords.length}`, detail: `Next: ${next.text}`, href: searchUrl(next.text), search: true }
     : { label: 'Captured', state: 'done', text: `All ${round.keywords.length}` },
-  // Same definition the Pairs heading and queue below use: decisive, not
-  // merely gray-and-unread. Anything else and the glance and the queue can
-  // disagree on the same screen — a count above a queue of a different size,
-  // a "Next:" link to a pair the queue itself suppresses, or "All decided"
-  // while an unmeasurable pair (never gray, so never counted here before)
-  // still sits unanswered.
-  ps.length === 0 ? { label: 'Pairs', state: 'none', text: 'Nothing to compare yet' }
-    : decisive.length ? { label: 'Pairs', state: 'none', text: `${decisive.length} to decide`, detail: `Next: ${decisive[0].a.text} · ${decisive[0].b.text}`, href: compare(decisive[0].key) }
-    : gray.length || unmeasurable ? { label: 'Pairs', state: 'done', text: 'All decided', detail: `${gray.length + unmeasurable} settled without changing the page list` }
-    : { label: 'Pairs', state: 'done', text: 'None in the gray zone', detail: `${strong} agree, ${low} differ` },
-  pages.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
-    : { label: 'Pages', state: pages.some((p) => p.type === 'Tie / review') ? 'waiting' : 'done', text: `${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`, detail: edited ? `${edited} edited by you` : 'Grouped automatically' },
+  standing.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
+    : { label: 'Pages', state: closeCalls ? 'waiting' : 'done', text: `${standing.length} ${standing.length === 1 ? 'page' : 'pages'}`, detail: closeCalls ? `${closeCalls} close ${closeCalls === 1 ? 'call' : 'calls'}` : edited ? `${edited} edited by you` : 'Grouped automatically' },
+  volumeLoaded ? { label: 'Volume', state: 'done', text: `Loaded ${day(round.volumeImport?.at ?? round.updatedAt ?? round.startedAt)}`, detail: low.length ? `${low.length} not worth a page` : undefined }
+    : { label: 'Volume', state: next || !round.keywords.length ? 'none' : 'waiting', text: 'Not loaded', detail: 'Import a Keyword Planner CSV below' },
   round.reportedAt ? { label: 'Report', state: 'done', text: `Written ${day(round.reportedAt)}`, href: `/office/clients/${slug}/?tab=documents` }
     : { label: 'Report', state: 'none', text: 'Not written' },
 ];
@@ -95,6 +83,7 @@ const external = (href: string) => href.startsWith('http');
   ))}
 </dl>
 {captured && byId.has(captured) && <p class="notice notice-ok">Captured “{text(captured)}”.</p>}
+{round.keywords.length > 0 && round.areas.length === 0 && <p class="notice">No service areas set, so location pages cannot be spotted. Add them under Service areas below.</p>}
 
 <details class="fold" open={captures.length === 0}>
   <summary>Capture<span class="sub">{next ? `Next: ${next.text}` : round.keywords.length ? 'Every keyword is captured' : 'Add keywords first'}</span></summary>
@@ -146,7 +135,7 @@ const external = (href: string) => href.startsWith('http');
             <li class="no-tick">
               <span class="when"><Mark state={serp ? 'done' : 'none'}>{serp ? day(serp.capturedAt) : 'Not captured'}</Mark></span>
               <span class="what">
-                <span class="title">{k.text}</span>{isRange && k.arm && <span class="meta"> · {k.arm}</span>}
+                <span class="title">{k.text}</span>{vol(k) && <span class="meta"> · {vol(k)} a month</span>}{isRange && k.arm && <span class="meta"> · {k.arm}</span>}
                 {related.length > 0 && (
                   <span class="meta line">Related:
                     {related.map((r: string) => (
@@ -199,63 +188,62 @@ const external = (href: string) => href.startsWith('http');
     </form>
   </div>
 </details>
+<details class="fold" open={!volumeLoaded && !next && round.keywords.length > 0}>
+  <summary>Search volume<span class="sub">{volumeLoaded ? `Loaded ${day(round.volumeImport?.at ?? round.updatedAt)}` : 'Not loaded'}</span></summary>
+  <div class="fold-body">
+    <p class="quiet">Paste the keyword list into Google Keyword Planner, download its CSV, and import it here. Volume never moves a keyword between pages; it says whether a page is worth building. A page whose keywords add up to fewer than {FLOOR} searches a month is set aside below the page list.</p>
+    <form method="POST" action={api} enctype="multipart/form-data" class="toolbar">
+      {hidden({ csrf, slug, op: 'volume', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+      <input type="file" name="file" accept=".csv,text/csv,text/tab-separated-values" required aria-label="Keyword Planner CSV" />
+      <button class="btn-quiet">Import volume</button>
+    </form>
+    {round.volumeImport && (
+      <p class="quiet">Last import matched {round.volumeImport.matched} of {round.keywords.length}.
+        {round.volumeImport.unmatchedKeywords.length > 0 && <> Not in the file: {round.volumeImport.unmatchedKeywords.map(text).join('; ')}.</>}
+        {round.volumeImport.unmatchedRows.length > 0 && <> In the file but not in the study: {round.volumeImport.unmatchedRows.join('; ')}.</>}
+      </p>
+    )}
+  </div>
+</details>
 
-<h2>Pairs <span class="count">{showPairs ? ps.length : decisive.length}</span></h2>
-{ps.length === 0 && <p class="empty">Capture two keywords and their pair appears here.</p>}
-{ps.length > 0 && (
-  <p class="quiet">{strong} agree, {gray.length} in the gray zone, {low} differ{unmeasurable > 0 ? `, ${unmeasurable} cannot be measured` : ''}. The counts and the suggestion are automatic; the read is yours, made on the compare page. <a href={`/office/clients/${slug}/?tab=research${showPairs ? '' : '&pairs=1'}`}>{showPairs ? 'Show only what needs deciding.' : 'Show every pair.'}</a></p>
-)}
-{revisit.length > 0 && (
-  <p class="notice">{revisit.length} {revisit.length === 1 ? 'decision was' : 'decisions were'} made before directories stopped counting toward the signal, and no longer match it. Worth a second look: {revisit.map((p: any) => `${p.a.text} · ${p.b.text}`).join('; ')}.</p>
-)}
-{(showPairs ? ps : decisive).length > 0 && (
-  <ul class="ledger">
-    {(showPairs ? ps : decisive).map((p) => (
-      <li class="no-tick">
-        <span class="when">
-          {p.read ? <Mark state="done">{p.read.human}</Mark>
-            : p.signal === 'gray' ? <Mark state="none">Not decided</Mark>
-            : p.signal === 'unmeasurable' ? <Mark state="none">Cannot tell</Mark>
-            : <Mark state="waiting">{p.signal === 'strong' ? 'Agree' : 'Differ'}</Mark>}
-        </span>
-        <span class="what">
-          <span class="title">{p.a.text} · {p.b.text}</span>
-          <span class="meta line">{p.signal === 'unmeasurable' ? 'too few businesses to compare' : `${p.sharedBusinesses} of ${p.denominator} businesses`} · {p.sharedDirectories} shared {p.sharedDirectories === 1 ? 'directory' : 'directories'} · {p.samePageType} same type{p.resolvedBy === 'type' ? ' · settled on page type' : ''} · suggested: {p.action}</span>
-          {p.read?.notes && <span class="meta line">Note: {p.read.notes}</span>}
-        </span>
-        <span class="act"><a href={compare(p.key)}>Compare</a></span>
-      </li>
-    ))}
-  </ul>
-)}
-{ps.length > 0 && !showPairs && decisive.length === 0 && settled.length === 0 && (
-  <p class="quiet">Nothing left to decide — every pair is either settled or clear.</p>
-)}
-{settled.length > 0 && !showPairs && (
-  <p class="quiet">{settled.length} other {settled.length === 1 ? 'pair makes' : 'pairs make'} no difference to the page list either way. <a href={`/office/clients/${slug}/?tab=research&pairs=1`}>Show every pair.</a></p>
+<h2>Study</h2>
+<StudyMatrix view={view} compare={compare} />
+{view.order.length >= 2 && (
+  <p class="quiet study-legend">
+    <span><span class="swatch s0"></span>none</span>
+    <span><span class="swatch s1"></span>faint</span>
+    <span><span class="swatch s2"></span>some</span>
+    <span><span class="swatch s3"></span>most</span>
+    <span>Dark blocks on the diagonal are pages. A dark cell outside a block is a keyword that could go either way; open it to see why.</span>
+  </p>
 )}
 
-<h2>Pages <span class="count">{pages.length}</span></h2>
-{pages.length === 0 && <p class="empty">Capture a few keywords and the page list appears here.</p>}
-{pages.length > 0 && <p class="quiet">Grouped from the pairs that agree and your same-cluster calls. Edit a page to keep your own title, type and note; “Tie / review” means the type is still yours to choose.</p>}
-{pages.length > 0 && (
+<h2>Pages <span class="count">{standing.length}</span></h2>
+{standing.length === 0 && <p class="empty">Capture a few keywords and the page list appears here.</p>}
+{standing.length > 0 && <p class="quiet">Grouped from the businesses that rank for each search. Edit a page to keep your own title, kind and note, or to move keywords between pages; a keyword you release is regrouped on its own.</p>}
+{standing.length > 0 && (
   <ul class="ledger">
-    {pages.map((p) => (
+    {standing.map((p) => (
       <li class="no-tick">
-        <span class="when"><Mark state={p.type === 'Tie / review' ? 'waiting' : p.auto ? 'none' : 'done'}>{p.auto ? 'Automatic' : 'Edited'}</Mark></span>
+        <span class="when"><Mark state={p.confidence?.level === 'close' ? 'waiting' : p.auto ? 'none' : 'done'}>{p.kind}</Mark></span>
         <span class="what">
-          <span class="title">{p.title}</span><span class="meta"> · {p.type}{p.type === 'Tie / review' ? ', type to decide' : ''}</span>
-          {/* The title is one of the keywords, so a single-keyword page would repeat itself. */}
-          {p.keywords.length > 1 && <span class="meta line">{p.keywords.map(text).join(' · ')}</span>}
+          <span class="title">{p.title}</span><span class="meta"> · {p.auto ? confidenceWords(p, titles) : 'Edited'}</span>
+          {p.keywords.length > 1 && <span class="meta line">{p.keywords.map((id: string) => `${text(id)}${vol(byId.get(id)) ? ` (${vol(byId.get(id))})` : ''}`).join(' · ')}</span>}
+          {p.reason && <span class="meta line">{p.reason}</span>}
           {p.note && <span class="meta line">Note: {p.note}</span>}
         </span>
         <span class="act">
           <details class="pop">
             <summary class="link-quiet">Edit</summary>
             <form method="POST" action={api} class="pop-sheet">
-              {hidden({ csrf, slug, id: p.id, keywords: p.keywords.join(','), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+              {hidden({ csrf, slug, id: p.id, round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
               <label class="field"><span>Page</span><input name="title" value={p.title} required /></label>
-              <label class="field"><span>Type</span><select name="type">{[...PAGE_TYPES, 'Tie / review'].map((t) => <option selected={p.type === t}>{t}</option>)}</select></label>
+              <label class="field"><span>Kind</span><select name="kind">{KINDS.map((t) => <option selected={p.kind === t}>{t}</option>)}</select></label>
+              <fieldset class="field"><legend>Keywords on this page</legend>
+                {round.keywords.filter((k: any) => round.serps[k.id]).map((k: any) => (
+                  <label class="field check"><input type="checkbox" name={`kw:${k.id}`} value="1" checked={p.keywords.includes(k.id)} /> <span>{k.text}</span></label>
+                ))}
+              </fieldset>
               <label class="field"><span>Note for the report</span><input name="note" value={p.note} /></label>
               <div class="pop-actions">
                 <button class="btn-quiet btn-small" name="op" value="page">Save</button>
@@ -267,6 +255,26 @@ const external = (href: string) => href.startsWith('http');
       </li>
     ))}
   </ul>
+)}
+{low.length > 0 && (
+  <>
+    <h3>Not worth a page <span class="count">{low.length}</span></h3>
+    <p class="quiet">Fewer than {FLOOR} searches a month between them. They stay in the study and out of the site.</p>
+    <ul class="ledger">
+      {low.map((p) => (
+        <li class="no-tick">
+          <span class="when"><Mark state="none">{p.keywords.map((id: string) => vol(byId.get(id))).join(', ')} a month</Mark></span>
+          <span class="what"><span class="title">{p.keywords.map(text).join(' · ')}</span>{p.confidence?.near && <span class="meta"> · nearest: {titles.get(p.confidence.near)}</span>}</span>
+          <span class="act">
+            <form method="POST" action={api} class="inline">
+              {hidden({ csrf, slug, op: 'page', id: p.id, title: p.title, kind: p.kind, note: '', keywords: p.keywords.join(','), round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
+              <button class="link-quiet">Give it a page</button>
+            </form>
+          </span>
+        </li>
+      ))}
+    </ul>
+  </>
 )}
 
 <h2>Results</h2>
