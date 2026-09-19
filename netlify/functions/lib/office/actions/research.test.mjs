@@ -129,6 +129,18 @@ test('page, reset and type edits reshape the study; read is refused', async () =
   assert.equal(round.pages.length, 1);
   assert.equal(round.pages[0].auto, true);
 
+  // Checkboxes cannot all be named "keywords": the shared form reader
+  // refuses a repeated field name, so each carries the keyword's own id in
+  // its own name instead, and no "keywords" field is posted at all.
+  const boxes = new FormData();
+  for (const [k, v] of Object.entries({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'Boxed', kind: 'Article', note: '' })) boxes.append(k, v);
+  boxes.append(`kw:${ka}`, 'on');
+  boxes.append(`kw:${kb}`, 'on');
+  await research(new Request('https://site.test/office/api/research', { method: 'POST', body: boxes }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  const boxed = round.pages.find((p) => p.id === 'p9');
+  assert.deepEqual([...boxed.keywords].sort(), [ka, kb].sort());
+
   await research(post({ csrf, slug: 'acme', op: 'type', keyword: ka, rank: '1', pageType: 'Blog/FAQ' }), ctx(), s, now);
   round = openRound(await s.research.get('acme'));
   assert.equal(round.serps[ka].results[0].pageType, 'Blog/FAQ');

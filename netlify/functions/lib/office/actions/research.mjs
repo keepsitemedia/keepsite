@@ -87,9 +87,13 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
     const id = field(data, 'id');
     const kind = field(data, 'kind');
     if (!KINDS.includes(kind)) return back(slug, 'pick a page kind');
-    // Checkboxes post one value per box; a hand-built form may post one
-    // comma-joined value. Both are accepted.
-    const keywords = data.getAll('keywords').flatMap((v) => String(v).split(',')).map((x) => x.trim()).filter((x) => round.keywords.some((k) => k.id === x));
+    // The shared form reader refuses a repeated field name, so a page of
+    // checkboxes cannot all be named "keywords" (a stray hidden field with
+    // that name would then look like an override of the clicked button).
+    // Each checkbox instead carries the keyword's own id in its name; a
+    // hand-built form may still post one comma-joined "keywords" field.
+    const fromCheckboxes = [...data.keys()].filter((k) => k.startsWith('kw:')).map((k) => k.slice(3));
+    const keywords = [...fromCheckboxes, ...field(data, 'keywords').split(',')].map((x) => x.trim()).filter((x) => round.keywords.some((k) => k.id === x));
     if (!keywords.length) return back(slug, 'a page needs at least one keyword');
     const title = text('title');
     if (!title) return back(slug, 'the page needs a title');
