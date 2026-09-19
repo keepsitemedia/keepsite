@@ -134,6 +134,76 @@ export function primaryPageOf(results) {
   return leaders.length > 1 ? 'Tie / review' : leaders[0][0];
 }
 
+// ---- The matrix ------------------------------------------------------------
+
+// The DCG discount: rank 1 counts 1, rank 8 about a third. Position says
+// how sure Google is, and a business at the top of both lists is stronger
+// evidence than one at the bottom of both.
+export const rankWeight = (rank) => 1 / Math.log2(rank + 1);
+
+const captured = (round) => round.keywords.filter((k) => round.serps[k.id]);
+
+// One row per captured keyword, one column per business. A cell is the
+// business's best rank for that keyword. A column's weight is its rarity
+// across the study, ln((N + 1) / df): a business that ranks for every
+// search says nothing about any one of them, and one that ranks for two
+// says a great deal. The + 1 is the usual smoothing, so two identical SERPs
+// in a two-keyword study still score 1 rather than 0/0. A column with any
+// Directory result weighs zero outright, whatever its rarity: a paid list
+// of ten vendors says nothing about intent however seldom it ranks.
+export function matrix(round, keywordIds = null) {
+  const keywords = captured(round).filter((k) => !keywordIds || keywordIds.includes(k.id));
+  const cells = {};
+  const df = new Map();
+  const directory = new Set();
+  for (const k of keywords) {
+    cells[k.id] = {};
+    for (const x of round.serps[k.id].results) {
+      const b = businessOf(x.url);
+      if (x.pageType === 'Directory') directory.add(b);
+      const w = rankWeight(x.rank);
+      if (!cells[k.id][b] || w > cells[k.id][b].w) cells[k.id][b] = { w, url: normalizeUrl(x.url) };
+    }
+    for (const b of Object.keys(cells[k.id])) df.set(b, (df.get(b) ?? 0) + 1);
+  }
+  const N = keywords.length;
+  const weight = {};
+  for (const [b, n] of df) weight[b] = directory.has(b) ? 0 : Math.log((N + 1) / n);
+  return { keywords, businesses: [...df.keys()], cells, weight };
+}
+
+// Weighted Jaccard over the two rows. The same business on a different page
+// for each search is weaker evidence than the same page, so it earns half.
+export function similarity(m, a, b) {
+  const ca = m.cells[a] ?? {};
+  const cb = m.cells[b] ?? {};
+  let num = 0;
+  let den = 0;
+  for (const x of new Set([...Object.keys(ca), ...Object.keys(cb)])) {
+    const w = m.weight[x] ?? 0;
+    const wa = ca[x]?.w ?? 0;
+    const wb = cb[x]?.w ?? 0;
+    den += w * Math.max(wa, wb);
+    if (wa && wb) num += w * Math.min(wa, wb) * (ca[x].url === cb[x].url ? 1 : 0.5);
+  }
+  return den ? num / den : 0;
+}
+
+export function similarities(m) {
+  const ids = m.keywords.map((k) => k.id);
+  const out = {};
+  for (const a of ids) out[a] = {};
+  for (let i = 0; i < ids.length; i += 1) {
+    out[ids[i]][ids[i]] = 1;
+    for (let j = i + 1; j < ids.length; j += 1) {
+      const s = similarity(m, ids[i], ids[j]);
+      out[ids[i]][ids[j]] = s;
+      out[ids[j]][ids[i]] = s;
+    }
+  }
+  return out;
+}
+
 // A directory ranks for every query in a field, so counting it as evidence
 // that two queries mean the same thing adds the same constant to every pair.
 // The businesses are what discriminate.
@@ -217,8 +287,6 @@ export function describePair(c, total) {
 }
 
 export const pairKey = (a, b) => [a, b].sort().join('|');
-
-const captured = (round) => round.keywords.filter((k) => round.serps[k.id]);
 
 // Rows without the decisive label, computed once per round. group() and
 // decisiveFor() both need the comparison but never the label — computing it

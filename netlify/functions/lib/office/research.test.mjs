@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
+  rankWeight, matrix, similarity, similarities,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -823,4 +824,84 @@ test('classify keeps a vendor profile a Homepage and a listing-site list a Direc
   assert.equal(classify({ url: 'https://www.weddingwire.com/c/ut-utah/x', title: 'Best Makeup' }), 'Directory');
   assert.equal(classify({ url: 'https://www.theknot.com/marketplace/x-provo-ut-12345', title: 'X' }), 'Homepage');
   assert.equal(classify({ url: 'https://www.theknot.com/marketplace/beauty-services-provo-ut', title: 'Beauty' }), 'Directory');
+});
+
+// A round with the given SERPs, keyword ids k1..kn, every result auto-typed
+// from its URL. Rank is position in the list.
+const roundWith = (serps, areas = []) => {
+  const ids = Object.keys(serps);
+  const round = { ...emptyRound('r1'), areas, keywords: ids.map((id) => ({ id, text: serps[id].text ?? id, cluster: 'C', arm: '', source: 'manual' })) };
+  for (const id of ids) {
+    round.serps[id] = { capturedAt: '2026-09-18T00:00:00.000Z', query: id, related: [],
+      results: serps[id].urls.map((url, i) => ({ rank: i + 1, url, title: url, domain: businessOf(url), pageType: classify({ url, title: url }, areas), typeSource: 'auto' })) };
+  }
+  return round;
+};
+
+test('rankWeight is the DCG discount', () => {
+  assert.equal(rankWeight(1), 1);
+  assert.ok(Math.abs(rankWeight(4) - 0.4307) < 0.001);
+  assert.ok(Math.abs(rankWeight(8) - 0.3155) < 0.001);
+});
+
+test('matrix holds each business at its best rank, weighted by rarity, directories at zero', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/', 'https://b.com/', 'https://www.yelp.com/search?x=1', 'https://a.com/about/'] },
+    k2: { urls: ['https://b.com/', 'https://c.com/', 'https://www.yelp.com/search?x=2'] },
+    k3: { urls: ['https://c.com/', 'https://d.com/'] },
+  });
+  const m = matrix(round);
+  assert.deepEqual(m.keywords.map((k) => k.id), ['k1', 'k2', 'k3']);
+  assert.equal(m.cells.k1['a.com'].w, 1, 'best rank wins, not the later /about/ page');
+  assert.equal(m.cells.k1['a.com'].url, 'a.com');
+  assert.ok(Math.abs(m.cells.k1['b.com'].w - rankWeight(2)) < 1e-9);
+  assert.equal(m.cells.k3['a.com'], undefined);
+  // ln((3 + 1) / df): a.com ranks once, b.com twice.
+  assert.ok(Math.abs(m.weight['a.com'] - Math.log(4 / 1)) < 1e-9);
+  assert.ok(Math.abs(m.weight['b.com'] - Math.log(4 / 2)) < 1e-9);
+  assert.equal(m.weight['yelp.com'], 0, 'a directory weighs nothing however rare');
+  assert.ok(m.businesses.includes('yelp.com'), 'but it is still a column, for display');
+});
+
+test('matrix over a subset of keywords counts rarity within the subset', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/'] }, k2: { urls: ['https://a.com/'] }, k3: { urls: ['https://a.com/'] },
+  });
+  const m = matrix(round, ['k1', 'k2']);
+  assert.deepEqual(m.keywords.map((k) => k.id), ['k1', 'k2']);
+  assert.ok(Math.abs(m.weight['a.com'] - Math.log(3 / 2)) < 1e-9);
+});
+
+test('similarity is a weighted Jaccard: 1 for the same list, 0 for disjoint, symmetric', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/', 'https://b.com/'] },
+    k2: { urls: ['https://a.com/', 'https://b.com/'] },
+    k3: { urls: ['https://c.com/', 'https://d.com/'] },
+  });
+  const m = matrix(round);
+  assert.ok(Math.abs(similarity(m, 'k1', 'k2') - 1) < 1e-9);
+  assert.equal(similarity(m, 'k1', 'k3'), 0);
+  assert.equal(similarity(m, 'k1', 'k3'), similarity(m, 'k3', 'k1'));
+});
+
+test('the same business on a different page earns half credit', () => {
+  const same = matrix(roundWith({ k1: { urls: ['https://a.com/x'] }, k2: { urls: ['https://a.com/x'] } }));
+  const other = matrix(roundWith({ k1: { urls: ['https://a.com/x'] }, k2: { urls: ['https://a.com/y'] } }));
+  assert.ok(Math.abs(similarity(same, 'k1', 'k2') - 1) < 1e-9);
+  assert.ok(Math.abs(similarity(other, 'k1', 'k2') - 0.5) < 1e-9);
+});
+
+test('a directory shared by both lists moves similarity by nothing', () => {
+  const bare = matrix(roundWith({ k1: { urls: ['https://a.com/', 'https://b.com/'] }, k2: { urls: ['https://a.com/', 'https://c.com/'] } }));
+  const padded = matrix(roundWith({ k1: { urls: ['https://a.com/', 'https://b.com/', 'https://www.yelp.com/search'] }, k2: { urls: ['https://a.com/', 'https://c.com/', 'https://www.yelp.com/search'] } }));
+  assert.ok(Math.abs(similarity(bare, 'k1', 'k2') - similarity(padded, 'k1', 'k2')) < 1e-9);
+});
+
+test('similarities is the full square with a unit diagonal', () => {
+  const m = matrix(roundWith({ k1: { urls: ['https://a.com/'] }, k2: { urls: ['https://b.com/'] } }));
+  const s = similarities(m);
+  assert.deepEqual(Object.keys(s), ['k1', 'k2']);
+  assert.equal(s.k1.k1, 1);
+  assert.equal(s.k1.k2, 0);
+  assert.equal(s.k2.k1, 0);
 });
