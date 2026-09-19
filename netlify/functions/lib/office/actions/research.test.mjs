@@ -89,39 +89,94 @@ test('capture rejects a bad payload', async () => {
   assert.match(location(res), /^\/office\/research\/capture\/\?error=/);
 });
 
-test('read, page, reset and type edits reshape the study', async () => {
+test('page, reset and type edits reshape the study; read is refused', async () => {
   const s = await make();
-  for (const t of ['a', 'b']) await research(post({ csrf, slug: 'acme', op: 'add', text: t, cluster: 'W', arm: '' }), ctx(), s, now);
+  for (const t of ['a', 'b', 'c']) await research(post({ csrf, slug: 'acme', op: 'add', text: t, cluster: 'W', arm: '' }), ctx(), s, now);
   let round = openRound(await s.research.get('acme'));
-  const [ka, kb] = round.keywords.map((k) => k.id);
+  const [ka, kb, kc] = round.keywords.map((k) => k.id);
   await research(post({ csrf, op: 'capture', payload: capture('a') }), ctx(), s, now);
-  await research(post({ csrf, op: 'capture', payload: capture('b', 4) }), ctx(), s, now);
+  await research(post({ csrf, op: 'capture', payload: capture('b') }), ctx(), s, now);
+  await research(post({ csrf, op: 'capture', payload: capture('c', 4) }), ctx(), s, now);
   round = openRound(await s.research.get('acme'));
-  // b's four results are a strict subset of a's eight, so every one of b's
-  // businesses is shared: denominator 4, ratio 1.0, signal strong, and the
-  // pair groups into one page automatically, before any read is recorded.
-  assert.equal(round.pages.length, 1);
-  const key = [ka, kb].sort().join('|');
-  await research(post({ csrf, slug: 'acme', op: 'read', key, human: 'Probably same', sameCluster: 'Yes', notes: 'call' }), ctx(), s, now);
-  round = openRound(await s.research.get('acme'));
-  assert.deepEqual(round.reads[key], { human: 'Probably same', sameCluster: 'Yes', notes: 'call' });
-  assert.equal(round.pages.length, 1);
-  const bad = await research(post({ csrf, slug: 'acme', op: 'read', key, human: 'Nope', sameCluster: 'Yes', notes: '' }), ctx(), s, now);
-  assert.match(location(bad), /error=/);
+  assert.equal(round.pages.length, 1, 'three lists of the same businesses cluster into one page');
 
-  const pid = round.pages[0].id;
-  await research(post({ csrf, slug: 'acme', op: 'page', id: pid, title: 'Flowers', type: 'Service page', note: 'n', keywords: `${ka},${kb}` }), ctx(), s, now);
-  round = openRound(await s.research.get('acme'));
-  assert.equal(round.pages[0].auto, false);
-  assert.equal(round.pages[0].title, 'Flowers');
-  await research(post({ csrf, slug: 'acme', op: 'reset', id: pid }), ctx(), s, now);
-  round = openRound(await s.research.get('acme'));
-  assert.ok(round.pages.every((p) => p.auto));
+  const refused = await research(post({ csrf, slug: 'acme', op: 'read', key: [ka, kb].sort().join('|'), human: 'Same intent', sameCluster: 'Yes', notes: '' }), ctx(), s, now);
+  assert.equal(refused.status, 400);
+  assert.match(await refused.text(), /no longer/);
 
-  await research(post({ csrf, slug: 'acme', op: 'type', keyword: ka, rank: '1', pageType: 'Other' }), ctx(), s, now);
+  // Split c off by hand: the page op with a keyword list.
+  const split = new FormData();
+  for (const [k, v] of Object.entries({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'C on its own', kind: 'Article', note: 'client asked' })) split.append(k, v);
+  split.append('keywords', kc);
+  await research(new Request('https://site.test/office/api/research', { method: 'POST', body: split }), ctx(), s, now);
   round = openRound(await s.research.get('acme'));
-  assert.equal(round.serps[ka].results[0].pageType, 'Other');
+  assert.deepEqual(round.pages.map((p) => [p.auto, p.keywords.length]), [[false, 1], [true, 2]]);
+  assert.equal(round.pages[0].kind, 'Article');
+  assert.equal(round.pages[0].note, 'client asked');
+
+  // Pull b into the edited page: a comma-joined list works too, and the
+  // released keyword is reclustered on its own.
+  await research(post({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'C and B', kind: 'Service page', note: '', keywords: `${kc},${kb}` }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  assert.deepEqual(round.pages.map((p) => p.keywords.length), [2, 1]);
+  assert.equal(round.pages[1].keywords[0], ka);
+
+  const badKind = await research(post({ csrf, slug: 'acme', op: 'page', id: 'p9', title: 'x', kind: 'Directory', note: '', keywords: kc }), ctx(), s, now);
+  assert.match(location(badKind), /error=.*kind/);
+
+  await research(post({ csrf, slug: 'acme', op: 'reset', id: 'p9' }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  assert.equal(round.pages.length, 1);
+  assert.equal(round.pages[0].auto, true);
+
+  await research(post({ csrf, slug: 'acme', op: 'type', keyword: ka, rank: '1', pageType: 'Blog/FAQ' }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  assert.equal(round.serps[ka].results[0].pageType, 'Blog/FAQ');
   assert.equal(round.serps[ka].results[0].typeSource, 'manual');
+});
+
+test('volume imports a Planner CSV, stores ranges, and reports both unmatched lists', async () => {
+  const s = await make();
+  for (const t of ['utah bridal makeup', 'moab makeup']) await research(post({ csrf, slug: 'acme', op: 'add', text: t, cluster: 'W', arm: '' }), ctx(), s, now);
+  const csv = 'Keyword Stats\r\nSep\r\nKeyword\tAvg. monthly searches\tMin search volume\tMax search volume\r\nUtah Bridal Makeup\t\t100\t1000\r\nnot here\t50\t\t\r\n';
+  const file = new File([new Uint8Array([0xff, 0xfe, ...Buffer.from(csv, 'utf16le')])], 'planner.csv', { type: 'text/csv' });
+  const res = await research(post({ csrf, slug: 'acme', op: 'volume', file }), ctx(), s, now);
+  assert.equal(location(res), '/office/clients/acme/?tab=research');
+  const round = openRound(await s.research.get('acme'));
+  assert.deepEqual(round.keywords[0].volume, { min: 100, max: 1000, source: 'planner', at: now.toISOString() });
+  assert.equal(round.keywords[1].volume, undefined);
+  assert.deepEqual(round.volumeImport.unmatchedRows, ['not here']);
+  assert.deepEqual(round.volumeImport.unmatchedKeywords, [round.keywords[1].id]);
+  assert.equal(round.volumeImport.matched, 1);
+
+  const empty = await research(post({ csrf, slug: 'acme', op: 'volume', file: new File([], 'x.csv') }), ctx(), s, now);
+  assert.match(location(empty), /error=.*choose/);
+  const junk = await research(post({ csrf, slug: 'acme', op: 'volume', file: new File(['a,b\n1,2\n'], 'x.csv') }), ctx(), s, now);
+  assert.match(location(junk), /error=.*Keyword/);
+});
+
+test('remove drops the keyword from the last import\'s unmatched list too', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'add', text: 'a', cluster: 'W', arm: '' }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'volume', file: new File(['keyword,volume\nzzz,5\n'], 'v.csv') }), ctx(), s, now);
+  let round = openRound(await s.research.get('acme'));
+  assert.equal(round.volumeImport.unmatchedKeywords.length, 1);
+  await research(post({ csrf, slug: 'acme', op: 'remove', id: round.keywords[0].id }), ctx(), s, now);
+  round = openRound(await s.research.get('acme'));
+  assert.deepEqual(round.volumeImport.unmatchedKeywords, []);
+});
+
+test('starting a round freezes the final page list on the round it closes', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'add', text: 'a', cluster: 'W', arm: '' }), ctx(), s, now);
+  await research(post({ csrf, op: 'capture', payload: capture('a') }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'round' }), ctx(), s, now);
+  const study = await s.research.get('acme');
+  const closed = study.rounds[0];
+  assert.ok(closed.closedAt);
+  assert.equal(closed.pages.length, 1);
+  assert.ok(closed.pages[0].kind, 'the frozen row carries its kind');
+  assert.ok(closed.pages[0].reason, 'and its reason');
 });
 
 test('report writes a document and stamps reportedAt', async () => {

@@ -1,10 +1,9 @@
 import { readForm, redirect, problem, field, checkCsrf, CSRF_REFUSED } from '../http.mjs';
 import { store as defaultStore, SLUG } from '../store.mjs';
 import {
-  PAGE_TYPES, READS, SAME, emptyStudy, emptyRound, migrateStudy, openRound, touch, newKeywordId, normalizeQuery, splitList, draftFromQuestionnaire,
-  validateCapture, findCaptureTargets, applyCapture,
+  PAGE_TYPES, KINDS, emptyStudy, emptyRound, migrateStudy, openRound, touch, newKeywordId, normalizeQuery, splitList, draftFromQuestionnaire,
+  validateCapture, findCaptureTargets, applyCapture, decodeCsv, parseVolumeCsv, applyVolume, pageList,
 } from '../research.mjs';
-import { renderResearchReport, reportName } from '../research-report.mjs';
 
 const KEYWORD_ID = /^k[a-z0-9]{8}$/;
 const tab = (slug, extra = '') => `/office/clients/${slug}/?tab=research${extra}`;
@@ -64,28 +63,37 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
   if (op === 'remove') {
     const id = field(data, 'id');
     const serps = { ...round.serps }; delete serps[id];
-    const reads = Object.fromEntries(Object.entries(round.reads).filter(([k]) => !k.split('|').includes(id)));
     const pages = round.pages.map((p) => ({ ...p, keywords: p.keywords.filter((k) => k !== id) })).filter((p) => p.keywords.length);
-    return saveRound({ ...round, keywords: round.keywords.filter((k) => k.id !== id), serps, reads, pages });
+    const volumeImport = round.volumeImport
+      ? { ...round.volumeImport, unmatchedKeywords: round.volumeImport.unmatchedKeywords.filter((k) => k !== id) }
+      : undefined;
+    return saveRound({ ...round, keywords: round.keywords.filter((k) => k.id !== id), serps, pages, ...(volumeImport ? { volumeImport } : {}) });
   }
   if (op === 'areas') return saveRound({ ...round, areas: splitList(data.get('areas')) });
-  if (op === 'read') {
-    const key = field(data, 'key');
-    const [a, b] = key.split('|');
-    if (!a || !b || !round.keywords.some((k) => k.id === a) || !round.keywords.some((k) => k.id === b)) return back(slug, 'no such pair');
-    const human = field(data, 'human'); const sameCluster = field(data, 'sameCluster');
-    if (!READS.includes(human) || !SAME.includes(sameCluster)) return back(slug, 'pick a read from the list');
-    return saveRound({ ...round, reads: { ...round.reads, [key]: { human, sameCluster, notes: text('notes') } } });
+  if (op === 'volume') {
+    const file = data.get('file');
+    if (!(file instanceof File) || !file.size) return back(slug, 'choose a CSV to import');
+    if (file.size > 2_000_000) return back(slug, 'that file is over 2 MB, which is far more than a keyword list');
+    const csvText = decodeCsv(new Uint8Array(await file.arrayBuffer()));
+    const { rows, error } = parseVolumeCsv(csvText);
+    if (error) return back(slug, error);
+    const source = /avg\. monthly searches|min search volume/i.test(csvText) ? 'planner' : 'csv';
+    return saveRound(applyVolume(round, rows, now, source));
   }
+  // Reads went with the pair ladder. A stale form is told so rather than
+  // silently accepted into a field nothing reads.
+  if (op === 'read') return problem(400, 'reads are no longer recorded; edit the page the pair belongs to instead');
   if (op === 'page') {
     const id = field(data, 'id');
-    const type = field(data, 'type');
-    if (!PAGE_TYPES.includes(type) && type !== 'Tie / review') return back(slug, 'pick a page type');
-    const keywords = field(data, 'keywords').split(',').map((x) => x.trim()).filter((x) => round.keywords.some((k) => k.id === x));
+    const kind = field(data, 'kind');
+    if (!KINDS.includes(kind)) return back(slug, 'pick a page kind');
+    // Checkboxes post one value per box; a hand-built form may post one
+    // comma-joined value. Both are accepted.
+    const keywords = data.getAll('keywords').flatMap((v) => String(v).split(',')).map((x) => x.trim()).filter((x) => round.keywords.some((k) => k.id === x));
     if (!keywords.length) return back(slug, 'a page needs at least one keyword');
     const title = text('title');
     if (!title) return back(slug, 'the page needs a title');
-    const row = { id, title, type, keywords, note: text('note'), auto: false };
+    const row = { id, title, kind, keywords: [...new Set(keywords)], note: text('note'), auto: false };
     // Claiming a keyword takes it away from any other edited row.
     const others = round.pages.filter((p) => p.id !== id && p.auto === false).map((p) => ({ ...p, keywords: p.keywords.filter((k) => !keywords.includes(k)) })).filter((p) => p.keywords.length);
     return saveRound({ ...round, pages: [...others, row] });
@@ -103,7 +111,7 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
     return saveRound({ ...round, serps: { ...round.serps, [keyword]: { ...serp, results } } });
   }
   if (op === 'round') {
-    const closed = { ...round, closedAt: now.toISOString() };
+    const closed = { ...round, closedAt: now.toISOString(), pages: pageList(round) };
     const next = {
       ...emptyRound(`r${study.rounds.length + 1}`, now),
       areas: [...round.areas],
@@ -122,6 +130,10 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
   }
   if (op === 'notes') return saveRound({ ...round, notes: { intro: text('intro'), closing: text('closing') } });
   if (op === 'report') {
+    // Loaded lazily: research-report.mjs still imports the pair ladder this
+    // engine dropped, so a static import here would break every op above
+    // rather than only the one report op that depends on it (Task 7 fixes it).
+    const { renderResearchReport, reportName } = await import('../research-report.mjs');
     const bytes = await renderResearchReport({ client, round, renderedAt: now });
     const name = reportName(now, round);
     await s.documents.put(slug, name, new Uint8Array(bytes), { type: 'application/pdf', source: 'research', createdBy: ctx.admin?.email ?? null }, now);
