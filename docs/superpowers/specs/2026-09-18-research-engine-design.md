@@ -461,3 +461,54 @@ A merge between a business's site and its platform profile; the
 keyword-to-business network view (a second picture of the same matrix, for
 later); scheduled recapture; any search or volume API in the office; a
 round-over-round comparison in the report.
+
+## 13. Amendments after the first study (2026-09-19)
+
+The first real study was captured from a research profile Google had placed
+in Denver, and the client's read of the report found five more faults. These
+amend the sections above; everything else stands.
+
+**Search location (§3, §6).** A round carries a `location`, the place Google
+should think it is searching from, set beside the service areas and carried
+into the next round. `uule(location)` spells Google's own location parameter
+(`w+CAIQICI`, one character for the canonical name's byte length, then that
+name in base64), and `searchUrl(q, location)` appends it. `isSearchUrl` and
+the PowerShell handler's pattern both accept the prefix, a query, and at
+most `&uule=…` anchored to the end; they must keep saying the same thing.
+The report prints what it searched from, and the method paragraph names it.
+
+**Off-area flag (§3, §6, §7).** A capture stores the round's `location`, the
+`uule` the results page carried, and `local`: whether any result's URL or
+title names a service area or the state. It is recomputed on every read, so
+adding an area answers the question for captures already taken. The tab
+marks a capture with no local results and says the search was either run
+from the wrong place or is one people make from everywhere; a page whose
+searches are all off-area says the second in the report.
+
+**Close calls fold in (§3.5, §6, §7).** The owner's rule is fewer pages
+unless there is a compelling reason to split. After the rows are built, a
+close call folds into the page it is close to unless it wants a different
+kind of page or its searches reach `OWN_PAGE_VOLUME = 500` a month, in which
+case it is kept apart. The fold is recorded on the target as `folded` and the
+split as `keptApart`; the tab offers "Give it its own page" and the report
+lists both under "Where we made a call". Nothing asks the client to merge.
+
+**Volume is coarse (§5, §7).** Planner reports rounded buckets, so a single
+Planner number is said as "around 210 a month; Google rounds these", and the
+method paragraph says the numbers are rounded and are not a ranking of pages.
+Planner's location must be set to the study's search location.
+
+**Location pages are exempt (§5.2).** See the rule added there: a Location
+page is `'page'` whatever its volume, with `standingWhy: 'place'`.
+
+**Suggested searches (§6).** `suggestedSearches(round)` counts every related
+search Google offered beside the captures, minus the ones already on the
+list, commonest first then alphabetically. The tab shows them in one
+"Suggested by Google" fold, forty at a time, each with the existing add
+button; the per-keyword related list is gone.
+
+**Appendix counts (§7).** `wrap` breaks a word wider than its cell, so an
+unbroken URL stays inside it, and `Writer.table` takes the caller's column
+split. "What we saw" counts each business once per search, not once per
+result, says how many searches the page was built from, and prints the
+listing sites in one line after the table instead of as rows.

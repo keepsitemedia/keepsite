@@ -508,7 +508,11 @@ before Stage 2: which searches share a page and which need their own. Results
 come from your own browser through a bookmarklet, one click per keyword on
 the results page, filed under the keyword whose text matches the search. No
 search API and nothing to configure. The keyword list drafts itself from the
-build questionnaire and is edited on the tab.
+build questionnaire and is edited on the tab. Set the study's search location
+under Service areas ("Utah, United States"): every search link carries it, so
+Google searches from there and not from wherever the research profile happens
+to sit. "Suggested by Google" gathers the related searches Google offered
+beside the captures, commonest first, to add to the list with one click.
 
 The engine builds one keyword-by-business matrix from the captures. Every
 business is weighted by rank and by how rarely it appears across the study,
