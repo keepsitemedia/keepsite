@@ -242,13 +242,16 @@ const external = (href: string) => href.startsWith('http');
 <h2>Study</h2>
 <StudyMatrix view={view} compare={compare} />
 {view.order.length >= 2 && (
-  <p class="quiet study-legend">
-    <span><span class="swatch s0"></span>none</span>
-    <span><span class="swatch s1"></span>faint</span>
-    <span><span class="swatch s2"></span>some</span>
-    <span><span class="swatch s3"></span>most</span>
-    <span>Dark blocks on the diagonal are pages. A dark cell outside a block is a keyword that could go either way; open it to see why.</span>
-  </p>
+  <Fragment>
+    <p class="quiet">Businesses the two searches have in common</p>
+    <p class="quiet study-legend">
+      <span><span class="swatch s0"></span>none</span>
+      <span><span class="swatch s1"></span>a little</span>
+      <span><span class="swatch s2"></span>enough to share a page</span>
+      <span><span class="swatch s3"></span>nearly the same</span>
+    </p>
+    <p class="quiet">Green is two searches that bring up the same businesses; darker is more alike. Clay is a little overlap, not enough to share a page. Bands are pages, numbered in the margin; a boxed block is a page with more than one search.</p>
+  </Fragment>
 )}
 
 <h2>Pages <span class="count">{standing.length}</span></h2>

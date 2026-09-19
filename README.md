@@ -522,8 +522,9 @@ Directories count for nothing outright. Keywords are clustered into pages
 by how alike their businesses are, and each page gets a kind (homepage,
 service page, location page, article), a confidence ("clear" or "close call
 with …") and a one-line reason naming the businesses that decided it. The
-Study section shows the whole matrix, keywords ordered so pages sit as dark
-blocks on the diagonal; any cell opens the two searches side by side.
+Study section shows the whole matrix, split into numbered page bands with
+green for alike and clay for slight overlap, the same figure the report
+prints; any cell opens the two searches side by side.
 
 Search volume comes in by CSV: paste the keywords into Google Keyword
 Planner, download, import under Search volume. Volume never moves a keyword

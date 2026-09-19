@@ -1,7 +1,8 @@
 ---
-// The whole study in one table: keywords down the side and across the top
-// in page order, each cell shaded by how alike the two searches are, each
-// page outlined as a block on the diagonal. No script: it is a table, it
+// The whole study in one table. Its job is pages first, how many and which
+// searches, and then how alike any two searches are: numbered page bands
+// down the side, shades inside them. A pair reads the same either way
+// round, so only the lower half is drawn. No script: it is a table, it
 // scrolls, and every cell is a link to the two searches side by side.
 import { band, pairKey } from '../../../netlify/functions/lib/office/research.mjs';
 
@@ -13,27 +14,37 @@ const { order, sims, blocks, texts } = view;
 const blockOf = new Map<string, number>();
 blocks.forEach((b, i) => b.forEach((id) => blockOf.set(id, i)));
 const last = new Set(blocks.map((b) => b[b.length - 1]));
+// The row that opens a page carries the page number for the whole band.
+const opens = new Map(blocks.map((b, i) => [b[0], { no: i + 1, rows: b.length }]));
+// A page of one search is already a band between two rules; only a page
+// holding several needs its square outlined.
+const paired = new Set(blocks.filter((b) => b.length >= 2).flat());
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 ---
 {order.length < 2 ? <p class="empty">Capture two keywords and the study grid appears here.</p> : (
   <div class="table-scroll">
     <table class="study">
       <thead>
-        <tr><th class="corner"></th>{order.map((id) => <th class="col" scope="col" title={texts.get(id)}><span>{texts.get(id)}</span></th>)}</tr>
+        <tr><th class="corner"></th><th class="corner"></th>{order.map((id, j) => <th class="col" scope="col" title={texts.get(id)}><span><span class="idx">{j + 1}</span>{texts.get(id)}</span></th>)}</tr>
       </thead>
       <tbody>
-        {order.map((a) => (
-          <tr>
-            <th class="row" scope="row">{texts.get(a)}</th>
-            {order.map((b) => {
-              const same = blockOf.get(a) === blockOf.get(b);
-              const cls = ['cell', a === b ? 'diag' : `s${band(sims[a][b])}`, same ? 'blk' : '', last.has(b) ? 'edge-r' : '', last.has(a) ? 'edge-b' : ''].filter(Boolean).join(' ');
-              const alike = `${texts.get(a)} · ${texts.get(b)}: ${pct(sims[a][b])} alike`;
-              return a === b ? <td class={cls}></td>
-                : <td class={cls}><a href={compare(pairKey(a, b))} title={alike}><span class="sr-only">{alike}</span></a></td>;
-            })}
-          </tr>
-        ))}
+        {order.map((a, i) => {
+          const page = opens.get(a);
+          return (
+            <tr>
+              {page && <th class="pageno" scope="rowgroup" rowspan={page.rows}>{page.no}</th>}
+              <th class="row" scope="row"><span class="idx">{i + 1}</span>{texts.get(a)}</th>
+              {order.map((b, j) => {
+                if (j > i) return <td class="void"></td>;
+                const same = blockOf.get(a) === blockOf.get(b);
+                const cls = ['cell', a === b ? 'diag' : `s${band(sims[a][b])}`, same && paired.has(a) ? 'blk-outline' : '', last.has(b) ? 'edge-r' : '', last.has(a) ? 'edge-b' : ''].filter(Boolean).join(' ');
+                const alike = `${texts.get(a)} · ${texts.get(b)}: ${pct(sims[a][b])} alike`;
+                return a === b ? <td class={cls}></td>
+                  : <td class={cls}><a href={compare(pairKey(a, b))} title={alike}><span class="sr-only">{alike}</span></a></td>;
+              })}
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   </div>
