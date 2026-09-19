@@ -927,9 +927,11 @@ test('pageList clusters the free keywords, keeps edited rows first, and decorate
   const round = roundWith({
     k1: { text: 'utah bridal makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
     k2: { text: 'utah wedding makeup', urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
-    k3: { text: 'moab wedding makeup', urls: ['https://x.com/', 'https://y.com/'] },
+    k3: { text: 'moab utah wedding makeup', urls: ['https://x.com/', 'https://y.com/'] },
     k4: { text: 'soft glam vs full glam', urls: ['https://p.com/blog/x'] },
   }, ['Utah', 'Moab']);
+  // Utah is in three of four keywords, so it is the home area and does not
+  // make the head group a location page; Moab is in one and does.
   let list = pageList(round);
   assert.deepEqual(list.map((p) => p.keywords), [['k1', 'k2'], ['k3'], ['k4']]);
   assert.deepEqual(list.map((p) => p.kind), ['Homepage', 'Location page', 'Article']);
@@ -971,16 +973,13 @@ test('pageList never recommends a Directory or a tie', () => {
   for (const p of pageList(round)) assert.ok(KINDS.includes(p.kind), p.kind);
 });
 
-test('pageList titles a group by volume, else by the keyword most like the rest', () => {
-  const round = roundWith({
-    k1: { text: 'edge', urls: ['https://a.com/', 'https://z.com/'] },
-    k2: { text: 'centre', urls: ['https://a.com/', 'https://b.com/'] },
-    k3: { text: 'other edge', urls: ['https://b.com/', 'https://y.com/'] },
-  });
-  const [page] = pageList({ ...round });
-  assert.equal(page.title, 'centre');
+test('titleOf picks by volume, else the keyword most like the rest', () => {
+  const round = { ...emptyRound('r1'), keywords: [{ id: 'k1', text: 'edge' }, { id: 'k2', text: 'centre' }, { id: 'k3', text: 'other edge' }] };
+  const sims = { k1: { k1: 1, k2: 0.5, k3: 0 }, k2: { k1: 0.5, k2: 1, k3: 0.5 }, k3: { k1: 0, k2: 0.5, k3: 1 } };
+  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'centre');
+  assert.equal(titleOf(['k3'], round, sims), 'other edge');
   round.keywords[0].volume = { min: 500, max: 500, source: 'csv', at: 'x' };
-  assert.equal(pageList(round)[0].title, 'edge');
+  assert.equal(titleOf(['k1', 'k2', 'k3'], round, sims), 'edge');
 });
 
 test('pagesOf reads a closed round from its stored pages and an open one fresh', () => {
@@ -1131,8 +1130,8 @@ export function pageList(round) {
   if (!kept.some((p) => p.kind === 'Homepage')) {
     const byId = new Map(round.keywords.map((k) => [k.id, k]));
     const volume = (p) => p.keywords.reduce((n, id) => n + (byId.get(id)?.volume?.max ?? 0), 0);
-    const home = rows.filter((p) => p.kind === 'Service page').sort((x, y) => volume(y) - volume(x) || y.keywords.length - x.keywords.length)[0];
-    if (home) home.kind = 'Homepage';
+    const homepage = rows.filter((p) => p.kind === 'Service page').sort((x, y) => volume(y) - volume(x) || y.keywords.length - x.keywords.length)[0];
+    if (homepage) homepage.kind = 'Homepage';
   }
   return [...kept, ...rows];
 }
