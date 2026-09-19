@@ -5,6 +5,7 @@ import {
   validateCapture, findCaptureTargets, applyCapture, decodeCsv, parseVolumeCsv, applyVolume, applyNoVolume, pageList,
 } from '../research.mjs';
 import { renderResearchReport, reportName } from '../research-report.mjs';
+import { renderResearchDocx, reportDocxName } from '../research-docx.mjs';
 
 const KEYWORD_ID = /^k[a-z0-9]{8}$/;
 const tab = (slug, extra = '') => `/office/clients/${slug}/?tab=research${extra}`;
@@ -142,9 +143,14 @@ export async function research(request, ctx, s = defaultStore(), now = new Date(
   }
   if (op === 'notes') return saveRound({ ...round, notes: { intro: text('intro'), closing: text('closing') } });
   if (op === 'report') {
+    const by = ctx.admin?.email ?? null;
     const bytes = await renderResearchReport({ client, round, renderedAt: now });
-    const name = reportName(now, round);
-    await s.documents.put(slug, name, new Uint8Array(bytes), { type: 'application/pdf', source: 'research', createdBy: ctx.admin?.email ?? null }, now);
+    await s.documents.put(slug, reportName(now, round), new Uint8Array(bytes), { type: 'application/pdf', source: 'research', createdBy: by }, now);
+    // The PDF is what a client is sent; the Word file is what the owner edits
+    // first, so both are filed under the one name and neither is regenerated
+    // from the other.
+    const word = await renderResearchDocx({ client, round, renderedAt: now });
+    await s.documents.put(slug, reportDocxName(now, round), word, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', source: 'research', createdBy: by }, now);
     const rounds = study.rounds.slice();
     rounds[rounds.length - 1] = { ...round, reportedAt: now.toISOString() };
     await s.research.put(slug, touch({ ...study, rounds }, now));

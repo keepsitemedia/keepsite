@@ -538,8 +538,9 @@ You review pages, not pairs. Edit a page to move keywords in or out, merge
 or split; a released keyword is regrouped on its own. Starting a new round
 freezes the page list on the round it closes, so an old report keeps saying
 what it said. "Write the report to Documents" renders the study grid, the
-pages and their reasons as a PDF; the send screen offers to attach the
-newest one. Advancing a Growth, Agile or Range client into Demo creates the
+pages and their reasons as a PDF and as a Word document you can edit before
+sending; the Word file is the one to change. The send screen offers to
+attach the newest of either. Advancing a Growth, Agile or Range client into Demo creates the
 "Run search research" task, which links to the tab.
 
 The engine's one parameter, the clustering cut, and the volume floor are

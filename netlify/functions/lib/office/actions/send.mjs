@@ -7,6 +7,9 @@ import { sendMail } from '../mail.mjs';
 
 const FORM = /^[a-z]+$/;
 
+// Each checkbox on the send screen and the report it attaches.
+const ATTACHMENTS = [['attach', '.pdf'], ['attachDocx', '.docx']];
+
 // The screen already filled the placeholders; the action's job is to refuse
 // an email that still has one, then send exactly the text the admin saw.
 export async function send(request, ctx, s = defaultStore(), fetchFn = fetch, now = new Date()) {
@@ -65,13 +68,18 @@ export async function send(request, ctx, s = defaultStore(), fetchFn = fetch, no
   const html = toSafeHtml(escapeValues(cleanBody, values));
 
   // The research report rides along when asked for: the newest document the
-  // research action wrote, as Resend wants it.
+  // research action wrote, as Resend wants it. The PDF and the Word file are
+  // picked separately, because the owner may have edited one of them since
+  // the other was filed.
   const attachments = [];
-  if (data.get('attach') === 'on') {
+  const wanted = ATTACHMENTS.filter(([box]) => data.get(box) === 'on');
+  if (wanted.length) {
     const reports = (await s.documents.list(slug)).filter((m) => m && m.source === 'research').sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
-    if (reports[0]) {
-      const bytes = await s.documents.get(slug, reports[0].name);
-      if (bytes) attachments.push({ filename: reports[0].name, content: Buffer.from(bytes).toString('base64') });
+    for (const [, ext] of wanted) {
+      const report = reports.find((m) => String(m.name).endsWith(ext));
+      if (!report) continue;
+      const bytes = await s.documents.get(slug, report.name);
+      if (bytes) attachments.push({ filename: report.name, content: Buffer.from(bytes).toString('base64') });
     }
   }
 

@@ -100,3 +100,21 @@ test('attach=on sends the newest research report as an attachment', async () => 
   assert.equal(sent.attachments[0].filename, 'search-research-2026-09-13.pdf');
   assert.equal(sent.attachments[0].content, Buffer.from([2, 3]).toString('base64'));
 });
+
+// The Word file is the editable master, so it is offered on its own and the
+// admin decides which of the two the client gets.
+test('attachDocx sends the newest Word report, alone or beside the PDF', async () => {
+  const s = await make();
+  await s.documents.put('lova', 'search-research-2026-09-01.docx', new Uint8Array([9]), { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', source: 'research' }, new Date('2026-09-01T00:00:00Z'));
+  await s.documents.put('lova', 'search-research-2026-09-13.pdf', new Uint8Array([2, 3]), { type: 'application/pdf', source: 'research' }, new Date('2026-09-13T00:00:00Z'));
+  await s.documents.put('lova', 'search-research-2026-09-13.docx', new Uint8Array([4, 5]), { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', source: 'research' }, new Date('2026-09-13T00:00:00Z'));
+  let sent;
+  const fetchFn = async (_, init) => { sent = JSON.parse(init.body); return new Response('{"id":"e1"}'); };
+  await send(post({ csrf, slug: 'lova', template: 'research-report', subject: 'S', body: 'B', attachDocx: 'on' }), ctx(), s, fetchFn, new Date());
+  assert.deepEqual(sent.attachments.map((a) => a.filename), ['search-research-2026-09-13.docx']);
+  assert.equal(sent.attachments[0].content, Buffer.from([4, 5]).toString('base64'));
+  await send(post({ csrf, slug: 'lova', template: 'research-report', subject: 'S', body: 'B', attach: 'on', attachDocx: 'on' }), ctx(), s, fetchFn, new Date());
+  assert.deepEqual(sent.attachments.map((a) => a.filename), ['search-research-2026-09-13.pdf', 'search-research-2026-09-13.docx']);
+  await send(post({ csrf, slug: 'lova', template: 'research-report', subject: 'S', body: 'B' }), ctx(), s, fetchFn, new Date());
+  assert.deepEqual(sent.attachments, []);
+});

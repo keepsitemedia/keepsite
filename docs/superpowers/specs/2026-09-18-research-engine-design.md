@@ -527,3 +527,13 @@ unbroken URL stays inside it, and `Writer.table` takes the caller's column
 split. "What we saw" counts each business once per search, not once per
 result, says how many searches the page was built from, and prints the
 listing sites in one line after the table instead of as rows.
+
+**The report is editable (§7, §10).** The owner edits the report before a
+client sees it, and a PDF cannot be edited, so `research-docx.mjs` renders
+the same `reportLines()` a second way: `renderResearchDocx()` returns a Word
+file and `reportDocxName()` is the PDF's name with a `.docx` on it. The
+report op files both, the report route serves the Word one under
+`?format=docx`, and the send screen offers each as its own checkbox, the PDF
+checked by default. Word cannot rule the diagonal outline of a page block, so
+the grid's bands are marked by their boundary rules alone; everything else in
+the figure is the same, drawn out of table cells the owner can retype.

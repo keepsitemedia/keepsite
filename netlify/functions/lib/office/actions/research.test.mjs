@@ -231,6 +231,22 @@ test('report writes a document and stamps reportedAt', async () => {
   assert.equal(openRound(saved).pages.length, 1);
 });
 
+// The Word file is the one the owner edits before sending; it is filed with
+// the PDF, under the same name, so the two never drift apart.
+test('report files the report as a PDF and as a Word document', async () => {
+  const s = await make();
+  await research(post({ csrf, slug: 'acme', op: 'add', text: 'a', cluster: 'W', arm: '' }), ctx(), s, now);
+  await research(post({ csrf, op: 'capture', payload: capture('a') }), ctx(), s, now);
+  await research(post({ csrf, slug: 'acme', op: 'report' }), ctx(), s, now);
+  const filed = (await s.documents.list('acme')).filter((m) => m && m.source === 'research').map((m) => m.name).sort();
+  assert.deepEqual(filed, ['search-research-2026-09-13.docx', 'search-research-2026-09-13.pdf']);
+  const word = await s.documents.meta('acme', 'search-research-2026-09-13.docx');
+  assert.equal(word.source, 'research');
+  assert.equal(word.type, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  const bytes = await s.documents.get('acme', 'search-research-2026-09-13.docx');
+  assert.equal(Buffer.from(bytes.slice(0, 2)).toString(), 'PK');
+});
+
 test('a legacy document is migrated on the way in and saved with rounds', async () => {
   const s = await make();
   await s.clients.put('x', { slug: 'x', business: 'X', name: 'X', email: 'x@example.com', tier: 'Growth' });

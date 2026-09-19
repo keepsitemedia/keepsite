@@ -370,5 +370,6 @@ const external = (href: string) => href.startsWith('http');
   {hidden({ csrf, slug, op: 'report', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
   <button class="btn" disabled={captures.length === 0}>Write the report to Documents</button>
   <a class="btn-quiet" href={`/office/research/${slug}/report/`} target="_blank" rel="noopener">Preview</a>
-  {round.reportedAt && <span class="quiet">Last written {day(round.reportedAt)}. Send it from the <a href={`/office/clients/${slug}/?tab=emails`}>Emails tab</a>.</span>}
+  <a class="btn-quiet" href={`/office/research/${slug}/report/?format=docx`}>Download Word</a>
+  {round.reportedAt && <span class="quiet">Last written {day(round.reportedAt)}. Written to Documents as PDF and Word. Send it from the <a href={`/office/clients/${slug}/?tab=emails`}>Emails tab</a>.</span>}
 </form>
