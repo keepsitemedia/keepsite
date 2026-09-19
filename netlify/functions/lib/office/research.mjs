@@ -204,6 +204,92 @@ export function similarities(m) {
   return out;
 }
 
+// ---- Grouping ----------------------------------------------------------------
+
+// PROVISIONAL. The engine's one parameter. Set it from
+// `node scripts/validate-clusters.mjs <export.json> <external.csv>`, which
+// sweeps it against an independent clustering of the same keywords and
+// prints agreement at each step. No validation has run yet; until it does, a
+// page whose nearest outsider is near this line is a judgement call.
+export const CUT = 0.25;
+
+// Shades for the matrix and the report grid: none, faint, some, most.
+export const band = (v, cut = CUT) => (v <= 0 ? 0 : v < cut / 2 ? 1 : v < cut ? 2 : 3);
+
+const meanBetween = (g, h, sims) => {
+  let s = 0;
+  for (const a of g) for (const b of h) s += sims[a][b];
+  return s / (g.length * h.length);
+};
+
+// Average-linkage agglomerative clustering. Every keyword starts alone; the
+// two groups whose members are most alike on average merge, until the best
+// merge left is below the cut. Average, not single, linkage: union-find
+// joined A to C whenever A-B and B-C passed, and a chain of near-misses
+// became one page. Here a keyword joins a group when it resembles the group.
+export function cluster(m, sims, cut = CUT) {
+  const index = new Map(m.keywords.map((k, i) => [k.id, i]));
+  let groups = m.keywords.map((k) => [k.id]);
+  const merges = [];
+  while (groups.length > 1) {
+    let best = { score: -1, i: -1, j: -1 };
+    for (let i = 0; i < groups.length; i += 1) {
+      for (let j = i + 1; j < groups.length; j += 1) {
+        const score = meanBetween(groups[i], groups[j], sims);
+        if (score > best.score) best = { score, i, j };
+      }
+    }
+    if (best.score < cut) break;
+    const merged = [...groups[best.i], ...groups[best.j]];
+    merges.push({ members: merged, score: best.score });
+    groups = groups.filter((_, k) => k !== best.i && k !== best.j);
+    groups.push(merged);
+  }
+  groups.sort((x, y) => y.length - x.length || index.get(x[0]) - index.get(y[0]));
+  return { groups, order: groups.flat(), merges };
+}
+
+// How sure the grouping is: how alike the members are, and how close the
+// nearest outsider came. Said against the cut, since the cut is what the
+// outsider failed to reach.
+export function confidence(ids, groups, sims, cut = CUT) {
+  let nearest = 0;
+  let near = null;
+  for (const other of groups) {
+    if (other === ids || (other.length === ids.length && other.every((id) => ids.includes(id)))) continue;
+    for (const a of ids) for (const b of other) if (sims[a][b] > nearest) { nearest = sims[a][b]; near = other; }
+  }
+  let tightness = 1;
+  if (ids.length > 1) {
+    let s = 0;
+    let n = 0;
+    for (let i = 0; i < ids.length; i += 1) for (let j = i + 1; j < ids.length; j += 1) { s += sims[ids[i]][ids[j]]; n += 1; }
+    tightness = s / n;
+  }
+  return { level: nearest < cut / 2 ? 'clear' : 'close', tightness, nearest, near };
+}
+
+const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const word = (n) => WORDS[n] ?? String(n);
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// The businesses that rank for every member, heaviest first: the evidence
+// the group stands on, in the words the owner would use on a call.
+export function reasonOf(ids, m, nearest = 0) {
+  if (ids.length === 1) {
+    return nearest > 0 ? 'The businesses that rank here mostly rank for nothing else in the study.'
+      : 'No business that ranks here ranks for anything else in the study.';
+  }
+  const shared = m.businesses
+    .filter((b) => (m.weight[b] ?? 0) > 0 && ids.every((id) => m.cells[id]?.[b]))
+    .map((b) => ({ b, load: m.weight[b] * Math.min(...ids.map((id) => m.cells[id][b].w)) }))
+    .sort((x, y) => y.load - x.load || x.b.localeCompare(y.b));
+  const all = ids.length === 2 ? 'both' : `all ${word(ids.length)}`;
+  if (!shared.length) return `No single business ranks for ${all}; they are joined by the businesses most of them share.`;
+  const led = shared.slice(0, 2).map((x) => x.b).join(' and ');
+  return `${cap(word(shared.length))} ${shared.length === 1 ? 'business ranks' : 'businesses rank'} for ${all}, led by ${led}.`;
+}
+
 // A directory ranks for every query in a field, so counting it as evidence
 // that two queries mean the same thing adds the same constant to every pair.
 // The businesses are what discriminate.
@@ -256,9 +342,6 @@ export function comparePair(a, b) {
 
 // The compare page's plain-English line over the two columns: the same
 // counts as comparePair, read the way the owner would say them on a call.
-const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-const word = (n) => WORDS[n] ?? String(n);
-const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const PLURAL = {
   'Service page': 'service pages', 'Location page': 'location pages', 'Homepage': 'homepages', 'Directory': 'directories',
   'Blog/FAQ': 'blog or FAQ pages', 'Portfolio/Gallery': 'portfolio or gallery pages', 'About page': 'about pages',

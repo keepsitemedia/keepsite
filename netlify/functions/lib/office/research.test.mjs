@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   PAGE_TYPES, normalizeUrl, domainOf, businessOf, classify, comparePair, primaryPageOf, describePair, pairKey, pairs, group, pageList, emptyStudy, emptyRound, migrateStudy, openRound, roundOf, touch,
   pickResults, PICK_SOURCE, bookmarklet, searchUrl, researchSearchUrl, isSearchUrl, normalizeQuery, validateCapture, findCaptureTargets, applyCapture, draftFromQuestionnaire, splitList, isProfile,
-  rankWeight, matrix, similarity, similarities,
+  rankWeight, matrix, similarity, similarities, CUT, cluster, confidence, reasonOf, band,
 } from './research.mjs';
 
 const r = (url, pageType = 'Service page', title = 'T') => ({ url, title, domain: domainOf(url), pageType, typeSource: 'auto' });
@@ -904,4 +904,98 @@ test('similarities is the full square with a unit diagonal', () => {
   assert.equal(s.k1.k1, 1);
   assert.equal(s.k1.k2, 0);
   assert.equal(s.k2.k1, 0);
+});
+
+test('cluster merges the closest first and stops at the cut', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
+    k2: { urls: ['https://a.com/', 'https://b.com/', 'https://c.com/'] },
+    k3: { urls: ['https://a.com/', 'https://x.com/', 'https://y.com/'] },
+    k4: { urls: ['https://p.com/', 'https://q.com/'] },
+  });
+  const m = matrix(round);
+  const sims = similarities(m);
+  const { groups, order, merges } = cluster(m, sims, 0.25);
+  assert.deepEqual(groups[0].slice().sort(), ['k1', 'k2'], 'the identical pair merges');
+  assert.ok(merges[0].score > 0.99, 'and it merges first, at its score');
+  assert.ok(groups.some((g) => g.length === 1 && g[0] === 'k4'), 'k4 shares nothing and stands alone');
+  assert.equal(order.length, 4);
+  assert.equal(new Set(order).size, 4);
+  // Nothing merges when the cut is above every similarity.
+  assert.equal(cluster(m, sims, 1.01).groups.length, 4);
+});
+
+// Union-find joined A to C whenever A-B and B-C were strong. Average linkage
+// asks whether C resembles the group {A, B} as a whole.
+test('cluster does not chain: A like B, B like C, A unlike C stays two groups', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/', 'https://b.com/', 'https://c.com/', 'https://d.com/'] },
+    k2: { urls: ['https://c.com/', 'https://d.com/', 'https://e.com/', 'https://f.com/'] },
+    k3: { urls: ['https://e.com/', 'https://f.com/', 'https://g.com/', 'https://h.com/'] },
+  });
+  const m = matrix(round);
+  const sims = similarities(m);
+  assert.equal(sims.k1.k3, 0, 'fixture: the ends share nothing');
+  const { groups } = cluster(m, sims, Math.min(sims.k1.k2, sims.k2.k3) * 0.9);
+  assert.equal(groups.length, 2, 'the middle keyword joins one end, not both');
+});
+
+test('cluster keeps merged keywords adjacent in the order', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/'] },
+    k2: { urls: ['https://z.com/'] },
+    k3: { urls: ['https://a.com/'] },
+  });
+  const m = matrix(round);
+  const { order } = cluster(m, similarities(m), 0.25);
+  const i = order.indexOf('k1');
+  const j = order.indexOf('k3');
+  assert.equal(Math.abs(i - j), 1);
+});
+
+test('confidence words the nearest outsider against the cut', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/', 'https://b.com/'] },
+    k2: { urls: ['https://a.com/', 'https://b.com/'] },
+    k3: { urls: ['https://c.com/'] },
+  });
+  const m = matrix(round);
+  const sims = similarities(m);
+  const { groups } = cluster(m, sims, 0.25);
+  const pair = groups.find((g) => g.length === 2);
+  const single = groups.find((g) => g.length === 1);
+  assert.equal(confidence(pair, groups, sims, 0.25).level, 'clear');
+  assert.equal(confidence(pair, groups, sims, 0.25).nearest, 0);
+  assert.equal(confidence(pair, groups, sims, 0.25).near, null);
+  assert.equal(confidence(single, groups, sims, 0.25).level, 'clear');
+  // A nearest outsider inside [cut/2, cut) is a close call, and it is named.
+  const fake = { k1: { k1: 1, k2: 1, k3: 0.2 }, k2: { k1: 1, k2: 1, k3: 0.1 }, k3: { k1: 0.2, k2: 0.1, k3: 1 } };
+  const c = confidence(['k1', 'k2'], [['k1', 'k2'], ['k3']], fake, 0.25);
+  assert.equal(c.level, 'close');
+  assert.deepEqual(c.near, ['k3']);
+  assert.equal(c.nearest, 0.2);
+  assert.equal(c.tightness, 1);
+});
+
+test('reasonOf names the heaviest shared businesses first and says when nothing is shared', () => {
+  const round = roundWith({
+    k1: { urls: ['https://common.com/', 'https://rare.com/', 'https://also.com/'] },
+    k2: { urls: ['https://rare.com/', 'https://common.com/', 'https://also.com/'] },
+    k3: { urls: ['https://common.com/', 'https://other.com/'] },
+    k4: { urls: ['https://alone.com/'] },
+  });
+  const m = matrix(round);
+  const text = reasonOf(['k1', 'k2'], m, 0);
+  assert.match(text, /^Three businesses rank for both, led by rare\.com and also\.com\./);
+  assert.equal(reasonOf(['k4'], m, 0), 'No business that ranks here ranks for anything else in the study.');
+  assert.equal(reasonOf(['k4'], m, 0.1), 'The businesses that rank here mostly rank for nothing else in the study.');
+  assert.match(reasonOf(['k1', 'k2', 'k3'], m, 0), /^One business ranks for all three, led by common\.com\./);
+});
+
+test('band cuts similarity into none, faint, some, most', () => {
+  assert.equal(band(0, 0.25), 0);
+  assert.equal(band(0.1, 0.25), 1);
+  assert.equal(band(0.2, 0.25), 2);
+  assert.equal(band(0.25, 0.25), 3);
+  assert.equal(band(1, 0.25), 3);
 });
