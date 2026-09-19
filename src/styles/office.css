@@ -518,3 +518,26 @@
   .office .serp:last-child .serp-list > li { grid-template-columns: 1.25rem minmax(0, 1fr) auto; padding-left: 0.5rem; }
   .office .serp:last-child .serp-list > li .biz-badge { order: 0; }
 }
+
+/* The study grid: one hue at four strengths for how alike two searches
+   are, page blocks outlined on the diagonal. */
+.office table.study { border-collapse: collapse; width: auto; font-size: 0.78em; }
+.office table.study th, .office table.study td { padding: 0; border: 1px solid var(--hairline-soft); }
+.office table.study th.corner { border: 0; }
+.office table.study th.col { vertical-align: bottom; height: 11rem; font-weight: 400; border-top: 0; }
+.office table.study th.col > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; max-height: 10.5rem; overflow: hidden; text-overflow: ellipsis; padding: 0.25rem 0; color: var(--graphite); }
+.office table.study th.row { text-align: right; white-space: nowrap; font-weight: 400; padding-right: 0.5rem; border-left: 0; color: var(--graphite); }
+.office table.study td.cell { width: 1.25rem; height: 1.25rem; min-width: 1.25rem; }
+.office table.study td.cell a { display: block; width: 100%; height: 100%; }
+.office table.study td.diag { background: var(--paper-inset); }
+.office table.study td.s0 { background: transparent; }
+.office table.study td.s1 { background: color-mix(in srgb, var(--green) 18%, var(--paper)); }
+.office table.study td.s2 { background: color-mix(in srgb, var(--green) 45%, var(--paper)); }
+.office table.study td.s3 { background: var(--green); }
+.office table.study td.edge-r { border-right: 2px solid var(--ink); }
+.office table.study td.edge-b { border-bottom: 2px solid var(--ink); }
+.office table.study tbody tr:first-child td.blk { border-top-color: var(--ink); }
+.office table.study td.blk:first-of-type { border-left-color: var(--ink); }
+.office .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.office .study-legend { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+.office .study-legend .swatch { display: inline-block; width: 0.9rem; height: 0.9rem; vertical-align: -0.15rem; margin-right: 0.3rem; border: 1px solid var(--hairline-soft); }
