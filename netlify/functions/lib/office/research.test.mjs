@@ -837,6 +837,7 @@ test('reasonOf names the heaviest shared businesses first and says when nothing 
   assert.equal(reasonOf(['k4'], m, 0), 'Nothing else on your list brings up the same businesses, so this search needs a page of its own.');
   assert.equal(reasonOf(['k4'], m, 0.1), 'This search shares a few results with others on your list, but not enough to share a page.');
   assert.match(reasonOf(['k1', 'k2', 'k3'], m, 0), /^One business, common\.com, comes up for all of these,/);
+  assert.match(reasonOf(['k1', 'k3'], m, 0), /^One business, common\.com, comes up for both of these,/, 'two searches are both, not all');
 });
 
 // A directory column weighs nothing, so similarity cannot see it: a keyword

@@ -10,12 +10,6 @@ import { todayIn, formatYmd } from './dates.mjs';
 // that round's report, and two rounds must not overwrite one another.
 export const reportName = (now, round) => `search-research-${todayIn(undefined, new Date(round?.startedAt ?? now))}.pdf`;
 
-function topDomains(results, limit = 5) {
-  const counts = new Map();
-  for (const x of results) counts.set(x.domain, (counts.get(x.domain) ?? 0) + 1);
-  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit);
-}
-
 // What the client is told we will make, in the words they would use for it.
 const KIND_LABEL = { Homepage: 'your homepage', 'Service page': 'a service page', 'Location page': 'a location page', Article: 'an article', Other: 'a page' };
 
@@ -39,7 +33,7 @@ export function reportLines({ client, round, renderedAt }) {
   const h2 = (text) => L.push({ kind: 'h2', text });
   const p = (text) => L.push({ kind: 'p', text });
   const small = (text) => L.push({ kind: 'small', text });
-  const table = (rows) => L.push({ kind: 'table', rows });
+  const table = (rows, widths = null) => L.push({ kind: 'table', rows, widths });
   const byId = new Map(round.keywords.map((k) => [k.id, k]));
   const text = (id) => byId.get(id)?.text ?? id;
   const withVolume = (id) => { const v = volumeWords(byId.get(id)); return v ? `${text(id)} (${v})` : text(id); };
@@ -109,7 +103,7 @@ export function reportLines({ client, round, renderedAt }) {
 
   if (view.order.length) {
     h2('The study, in one picture');
-    p(`Each row and each column is one search, numbered down the side and across the top. The grid is split into ${grid.blocks.length} bands, one per page: the searches inside a band share one page, and the page's number sits in the margin. Green squares are two searches that bring up the same businesses; the darker the green, the more alike they are. Clay marks a little overlap, not enough to share a page.`);
+    p(`Each row and each column is one search, numbered down the side and across the top. The grid is split into ${grid.blocks.length} bands, one per page: the searches inside a band share one page, and the page's number sits in the margin. Green squares are two searches that bring up the same businesses; the darker the green, the more alike they are. Clay marks a little overlap, not enough to share a page. The chart mirrors itself across the diagonal, and the diagonal is each search against itself.`);
     L.push(grid);
   }
 
@@ -118,18 +112,30 @@ export function reportLines({ client, round, renderedAt }) {
 
   h2('Appendix: what we saw');
   for (const row of pages) {
-    const results = row.keywords.flatMap((id) => round.serps[id]?.results ?? []);
-    const doms = topDomains(results);
-    if (!doms.length) continue;
-    p(`${row.title} · ${KIND_LABEL[row.kind] ?? 'page'}`);
-    table([['Business', 'Appearances'], ...doms.map(([d, n]) => [d, String(n)])]);
+    const serps = row.keywords.map((id) => round.serps[id]).filter(Boolean);
+    if (!serps.length) continue;
+    const n = serps.length;
+    // Once per search, not once per result: a business with three pages in one
+    // set of results is one business Google shows for that search.
+    const seen = new Map();
+    const listings = new Set();
+    for (const serp of serps) {
+      for (const x of serp.results) if (x.pageType === 'Directory') listings.add(x.domain);
+      for (const d of new Set(serp.results.map((x) => x.domain))) seen.set(d, (seen.get(d) ?? 0) + 1);
+    }
+    const doms = [...seen].filter(([d]) => !listings.has(d)).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 5);
+    const names = [...listings].sort();
+    if (!doms.length && !names.length) continue;
+    p(`${row.title} · ${KIND_LABEL[row.kind] ?? 'page'} · across ${n} ${n === 1 ? 'search' : 'searches'}`);
+    if (doms.length) table([['Business', `Seen in how many of the ${n} searches`], ...doms.map(([d, c]) => [d, String(c)])], [0.7, 0.3]);
+    if (names.length) small(`On nearly every search, as always: ${names.join(', ')}.`);
   }
 
   h2('Appendix: every search');
   for (const k of captured) {
     const serp = round.serps[k.id];
     p(`${k.text} · captured ${formatYmd(todayIn(undefined, new Date(serp.capturedAt)))}`);
-    table([['#', 'Title', 'Business', 'Page type'], ...serp.results.map((x) => [String(x.rank), x.title, x.domain, x.pageType])]);
+    table([['#', 'Title', 'Business', 'Page type'], ...serp.results.map((x) => [String(x.rank), x.title, x.domain, x.pageType])], [0.06, 0.46, 0.30, 0.18]);
   }
   return L;
 }
@@ -146,7 +152,7 @@ export async function renderResearchReport({ client, round, renderedAt = new Dat
     else if (line.kind === 'h2') w.text(line.text, { font: fonts.bold, size: SIZES.h1 });
     else if (line.kind === 'p') w.text(line.text);
     else if (line.kind === 'small') w.text(line.text, { size: SIZES.small });
-    else if (line.kind === 'table') w.table(line.rows);
+    else if (line.kind === 'table') w.table(line.rows, line.widths);
     else if (line.kind === 'stats') w.stats(line.items);
     else if (line.kind === 'grid') w.grid(line);
   }

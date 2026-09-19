@@ -269,6 +269,34 @@ test('a closed round reports its stored pages, not a fresh clustering', () => {
   assert.deepEqual(L.find((x) => x.kind === 'stats').items[1], ['1', "page we'll build"]);
 });
 
+test('the caption says the grid mirrors itself', () => {
+  const L = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const caption = L.map((x) => x.text ?? '').find((t) => t.includes('bands'));
+  assert.match(caption, /The chart mirrors itself across the diagonal, and the diagonal is each search against itself\.$/);
+});
+
+// A business with three pages in one set of results is one business Google
+// shows for that search, and a listing site is not evidence at all.
+test('the appendix counts businesses across searches and sets the listing sites aside', () => {
+  let s = emptyStudy('acme', new Date('2026-09-13T00:00:00Z'));
+  s.rounds[0] = { ...s.rounds[0], keywords: [
+    { id: 'k1', text: 'wedding florist provo', cluster: '', arm: '', source: 'manual' },
+    { id: 'k2', text: 'provo wedding flowers', cluster: '', arm: '', source: 'manual' },
+  ] };
+  const results = [r('https://a.com/'), r('https://a.com/weddings/'), r('https://b.com/'), r('https://www.yelp.com/search?find_desc=x')];
+  s = applyCapture(s, 'k1', { q: 'wedding florist provo', results, related: [] });
+  s = applyCapture(s, 'k2', { q: 'provo wedding flowers', results, related: [] });
+  const L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
+  const heads = L.map((x) => x.text ?? '');
+  assert.ok(heads.some((t) => /\u00b7 across 2 searches$/.test(t)), heads.join(' | '));
+  const table = L.find((x) => x.kind === 'table' && String(x.rows[0][1]).startsWith('Seen in how many'));
+  assert.deepEqual(table.rows[0], ['Business', 'Seen in how many of the 2 searches']);
+  assert.deepEqual(table.rows[1], ['a.com', '2'], 'two pages in one search are one business, seen in both searches');
+  assert.ok(!table.rows.some((row) => row[0] === 'yelp.com'), 'a listing site is not a row');
+  assert.deepEqual(table.widths, [0.7, 0.3]);
+  assert.ok(words(L).includes('On nearly every search, as always: yelp.com.'));
+});
+
 test('the PDF writer draws a grid', async () => {
   const bytes = await renderResearchReport({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
   assert.equal(Buffer.from(bytes.slice(0, 5)).toString(), '%PDF-');

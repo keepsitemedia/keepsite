@@ -88,14 +88,30 @@ export function signaturePng(dataUrl) {
   return bytes;
 }
 
-function wrap(font, size, text, width) {
+export function wrap(font, size, text, width) {
   const lines = [];
+  const fits = (s) => font.widthOfTextAtSize(s, size) <= width;
+  // A URL has no spaces to break at, so a word wider than its cell is cut
+  // where it stops fitting; otherwise it runs across the next column.
+  const pieces = (word) => {
+    if (fits(word)) return [word];
+    const out = [];
+    let piece = '';
+    for (const ch of word) {
+      if (piece && !fits(piece + ch)) { out.push(piece); piece = ''; }
+      piece += ch;
+    }
+    if (piece) out.push(piece);
+    return out;
+  };
   for (const para of toPdfText(text).split('\n')) {
     let line = '';
     for (const word of para.split(/\s+/).filter(Boolean)) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (font.widthOfTextAtSize(candidate, size) <= width || !line) line = candidate;
-      else { lines.push(line); line = word; }
+      for (const part of pieces(word)) {
+        const candidate = line ? `${line} ${part}` : part;
+        if (fits(candidate) || !line) line = candidate;
+        else { lines.push(line); line = part; }
+      }
     }
     lines.push(line);
   }
@@ -216,10 +232,14 @@ export class Writer {
     });
     this.y -= height;
   }
-  table(rows) {
+  // `fractions` is the caller's own column split, as fractions of the text
+  // width: a table of eight ranks and one long title is not the same shape as
+  // a table of three sentences.
+  table(rows, fractions = null) {
     if (!rows.length) return;
     const cols = Math.max(...rows.map((r) => r.length));
-    const widths = cols === 2 ? [CONTENT * 0.38, CONTENT * 0.62] : cols === 3 ? [CONTENT * 0.34, CONTENT * 0.36, CONTENT * 0.30] : Array(cols).fill(CONTENT / cols);
+    const widths = fractions ? fractions.map((f) => CONTENT * f)
+      : cols === 2 ? [CONTENT * 0.38, CONTENT * 0.62] : cols === 3 ? [CONTENT * 0.34, CONTENT * 0.36, CONTENT * 0.30] : Array(cols).fill(CONTENT / cols);
     const size = SIZES.table; const lh = size * LEADING; const pad = 4;
     // A row that repeats the header's first cell is a header again: Exhibit B
     // restarts its numbering under "Included once per Term".

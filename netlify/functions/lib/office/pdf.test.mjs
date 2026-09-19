@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderAgreement, sha256, toPdfText, signaturePng } from './pdf.mjs';
+import { renderAgreement, sha256, toPdfText, signaturePng, wrap } from './pdf.mjs';
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { findAgreementTemplate, fillBlocks } from './agreement-templates.mjs';
 import { deflateSync, crc32 } from 'node:zlib';
 import { PNG, DATA_URL, pngDeclaring } from './fixtures.mjs';
@@ -59,6 +60,19 @@ test('signaturePng refuses a small file that declares a huge bitmap', () => {
   assert.notEqual(signaturePng(realPng(600, 200)), null);
   assert.notEqual(signaturePng(realPng(2000, 800)), null);
   assert.notEqual(signaturePng(DATA_URL), null);
+});
+
+// An appendix cell holds a URL, which has no spaces to break at: unbroken, it
+// runs straight across the next column.
+test('wrap breaks a word that is wider than its cell', async () => {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.TimesRoman);
+  const long = 'a'.repeat(60);
+  const lines = wrap(font, 9.5, long, 100);
+  assert.ok(lines.length > 1, `expected several lines, got ${lines.length}`);
+  for (const line of lines) assert.ok(font.widthOfTextAtSize(line, 9.5) <= 100, line);
+  assert.equal(lines.join(''), long, 'and nothing is lost in the break');
+  assert.deepEqual(wrap(font, 9.5, 'two words', 100), ['two words'], 'a line that fits is left alone');
 });
 
 test('a full agreement renders to a multi-page PDF without throwing', async () => {

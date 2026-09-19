@@ -256,7 +256,7 @@ export function reasonOf(ids, m, nearest = 0) {
     .sort((x, y) => y.load - x.load || x.b.localeCompare(y.b));
   const these = ids.length === 2 ? 'both of these' : 'all of these';
   if (!shared.length) return 'No single business comes up for every one of these, but most of them bring up the same names, so one page answers them all.';
-  if (shared.length === 1) return `One business, ${shared[0].b}, comes up for all of these, and the rest of the results overlap enough to share a page.`;
+  if (shared.length === 1) return `One business, ${shared[0].b}, comes up for ${these}, and the rest of the results overlap enough to share a page.`;
   const led = shared.slice(0, 2).map((x) => x.b).join(' and ');
   return `${cap(word(shared.length))} of the same businesses come up for ${these}, led by ${led}, so one page answers them all.`;
 }
