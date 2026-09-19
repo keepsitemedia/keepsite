@@ -23,7 +23,7 @@ const captures = round.keywords.filter((k: any) => round.serps[k.id]);
 const rows = pagesOf(round) as any[];
 const titles = new Map<string, string>(rows.map((p: any) => [p.id, p.title]));
 const view = studyView(round, rows) as any;
-const compare = (key: string) => `/office/research/${slug}/compare/?pair=${encodeURIComponent(key)}`;
+const compare = (key: string) => `/office/research/${slug}/compare/?pair=${encodeURIComponent(key)}&round=${encodeURIComponent(round.id)}`;
 const reads = Object.entries(round.reads ?? {}) as [string, any][];
 ---
 <OfficeLayout title={`${client.business} · research round`}>

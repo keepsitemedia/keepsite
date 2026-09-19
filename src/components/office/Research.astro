@@ -43,7 +43,7 @@ const facts: Fact[] = [
     : { label: 'Captured', state: 'done', text: `All ${round.keywords.length}` },
   standing.length === 0 ? { label: 'Pages', state: 'none', text: 'None yet' }
     : { label: 'Pages', state: closeCalls ? 'waiting' : 'done', text: `${standing.length} ${standing.length === 1 ? 'page' : 'pages'}`, detail: closeCalls ? `${closeCalls} close ${closeCalls === 1 ? 'call' : 'calls'}` : edited ? `${edited} edited by you` : 'Grouped automatically' },
-  volumeLoaded ? { label: 'Volume', state: 'done', text: `Loaded ${day(round.volumeImport?.at ?? round.updatedAt ?? round.startedAt)}`, detail: low.length ? `${low.length} not worth a page` : undefined }
+  volumeLoaded ? { label: 'Volume', state: 'done', text: `Loaded ${day(round.volumeImport?.at ?? round.startedAt)}`, detail: low.length ? `${low.length} not worth a page` : undefined }
     : { label: 'Volume', state: next || !round.keywords.length ? 'none' : 'waiting', text: 'Not loaded', detail: 'Import a Keyword Planner CSV below' },
   round.reportedAt ? { label: 'Report', state: 'done', text: `Written ${day(round.reportedAt)}`, href: `/office/clients/${slug}/?tab=documents` }
     : { label: 'Report', state: 'none', text: 'Not written' },
@@ -189,7 +189,7 @@ const external = (href: string) => href.startsWith('http');
   </div>
 </details>
 <details class="fold" open={!volumeLoaded && !next && round.keywords.length > 0}>
-  <summary>Search volume<span class="sub">{volumeLoaded ? `Loaded ${day(round.volumeImport?.at ?? round.updatedAt)}` : 'Not loaded'}</span></summary>
+  <summary>Search volume<span class="sub">{volumeLoaded ? `Loaded ${day(round.volumeImport?.at ?? round.startedAt)}` : 'Not loaded'}</span></summary>
   <div class="fold-body">
     <p class="quiet">Paste the keyword list into Google Keyword Planner, download its CSV, and import it here. Volume never moves a keyword between pages; it says whether a page is worth building. A page whose keywords add up to fewer than {FLOOR} searches a month is set aside below the page list.</p>
     <form method="POST" action={api} enctype="multipart/form-data" class="toolbar">

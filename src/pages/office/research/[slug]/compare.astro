@@ -5,7 +5,7 @@
 export const prerender = false;
 import OfficeLayout from '../../../../layouts/OfficeLayout.astro';
 import { store, SLUG } from '../../../../../netlify/functions/lib/office/store.mjs';
-import { comparePair, describePair, normalizeUrl, businessOf, migrateStudy, openRound, pagesOf } from '../../../../../netlify/functions/lib/office/research.mjs';
+import { comparePair, describePair, normalizeUrl, businessOf, migrateStudy, openRound, roundOf, pagesOf } from '../../../../../netlify/functions/lib/office/research.mjs';
 import { formatYmd, todayIn } from '../../../../../netlify/functions/lib/office/dates.mjs';
 
 const slug = Astro.params.slug ?? '';
@@ -14,7 +14,13 @@ const s = store();
 const client = (await s.clients.get(slug)) as any;
 const study = (await s.research.get(slug)) as any;
 if (!client || !study) return new Response('not found', { status: 404 });
-const round = openRound(migrateStudy(study));
+const doc = migrateStudy(study);
+// An archived round's matrix sends the reader here, and it has to be that
+// round's own SERPs: the open round may have recaptured or dropped the
+// keyword since, and the frozen page list would be read against new evidence.
+const wanted = String(Astro.url.searchParams.get('round') ?? '');
+const archived = wanted ? roundOf(doc, wanted) : null;
+const round = archived ?? openRound(doc);
 
 const [aId, bId] = String(Astro.url.searchParams.get('pair') ?? '').split('|');
 const a = round.keywords.find((k: any) => k.id === aId);
@@ -35,7 +41,7 @@ const mark = (r: any) => (urls.has(normalizeUrl(r.url)) ? 'hl-url' : domains.has
 const numbered = new Map<string, number>([...domains].sort().map((d, i) => [d, i + 1]));
 const badge = (r: any) => numbered.get(businessOf(r.url)) ?? null;
 const day = (iso: string) => formatYmd(todayIn(undefined, new Date(iso)));
-const tab = `/office/clients/${slug}/?tab=research`;
+const back = archived ? `/office/research/${slug}/rounds/${archived.id}/` : `/office/clients/${slug}/?tab=research`;
 const pages = pagesOf(round) as any[];
 const pageOf = (id: string) => pages.find((p) => p.keywords.includes(id));
 const pct = Math.round(c.similarity * 100);
@@ -45,7 +51,7 @@ const alike = c.band === 3 ? 'Share a page' : c.band === 0 ? 'Separate' : 'Close
   <div class="page-head">
     <h1 class="file-name">{a.text} <span class="quiet">and</span> {b.text}</h1>
     <span class="sub">{client.business}</span>
-    <span class="actions"><a class="btn-quiet btn-small" href={tab}>Back to research</a></span>
+    <span class="actions"><a class="btn-quiet btn-small" href={back}>Back to research</a></span>
   </div>
 
   <dl class="glance">

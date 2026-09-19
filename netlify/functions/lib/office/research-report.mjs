@@ -59,10 +59,13 @@ export function reportLines({ client, round, renderedAt }) {
   p('Before we build anything, we look at what people actually type into Google when they need what you do, and which of those searches Google answers with the same businesses. Searches answered by the same businesses share a page. Searches that are not get their own. This is what we found, and the page list that comes out of it.');
   if (round.notes?.intro) p(round.notes.intro);
 
+  // The searches set aside, not the pages they would have made: the label
+  // says searches, and a page can hold several.
+  const lowKeywords = low.flatMap((x) => x.keywords).length;
   L.push({ kind: 'stats', items: [
     [String(captured.length), captured.length === 1 ? 'search' : 'searches'],
     [String(standing.length), standing.length === 1 ? 'page' : 'pages'],
-    ...(volumeLoaded ? [[String(low.length), low.length === 1 ? 'search not worth a page' : 'searches not worth a page']] : []),
+    ...(volumeLoaded ? [[String(lowKeywords), lowKeywords === 1 ? 'search not worth a page' : 'searches not worth a page']] : []),
   ] });
 
   if (gridOnPageOne) {

@@ -160,14 +160,30 @@ test('not built for appears only with volume, and a close call is explained', ()
   const s = study();
   let L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   assert.ok(!/Not built for/.test(words(L)));
-  s.rounds[0].keywords = s.rounds[0].keywords.map((k) => ({ ...k, volume: { min: 0, max: k.id === 'k3' ? 0 : 500, source: 'csv', at: 'x' } }));
+  // The two wedding searches share one page, so the page set aside holds two
+  // searches and the stat counts searches, not pages.
+  s.rounds[0].keywords = s.rounds[0].keywords.map((k) => ({ ...k, volume: { min: 0, max: k.id === 'k3' ? 500 : 0, source: 'csv', at: 'x' } }));
   L = reportLines({ client, round: openRound(s), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const w = words(L);
   assert.match(w, /Not built for/);
-  assert.match(w, /funeral flowers provo/);
+  const setAside = L.map((x) => x.text ?? '').find((t) => /searched too rarely to build for/.test(t));
+  assert.match(setAside, /wedding florist provo/);
+  assert.match(setAside, /provo wedding flowers/);
   const stats = L.find((x) => x.kind === 'stats');
-  assert.deepEqual(stats.items[2], ['1', 'search not worth a page']);
+  assert.deepEqual(stats.items[2], ['2', 'searches not worth a page']);
   assert.match(w, /0 – 500|0–500|0 to 500/, 'volume ranges print beside the searches');
+});
+
+// The tab and the report have to agree about a close call, and the report is
+// the only place the reason is spelled out for the client.
+test('a close call names the page it could have joined', () => {
+  const s = study();
+  const closed = { ...openRound(s), closedAt: '2026-09-14T00:00:00.000Z', pages: [
+    { id: 'p-weddings', title: 'Wedding flowers', kind: 'Service page', keywords: ['k1', 'k2'], confidence: { level: 'clear', near: null }, reason: 'Seven businesses rank for both.', standing: 'page', note: '', auto: true },
+    { id: 'p-sympathy', title: 'Funeral flowers', kind: 'Service page', keywords: ['k3'], confidence: { level: 'close', near: 'p-weddings' }, reason: 'The businesses that rank here mostly rank for nothing else in the study.', standing: 'page', note: '', auto: true },
+  ] };
+  const w = words(reportLines({ client, round: closed, renderedAt: new Date('2026-09-20T00:00:00Z') }));
+  assert.match(w, /This one could also sit with Wedding flowers; the businesses differ enough to keep it apart\./);
 });
 
 test('a closed round reports its stored pages, not a fresh clustering', () => {
