@@ -170,6 +170,7 @@ export function similarities(m) {
 // one page, La Caille and Sundance together. Run the validation script
 // against an independent clustering of the next study before trusting this
 // elsewhere, and move the fixture test's assertions with it if it moves.
+// The validation's findings live in docs/research-validation.md.
 export const CUT = 0.12;
 
 // Shades for the matrix and the report grid: none, faint, some, most.
@@ -186,9 +187,12 @@ const meanBetween = (g, h, sims) => {
 // merge left is below the cut. Average, not single, linkage: union-find
 // joined A to C whenever A-B and B-C passed, and a chain of near-misses
 // became one page. Here a keyword joins a group when it resembles the group.
-export function cluster(m, sims, cut = CUT) {
+// `ids` narrows what is grouped without narrowing the square it is grouped
+// over: an owner's edited page takes its keywords out of the grouping, but
+// rarity and the nearest outsider still have to see the whole study.
+export function cluster(m, sims, cut = CUT, ids = m.keywords.map((k) => k.id)) {
   const index = new Map(m.keywords.map((k, i) => [k.id, i]));
-  let groups = m.keywords.map((k) => [k.id]);
+  let groups = ids.map((id) => [id]);
   const merges = [];
   while (groups.length > 1) {
     let best = { score: -1, i: -1, j: -1 };
@@ -236,7 +240,14 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 // the group stands on, in the words the owner would use on a call.
 export function reasonOf(ids, m, nearest = 0) {
   if (ids.length === 1) {
-    return nearest > 0 ? 'The businesses that rank here mostly rank for nothing else in the study.'
+    if (nearest > 0) return 'The businesses that rank here mostly rank for nothing else in the study.';
+    // Similarity ignores zero-weight columns, so a keyword whose only overlap
+    // with the study is a listing site scores zero and would otherwise be
+    // called wholly alone when it is not.
+    const [id] = ids;
+    const listings = Object.keys(m.cells[id] ?? {}).some((b) => (m.weight[b] ?? 0) === 0
+      && m.keywords.some((k) => k.id !== id && m.cells[k.id]?.[b]));
+    return listings ? 'Only listing sites rank here alongside the rest of the study, and those rank for almost everything.'
       : 'No business that ranks here ranks for anything else in the study.';
   }
   const shared = m.businesses
@@ -245,8 +256,9 @@ export function reasonOf(ids, m, nearest = 0) {
     .sort((x, y) => y.load - x.load || x.b.localeCompare(y.b));
   const all = ids.length === 2 ? 'both' : `all ${word(ids.length)}`;
   if (!shared.length) return `No single business ranks for ${all}; they are joined by the businesses most of them share.`;
+  if (shared.length === 1) return `One business ranks for ${all}, ${shared[0].b}.`;
   const led = shared.slice(0, 2).map((x) => x.b).join(' and ');
-  return `${cap(word(shared.length))} ${shared.length === 1 ? 'business ranks' : 'businesses rank'} for ${all}, led by ${led}.`;
+  return `${cap(word(shared.length))} businesses rank for ${all}, led by ${led}.`;
 }
 
 export const normalizeQuery = (q) => String(q ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -264,8 +276,13 @@ const wordIn = (needle, text) => new RegExp(`(^|[^a-z0-9])${escapeRe(String(need
 // The area the whole study is about is not a location page's area: "Utah"
 // in most keywords means the client works in Utah, not that every keyword
 // wants its own town page.
+// Counted over the captured keywords, since those are the ones the study has
+// anything to say about; before the first capture the whole list stands in, so
+// the tab still has a home area to reason with.
 export function homeAreas(round) {
-  const ks = round.keywords ?? [];
+  const all = round.keywords ?? [];
+  const seen = all.filter((k) => round.serps?.[k.id]);
+  const ks = seen.length ? seen : all;
   return (round.areas ?? []).filter((a) => a && ks.filter((k) => wordIn(a, k.text)).length > ks.length / 2);
 }
 
@@ -424,22 +441,28 @@ export function confidenceWords(row, titles) {
 
 const rowId = (ids) => `p-${ids.slice().sort().join('-')}`;
 
-// Edited rows are kept as they are and their keywords leave the matrix; the
-// rest are clustered. Exactly one page is the Homepage: the owner's if they
-// named one, else the service group with the most volume, else the largest.
+// Edited rows are kept as they are and their keywords leave the clustering
+// pass; the rest are clustered. The matrix and the square are still the whole
+// study, so an edited page's keywords stay visible as outsiders and rarity
+// reads the same here as it does on the tab's matrix. Exactly one page is the
+// Homepage: the owner's if they named one, else the service group with the
+// most volume, else the largest.
 export function pageList(round) {
   const kept = (round.pages ?? []).filter((p) => p.auto === false).map((p) => ({ ...p, standing: 'page' }));
   const claimed = new Set(kept.flatMap((p) => p.keywords));
   const free = captured(round).filter((k) => !claimed.has(k.id)).map((k) => k.id);
-  const m = matrix(round, free);
+  const m = matrix(round);
   const sims = similarities(m);
-  const { groups } = cluster(m, sims);
+  const { groups } = cluster(m, sims, CUT, free);
   const home = homeAreas(round);
+  const keptBlocks = kept.map((p) => p.keywords.filter((id) => m.cells[id]));
+  const allPages = [...keptBlocks, ...groups];
+  const keptIdOf = new Map(keptBlocks.map((block, i) => [block, kept[i].id]));
   const rows = groups.map((ids) => {
-    const c = confidence(ids, groups, sims);
+    const c = confidence(ids, allPages, sims);
     return {
       id: rowId(ids), title: titleOf(ids, round, sims), kind: kindOf(ids, round, home), keywords: ids,
-      confidence: { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? rowId(c.near) : null },
+      confidence: { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? keptIdOf.get(c.near) ?? rowId(c.near) : null },
       reason: reasonOf(ids, m, c.nearest), standing: standingOf(ids, round), note: '', auto: true,
     };
   });
@@ -498,7 +521,9 @@ export function comparePair(round, aId, bId) {
   return {
     similarity: s, band: band(s), shared, sharedDirectories, exactUrl, sameDomain,
     sameDomainDifferentPage: Math.max(0, sameDomain - exactUrl), sharedUrls, sharedDomains,
-    total: Math.max(a.length, b.length),
+    // The shorter of the two lists, so an uncaptured side reads as zero and
+    // describePair can say nothing was captured rather than "different".
+    total: Math.min(a.length, b.length),
   };
 }
 

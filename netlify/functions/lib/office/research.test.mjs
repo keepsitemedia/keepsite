@@ -403,6 +403,23 @@ test('pageList clusters the free keywords, keeps edited rows first, and decorate
   assert.equal(list[1].kind, 'Homepage', 'the homepage goes to the largest remaining service group');
 });
 
+// The matrix and the square are the whole study, so a keyword the owner
+// pulled onto an edited page is still an outsider the clustered rows are
+// measured against.
+test('pageList sees an edited page\'s keywords as the nearest outsider', () => {
+  const round = roundWith({
+    kx: { text: 'edited', urls: ['https://a.com/', 'https://b1.com/', 'https://b2.com/', 'https://b3.com/'] },
+    ky: { text: 'clustered', urls: ['https://a.com/', 'https://c1.com/', 'https://c2.com/', 'https://c3.com/'] },
+  });
+  round.pages = [{ id: 'p9', title: 'Edited', kind: 'Service page', keywords: ['kx'], note: '', auto: false }];
+  const list = pageList(round);
+  const row = list.find((p) => p.auto);
+  assert.deepEqual(row.keywords, ['ky']);
+  assert.ok(row.confidence.nearest >= CUT / 2 && row.confidence.nearest < CUT, `fixture: ${row.confidence.nearest} sits between the half cut and the cut`);
+  assert.equal(row.confidence.level, 'close');
+  assert.equal(row.confidence.near, 'p9', 'named as the edited page, not as a keyword group');
+});
+
 test('pageList assigns exactly one Homepage, by volume when volume is loaded', () => {
   const round = roundWith({
     k1: { text: 'big', urls: ['https://a.com/'] },
@@ -496,10 +513,14 @@ test('comparePair reports similarity, the businesses that drove it, and the coun
   assert.deepEqual(c.sharedUrls.sort(), ['common.com', 'rare.com', 'yelp.com/search']);
   assert.ok(c.sharedDomains.includes('a.com'));
   assert.equal(typeof c.band, 'number');
-  // An uncaptured pair is nothing to compare, not a verdict of "different".
+  // An uncaptured pair is nothing to compare, not a verdict of "different",
+  // and one captured side is no more comparable than none.
   const uncaptured = comparePair(round, 'k4', 'k5');
   assert.equal(uncaptured.total, 0);
   assert.equal(describePair(uncaptured), 'Nothing captured yet.');
+  const oneSided = comparePair(round, 'k1', 'k5');
+  assert.equal(oneSided.total, 0);
+  assert.equal(describePair(oneSided), 'Nothing captured yet.');
 });
 
 test('describePair says alike, close or different, and names directories apart', () => {
@@ -688,7 +709,34 @@ test('reasonOf names the heaviest shared businesses first and says when nothing 
   assert.match(text, /^Three businesses rank for both, led by rare\.com and also\.com\./);
   assert.equal(reasonOf(['k4'], m, 0), 'No business that ranks here ranks for anything else in the study.');
   assert.equal(reasonOf(['k4'], m, 0.1), 'The businesses that rank here mostly rank for nothing else in the study.');
-  assert.match(reasonOf(['k1', 'k2', 'k3'], m, 0), /^One business ranks for all three, led by common\.com\./);
+  assert.match(reasonOf(['k1', 'k2', 'k3'], m, 0), /^One business ranks for all three, common\.com\./);
+});
+
+// A directory column weighs nothing, so similarity cannot see it: a keyword
+// joined to the study by Yelp alone scores a nearest of zero, and the
+// absolute sentence would be false.
+test('reasonOf tells a singleton joined only by listing sites from one joined by nothing', () => {
+  const round = roundWith({
+    k1: { urls: ['https://alone.com/', 'https://www.yelp.com/search'] },
+    k2: { urls: ['https://other.com/', 'https://www.yelp.com/search'] },
+    k3: { urls: ['https://solo.com/'] },
+  });
+  const m = matrix(round);
+  assert.equal(reasonOf(['k1'], m, 0), 'Only listing sites rank here alongside the rest of the study, and those rank for almost everything.');
+  assert.equal(reasonOf(['k3'], m, 0), 'No business that ranks here ranks for anything else in the study.');
+  assert.equal(reasonOf(['k1'], m, 0.1), 'The businesses that rank here mostly rank for nothing else in the study.');
+});
+
+// Three keywords joined pairwise and never all at once: the group stands on
+// what most of its members share, and the reason has to say so.
+test('reasonOf says when no single business ranks for every member', () => {
+  const round = roundWith({
+    k1: { urls: ['https://a.com/', 'https://b.com/'] },
+    k2: { urls: ['https://b.com/', 'https://c.com/'] },
+    k3: { urls: ['https://c.com/', 'https://a.com/'] },
+  });
+  const m = matrix(round);
+  assert.equal(reasonOf(['k1', 'k2', 'k3'], m, 0), 'No single business ranks for all three; they are joined by the businesses most of them share.');
 });
 
 test('band cuts similarity into none, faint, some, most', () => {
@@ -699,11 +747,20 @@ test('band cuts similarity into none, faint, some, most', () => {
   assert.equal(band(1, 0.25), 3);
 });
 
-test('homeAreas is any area named in more than half the keywords', () => {
-  const round = { ...emptyRound('r1'), areas: ['Utah', 'Park City', 'Moab'], keywords: [
-    { id: 'k1', text: 'utah bridal makeup' }, { id: 'k2', text: 'Utah wedding makeup artist' }, { id: 'k3', text: 'park city utah hair and makeup' }, { id: 'k4', text: 'moab wedding makeup' },
-  ] };
+test('homeAreas is any area named in more than half the captured keywords', () => {
+  const round = roundWith({
+    k1: { text: 'utah bridal makeup', urls: ['https://a.com/'] },
+    k2: { text: 'Utah wedding makeup artist', urls: ['https://a.com/'] },
+    k3: { text: 'park city utah hair and makeup', urls: ['https://a.com/'] },
+    k4: { text: 'moab wedding makeup', urls: ['https://a.com/'] },
+  }, ['Utah', 'Park City', 'Moab']);
   assert.deepEqual(homeAreas(round), ['Utah']);
+  // An uncaptured keyword says nothing about the study, so it cannot dilute
+  // the home area below half.
+  round.keywords.push({ id: 'k5', text: 'bridal hair', cluster: 'C' }, { id: 'k6', text: 'wedding hair', cluster: 'C' });
+  assert.deepEqual(homeAreas(round), ['Utah']);
+  // Before the first capture the whole list stands in.
+  assert.deepEqual(homeAreas({ ...emptyRound('r1'), areas: ['Utah'], serps: {}, keywords: [{ id: 'k1', text: 'utah bridal makeup' }, { id: 'k2', text: 'bridal hair' }, { id: 'k3', text: 'utah wedding makeup' }] }), ['Utah']);
 });
 
 test('kindOf: a non-home area is a location page, a question is an article, else a service page', () => {
@@ -786,4 +843,15 @@ test('standingOf: under the floor is low, unknown is never zero', () => {
   assert.equal(standingOf(['k1', 'k3'], round), 'page');
   assert.equal(standingOf(['k4'], round), 'page', 'unknown volume does not sink a page');
   assert.equal(standingOf(['k1', 'k4'], round), 'page');
+});
+
+// Volume sets aside what the engine grouped; the owner pinning a page is a
+// decision to build it, so an edited row stands whatever Planner says.
+test('a page the owner pins stands even when its volume is under the floor', () => {
+  const round = roundWith({ k1: { text: 'rare search', urls: ['https://a.com/'] }, k2: { text: 'busy search', urls: ['https://b.com/'] } });
+  round.keywords[0].volume = { min: 0, max: 1, source: 'csv', at: 'x' };
+  round.keywords[1].volume = { min: 0, max: 900, source: 'csv', at: 'x' };
+  assert.equal(pageList(round).find((p) => p.keywords.includes('k1')).standing, 'low');
+  round.pages = [{ id: 'p9', title: 'Rare search', kind: 'Service page', keywords: ['k1'], note: 'owner wants it', auto: false }];
+  assert.equal(pageList(round).find((p) => p.keywords.includes('k1')).standing, 'page');
 });

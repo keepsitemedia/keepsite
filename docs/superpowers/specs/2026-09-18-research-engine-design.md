@@ -168,7 +168,9 @@ the study."
 ### 3.6 Owner edits
 
 Unchanged model: a page with `auto: false` is kept and its keywords are
-removed from the matrix before clustering. The `page` op now also takes
+excluded from the clustering pass; the matrix and the similarity square are
+computed over every captured keyword, so rarity and the confidence's nearest
+outsider see the whole study. The `page` op now also takes
 `keywords`, a comma-separated list, so moving a keyword, merging two pages
 and splitting one are all "save this page with these keywords". A keyword
 released from an edited page is reclustered on save. `reset` returns a page
