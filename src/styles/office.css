@@ -546,7 +546,9 @@
 .office table.study td.s3 { background: var(--alike-most); }
 .office table.study td.edge-r { border-right: 2px solid var(--ink); }
 .office table.study td.edge-b { border-bottom: 2px solid var(--ink); }
-.office table.study td.blk-outline { box-shadow: inset 0 0 0 1px var(--ink); }
+.office table.study td.blk-left { border-left: 2px solid var(--ink); }
+.office table.study td.blk-bottom { border-bottom: 2px solid var(--ink); }
+.office table.study td.blk-diag { border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); }
 .office .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .office .study-legend { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
 .office .study-legend .swatch { display: inline-block; width: 0.9rem; height: 0.9rem; vertical-align: -0.15rem; margin-right: 0.3rem; border: 1px solid var(--hairline-soft); }

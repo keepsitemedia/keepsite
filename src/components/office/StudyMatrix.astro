@@ -17,8 +17,14 @@ const last = new Set(blocks.map((b) => b[b.length - 1]));
 // The row that opens a page carries the page number for the whole band.
 const opens = new Map(blocks.map((b, i) => [b[0], { no: i + 1, rows: b.length }]));
 // A page of one search is already a band between two rules; only a page
-// holding several needs its square outlined.
-const paired = new Set(blocks.filter((b) => b.length >= 2).flat());
+// holding several needs its square outlined. The outline is drawn on the
+// block's own edges rather than as an inset shadow, so it lines up with the
+// page rules; only the lower half of the square is drawn, so the third side
+// of the outline runs along the diagonal.
+const multi = blocks.filter((b) => b.length >= 2);
+const paired = new Set(multi.flat());
+const opensBlock = new Set(multi.map((b) => b[0]));
+const closesBlock = new Set(multi.map((b) => b[b.length - 1]));
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 ---
 {order.length < 2 ? <p class="empty">Capture two keywords and the study grid appears here.</p> : (
@@ -37,7 +43,10 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
               {order.map((b, j) => {
                 if (j > i) return <td class="void"></td>;
                 const same = blockOf.get(a) === blockOf.get(b);
-                const cls = ['cell', a === b ? 'diag' : `s${band(sims[a][b])}`, same && paired.has(a) ? 'blk-outline' : '', last.has(b) ? 'edge-r' : '', last.has(a) ? 'edge-b' : ''].filter(Boolean).join(' ');
+                const inBlock = same && paired.has(a);
+                const cls = ['cell', a === b ? 'diag' : `s${band(sims[a][b])}`,
+                  inBlock && opensBlock.has(b) ? 'blk-left' : '', inBlock && closesBlock.has(a) ? 'blk-bottom' : '', inBlock && a === b ? 'blk-diag' : '',
+                  last.has(b) ? 'edge-r' : '', last.has(a) ? 'edge-b' : ''].filter(Boolean).join(' ');
                 const alike = `${texts.get(a)} · ${texts.get(b)}: ${pct(sims[a][b])} alike`;
                 return a === b ? <td class={cls}></td>
                   : <td class={cls}><a href={compare(pairKey(a, b))} title={alike}><span class="sr-only">{alike}</span></a></td>;

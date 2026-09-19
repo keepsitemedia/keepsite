@@ -144,6 +144,22 @@ test('signaturePng rejects an IDAT that does not inflate to the bitmap it declar
   assert.notEqual(signaturePng(DATA_URL), null);
 });
 
+// The whole figure has to sit inside the margins: a study wide enough to run
+// past the right margin, or a legend pushed below the bottom one, is a figure
+// the reader loses. Twenty-two searches is the first real study's width.
+test('a 22-search grid stays inside the margins, legend and all', async () => {
+  const doc = await PDFDocument.create();
+  const fonts = { body: await doc.embedFont(StandardFonts.TimesRoman), bold: await doc.embedFont(StandardFonts.HelveticaBold) };
+  const w = new Writer(doc, fonts);
+  w.newPage();
+  const n = 22;
+  const labels = Array.from({ length: n }, (_, i) => `utah bridal makeup artist number ${i + 1}`);
+  const bands = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : (i + j) % 4)));
+  const { right, bottom } = w.grid({ labels, bands, blocks: [4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1] });
+  assert.ok(right <= 540, `the grid's right edge is ${right}, past the 540pt margin`);
+  assert.ok(bottom >= 72, `the legend sits at ${bottom}, under the 72pt margin`);
+});
+
 // The grid draws its own triangle, staircase rules and legend; only a real
 // render says the geometry stays inside what pdf-lib will take.
 test('the grid draws a three-search study', async () => {

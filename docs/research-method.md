@@ -107,7 +107,8 @@ at the top of both results pages counts more than one at the bottom.
    with eleven a month and one with ninety-nine read the same. We use them
    for one decision only: a page whose searches nobody makes is set aside,
    not built. That is the tool's job to decide, not the client's, and the
-   report prints the bucket, never a single number.
+   report prints the bucket where Google gave one, and a rounded number
+   where it gave a number.
 
 8. **Fewer pages by default.** When a group is a close call against another
    of the same kind, it folds in. It stays separate only for a compelling

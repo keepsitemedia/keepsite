@@ -257,6 +257,9 @@ export class Writer {
       lx += swatch + 4 + this.fonts.body.widthOfTextAtSize(text, size) + 12;
     }
     this.y -= height;
+    // The far edge of the squares and the lowest ink the figure puts down, so
+    // a test can say the whole figure stayed inside the margins.
+    return { right: x0 + n * cell, bottom: swY };
   }
   // `fractions` is the caller's own column split, as fractions of the text
   // width: a table of eight ranks and one long title is not the same shape as

@@ -311,6 +311,8 @@ pages (§8) with the same components.
 
 ## 7. The report
 
+Superseded in part by §13; §13 wins where they differ.
+
 Page one, in order:
 
 1. Title, client line, the standing intro paragraph, the owner's opening
@@ -537,3 +539,43 @@ report op files both, the report route serves the Word one under
 checked by default. Word cannot rule the diagonal outline of a page block, so
 the grid's bands are marked by their boundary rules alone; everything else in
 the figure is the same, drawn out of table cells the owner can retype.
+
+**The report after Tasks 13 and 13B (§7).** What ships is not the order
+§7 set out. Page one, in order: the title "Search research"; the client line,
+which carries the business, the tier, the round's dates, the place it searched
+from and the print date; the standing intro paragraph; the owner's opening
+note; the stats row (searches looked at, pages we'll build, and searches we're
+leaving out once volume is loaded); "The pages we'll build", a block per page
+with its kind, the searches it brings in with their volume, the reason, why it
+stands if the floor was overridden, what it also answers if it took a fold,
+the off-area sentence if every search is off-area, and the owner's note;
+"Where we made a call" as a Page/Searches/Why table; "Searches we're leaving
+out" when volume is loaded and something was; the owner's closing note; and
+the stop line. Then "The study, in one picture": its caption paragraph and the
+grid, drawn as the lower half only, with page bands ruled and numbered in the
+margin, an outline around each block of more than one search, and a
+four-swatch legend under the figure. Then "How we worked this out", the
+method paragraph as printed in `reportLines`. Then the appendices, "what we
+saw" and "every search".
+
+This supersedes §7's page-one grid and its 30-keyword rule (the grid sits
+after the stop line and scales its cell to the study instead), the headings
+"Your pages" and "Where we used judgement" (now "The pages we'll build" and
+"Where we made a call"), the close-call sentence on a page (a close call folds
+in or is kept apart, and neither is said as a doubt to the client), and
+§7's method paragraph.
+
+In the calls table a fold is one row per folded page, said against the page
+that took it in; a page the owner edited is one row whose Why is the owner's
+note, or "Set by us." when they left it empty, with the fold sentence
+appended when that page also took a fold, so an edited fold target is listed
+once rather than twice.
+
+**A fold can move the homepage (§4, §6).** A site has exactly one homepage,
+so when the row picked for it folds into another page, the page that absorbs
+it takes the job. When the row that absorbs it is one the owner edited, the
+edited row becomes the Homepage and that overrides the kind the owner chose,
+because the alternative is a site with no homepage at all. The fold's record
+carries the folded row's own kind, never Homepage, so releasing it with "Give
+it its own page" hands back a service page and leaves the homepage where it
+is.
