@@ -177,9 +177,12 @@ that retires the word.
 
 ## What comes next
 
-In priority order, from the review of 2026-09-19: a report that matches
+In priority order, from the reviews of 2026-09-19: a report that matches
 this document; a leave-one-out stability measure behind the displayed
-confidence; repeat captures to measure variance; a general rule that
-protects high-intent searches (venue, pricing) from the volume floor rather
-than one rule per page kind; a coarse difficulty read; and a post-launch
-comparison of each page's Search Console queries against the study.
+confidence; repeat captures to measure variance; the merge ladder shown per
+study so the cut is reviewable; a test of complete against average linkage
+on the hand grouping; the map pack kept as metadata and a SERP profile per
+search as intent evidence and a coarse difficulty read; the algorithm's own
+row stored beside every owner override so disagreements can be studied;
+secondary intents kept on a page; and a post-launch comparison of each
+page's Search Console queries against the study.
