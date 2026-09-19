@@ -147,7 +147,7 @@ test('the method paragraph explains rarity and volume, and the directories parag
   const L = reportLines({ client, round: { ...emptyRound('r1'), keywords: [], serps: {} }, renderedAt: new Date('2026-09-18T00:00:00Z') });
   const w = words(L);
   assert.match(w, /Listing sites and big names that appear for nearly everything tell us little/);
-  assert.match(w, /Google's own search numbers tell us which pages are worth building at all/);
+  assert.match(w, /Google's own search numbers, which it rounds, tell us which searches people actually make and which nobody does; they are not a ranking of the pages/);
   assert.ok(!/Directory sites/.test(w));
   assert.ok(!/Seven or more shared results/.test(w));
   assert.ok(!/We compare the individual businesses instead/.test(w));
@@ -184,6 +184,21 @@ test('the searches left out appear only with volume, and a close call is explain
   const stats = L.find((x) => x.kind === 'stats');
   assert.deepEqual(stats.items[2], ['2', "searches we're leaving out"]);
   assert.match(w, /0 to 500 a month/, 'volume ranges print beside the searches');
+});
+
+// Planner rounds its numbers into buckets, and a client reading "210 a month"
+// as a measurement will ask why the traffic is not 210.
+test('a Planner number is said as a rounded one', () => {
+  const s = study();
+  const round = openRound(s);
+  const said = (volume) => {
+    const L = reportLines({ client, round: { ...round, keywords: round.keywords.map((k) => (k.id === 'k3' ? { ...k, volume } : k)) }, renderedAt: new Date('2026-09-13T12:00:00Z') });
+    return words(L);
+  };
+  assert.match(said({ min: 210, max: 210, source: 'planner', at: 'x' }), /around 210 a month; Google rounds these/);
+  assert.match(said({ min: 100, max: 1000, source: 'planner', at: 'x' }), /100 to 1000 a month/);
+  assert.match(said({ min: 0, max: 0, source: 'none', at: 'x' }), /too few for Google to count/);
+  assert.match(said({ min: 5, max: 5, source: 'planner', at: 'x' }), /under 10 a month/);
 });
 
 // The client is not asked to make the call: a close call is folded in by

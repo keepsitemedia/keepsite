@@ -27,7 +27,9 @@ const volumeWords = (k) => {
   if (!v) return null;
   if (v.source === 'none' || v.max === 0) return 'too few for Google to count';
   if (v.max < FLOOR) return `under ${FLOOR} a month`;
-  if (v.min === v.max) return `about ${v.max} a month`;
+  // Planner reports in rounded buckets, so its single number is an "around",
+  // not a count; a plain file's number is whatever its author meant.
+  if (v.min === v.max) return v.source === 'planner' ? `around ${v.max} a month; Google rounds these` : `about ${v.max} a month`;
   return `${v.min} to ${v.max} a month`;
 };
 
@@ -111,7 +113,7 @@ export function reportLines({ client, round, renderedAt }) {
   }
 
   h2('How we worked this out');
-  p(`We searched each of the ${captured.length} terms ${round.location ? `from ${round.location}` : 'from where the research profile was'} (Google's own search numbers are for the same place), the same way each time, and kept the first eight real results, skipping ads and map pins. Then we looked at which businesses came up for each search. Listing sites and big names that appear for nearly everything tell us little, so we set them aside and paid attention to the businesses that show up for some searches and not others. When two searches bring up mostly the same businesses, they are one question, and one page answers both. When they don't, they need their own pages. Google's own search numbers tell us which pages are worth building at all.`);
+  p(`We searched each of the ${captured.length} terms ${round.location ? `from ${round.location}` : 'from where the research profile was'} (Google's own search numbers are for the same place), the same way each time, and kept the first eight real results, skipping ads and map pins. Then we looked at which businesses came up for each search. Listing sites and big names that appear for nearly everything tell us little, so we set them aside and paid attention to the businesses that show up for some searches and not others. When two searches bring up mostly the same businesses, they are one question, and one page answers both. When they don't, they need their own pages. Google's own search numbers, which it rounds, tell us which searches people actually make and which nobody does; they are not a ranking of the pages.`);
 
   h2('Appendix: what we saw');
   for (const row of pages) {

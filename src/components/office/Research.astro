@@ -201,7 +201,7 @@ const external = (href: string) => href.startsWith('http');
 <details class="fold" open={!volumeLoaded && !next && round.keywords.length > 0}>
   <summary>Search volume<span class="sub">{volumeLoaded ? `Loaded ${day(round.volumeImport?.at ?? round.startedAt)}` : 'Not loaded'}</span></summary>
   <div class="fold-body">
-    <p class="quiet">Paste the keyword list into Google Keyword Planner, download its CSV, and import it here. Volume never moves a keyword between pages; it says whether a page is worth building. A page whose keywords add up to fewer than {FLOOR} searches a month is set aside below the page list.</p>
+    <p class="quiet">Paste the keyword list into Google Keyword Planner with its location set to the study's search location, download its CSV, and import it here. Volume never moves a keyword between pages; it says whether a page is worth building. A page whose keywords add up to fewer than {FLOOR} searches a month is set aside below the page list.</p>
     <form method="POST" action={api} enctype="multipart/form-data" class="toolbar">
       {hidden({ csrf, slug, op: 'volume', round: round.id }).map((h) => <input type="hidden" name={h.name} value={h.value} />)}
       <input type="file" name="file" accept=".csv,text/csv,text/tab-separated-values" required aria-label="Keyword Planner CSV" />
