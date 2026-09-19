@@ -813,6 +813,7 @@ test('businessOf names a vendor profile on a listing site and leaves its lists a
   assert.equal(businessOf('https://www.houzz.com/pro/brinley-beauty'), 'houzz.com/brinley-beauty');
   assert.equal(businessOf('https://www.houzz.com/professionals/makeup-artists'), 'houzz.com');
   assert.equal(businessOf('https://www.bark.com/en/us/b/brinley-beauty/abc/'), 'bark.com');
+  assert.equal(businessOf('https://www.theknot.com/marketplace/top-10-photographers'), 'theknot.com');
   assert.equal(isProfile('https://www.yelp.com/biz/x'), true);
   assert.equal(isProfile('https://www.yelp.com/search'), false);
 });

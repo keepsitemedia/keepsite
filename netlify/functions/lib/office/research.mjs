@@ -49,7 +49,8 @@ const SOCIAL = {
   'yelp.com': { under: 'biz' },
   'weddingwire.com': { under: 'biz' },
   // The Knot's category lists live under marketplace too; a vendor page ends
-  // in its numeric id and a category slug does not.
+  // in a long numeric id (-<6-7 digits>) to distinguish it from category
+  // slugs like "top-10-photographers".
   'theknot.com': { under: 'marketplace', endsInId: true },
   'houzz.com': { under: 'pro' },
 };
@@ -61,7 +62,7 @@ export function businessOf(url) {
   const segments = u.pathname.split('/').filter(Boolean);
   if (rule.under) {
     const handle = segments[0] === rule.under && segments[1] ? segments[1].toLowerCase() : null;
-    const profile = handle && (!rule.endsInId || /\d+$/.test(handle));
+    const profile = handle && (!rule.endsInId || /-\d{5,}$/.test(handle));
     return profile ? `${host}/${handle}` : host;
   }
   const handle = segments[0]?.toLowerCase();
