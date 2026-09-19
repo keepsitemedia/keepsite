@@ -97,11 +97,14 @@ artist. This makes similarity conservative, never inflated.
   the weight the cell keeps the normalized URL of that best result.
 - `weight[b]`: the column weight. **Zero when any of the business's results
   is classified Directory**, whatever its rarity: a paid aggregator list says
-  nothing about intent however rarely it ranks. Otherwise `ln(N / df)` where
-  `N` is the number of captured keywords and `df` the number the business
-  ranks for. A business in every SERP weighs zero; one in two of 22 weighs
-  about 2.4. This is what retires the directory list from the signal; the
-  list stays for the zero rule and for display.
+  nothing about intent however rarely it ranks. Otherwise `ln((N + 1) / df)`
+  where `N` is the number of captured keywords and `df` the number the
+  business ranks for. A business in every SERP weighs almost nothing (0.04
+  at 22 keywords); one in two of 22 weighs about 2.4. The `+ 1` is the
+  standard smoothing: without it two identical SERPs in a two-keyword study
+  would weigh zero everywhere and score 0 instead of 1. This is what retires
+  the directory list from the signal; the list stays for the zero rule and
+  for display.
 
 ### 3.3 Similarity
 
@@ -221,10 +224,12 @@ Op `volume` takes an uploaded CSV. Accepted shapes:
 
 Rows match keywords on `normalizeQuery`. The op stores
 `volume: { min, max, source: 'planner' | 'csv', at }` on each matched keyword
-(`min === max` for a single number), and re-renders with two lists: rows in
-the file that matched no keyword, and keywords the file did not mention.
-Nothing is dropped silently. A second import replaces volumes for the
-keywords it names and leaves the others.
+(`min === max` for a single number) and stores the import's summary on the
+round as `volumeImport: { at, matched, unmatchedRows, unmatchedKeywords }`:
+rows in the file that matched no keyword, and keyword ids the file did not
+mention. The Volume fold shows both lists until the next import. Nothing is
+dropped silently. A second import replaces volumes for the keywords it names
+and leaves the others.
 
 ### 5.2 Standing
 
