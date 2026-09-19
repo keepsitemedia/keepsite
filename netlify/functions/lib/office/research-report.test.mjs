@@ -286,10 +286,10 @@ test('a closed round reports its stored pages, not a fresh clustering', () => {
   assert.deepEqual(L.find((x) => x.kind === 'stats').items[1], ['1', "page we'll build"]);
 });
 
-test('the caption says the grid mirrors itself', () => {
+test('the caption says only the lower half is drawn', () => {
   const L = reportLines({ client, round: openRound(study()), renderedAt: new Date('2026-09-13T12:00:00Z') });
   const caption = L.map((x) => x.text ?? '').find((t) => t.includes('bands'));
-  assert.match(caption, /The chart mirrors itself across the diagonal, and the diagonal is each search against itself\.$/);
+  assert.match(caption, /Only the lower half is drawn; the upper half would be its mirror\. The diagonal is each search against itself\.$/);
 });
 
 // A business with three pages in one set of results is one business Google

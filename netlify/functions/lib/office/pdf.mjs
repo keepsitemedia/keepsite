@@ -188,8 +188,10 @@ export class Writer {
   }
   // The study as squares: one row and column per search, numbered down the
   // side and across the top. The figure answers how many pages there are
-  // first, so the page bands are ruled across the whole grid and numbered in
-  // the margin; the shades that say how alike two searches are come second.
+  // first, so the page bands are ruled and numbered in the margin; the
+  // shades that say how alike two searches are come second. A pair reads
+  // the same either way round, so only the lower half is drawn and the
+  // rules stop where the diagonal cuts them.
   grid({ labels, bands, blocks }) {
     const n = labels.length;
     if (!n) return;
@@ -198,11 +200,13 @@ export class Writer {
     // where the figure stops working rather than where it stops fitting: a
     // study wide enough to reach it has outgrown a portrait page.
     const cell = Math.max(4, Math.min(14, Math.floor((CONTENT - pageColW - labelW) / n)));
-    const height = (n + 1) * cell + 14;
+    const swatch = 9;
+    const legendH = 26 + size + swatch;
+    const height = (n + 1) * cell + legendH;
     this.need(height);
     const x0 = MARGIN + pageColW + labelW;
     const y0 = this.y; const top = y0 - cell;
-    const right = x0 + n * cell; const bottom = top - n * cell;
+    const bottom = top - n * cell;
     const shades = [null, rgb(0.92, 0.78, 0.71), rgb(0.56, 0.72, 0.63), rgb(0.24, 0.49, 0.36)];
     const ink = rgb(0.07, 0.07, 0.07);
     const labelSize = Math.min(size, cell - 1);
@@ -213,7 +217,7 @@ export class Writer {
     }
     labels.forEach((label, i) => {
       this.page.drawText(rowLabel(this.fonts.body, labelSize, i + 1, label, labelW - 8), { x: MARGIN + pageColW, y: top - (i + 1) * cell + 2, size: labelSize, font: this.fonts.body });
-      for (let j = 0; j < n; j += 1) {
+      for (let j = 0; j <= i; j += 1) {
         const color = i === j ? rgb(0.93, 0.93, 0.93) : shades[bands[i][j]];
         if (color) this.page.drawRectangle({ x: x0 + j * cell, y: top - (i + 1) * cell, width: cell, height: cell, color });
       }
@@ -224,12 +228,34 @@ export class Writer {
       const num = toPdfText(String(b + 1));
       this.page.drawText(num, { x: MARGIN + (pageColW - this.fonts.bold.widthOfTextAtSize(num, size)) / 2, y: (bandTop + bandBottom) / 2 - size * 0.35, size, font: this.fonts.bold });
       // A page of one search is already a band of its own between two rules;
-      // only a page holding several needs its square called out.
-      if (len >= 2) this.page.drawRectangle({ x: x0 + at * cell, y: bandBottom, width: len * cell, height: len * cell, borderColor: ink, borderWidth: 1.2 });
+      // only a page holding several needs its square called out. Half of that
+      // square is drawn, so the outline is the triangle left of the diagonal.
+      if (len >= 2) {
+        const near = x0 + at * cell; const far = x0 + (at + len) * cell;
+        const side = { thickness: 1.2, color: ink };
+        this.page.drawLine({ start: { x: near, y: bandTop }, end: { x: near, y: bandBottom }, ...side });
+        this.page.drawLine({ start: { x: near, y: bandBottom }, end: { x: far, y: bandBottom }, ...side });
+        this.page.drawLine({ start: { x: near, y: bandTop }, end: { x: far, y: bandBottom }, ...side });
+      }
       at += len;
-      this.page.drawLine({ start: { x: MARGIN, y: bandBottom }, end: { x: right, y: bandBottom }, thickness: 0.8, color: ink });
-      this.page.drawLine({ start: { x: x0 + at * cell, y: y0 }, end: { x: x0 + at * cell, y: bottom }, thickness: 0.8, color: ink });
+      const edge = x0 + at * cell;
+      this.page.drawLine({ start: { x: MARGIN, y: bandBottom }, end: { x: edge, y: bandBottom }, thickness: 0.8, color: ink });
+      if (at < n) this.page.drawLine({ start: { x: edge, y: bandBottom }, end: { x: edge, y: bottom }, thickness: 0.8, color: ink });
     });
+    // The shades are the bands the engine already computes, so the legend
+    // says what each one means rather than putting a number on it.
+    const capY = bottom - 10 - size;
+    this.page.drawText(toPdfText('Businesses the two searches have in common'), { x: MARGIN, y: capY, size, font: this.fonts.body, color: rgb(0.4, 0.4, 0.4) });
+    const swY = capY - 4 - swatch;
+    let lx = MARGIN;
+    const keys = [[shades[0], 'none'], [shades[1], 'a little'], [shades[2], 'enough to share a page'], [shades[3], 'nearly the same']];
+    for (const [color, label] of keys) {
+      const box = { x: lx, y: swY, width: swatch, height: swatch };
+      this.page.drawRectangle(color ? { ...box, color } : { ...box, color: rgb(1, 1, 1), borderColor: rgb(0.6, 0.6, 0.6), borderWidth: 0.5 });
+      const text = toPdfText(label);
+      this.page.drawText(text, { x: lx + swatch + 4, y: swY + (swatch - size) / 2 + 1, size, font: this.fonts.body });
+      lx += swatch + 4 + this.fonts.body.widthOfTextAtSize(text, size) + 12;
+    }
     this.y -= height;
   }
   // `fractions` is the caller's own column split, as fractions of the text

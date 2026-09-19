@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderAgreement, sha256, toPdfText, signaturePng, wrap } from './pdf.mjs';
+import { renderAgreement, sha256, toPdfText, signaturePng, wrap, Writer } from './pdf.mjs';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { findAgreementTemplate, fillBlocks } from './agreement-templates.mjs';
 import { deflateSync, crc32 } from 'node:zlib';
@@ -142,4 +142,20 @@ test('signaturePng rejects an IDAT that does not inflate to the bitmap it declar
   // A header that promises more bitmap than the IDAT holds.
   assert.equal(signaturePng(pngDeclaring(600, 200)), null);
   assert.notEqual(signaturePng(DATA_URL), null);
+});
+
+// The grid draws its own triangle, staircase rules and legend; only a real
+// render says the geometry stays inside what pdf-lib will take.
+test('the grid draws a three-search study', async () => {
+  const doc = await PDFDocument.create();
+  const fonts = { body: await doc.embedFont(StandardFonts.TimesRoman), bold: await doc.embedFont(StandardFonts.HelveticaBold) };
+  const w = new Writer(doc, fonts);
+  w.newPage();
+  w.grid({
+    labels: ['wedding florist provo', 'provo wedding flowers', 'funeral flowers provo'],
+    bands: [[0, 3, 1], [3, 0, 0], [1, 0, 0]],
+    blocks: [2, 1],
+  });
+  const bytes = await doc.save();
+  assert.equal(Buffer.from(bytes.subarray(0, 5)).toString(), '%PDF-');
 });

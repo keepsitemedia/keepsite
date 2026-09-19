@@ -103,7 +103,7 @@ export function reportLines({ client, round, renderedAt }) {
 
   if (view.order.length) {
     h2('The study, in one picture');
-    p(`Each row and each column is one search, numbered down the side and across the top. The grid is split into ${grid.blocks.length} bands, one per page: the searches inside a band share one page, and the page's number sits in the margin. Green squares are two searches that bring up the same businesses; the darker the green, the more alike they are. Clay marks a little overlap, not enough to share a page. The chart mirrors itself across the diagonal, and the diagonal is each search against itself.`);
+    p(`Each row and each column is one search, numbered down the side and across the top. The grid is split into ${grid.blocks.length} bands, one per page: the searches inside a band share one page, and the page's number sits in the margin. Green squares are two searches that bring up the same businesses; the darker the green, the more alike they are. Clay marks a little overlap, not enough to share a page. Only the lower half is drawn; the upper half would be its mirror. The diagonal is each search against itself.`);
     L.push(grid);
   }
 
