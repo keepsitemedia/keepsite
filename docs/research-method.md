@@ -6,13 +6,11 @@ run. This page is the idea, for anyone who has to run a study, read one, or
 explain one to a client.
 
 **Status, 2026-09-19.** This describes the tool as built on the
-`research-engine` branch after the first client critique. The only report
-printed so far, the Makeup by Brynlie preview of 2026-09-19, predates steps
-2, 8 and 9 below: it was captured without a search location, it asked the
-client to decide three merges, and its "where we made a call" section was
-empty. A report that matches this document is the next thing produced.
-Until it exists, read this as the intended state, not a description of that
-report.
+`research-engine` branch after the first client critique. The Makeup by
+Brynlie preview printed the evening of 2026-09-19, from searches recaptured
+from Utah with volumes loaded, is the first report that matches it. The
+morning preview of the same day predates steps 2, 8 and 9 and should not be
+read beside this document.
 
 The whole thing rests on one idea: Google already knows which searches mean
 the same thing, and it shows you by returning the same businesses for them.
@@ -98,9 +96,10 @@ at the top of both results pages counts more than one at the bottom.
    comparison wants an article, everything else a service page. Exactly one
    group becomes the homepage: the service group with the most search
    volume, or the largest when no volume is loaded. That is a default the
-   owner can override, not a rule about what a homepage is. Location pages
-   are never dropped for low volume, because a bride searching a venue name
-   is close to booking whatever the count says.
+   owner can override, not a rule about what a homepage is. A page is never
+   dropped for low volume when it is a location page or a pricing search,
+   because someone searching a venue name or a price is close to booking
+   whatever the count says.
 
 7. **Volume.** Google's own search numbers say which searches people
    actually make. They are coarse: Google reports a bucket such as "10 to
