@@ -174,14 +174,27 @@ provisional until post-build ranking data exists to check them against.
 Collecting that, per page, in the months after launch is the only thing
 that retires the word.
 
+## Where intent is judged
+
+Nothing in the tool infers what a searcher expects to find. That judgement
+happens in three places, and they are the whole of it: the kind assigned to
+a page (a first proxy from the words and the results), the fold or keep
+between two close pages (a consolidation call, listed with its reason), and
+the owner's review (the final say, one click in any direction). There is no
+separate intent engine, on purpose: the tool's job is to make the judgements
+it cannot safely automate easy, explicit, and recorded, not to make them.
+
 ## What comes next
 
-In priority order, from the reviews of 2026-09-19: a report that matches
-this document; a leave-one-out stability measure behind the displayed
-confidence; repeat captures to measure variance; the merge ladder shown per
-study so the cut is reviewable; a test of complete against average linkage
-on the hand grouping; the map pack kept as metadata and a SERP profile per
-search as intent evidence and a coarse difficulty read; the algorithm's own
-row stored beside every owner override so disagreements can be studied;
-secondary intents kept on a page; and a post-launch comparison of each
-page's Search Console queries against the study.
+In priority order, from the reviews of 2026-09-19: a SERP profile per
+search (share of businesses, listing sites and articles, whether a map pack
+appeared and who was in it) as the intent evidence behind each kind and a
+coarse read of how hard a search is; the merge ladder shown per study, with
+its scores, so the cut is reviewable; the algorithm's own row stored beside
+every owner override so disagreements can be studied across studies; a
+validation fixture that sweeps linkage method, cut and a minimum-pair floor
+against the hand grouping; secondary intents kept on a page; the map pack
+kept as capture metadata; the suggestions fold worded as candidates, not
+demand; leave-one-out stability behind the displayed confidence; repeat
+captures to measure variance; and a post-launch comparison of each page's
+Search Console queries against the study.
