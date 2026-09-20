@@ -1,7 +1,7 @@
 // The report as a Word file. The PDF is print-ready and fixed; the owner
 // edits a sentence before a client sees it, so the same reportLines() is
 // rendered a second way rather than the copy being written twice.
-import { AlignmentType, BorderStyle, Document, HeadingLevel, Packer, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, VerticalAlign, WidthType } from 'docx';
+import { AlignmentType, BorderStyle, Document, HeadingLevel, Packer, Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextRun, VerticalAlign, WidthType } from 'docx';
 import { reportLines, reportName } from './research-report.mjs';
 
 export const reportDocxName = (now, round) => reportName(now, round).replace(/\.pdf$/, '.docx');
@@ -48,8 +48,10 @@ const cellText = (text, opts = {}) => new Paragraph({ spacing: { after: 0 }, ...
 const cell = (children, { width, borders = BOXED, fill = null, ...rest }) =>
   new TableCell({ width: { size: width, type: WidthType.DXA }, borders, shading: fillOf(fill), children, ...rest });
 
-const tableOf = (columnWidths, rows, borders = BOXED) =>
-  new Table({ columnWidths, width: { size: CONTENT, type: WidthType.DXA }, borders, rows });
+// Fixed layout, always: left to itself Word re-measures the columns from
+// their content and the widths above become a suggestion.
+const tableOf = (columnWidths, rows, borders = BOXED, margins = undefined) =>
+  new Table({ columnWidths, width: { size: CONTENT, type: WidthType.DXA }, layout: TableLayoutType.FIXED, borders, margins, rows });
 
 // A row of big numbers with its caption under each, the whole story for the
 // reader who stops after the first page. A borderless table is how Word
@@ -118,7 +120,9 @@ function gridTable({ labels, bands, blocks }) {
     }
     return new TableRow({ children });
   });
-  return tableOf(columnWidths, [header, ...rows], OPEN);
+  // Word's default side margin is 115 twips a side, which would eat most of a
+  // square in a study wide enough to squeeze them.
+  return tableOf(columnWidths, [header, ...rows], OPEN, { top: 0, bottom: 0, left: 0, right: 0 });
 }
 
 function legendTable() {
@@ -131,6 +135,8 @@ function legendTable() {
   ], { width: widths[i], borders: OPEN })) })], OPEN);
 }
 
+const paragraphsOf = (text) => String(text ?? '').split('\n').filter((t) => t.trim());
+
 // Two tables with nothing between them are one table in Word, and a table is
 // where the PDF leaves a line of air.
 const SPACER = () => new Paragraph({ spacing: { after: 0 }, children: [] });
@@ -140,8 +146,11 @@ export async function renderResearchDocx({ client, round, renderedAt = new Date(
   for (const line of reportLines({ client, round, renderedAt })) {
     if (line.kind === 'h1') children.push(new Paragraph({ text: line.text, heading: HeadingLevel.TITLE }));
     else if (line.kind === 'h2') children.push(new Paragraph({ text: line.text, heading: HeadingLevel.HEADING_1 }));
-    else if (line.kind === 'p') children.push(new Paragraph({ text: line.text }));
-    else if (line.kind === 'small') children.push(new Paragraph({ text: line.text, style: 'Small' }));
+    // The owner's notes are typed into a textarea, so one line carries the
+    // paragraphs it was written in; a newline inside a run is whitespace to
+    // Word, which would run them together.
+    else if (line.kind === 'p') for (const text of paragraphsOf(line.text)) children.push(new Paragraph({ text }));
+    else if (line.kind === 'small') for (const text of paragraphsOf(line.text)) children.push(new Paragraph({ text, style: 'Small' }));
     else if (line.kind === 'stats') children.push(statsTable(line.items), SPACER());
     else if (line.kind === 'table') children.push(dataTable(line.rows, line.widths), SPACER());
     else if (line.kind === 'grid') {

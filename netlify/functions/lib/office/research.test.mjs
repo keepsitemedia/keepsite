@@ -606,6 +606,25 @@ test('a fold target is measured again against the pages that remain', () => {
   assert.equal(row.confidence.level, 'clear', 'nothing else is left to be close to');
 });
 
+// The page a row calls itself close to can be folded away by a decision the
+// row had no part in, and "Close to another page" is a dead end for a reader.
+test('a row close to a page that was folded away is pointed at the page that took it', () => {
+  const round = roundWith({
+    z1: { text: 'head one', urls: ['https://z1.com/', 'https://z2.com/', 'https://z3.com/', 'https://z4.com/'] },
+    z2: { text: 'head two', urls: ['https://z1.com/', 'https://z2.com/', 'https://z3.com/', 'https://z5.com/'] },
+    y: { text: 'the middle', urls: ['https://y1.com/', 'https://z1.com/', 'https://y2.com/', 'https://y3.com/', 'https://y4.com/'] },
+    x: { text: 'the article', urls: ['https://y1.com/blog/d', 'https://x1.com/blog/a', 'https://x2.com/blog/b', 'https://x3.com/blog/c'] },
+  });
+  const list = pageList(round);
+  const head = list.find((p) => p.keywords.includes('z1'));
+  const x = list.find((p) => p.keywords.join() === 'x');
+  assert.deepEqual(head.folded.map((f) => f.title), ['the middle'], 'the middle page folded into the head page');
+  assert.equal(x.confidence.level, 'close');
+  assert.equal(x.confidence.near, head.id, 'the nearest page is the one that absorbed it, not the row that is gone');
+  const titles = new Map(list.map((p) => [p.id, p.title]));
+  assert.equal(confidenceWords(x, titles), `Close to ${head.title}`, 'the tab names a page the reader can find');
+});
+
 // A fold target can itself fold into a bigger page: the middle page takes the
 // smallest in, then goes into the head page. The report prints one line per
 // fold, so every line has to travel.

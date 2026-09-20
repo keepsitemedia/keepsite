@@ -100,6 +100,9 @@ test('every table declares column widths that add up to the text width', async (
     const cols = gridCols(tbl);
     assert.ok(cols.length, 'a table declares its grid');
     assert.equal(sum(cols), 9360, `columns sum to the text width, not ${sum(cols)}`);
+    // Without a fixed layout Word re-measures the columns from their content
+    // and the widths above are a suggestion it is free to ignore.
+    assert.ok(tbl.includes('<w:tblLayout w:type="fixed"/>'), 'the table is laid out from its declared widths');
   }
   // A cell without its own width is laid out by Word's guess, which is how a
   // table walks off the page.
@@ -122,6 +125,9 @@ test('the grid draws one row per search, with the page bands merged down the mar
   const rows = rowCount(tbl);
   assert.equal(rows, n + 1, 'a header row and one row per search');
   assert.equal(gridCols(tbl).length, n + 2, 'the page column, the label column and one per search');
+  // Word's default 115-twip side margin would eat most of a square in a study
+  // wide enough to squeeze them.
+  assert.match(tbl, /<w:tblCellMar><w:top w:type="dxa" w:w="0"\/><w:left w:type="dxa" w:w="0"\/><w:bottom w:type="dxa" w:w="0"\/><w:right w:type="dxa" w:w="0"\/><\/w:tblCellMar>/);
   const text = textOf(xml);
   for (let i = 0; i < n; i += 1) assert.ok(text.includes(`${i + 1}  ${grid.labels[i]}`), `row ${i + 1} is labelled`);
   // A page holding two searches spans two rows, which is a vertical merge.
@@ -144,6 +150,16 @@ test('the document has no shading, breaks or bullets Word renders wrong', async 
   assert.ok(!xml.includes('—') && !xml.includes('&#8212;'), 'no em dash in the copy');
   // A newline inside a run is not a line break in Word; it is whitespace.
   for (const m of xml.matchAll(/<w:t[^>]*>(.*?)<\/w:t>/gs)) assert.ok(!m[1].includes('\n'), 'no newline inside a run');
+  // The owner's notes come off a textarea, so a two-paragraph note arrives as
+  // one string with newlines in it and has to become two paragraphs.
+  const noted = await renderResearchDocx({ client, round: { ...emptyRound('r1'), keywords: [], serps: {}, notes: { intro: 'First paragraph.\n\nSecond paragraph.', closing: '' } }, renderedAt });
+  const notes = entry(noted, 'word/document.xml');
+  for (const m of notes.matchAll(/<w:t[^>]*>(.*?)<\/w:t>/gs)) assert.ok(!m[1].includes('\n'), 'no newline inside a run');
+  const paragraphs = [...notes.matchAll(/<w:p(?: [^>]*)?>(.*?)<\/w:p>/gs)].map((m) => textOf(m[1]));
+  const first = paragraphs.findIndex((t) => t.includes('First paragraph.'));
+  const second = paragraphs.findIndex((t) => t.includes('Second paragraph.'));
+  assert.ok(first > -1 && second > -1, 'both sentences are in the document');
+  assert.notEqual(first, second, 'the two sentences are two paragraphs, not one run with a newline in it');
   assert.ok(xml.includes('Georgia') || entry(bytes, 'word/styles.xml').includes('Georgia'), 'the body face is named');
   assert.ok(entry(bytes, 'word/styles.xml').includes('Arial'), 'the heading face is named');
 });

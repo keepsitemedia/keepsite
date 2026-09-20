@@ -596,6 +596,7 @@ export function pageList(round) {
   const at = new Map(all.map((p, i) => [p.id, i]));
   const asKind = (kind) => (kind === 'Homepage' ? 'Service page' : kind);
   const gone = new Set();
+  const absorbed = new Map();
   const settled = new Set();
   for (const row of rows) {
     const near = row.confidence.level === 'close' && row.confidence.near ? byRowId.get(row.confidence.near) : null;
@@ -638,6 +639,7 @@ export function pageList(round) {
       { title: r.title, into: t.title, keywords: r.keywords.filter((id) => !alreadyIn.has(id)), kind: asKind(r.kind) },
       ...carried];
     gone.add(r.id);
+    absorbed.set(r.id, t.id);
   }
   const left = [...kept, ...rows.filter((p) => !gone.has(p.id))];
   // A page that took a fold in was measured against pages that no longer
@@ -651,6 +653,23 @@ export function pageList(round) {
     const c = confidence(blocks[i], blocks, sims);
     p.confidence = { level: c.level, tightness: c.tightness, nearest: c.nearest, near: c.near ? idAt.get(c.near) ?? null : null };
   });
+  // A row that took no fold keeps the confidence it was given, and the page it
+  // named may have been folded away by a decision it had no part in. The
+  // reader is sent to the page that absorbed it rather than to a page that is
+  // no longer on the list; a fold target folded in its turn is followed to the
+  // end of the chain.
+  const survives = new Set(left.map((p) => p.id));
+  const absorbedInto = (id) => {
+    let into = id;
+    for (let hops = 0; absorbed.has(into) && hops <= absorbed.size; hops += 1) into = absorbed.get(into);
+    return into;
+  };
+  for (const p of left) {
+    const near = p.confidence?.near;
+    if (!near || survives.has(near)) continue;
+    const into = absorbedInto(near);
+    p.confidence = { ...p.confidence, near: into !== p.id && survives.has(into) ? into : null };
+  }
   return left;
 }
 
