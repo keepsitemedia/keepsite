@@ -6,8 +6,26 @@
   "hero": {
     "headline": "Websites for people with other things to do.",
     "sub": "We build it. We keep it working. It stays off your list.",
-    "primaryCta": { "label": "See the packages", "href": "/packages/" },
-    "secondaryCta": { "label": "Start your site", "href": "/start/" }
+    "primaryCta": {
+      "label": "See the packages",
+      "href": "/packages/"
+    },
+    "secondaryCta": {
+      "label": "Start your site",
+      "href": "/start/"
+    },
+    "exchange": [
+      {
+        "who": "Client",
+        "time": "Tue 4:12 pm",
+        "text": "Can you swap in the holiday hours before Friday?"
+      },
+      {
+        "who": "Keepsite",
+        "time": "Tue 4:19 pm",
+        "text": "Done. Live now."
+      }
+    ]
   },
   "problem": {
     "heading": "You've been meaning to fix your website for a year.",
@@ -16,9 +34,18 @@
   "solution": {
     "heading": "We build it. We keep it useful.",
     "beats": [
-      { "title": "We build it.", "body": "A custom site around what your business does and who you want walking in the door. From Growth up, the whole structure comes from research into what your customers search for." },
-      { "title": "We keep it working.", "body": "Hosting, maintenance, monitoring, and the small changes that pile up. You send the new photo or the new hours. We put them in." },
-      { "title": "We tell you what's working.", "body": "A plain-English summary every quarter. What the site did, what we changed, what we'd do next. No dashboard to log into." }
+      {
+        "title": "We build it.",
+        "body": "A custom site around what your business does and who you want walking in the door. From Growth up, the whole structure comes from research into what your customers search for."
+      },
+      {
+        "title": "We keep it working.",
+        "body": "Hosting, maintenance, monitoring, and the small changes that pile up. You send the new photo or the new hours. We put them in."
+      },
+      {
+        "title": "We tell you what's working.",
+        "body": "A plain-English summary every quarter. What the site did, what we changed, what we'd do next. No dashboard to log into."
+      }
     ],
     "pullLine": "A website that earns its keep."
   },
@@ -30,12 +57,33 @@
   "why": {
     "heading": "Why Keepsite",
     "pillars": [
-      { "title": "Make it useful.", "body": "Every site has a job. We find out what yours is, build for that, and leave out the rest." },
-      { "title": "Keep it simple.", "body": "Three decisions, one round of changes at each, and no homework in between." },
-      { "title": "Show your work.", "body": "Clear prices, clear scope, and a summary every quarter you can read in two minutes." },
-      { "title": "Build for real life.", "body": "We run businesses too. We know what it's like to be the only one holding it all together. The site fits around your week, not the other way round." }
+      {
+        "title": "Make it useful.",
+        "body": "Every site has a job. We find out what yours is, build for that, and leave out the rest."
+      },
+      {
+        "title": "Keep it simple.",
+        "body": "Three decisions, one round of changes at each, and no homework in between."
+      },
+      {
+        "title": "Show your work.",
+        "body": "Clear prices, clear scope, and a summary every quarter you can read in two minutes."
+      },
+      {
+        "title": "Build for real life.",
+        "body": "We run businesses too. We know what it's like to be the only one holding it all together. The site fits around your week, not the other way round."
+      }
     ]
   },
-  "work": { "heading": "Recent work", "linkLabel": "See all work", "linkHref": "/work/" },
-  "closing": { "heading": "Keep your business moving.", "sub": "We'll take care of the website.", "ctaLabel": "Start your site", "ctaHref": "/start/" }
+  "work": {
+    "heading": "Recent work",
+    "linkLabel": "See all work",
+    "linkHref": "/work/"
+  },
+  "closing": {
+    "heading": "Keep your business moving.",
+    "sub": "We'll take care of the website.",
+    "ctaLabel": "Start your site",
+    "ctaHref": "/start/"
+  }
 }
