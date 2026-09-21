@@ -14,18 +14,35 @@
       "label": "Start your site",
       "href": "/start/"
     },
-    "exchange": [
-      {
-        "who": "Client",
-        "time": "Tue 4:12 pm",
-        "text": "Can you swap in the holiday hours before Friday?"
-      },
-      {
-        "who": "Keepsite",
-        "time": "Tue 4:19 pm",
-        "text": "Done. Live now."
-      }
-    ]
+    "list": {
+      "heading": "This week",
+      "items": [
+        {
+          "text": "Payroll",
+          "done": false
+        },
+        {
+          "text": "Order Friday's stock",
+          "done": false
+        },
+        {
+          "text": "Call the plumber back",
+          "done": false
+        },
+        {
+          "text": "Website",
+          "done": true
+        },
+        {
+          "text": "Schedule next week's shifts",
+          "done": false
+        },
+        {
+          "text": "Pick up the trailer",
+          "done": false
+        }
+      ]
+    }
   },
   "problem": {
     "heading": "You've been meaning to fix your website for a year.",
