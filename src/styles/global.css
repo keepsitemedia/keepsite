@@ -132,6 +132,15 @@ a:hover { color: var(--color-brand-deep); }
 
 img { max-width: 100%; height: auto; }
 
+/* An email address inside a sentence is a 19px-tall target on a phone.
+   Padding it out to 24px, and pulling the same amount back with margin
+   so the line box does not grow, keeps the paragraph's rhythm. */
+a[href^="mailto:"] {
+  display: inline-block;
+  padding-block: 0.2em;
+  margin-block: -0.2em;
+}
+
 /* Layout ------------------------------------------------------- */
 
 .container { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--space-3); }
@@ -310,17 +319,34 @@ img { max-width: 100%; height: auto; }
    Chrome adds the table's full width to the document's scrollable area,
    which lets a phone pan sideways on /packages/. */
 .table-scroll { overflow-x: auto; contain: paint; }
+.table-caption {
+  margin-bottom: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--step--1);
+}
+/* Below 900px the table is wider than the screen. Two cues say so: a line
+   of text, and a shadow on whichever edge still has columns behind it.
+   The shadow is the scroll-attached background trick: the white covers
+   travel with the content and slide off the shadows as it scrolls. */
+.table-cue { display: none; margin-bottom: var(--space-1); font-size: var(--step--1); }
+@media (max-width: 899px) {
+  .table-cue { display: block; }
+  .table-scroll {
+    background:
+      linear-gradient(to right, var(--color-bg) 40%, rgba(255, 255, 255, 0)),
+      linear-gradient(to left, var(--color-bg) 40%, rgba(255, 255, 255, 0)) 100% 0,
+      radial-gradient(farthest-side at 0 50%, rgba(17, 17, 17, 0.28), rgba(17, 17, 17, 0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(17, 17, 17, 0.28), rgba(17, 17, 17, 0)) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 48px 100%, 48px 100%, 16px 100%, 16px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+}
 .compare {
   width: 100%;
   min-width: 640px;
   border-collapse: collapse;
   font-size: var(--step-0);
-}
-.compare caption {
-  margin-bottom: var(--space-2);
-  color: var(--color-muted);
-  font-size: var(--step--1);
-  text-align: left;
 }
 .compare th,
 .compare td {

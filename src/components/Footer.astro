@@ -60,7 +60,9 @@ const navItems = hasWork
 
   .footer-contact { display: grid; font-style: normal; }
 
-  .footer-bottom a { color: inherit; }
+  /* Inline in the copyright line, so padding rather than min-height
+     lifts it to a 24px target without opening the line. */
+  .footer-bottom a { color: inherit; display: inline-block; padding-block: 0.3em; margin-block: -0.3em; }
   .footer-bottom {
     margin: var(--space-4) 0 0;
     padding-top: var(--space-3);

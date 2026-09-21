@@ -16,11 +16,13 @@ const hasWork = (await getCollection('work')).length > 0;
 const navItems = hasWork
   ? [site.nav[0], { label: 'Work', href: '/work/', cta: false }, ...site.nav.slice(1)]
   : site.nav;
+const cta = navItems.find((item) => item.cta);
 ---
 <header class="site-header">
   <div class="container header-inner">
     <Logo variant="compact" />
-    <nav aria-label="Primary">
+
+    <nav class="nav-wide" aria-label="Primary">
       {navItems.map((item) => (
         <a
           href={item.href}
@@ -29,6 +31,28 @@ const navItems = hasWork
         >{item.label}</a>
       ))}
     </nav>
+
+    <!-- Phones and small tablets: one row, the links behind a toggle.
+         A <details> needs no script, and verify.mjs counts every script
+         tag on every page, so a menu button was never an option. The
+         links are rendered twice; the copy that is display:none is out
+         of the accessibility tree, so a reader meets one nav either way. -->
+    {cta && <a class="nav-cta row-cta" href={cta.href}>{cta.label}</a>}
+    <details class="menu">
+      <summary>
+        <span class="menu-word menu-open">Menu</span>
+        <span class="menu-word menu-close">Close</span>
+      </summary>
+      <nav class="nav-narrow" aria-label="Primary">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class={item.cta ? 'nav-cta panel-cta' : 'nav-link'}
+            aria-current={isCurrent(item.href) ? 'page' : undefined}
+          >{item.label}</a>
+        ))}
+      </nav>
+    </details>
   </div>
 </header>
 
@@ -43,15 +67,17 @@ const navItems = hasWork
     border-bottom: 3px solid var(--color-ink);
   }
   .header-inner {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-    padding-top: var(--space-2);
-    padding-bottom: var(--space-2);
+    gap: var(--space-2);
+    min-height: 60px;
+    padding-top: var(--space-1);
+    padding-bottom: var(--space-1);
   }
-  nav { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+  /* The logo takes the left, everything else packs right. */
+  .header-inner > :global(.logo) { margin-right: auto; }
+
   .nav-link,
   .nav-cta {
     display: inline-flex;
@@ -81,4 +107,70 @@ const navItems = hasWork
     transition: background-color 120ms ease;
   }
   .nav-cta:hover { background: var(--color-brand); color: #FFFFFF; }
+
+  /* Wide: the links in the row, as before. */
+  .nav-wide { display: flex; align-items: center; gap: var(--space-3); }
+  .row-cta,
+  .menu { display: none; }
+
+  @media (max-width: 799px) {
+    .nav-wide { display: none; }
+    .menu { display: block; }
+
+    .menu summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 var(--space-1);
+      list-style: none;
+      cursor: pointer;
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: 0.8125rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-ink);
+    }
+    .menu summary::-webkit-details-marker { display: none; }
+    .menu summary:hover { color: var(--color-brand); }
+    .menu-close,
+    .menu[open] .menu-open { display: none; }
+    .menu[open] .menu-close { display: inline; }
+
+    /* The panel hangs below the row so the sticky header keeps its
+       height and the page under it does not jump. It starts where the
+       header's rule starts and carries its own copy of it, so the rule
+       stays put whether the panel is open or shut. */
+    .nav-narrow {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: grid;
+      padding: var(--space-1) var(--space-3) var(--space-3);
+      background: var(--color-bg);
+      border-top: 3px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 12px 24px -12px rgba(17, 17, 17, 0.25);
+    }
+    .nav-narrow .nav-link {
+      min-height: 48px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .nav-narrow .nav-link[aria-current="page"] { text-decoration: none; }
+    .nav-narrow .panel-cta {
+      justify-content: center;
+      margin-top: var(--space-2);
+    }
+  }
+
+  /* From 480px the call to action fits in the row beside the toggle, so
+     the panel holds only the links. Below that it rides in the panel. */
+  @media (min-width: 480px) and (max-width: 799px) {
+    .row-cta { display: inline-flex; }
+    .panel-cta { display: none; }
+  }
+  @media (max-width: 359px) {
+    .header-inner > :global(.logo) { width: 8rem; }
+  }
 </style>

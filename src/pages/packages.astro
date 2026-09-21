@@ -208,9 +208,13 @@ const packagesJsonLd = {
     <div class="container">
       <h2>Full comparison</h2>
 
-      <div class="table-scroll" role="region" aria-label="Package comparison" tabindex="0">
-        <table class="compare">
-          <caption>Everything included in each package: the build, the meetings, and the monthly.</caption>
+      <!-- The caption lives outside the scroll box: inside it, the table's
+           640px minimum width clips the sentence mid-word on a phone. The
+           cue only shows while the table is wider than the screen. -->
+      <p class="table-caption" id="compare-caption">Everything included in each package: the build, the meetings, and the monthly.</p>
+      <p class="table-cue muted" aria-hidden="true">Swipe sideways to see all four packages.</p>
+      <div class="table-scroll" role="region" aria-labelledby="compare-caption" tabindex="0">
+        <table class="compare" aria-describedby="compare-caption">
           <thead>
             <tr>
               <th scope="col">Feature</th>

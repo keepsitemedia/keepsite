@@ -23,5 +23,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <style>
   .not-found-links { list-style: none; padding: 0; margin-top: var(--space-3); }
-  .not-found-links li { margin-bottom: var(--space-1); font-size: var(--step-1); font-weight: 600; }
+  .not-found-links li { font-size: var(--step-1); font-weight: 600; }
+  /* Each link is its own tap target on a phone, so it gets a full row. */
+  .not-found-links a { display: inline-block; padding: 0.5rem 0; }
 </style>
