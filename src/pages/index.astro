@@ -40,7 +40,7 @@ const featuredWork = (await getCollection('work'))
               <li class:list={{ done: item.done }}>
                 <span class="box" aria-hidden="true">
                   {item.done && (
-                    <svg viewBox="0 0 16 16" width="16" height="16"><path d="M2.5 8.5 6 12l7.5-8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    <svg class="check" viewBox="0 0 32 26" width="32" height="26"><path d="M4 12c2 2 4 6 5.5 9.5C13 13 20 5 30 1.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
                   )}
                 </span>
                 <span class="text">{item.text}</span>
@@ -163,14 +163,17 @@ const featuredWork = (await getCollection('work'))
     border: 2px solid var(--color-ink);
     border-radius: 4px;
   }
-  .done .box { border-color: var(--color-brand); color: var(--color-brand); }
-  /* Scratched out by hand, not ruled through: a loose stroke in rust
-     drawn across the word, stretched to whatever width it lands on. */
+  .done .box { border-color: var(--color-brand); color: var(--color-brand); overflow: visible; }
+  /* The tick is a pen stroke, not a glyph: it starts inside the box and
+     runs out past its top right corner the way a hand does. */
+  .check { flex: none; margin: -8px -12px 0 -4px; }
+  /* Scratched out by hand, not ruled through: two passes of a loose
+     stroke in rust, stretched to whatever width the word lands on. */
   .done .text {
     color: var(--color-muted);
     background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M2 7C18 3 34 9 50 5S82 8 98 4' fill='none' stroke='%23B8512C' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")
-      center 58% / 100% 0.45em no-repeat;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23B8512C' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")
+      center 56% / 104% 0.6em no-repeat;
   }
   @media (min-width: 900px) {
     .hero-top {
