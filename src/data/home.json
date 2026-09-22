@@ -15,8 +15,12 @@
       "href": "/start/"
     },
     "list": {
-      "heading": "This week",
+      "heading": "Your week",
       "items": [
+        {
+          "text": "Website",
+          "done": true
+        },
         {
           "text": "Payroll",
           "done": false
@@ -28,10 +32,6 @@
         {
           "text": "Call the plumber back",
           "done": false
-        },
-        {
-          "text": "Website",
-          "done": true
         },
         {
           "text": "Schedule next week's shifts",
