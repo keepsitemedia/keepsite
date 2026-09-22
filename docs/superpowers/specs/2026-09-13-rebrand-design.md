@@ -50,6 +50,7 @@ Three roles, one per part of the logo.
 | `--font-sans` | `Arial, 'Arimo', 'Liberation Sans', Helvetica, sans-serif` | 400, 700 | body, headings, nav |
 | `--font-serif` | `Georgia, 'Gelasio', 'Times New Roman', serif` | 400 italic | the `.serif` accent |
 | `--font-label` | `'Montserrat', Arial, 'Arimo', sans-serif` | 700 | buttons, nav links, eyebrows, footer tagline |
+| Caveat (home page only) | `'Caveat', Arial, 'Arimo', sans-serif` | 500 | the handwritten week in the hero, 2026-09-22 |
 
 - Arimo and Gelasio are the metric-compatible open clones of Arial and Georgia. They are declared through `@fontsource/arimo` (OFL) and `@fontsource/gelasio` (OFL) but sit after the system face in the stack, so a device with Arial and Georgia installed fetches nothing. Android and Linux fetch them and get an identical layout. The old metric-fallback `@font-face` block goes away because the fallback is now the same design.
 - Montserrat 700 latin (`@fontsource/montserrat/700.css`) is the one file every visitor downloads. It is preloaded in place of Instrument Sans.

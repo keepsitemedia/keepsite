@@ -22,23 +22,27 @@
           "done": true
         },
         {
+          "text": "Bookkeeping",
+          "done": false
+        },
+        {
+          "text": "Advertising",
+          "done": false
+        },
+        {
           "text": "Payroll",
           "done": false
         },
         {
-          "text": "Order Friday's stock",
+          "text": "Socializing",
           "done": false
         },
         {
-          "text": "Call the plumber back",
+          "text": "Family time",
           "done": false
         },
         {
-          "text": "Schedule next week's shifts",
-          "done": false
-        },
-        {
-          "text": "Pick up the trailer",
+          "text": "Taking a break",
           "done": false
         }
       ]
