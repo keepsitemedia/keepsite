@@ -287,9 +287,8 @@
 .ns-intro p { font-size: 18px; line-height: 1.7; }
 
 /* the one-stop offer as four stamped tickets */
-.ns-roles { display: grid; grid-template-columns: repeat(4, 1fr); border: 3px solid var(--ink); margin-bottom: 90px; }
-.ns-roles > div { padding: 26px 22px 30px; border-right: 3px solid var(--ink); }
-.ns-roles > div:last-child { border-right: 0; }
+.ns-roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; background: var(--ink); border: 3px solid var(--ink); margin-bottom: 90px; }
+.ns-roles > div { padding: 26px 22px 30px; background: var(--cream); }
 .ns-roles > div:nth-child(1) { background: var(--juniper); color: var(--cream); }
 .ns-roles h3 { font-size: 26px; line-height: 1; margin: 10px 0 12px; }
 .ns-roles p { font-size: 15px; line-height: 1.6; }
@@ -328,14 +327,11 @@
   .ns-nav nav { display: none; }
   .ns-intro, .ns-about .inner { grid-template-columns: 1fr; gap: 30px; }
   .ns-roles { grid-template-columns: 1fr 1fr; }
-  .ns-roles > div { border-bottom: 3px solid var(--ink); }
   .ns-cards { grid-template-columns: 1fr 1fr; }
   .ns-poster .band { position: static; }
   .ns-poster .title { position: static; padding: 26px 20px 10px; }
 }
 @media (max-width: 560px) {
-  .ns-roles, .ns-cards { grid-template-columns: 1fr; }
-  .ns-roles > div { border-right: 0; }
 }
 </style>
 
@@ -352,7 +348,7 @@
         <p class="kicker">Adventure elopements &amp; micro weddings &middot; Utah</p>
         <h1>From the Uintas<br><span>to the red rock.</span></h1>
       </div>
-      <svg viewBox="0 -110 1200 870" role="img" aria-label="Screenprinted Uinta scene: snowcapped peaks, pine forest, alpine lake">
+      <svg viewBox="0 -110 1200 870" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Screenprinted Uinta scene: snowcapped peaks, pine forest, alpine lake">
         <rect y="-110" width="1200" height="870" fill="#b9d3d6"/>
         <circle cx="930" cy="330" r="74" fill="#f3e6cc"/>
         <circle cx="936" cy="334" r="74" fill="#e39a5b" opacity="0.3"/>
@@ -525,7 +521,7 @@
   .gh-links { display: none; }
   .gh-roles .grid { grid-template-columns: 1fr 1fr; }
   .gh-roles .grid > div:nth-child(3) { padding-left: 0; border-left: 0; }
-  .gh-pair, .gh-about .inner { grid-template-columns: 1fr; gap: 40px; }
+  .gh-about .inner { grid-template-columns: 1fr; gap: 40px; }
   .gh-rail { grid-auto-columns: 78%; padding: 0 22px 20px; }
 }
 @media (max-width: 560px) {
@@ -743,8 +739,8 @@
           <path d="M0 0 H294 V100 H500 V500 H0 Z" fill="#e9e4d5" stroke="#24382c" stroke-width="2"/>
           <path d="M0 0 H294 V100 H500 V190 H0 Z" fill="rgba(79,127,148,0.12)"/>
           <line x1="0" y1="190" x2="500" y2="190" stroke="#24382c" stroke-width="1" stroke-dasharray="4 6"/>
-          <text x="12" y="182" style="fill:#4f7f94">NORTHERN UTAH &middot; HOME</text>
-          <text x="12" y="212" style="fill:#c65a3a">SOUTHERN PARKS</text>
+          <text x="490" y="182" text-anchor="end" style="fill:#4f7f94">NORTHERN UTAH &middot; HOME</text>
+          <text x="490" y="212" text-anchor="end" style="fill:#c65a3a">SOUTHERN PARKS</text>
           <g fill="#4f7f94" stroke="#f4f1e8" stroke-width="2">
             <circle cx="317" cy="130" r="9"/><circle cx="244" cy="153" r="9"/><circle cx="219" cy="79" r="9"/>
           </g>
@@ -752,8 +748,8 @@
             <circle cx="446" cy="327" r="9"/><circle cx="279" cy="371" r="9"/><circle cx="188" cy="441" r="9"/><circle cx="102" cy="470" r="9"/>
           </g>
           <text x="332" y="134">Uintas</text>
-          <text x="140" y="157">Cascade Spr.</text>
-          <text x="234" y="83">Wasatch</text>
+          <text x="232" y="158" text-anchor="end">Cascade Springs</text>
+          <text x="205" y="84" text-anchor="end">Wasatch</text>
           <text x="400" y="352">Arches</text>
           <text x="294" y="375">Capitol Reef</text>
           <text x="203" y="445">Bryce</text>
@@ -1021,6 +1017,159 @@
     </div>
   </div>
 </section>
+
+<style>
+/* ============ PHONE PASS ============
+   Every direction gets its own phone layout rather than a plain stack:
+   rails for card sets, 2×2 for the four roles, tighter section rhythm. */
+@media (max-width: 900px) {
+  .proposal-nav { align-items: stretch; gap: 6px; padding: 10px 16px; font-size: 10px; }
+  .proposal-nav .nav-links { flex-wrap: nowrap; overflow-x: auto; gap: 16px; white-space: nowrap; scrollbar-width: none; }
+  .proposal-nav .nav-links::-webkit-scrollbar { display: none; }
+  .intro { padding: 44px 16px 52px; }
+  .intro h1 { font-size: 40px; margin-bottom: 18px; }
+  .intro p.lead { font-size: 18px; margin-bottom: 22px; }
+  .intro .placeholder-note { flex-direction: column; gap: 6px; padding: 14px 16px; font-size: 11px; }
+  .option-cards { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin: 28px -16px 0; padding: 0 16px 8px; }
+  .option-card { scroll-snap-align: start; padding: 22px 20px; }
+  .direction-divider { padding: 34px 16px; }
+  .dd-name { font-size: 44px; }
+  .dd-sub { font-size: 15px; }
+}
+
+@media (max-width: 600px) {
+  /* shared: card rails that bleed to the screen edge */
+  .ns-cards, .gh-rail { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 80%; overflow-x: auto; scroll-snap-type: x mandatory; }
+
+  /* 01 North to South */
+  .ns .wrap { padding: 0 16px; }
+  .ns-nav { padding: 16px 0; }
+  .ns-nav .mark { font-size: 22px; }
+  .ns-btn { font-size: 13px; padding: 10px 16px; box-shadow: 3px 3px 0 var(--ink); }
+  .ns-poster { margin-top: 24px; }
+  .ns-poster svg { height: 460px; }
+  .ns-poster .title { position: absolute; top: 22px; padding: 0 16px; }
+  .ns-poster .kicker { font-size: 10px; letter-spacing: 0.14em; }
+  .ns-poster h1 { font-size: 34px; }
+  .ns-poster .band { justify-content: center; gap: 4px 16px; padding: 12px 14px; font-size: 10px; letter-spacing: 0.14em; }
+  .ns-intro { padding: 44px 0 32px; gap: 18px; }
+  .ns-intro h2 { font-size: 30px; }
+  .ns-intro p { font-size: 16px; }
+  .ns-roles { grid-template-columns: 1fr 1fr; margin-bottom: 56px; }
+  .ns-roles > div { padding: 16px 14px 18px; }
+  .ns-roles h3 { font-size: 19px; margin: 6px 0 8px; }
+  .ns-roles p { font-size: 13px; line-height: 1.5; }
+  .ns-series { padding-bottom: 56px; }
+  .ns-series header { margin-bottom: 18px; }
+  .ns-cards { gap: 14px; margin: 0 -16px; padding: 0 16px 14px; scroll-padding: 0 16px; }
+  .ns-card { scroll-snap-align: start; box-shadow: 4px 4px 0 var(--ink); }
+  .ns-anywhere { font-size: 15px; margin-top: 18px; }
+  .ns-about { padding: 56px 0; }
+  .ns-about h2 { font-size: 30px; }
+  .ns-about p { font-size: 15.5px; }
+  .ns-foot { padding: 52px 0 44px; }
+  .ns-foot h2 { font-size: 30px; }
+  .ns-foot .ns-btn { font-size: 12px; margin: 22px 0 24px; }
+
+  /* 02 Golden Hour */
+  .gh .wrap { padding: 0 16px; }
+  .gh-nav .bar { padding: 18px 0; }
+  .gh-btn { padding: 10px 16px; font-size: 11px; }
+  .gh-hero .area { height: 86svh; min-height: 540px; padding-top: 90px; }
+  .gh-hero .over { padding: 100px 0 32px; }
+  .gh-hero h1 { font-size: 40px; }
+  .gh-hero p { font-size: 15px; }
+  .gh-roles { padding: 56px 0 44px; }
+  .gh-roles h2 { font-size: 30px; margin: 10px 0 28px; }
+  .gh-roles .grid { grid-template-columns: 1fr 1fr; }
+  .gh-roles .grid > div, .gh-roles .grid > div + div { padding: 20px 12px 18px 0; border-left: 0; border-top: 0; }
+  .gh-roles .grid > div:nth-child(even) { padding: 20px 0 18px 14px; border-left: 1px solid var(--rule); }
+  .gh-roles .grid > div:nth-child(n+3) { border-top: 1px solid var(--rule); }
+  .gh-roles .n { font-size: 34px; }
+  .gh-roles h3 { font-size: 19px; margin: 10px 0 6px; }
+  .gh-roles p { font-size: 13px; line-height: 1.55; }
+  .gh-pair { gap: 6px; }
+  .gh-places { padding: 56px 0 60px; }
+  .gh-places header { margin-bottom: 20px; }
+  .gh-places h2 { font-size: 28px; }
+  .gh-rail { padding: 0 16px 16px; gap: 12px; scroll-padding: 0 16px; }
+  .gh-rail h3 { font-size: 20px; margin-top: 12px; }
+  .gh-about { padding: 56px 0; }
+  .gh-about blockquote { font-size: 24px; }
+  .gh-about p { font-size: 15px; }
+  .gh-foot { padding: 64px 0 40px; }
+  .gh-foot h2 { font-size: 36px; margin-bottom: 26px; }
+  .gh-foot .gh-btn { font-size: 10px; letter-spacing: 0.1em; overflow-wrap: anywhere; }
+  .gh-foot .fine { margin-top: 44px; justify-content: center; text-align: center; }
+
+  /* 03 Topo */
+  .tp .wrap { padding: 0 16px; }
+  .tp-nav { padding: 16px 0; }
+  .tp-mark .mono { display: none; }
+  .tp-btn { padding: 11px 18px; font-size: 13px; }
+  .tp-hero { padding: 36px 0 52px; gap: 30px; }
+  .tp-hero h1 { font-size: 42px; margin: 12px 0 18px; }
+  .tp-hero p { font-size: 16px; }
+  .tp-map text { font-size: 19px; }
+  .tp-kit { padding: 56px 0; }
+  .tp-kit .inner { gap: 26px; }
+  .tp-kit h2 { font-size: 32px; }
+  .tp-kit .intro-p { font-size: 15.5px; }
+  .tp-kit .area { margin-top: 22px; }
+  .tp-list li { padding: 16px 0; gap: 14px; }
+  .tp-list h3 { font-size: 19px; }
+  .tp-list p { font-size: 14px; }
+  .tp-index { padding: 56px 0 44px; }
+  .tp-index h2 { font-size: 28px; }
+  .tp-row { grid-template-columns: 22px 1fr 92px; grid-template-areas: "pin h img" "pin p img"; gap: 4px 14px; padding: 16px 0; }
+  .tp-row .pin { grid-area: pin; width: 18px; height: 18px; align-self: start; margin-top: 6px; }
+  .tp-row h3 { grid-area: h; font-size: 19px; align-self: end; }
+  .tp-row p { grid-area: p; grid-column: auto; font-size: 13.5px; align-self: start; }
+  .tp-row .area { grid-area: img; grid-column: auto; aspect-ratio: 1/1 !important; }
+  .tp-about { padding: 20px 0 60px; gap: 28px; }
+  .tp-about h2 { font-size: 28px; }
+  .tp-about p { font-size: 15.5px; }
+  .tp-foot { padding: 44px 0; }
+  .tp-foot h2 { font-size: 30px; }
+
+  /* 04 Wildflower */
+  .wf .wrap { padding: 0 16px; }
+  .wf-nav { padding: 16px 0; }
+  .wf-btn { padding: 11px 20px; font-size: 13px; }
+  .wf-hero { padding: 26px 0 0; }
+  .wf-hero .label { font-size: 10.5px; }
+  .wf-hero h1 { font-size: 40px; margin: 12px auto 18px; }
+  .wf-hero p { font-size: 16px; }
+  .wf-hero .btns { margin: 26px 0 34px; }
+  .wf-photo .area { aspect-ratio: 4/5 !important; align-items: flex-start; padding-top: 36px; }
+  .wf-meadow { height: 96px; bottom: -26px; left: -6px; right: -6px; }
+  .wf-meadow svg { width: 24px; height: 92px; }
+  .wf-meadow svg:nth-child(3n) { height: 72px; }
+  .wf-meadow svg:nth-child(4n) { height: 82px; }
+  .wf-how { padding: 76px 0 52px; }
+  .wf-how .head { margin-bottom: 30px; }
+  .wf-how h2 { font-size: 28px; }
+  .wf-steps { gap: 30px; }
+  .wf-steps > div { display: grid; grid-template-columns: 44px 1fr; column-gap: 12px; }
+  .wf-steps > div > * { grid-column: 2; }
+  .wf-steps .n { grid-column: 1; grid-row: 1 / span 3; font-size: 44px; }
+  .wf-steps h3 { font-size: 22px; margin: 4px 0 8px; }
+  .wf-steps p { font-size: 15px; }
+  .wf-moments { gap: 8px; }
+  .wf-moments .big .area { min-height: 320px !important; }
+  .wf-places { padding: 56px 0 10px; }
+  .wf-places h2 { font-size: 26px; }
+  .wf-tags { gap: 8px; }
+  .wf-tags span { padding: 8px 14px; font-size: 13.5px; }
+  .wf-letter { padding: 56px 0 64px; gap: 28px; }
+  .wf-letter > .area { max-width: 280px; margin: 0 auto; }
+  .wf-letter h2 { font-size: 28px; }
+  .wf-letter p { font-size: 16px; }
+  .wf-letter .sig { font-size: 52px; }
+  .wf-foot { padding: 56px 0 44px; }
+  .wf-foot h2 { font-size: 32px; }
+}
+</style>
 
 </body>
 </html>
