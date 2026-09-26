@@ -2,6 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import site from '../../data/site.json';
 import packages from '../../data/packages.json';
+import lockii from '../../data/lockii.json';
+import { offerSummary } from '../../scripts/lockii-offer.mjs';
+
+// Partner offers, keyed by the ?offer= value their landing page links with.
+const offerNotes = { lockii: `${lockii.offer.notesPrefill}: ${offerSummary(lockii.offer)}.` };
 ---
 <BaseLayout
   title="Start your site | Keepsite Media"
@@ -23,6 +28,7 @@ import packages from '../../data/packages.json';
         data-netlify-honeypot="bot-field"
         action="/start/thanks/"
         class="inquiry-form"
+        data-offer-lockii={offerNotes.lockii}
       >
         <input type="hidden" name="form-name" value="inquiry" />
         <p class="hidden-field">
@@ -80,10 +86,18 @@ import packages from '../../data/packages.json';
 </BaseLayout>
 
 <script is:inline>
-  // Preselects the tier when a package card links here with ?tier=.
+  // Preselects the tier when a package card links here with ?tier=, and
+  // writes a partner offer into the notes when a landing page links with
+  // ?offer=, so the inquiry reaches the office already tagged.
   // Without JS the select simply stays on "Not sure yet".
   (function () {
-    var wanted = new URLSearchParams(window.location.search).get('tier');
+    var params = new URLSearchParams(window.location.search);
+    var offer = params.get('offer');
+    var form = document.querySelector('.inquiry-form');
+    var offerNote = offer && /^[a-z]+$/.test(offer) && form ? form.getAttribute('data-offer-' + offer) : null;
+    var notes = document.querySelector('textarea[name="notes"]');
+    if (offerNote && notes && !notes.value) notes.value = offerNote;
+    var wanted = params.get('tier');
     if (!wanted) return;
     var select = document.querySelector('select[name="package"]');
     if (!select) return;

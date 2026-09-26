@@ -35,6 +35,7 @@ const PAGES = [
   'how-it-works/index.html',
   'faq/index.html',
   'privacy/index.html',
+  'lockii/index.html',
   'start/index.html',
   'start/thanks/index.html',
   'questionnaire/intro/index.html',
@@ -201,6 +202,14 @@ check('noindex on 404, thanks, and every questionnaire route', () => {
     if (has !== should) throw new Error(`${p} noindex=${has}, expected ${should}`);
   }
 });
+// The Lockii page is shared by link and found by search, never navigated to.
+check('nothing links the unlisted Lockii page', () => {
+  for (const p of PAGES) {
+    if (p === 'lockii/index.html') continue;
+    if (/href="\/lockii\//.test(read(p))) throw new Error('link to /lockii/ in ' + p);
+  }
+  if (!read('sitemap-0.xml').includes('/lockii/')) throw new Error('/lockii/ missing from the sitemap');
+});
 check('no broken internal links', () => {
   const bad = [];
   for (const p of PAGES) {
@@ -242,6 +251,7 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
     'how-it-works/index.html': 2,
     'faq/index.html': 2,
     'privacy/index.html': 1,
+    'lockii/index.html': 1,
     'start/index.html': 2,
     'start/thanks/index.html': 1,
     'questionnaire/intro/index.html': 2,

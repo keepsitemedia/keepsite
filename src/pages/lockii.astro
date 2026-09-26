@@ -1,0 +1,153 @@
+---
+// Unlisted: nothing in the header, footer or site.json links here. The page
+// stays in the sitemap so a search for Lockii websites can still find it;
+// the Lockii rep shares the link directly.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ClosingCta from '../components/ClosingCta.astro';
+import packages from '../data/packages.json';
+import lockii from '../data/lockii.json';
+import { discountedPrice, freeMonths, offerSummary } from '../scripts/lockii-offer.mjs';
+
+const { offer } = lockii;
+const summary = offerSummary(offer);
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const startHref = (tierId?: string) => `/start/?offer=lockii${tierId ? `&tier=${tierId}` : ''}`;
+
+// Range is several businesses under one roof, not a rental fleet.
+const tiers = packages.tiers
+  .filter((tier) => ['presence', 'growth', 'agile'].includes(tier.id))
+  .map((tier) => ({ ...tier, lockiiPrice: discountedPrice(tier.buildPrice, offer.discountPercent) }));
+
+const terms = [
+  `${offer.discountPercent}% off the one-time build`,
+  `Your ${freeMonths(offer.freeMonths)}, then the normal monthly price`,
+  'Lockii booking setup included on every package',
+  `For sites booked by ${offer.bookBy}, through this page or by mentioning Lockii`,
+];
+---
+<BaseLayout
+  title={lockii.meta.title}
+  description={`${lockii.meta.description} Lockii customers get ${summary}.`}
+>
+
+  <section class="section">
+    <div class="container">
+      <p class="label">For Lockii customers</p>
+      <h1>{lockii.hero.heading}</h1>
+      <p class="lead">{lockii.hero.lead}</p>
+      <p class="offer-line"><span class="serif">The Lockii offer:</span> {summary}.</p>
+      <p><a class="btn" href={startHref()}>{lockii.hero.ctaLabel}</a></p>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2>{lockii.why.heading}</h2>
+      <div class="why-grid">
+        {lockii.why.points.map((point) => (
+          <div>
+            <h3 class="why-title">{point.title}</h3>
+            <p class="muted">{point.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>{lockii.includes.heading}</h2>
+      <ul class="dots includes">
+        {lockii.includes.items.map((item) => <li>{item}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2>{lockii.packages.heading}</h2>
+      <p class="lead">{lockii.packages.intro}</p>
+      <div class="tier-grid">
+        {tiers.map((tier) => (
+          <div class={`card tier tier-${tier.id}`}>
+            <h3 class="tier-name">{tier.name}</h3>
+            <p class="serif tier-line">{tier.line}</p>
+            <p class="tier-sub muted">{tier.sub}</p>
+            <div class="tier-cost">
+              <p class="tier-was price muted">
+                <span class="visually-hidden">Normally </span><s>{tier.buildPrice}</s>
+              </p>
+              <p class="tier-price price">
+                <span class="visually-hidden">Lockii price </span>{tier.lockiiPrice}
+                <span class="tier-price-note muted">one-time build</span>
+              </p>
+              <p class="tier-monthly">{capitalize(freeMonths(offer.freeMonths))}, then <span class="price">{tier.monthlyPrice}</span>/month</p>
+            </div>
+            <p class="tier-cta"><a class="btn" href={startHref(tier.id)}>Start with {tier.name}</a></p>
+          </div>
+        ))}
+      </div>
+      <p class="more"><a href="/packages/">{lockii.packages.moreLabel}</a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>{lockii.terms.heading}</h2>
+      <ul class="dots">
+        {terms.map((term) => <li>{term}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <ClosingCta
+    heading={lockii.closing.heading}
+    sub={lockii.closing.sub}
+    ctaLabel={lockii.closing.ctaLabel}
+    ctaHref={startHref()}
+  />
+
+</BaseLayout>
+
+<style>
+  .offer-line { font-size: var(--step-1); margin: var(--space-3) 0; }
+
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-3); }
+  .why-title { font-size: var(--step-2); margin-bottom: var(--space-1); }
+
+  .dots { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: var(--space-1); max-width: var(--maxw-prose); }
+  .dots li { padding-left: 1.5rem; position: relative; }
+  .dots li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+  .includes { grid-template-columns: repeat(2, 1fr); column-gap: var(--space-4); max-width: none; }
+
+  .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+  /* Same colour per tier as the packages page. */
+  .tier { display: flex; flex-direction: column; border-top: 6px solid var(--color-ink); }
+  .tier-presence { border-top-color: var(--color-slate); }
+  .tier-growth { border-top-color: var(--color-mustard); }
+  .tier-agile { border-top-color: var(--color-brand); }
+  .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); }
+  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
+  .tier-sub { font-size: var(--step--1); }
+  .tier-cost { margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+  .tier-was { margin: 0; font-size: var(--step-1); }
+  .tier-price { font-size: var(--step-4); font-weight: 600; line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+  .tier-price-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
+  .tier-monthly { margin: var(--space-1) 0 0; }
+  .tier-cta { margin: var(--space-3) 0 0; }
+  .more { margin-top: var(--space-4); }
+
+  @media (max-width: 900px) {
+    .why-grid, .tier-grid { grid-template-columns: 1fr; }
+    .includes { grid-template-columns: 1fr; }
+  }
+</style>
