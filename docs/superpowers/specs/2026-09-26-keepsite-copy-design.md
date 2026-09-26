@@ -250,3 +250,34 @@ Makeup by Brynlie. Her `Voice.txt` has a mid-file `Profile:` line pointing at a
 post rather than her profile; `copy-sources.md` supersedes it. `BrandGuide.pdf`
 has no extractable text in this environment (`pdftotext` is not installed) and
 is read as page images.
+
+## Amendments made during planning
+
+These supersede the sections above where they differ.
+
+1. **The gate reads `src/data/copy-status.json`, not the deck.** `intake/` is
+   gitignored and absent on Netlify, so the verifier cannot read
+   `copy-deck.md`. The copy pass writes `src/data/copy-status.json`
+   (`{ "remaining": [{ "pointer", "reason" }] }`); its presence switches the
+   verifier into Stage Three mode. A Stage Two site has no such file and
+   verifies exactly as before.
+2. **Lorem is detected by vocabulary, not by a keyword list.** A string is
+   lorem when it has two or more words and every word is in `lib/lorem.mjs`'s
+   word list. A two-word lorem attribution contains none of the verifier's
+   existing trigger words.
+3. **Google Drive** uses `gdown` for a public folder link; otherwise the owner
+   downloads the folder and it is treated as a local folder. No connector.
+4. **Image dimensions and placement use ImageMagick** (`identify`, `convert`),
+   already on the machine with HEIC, AVIF and WebP support. Placed photos are
+   auto-oriented, stripped of metadata, capped at 2400px on the long edge and
+   written as JPEG to `src/assets/photos/`. Astro produces the responsive
+   formats; cropping to the slot is `object-fit: cover` plus `focus`.
+5. **Instagram filenames** use `--filename-pattern={date_utc}_UTC_{shortcode}~`.
+   Shortcodes contain underscores, so the `~` is what separates a shortcode
+   from instaloader's `_N` carousel suffix.
+6. **Before/after gallery pairs** (items with `before`/`after` caption strings
+   rather than an image object) are not filled automatically; the deck lists
+   them.
+7. **The deck starts from `templates/copy-deck.md`** in the skill; the agent
+   fills it. The end-to-end test covers the deterministic chain (sources,
+   voice, reviews, manifest, slots), not the prose.
