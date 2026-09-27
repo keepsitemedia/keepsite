@@ -11,48 +11,37 @@
   },
   "hero": {
     "heading": "A website that books your Lockii rentals",
-    "lead": "Lockii runs your rentals without staff. We build the website that gets them found and booked, with your Lockii booking built in from day one. We work with rental businesses anywhere.",
-    "ctaLabel": "Claim the Lockii offer"
+    "lead": "Lockii runs your rentals without staff. We build the website that gets them found and booked, with your Lockii booking built in from day one, for rental businesses anywhere.",
+    "ctaLabel": "Start your site",
+    "image": {
+      "src": "",
+      "alt": "",
+      "slot": "Your picture goes here: the fleet, or a phone with a Lockii booking open. Landscape, at least 1600 pixels wide."
+    }
   },
   "why": {
     "heading": "Your website does the job your staff would",
-    "points": [
-      {
-        "title": "Nobody answers the phone",
-        "body": "An unstaffed rental can't explain how pickup works or whether a hitch is needed. The site has to answer every question a customer would have called about."
-      },
-      {
-        "title": "Customers book from their phones",
-        "body": "People search for a trailer or a kayak when they need one, usually on a phone. The site has to show up for that search and reach your booking in two taps."
-      },
-      {
-        "title": "A widget needs a home people trust",
-        "body": "Lockii takes the booking, the ID check and the payment. A clear, fast site around it is what gets someone to start."
-      }
-    ]
+    "body": "Nobody answers the phone at an unstaffed rental, so the site has to explain how pickup works, whether a hitch is needed and what the deposit covers. Customers search for a trailer or a kayak when they need one, usually on a phone, and the site has to show up for that search and reach your booking in two taps. Lockii takes the booking, the ID check and the payment. A clear, fast site around it is what gets someone to start."
   },
   "includes": {
     "heading": "Every Lockii site includes",
     "items": [
-      "Your Lockii booking widget, set up and tested",
-      "How pickup and return work, step by step",
-      "Requirements and rules: ID, hitch, deposit, damage",
-      "Answers to the questions customers would otherwise call about",
-      "A page for each pickup location",
-      "Your Google Business Profile set up and linked"
+      { "kind": "widget", "label": "Your Lockii booking widget, set up and tested" },
+      { "kind": "pickup", "label": "How pickup and return work, step by step" },
+      { "kind": "rules", "label": "Requirements and rules: ID, hitch, deposit, damage" },
+      { "kind": "faq", "label": "Answers to the questions customers would otherwise call about" },
+      { "kind": "locations", "label": "A page for each pickup location" },
+      { "kind": "profile", "label": "Your Google Business Profile, set up and linked" }
     ]
   },
   "packages": {
     "heading": "Pick the package that fits your fleet",
-    "intro": "Every package includes the Lockii setup. The Lockii price applies to the build; the monthly starts after your free month.",
+    "intro": "Every package includes the Lockii setup. Prices below are the Lockii prices.",
     "moreLabel": "Compare everything on the packages page"
-  },
-  "terms": {
-    "heading": "The Lockii offer"
   },
   "closing": {
     "heading": "Let's get your rentals booked.",
     "sub": "Tell us what you rent and where. We usually reply within one business day.",
-    "ctaLabel": "Claim the Lockii offer"
+    "ctaLabel": "Start your site"
   }
 }

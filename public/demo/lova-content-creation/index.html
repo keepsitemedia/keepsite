@@ -8,12 +8,12 @@
 <meta name="robots" content="noindex,nofollow" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=JetBrains+Mono:wght@300..700&family=Zilla+Slab:wght@500;600;700&family=Chivo:wght@300..800&family=Chivo+Mono:wght@400;500&family=Hedvig+Letters+Serif:opsz@12..24&family=Onest:wght@300..700&family=Literata:opsz,wght@7..72,400..700&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wght@400;500&family=Castoro:ital@0;1&family=Albert+Sans:wght@300..700&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=JetBrains+Mono:wght@300..700&family=Zilla+Slab:wght@500;600;700&family=Chivo:wght@300..800&family=Chivo+Mono:wght@400;500&family=Hedvig+Letters+Serif:opsz@12..24&family=Onest:wght@300..700&family=Literata:opsz,wght@7..72,400..700&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wght@400;500&family=Castoro:ital@0;1&family=Albert+Sans:wght@300..700&family=Mrs+Saint+Delafield&family=Montserrat:wght@700&display=swap" rel="stylesheet" />
 <style>
   /* ============ GLOBAL RESET ============ */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body { font-family: 'Instrument Sans', system-ui, sans-serif; color: #1a1a1a; background: #ffffff; line-height: 1.5; overflow-x: hidden; }
+  body { font-family: Arial, 'Arimo', 'Liberation Sans', Helvetica, sans-serif; color: #111111; background: #ffffff; line-height: 1.5; overflow-x: hidden; }
   a { color: inherit; text-decoration: none; }
   ul { list-style: none; }
 
@@ -29,119 +29,82 @@
     color: var(--pi); padding: 12px 16px; text-align: center; line-height: 1.6;
   }
 
-  /* ============ PROPOSAL NAV (sticky) ============ */
+  /* ============ KEEPSITE WRAPPER ============
+     Everything outside the four directions is Keepsite presenting, so it
+     wears the Keepsite site's own clothes: Arial, Montserrat caps for
+     labels, rust as the only coloured text, the logo's stripe block above
+     each heading and its heavy rule under the top bar. The directions carry
+     their own fonts and palettes, and the wrapper stays out of their way. */
+  :root {
+    --ks-ink: #111111; --ks-muted: #5A5A5A; --ks-rust: #B8512C;
+    --ks-slate: #628997; --ks-mustard: #DFAA3F; --ks-border: #E3DED6;
+    --ks-label: 'Montserrat', Arial, sans-serif;
+    --ks-stripe: linear-gradient(to bottom, var(--ks-slate) 0 33.34%, var(--ks-mustard) 33.34% 66.67%, var(--ks-rust) 66.67% 100%);
+  }
+  .ks-label { font-family: var(--ks-label); font-weight: 700; font-size: 13px; line-height: 1.3; letter-spacing: 0.14em; text-transform: uppercase; }
+
   .proposal-nav {
     position: sticky; top: 0; z-index: 100;
-    background: #12080a; color: #f4ede1;
+    background: #fff; color: var(--ks-ink);
+    border-bottom: 3px solid var(--ks-ink);
     padding: 14px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
   }
-  .proposal-nav .brand { font-weight: 600; }
-  .proposal-nav .nav-links { display: flex; gap: 22px; flex-wrap: wrap; }
-  .proposal-nav .nav-links a { opacity: 0.6; transition: opacity 0.2s; }
-  .proposal-nav .nav-links a:hover { opacity: 1; }
-  .proposal-nav .nav-links a span.num { color: #d8a87a; margin-right: 4px; }
+  .proposal-nav .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
+  .proposal-nav .brand i { display: block; width: 14px; height: 19px; background: var(--ks-stripe); }
+  .proposal-nav .brand span { font-weight: 400; color: var(--ks-muted); }
+  .proposal-nav .nav-links { display: flex; gap: 26px; flex-wrap: wrap; font-family: var(--ks-label); font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .proposal-nav .nav-links a { transition: color 0.12s; }
+  .proposal-nav .nav-links a:hover { color: var(--ks-rust); }
 
-  /* ============ INTRO ============ */
-  .intro {
-    background: #f5f2eb;
-    display: flex; align-items: center; justify-content: center;
-    padding: 80px 32px;
-    position: relative; overflow: hidden;
-  }
-  .intro::before {
-    content: ''; position: absolute; inset: 0;
-    background-image:
-      radial-gradient(circle at 15% 30%, rgba(201, 111, 74, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 85% 70%, rgba(45, 59, 45, 0.08) 0%, transparent 40%);
-    pointer-events: none;
-  }
-  .intro-inner { max-width: 1100px; position: relative; z-index: 1; width: 100%; }
-  .intro .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
-    color: #6b5a42; margin-bottom: 24px;
-  }
-  .intro h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(40px, 6vw, 80px);
-    font-weight: 400; line-height: 1.02;
-    letter-spacing: -0.015em;
-    color: #1a1a1a; margin-bottom: 28px;
-  }
-  .intro h1 em { font-style: italic; font-weight: 400; color: #c96f4a; }
-  .intro p.lead {
-    font-family: 'EB Garamond', serif;
-    font-size: 22px; line-height: 1.55;
-    color: #2a2a24; font-weight: 400;
-    max-width: 820px; margin-bottom: 36px;
-  }
-  .intro .placeholder-note {
-    max-width: 820px; margin: 0 0 20px;
-    padding: 18px 22px;
-    background: rgba(201,111,74,0.07);
-    border-left: 2px solid #c96f4a;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; line-height: 1.7;
-    color: #6b5a42;
-    display: flex; gap: 14px; align-items: flex-start;
-  }
-  .intro .placeholder-note .note-label {
-    font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #c96f4a; flex-shrink: 0; padding-top: 1px;
-  }
-  .intro .placeholder-note .note-body { color: #4a4a42; }
-  .option-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 40px; }
+  .intro { background: #fff; padding: 88px 32px 96px; }
+  .intro-inner { max-width: 1120px; margin: 0 auto; }
+  .intro .eyebrow { margin-bottom: 24px; }
+  .intro h1 { font-size: clamp(34px, 4vw, 48px); font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 24px; text-wrap: balance; }
+  .intro h1::before { content: ""; display: block; width: 24px; height: 32px; margin-bottom: 24px; background: var(--ks-stripe); }
+  .intro p.lead { font-size: clamp(19px, 2vw, 22px); line-height: 1.5; color: var(--ks-muted); max-width: 56ch; margin-bottom: 32px; }
+  .intro .placeholder-note { max-width: 68ch; padding: 4px 0 4px 20px; border-left: 3px solid var(--ks-ink); font-size: 15px; line-height: 1.6; color: var(--ks-muted); }
+  .intro .placeholder-note .note-label { display: block; margin-bottom: 6px; color: var(--ks-ink); }
+  .option-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 56px; }
   @media (max-width: 1100px) { .option-cards { grid-template-columns: repeat(2, 1fr); } }
   .option-card {
-    background: #fff; border: 1px solid #e8e2d5;
-    padding: 30px 26px; color: inherit;
+    background: #fff; border: 1px solid var(--ks-border); border-radius: 10px;
+    padding: 28px 24px; color: inherit;
     display: flex; flex-direction: column; gap: 14px;
-    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+    transition: border-color 0.12s;
   }
-  .option-card:hover { transform: translateY(-4px); box-shadow: 0 18px 42px -24px rgba(40,30,20,0.22); border-color: #c4b092; }
-  .option-card .card-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b5a42;
-  }
-  .option-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; line-height: 1.1; color: #1a1a1a; }
-  .option-card .swatch-row { display: flex; height: 28px; margin: 6px 0 4px; }
+  .option-card:hover { border-color: var(--ks-ink); }
+  .option-card .card-num { font-size: 12px; color: var(--ks-muted); }
+  .option-card h3 { font-size: 22px; font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+  .option-card .swatch-row { display: flex; height: 24px; margin: 4px 0; border-radius: 4px; overflow: hidden; }
   .option-card .swatch { flex: 1; }
-  .option-card p { font-family: 'EB Garamond', serif; font-size: 16px; line-height: 1.55; color: #3a4035; }
-  .option-card .view-link {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: #c96f4a; margin-top: auto; padding-top: 12px;
-  }
+  .option-card p { font-size: 16px; line-height: 1.55; color: var(--ks-muted); }
+  .option-card p strong { color: var(--ks-ink); }
+  .option-card .view-link { margin-top: auto; padding-top: 12px; color: var(--ks-rust); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
 
-  /* ============ DIRECTION DIVIDER ============ */
-  .direction-divider {
-    background: #12080a; color: #f4ede1;
-    padding: 70px 40px;
-    font-family: 'JetBrains Mono', monospace;
-    position: relative;
-    border-top: 1px solid #d8a87a;
-    border-bottom: 4px solid #d8a87a;
-  }
-  .direction-divider::before { content: ''; position: absolute; top: 14px; left: 40px; right: 40px; height: 1px; background: rgba(216, 168, 122, 0.25); }
-  .dd-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: end; }
-  .dd-progress { font-size: 11px; letter-spacing: 0.42em; color: #d8a87a; font-weight: 600; margin-bottom: 18px; text-transform: uppercase; }
-  .dd-name { font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: clamp(44px, 7vw, 92px); line-height: 0.95; letter-spacing: -0.015em; color: #f4ede1; }
-  .dd-name em { font-style: italic; color: #d8a87a; font-weight: 300; }
-  .dd-sub { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: clamp(15px, 1.6vw, 19px); color: rgba(244, 237, 225, 0.62); max-width: 400px; text-align: right; line-height: 1.45; font-weight: 300; padding-bottom: 12px; }
+  /* ============ DIRECTION DIVIDER ============
+     The site's closing band: ink, the stripe block, a bold heading. */
+  .direction-divider { background: var(--ks-ink); color: #fff; padding: 72px 32px; }
+  .dd-inner { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: end; }
+  .dd-progress { color: rgba(255,255,255,0.7); margin-bottom: 20px; }
+  .dd-name { font-size: clamp(40px, 5.5vw, 64px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+  .dd-name::before { content: ""; display: block; width: 24px; height: 32px; margin-bottom: 24px; background: var(--ks-stripe); }
+  .dd-sub { font-size: 17px; line-height: 1.5; color: rgba(255,255,255,0.8); max-width: 40ch; text-align: right; padding-bottom: 6px; }
 
   @media (max-width: 900px) {
-    .proposal-nav { flex-direction: column; gap: 10px; padding: 14px 20px; }
-    .proposal-nav .nav-links { gap: 14px; font-size: 10.5px; }
-    .intro { padding: 60px 20px; }
-    .option-cards { grid-template-columns: 1fr; }
-    .direction-divider { padding: 44px 20px; border-bottom-width: 3px; }
-    .direction-divider::before { left: 20px; right: 20px; }
+    .proposal-nav { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 16px; }
+    .proposal-nav .brand { font-size: 15px; }
+    .proposal-nav .nav-links { flex-wrap: nowrap; overflow-x: auto; gap: 18px; white-space: nowrap; scrollbar-width: none; font-size: 11px; }
+    .proposal-nav .nav-links::-webkit-scrollbar { display: none; }
+    .intro { padding: 48px 16px 56px; }
+    .intro h1 { font-size: 32px; margin-bottom: 18px; }
+    .intro p.lead { font-size: 18px; margin-bottom: 24px; }
+    .option-cards { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin: 36px -16px 0; padding: 0 16px 8px; }
+    .option-card { scroll-snap-align: start; padding: 22px 20px; }
+    .direction-divider { padding: 40px 16px; }
     .dd-inner { grid-template-columns: 1fr; gap: 20px; align-items: start; }
-    .dd-sub { text-align: left; max-width: none; padding-bottom: 0; }
+    .dd-name { font-size: 36px; }
+    .dd-sub { font-size: 15px; text-align: left; max-width: none; padding-bottom: 0; }
   }
 </style>
 </head>
@@ -149,29 +112,29 @@
 <body>
 
 <nav class="proposal-nav">
-  <div class="brand">Lova Content Creation // Design Directions</div>
+  <a class="brand" href="/demo/index.html"><i aria-hidden="true"></i>Keepsite <span>for Lova Content Creation</span></a>
   <div class="nav-links">
-    <a href="#intro"><span class="num">00</span>Intro</a>
-    <a href="#northsouth"><span class="num">01</span>North to South</a>
-    <a href="#goldenhour"><span class="num">02</span>Golden Hour</a>
-    <a href="#topo"><span class="num">03</span>Topo</a>
-    <a href="#wildflower"><span class="num">04</span>Wildflower</a>
+    <a href="#intro">Intro</a>
+    <a href="#northsouth">North to South</a>
+    <a href="#goldenhour">Golden Hour</a>
+    <a href="#topo">Topo</a>
+    <a href="#wildflower">Wildflower</a>
   </div>
 </nav>
 
 <section id="intro" class="intro">
   <div class="intro-inner">
-    <p class="eyebrow">Round two — four directions, one brand</p>
-    <h1>Lova Content Creation, <em>four ways.</em></h1>
+    <p class="eyebrow ks-label">Round two, four directions</p>
+    <h1>Lova Content Creation, four ways</h1>
     <p class="lead">All four start from the same place this time: one person who marries you, captures it all in iPhone photos and video, and brings the flowers, anywhere from the Uintas to the red rock. They differ in how they tell it. Scroll through all four and tell me which feels most like you. Taking the type from one and the colour from another is allowed and encouraged.</p>
     <div class="placeholder-note">
-      <span class="note-label">Heads up</span>
+      <span class="note-label ks-label">Heads up</span>
       <span class="note-body">There are still no photographs in here on purpose. Every picture is drawn as an outlined box, sized to the shape the real photo will fill and labelled with what belongs there. Your own photos and video go in once a direction is picked, and they will do most of the talking. The illustrations are drawn in the page, not stock.</span>
     </div>
     <div class="option-cards">
       <a href="#northsouth" class="option-card">
-        <div class="card-num">01 — North to South</div>
-        <h3>Red Rock, grown to the whole state</h3>
+        <p class="card-num ks-label">Direction 1</p>
+        <h3>North to South</h3>
         <div class="swatch-row">
           <div class="swatch" style="background:#f3e6cc"></div>
           <div class="swatch" style="background:#b9d3d6"></div>
@@ -179,12 +142,12 @@
           <div class="swatch" style="background:#e39a5b"></div>
           <div class="swatch" style="background:#a4432c"></div>
         </div>
-        <p>The screenprinted park poster you liked, now starting at home: Uinta pines and an alpine lake up top, then a poster for each place from Cascade Springs to the southern parks.</p>
-        <span class="view-link">View direction →</span>
+        <p><strong>Red Rock, grown to the whole state.</strong> The screenprinted park poster you liked, now starting at home: Uinta pines and an alpine lake up top, then a poster for each place from Cascade Springs to the southern parks.</p>
+        <span class="view-link">See the direction</span>
       </a>
       <a href="#goldenhour" class="option-card">
-        <div class="card-num">02 — Golden Hour</div>
-        <h3>Your photos, full-bleed, after dark</h3>
+        <p class="card-num ks-label">Direction 2</p>
+        <h3>Golden Hour</h3>
         <div class="swatch-row">
           <div class="swatch" style="background:#15120f"></div>
           <div class="swatch" style="background:#2a241e"></div>
@@ -192,12 +155,12 @@
           <div class="swatch" style="background:#d08a54"></div>
           <div class="swatch" style="background:#8a9b7a"></div>
         </div>
-        <p>A portfolio site. Deep warm dark so the pictures glow, very little type, big images edge to edge. The most &ldquo;professional portfolio&rdquo; of the four.</p>
-        <span class="view-link">View direction →</span>
+        <p><strong>Your video, phone-shaped, after dark.</strong> A portfolio site. Deep warm dark so the pictures glow, very little type, and a vertical video loop as the opening shot, because that is what an iPhone makes.</p>
+        <span class="view-link">See the direction</span>
       </a>
       <a href="#topo" class="option-card">
-        <div class="card-num">03 — Topo</div>
-        <h3>Pick the place. She brings the rest.</h3>
+        <p class="card-num ks-label">Direction 3</p>
+        <h3>Topo</h3>
         <div class="swatch-row">
           <div class="swatch" style="background:#f4f1e8"></div>
           <div class="swatch" style="background:#24382c"></div>
@@ -205,12 +168,12 @@
           <div class="swatch" style="background:#d9b44a"></div>
           <div class="swatch" style="background:#c65a3a"></div>
         </div>
-        <p>Outdoorsy and capable. Contour lines, a pinned map of Utah, and everything she carries in laid out like a packing list: officiant, photo, video, flowers.</p>
-        <span class="view-link">View direction →</span>
+        <p><strong>Pick the place. She brings the rest.</strong> Outdoorsy and capable. Contour lines, a pinned map of Utah, and everything she carries in laid out like a packing list: officiant, photo, video, flowers.</p>
+        <span class="view-link">See the direction</span>
       </a>
       <a href="#wildflower" class="option-card">
-        <div class="card-num">04 — Wildflower</div>
-        <h3>A wedding that looks like nobody else&rsquo;s</h3>
+        <p class="card-num ks-label">Direction 4</p>
+        <h3>Wildflower</h3>
         <div class="swatch-row">
           <div class="swatch" style="background:#fbfaf6"></div>
           <div class="swatch" style="background:#5d7a4f"></div>
@@ -218,8 +181,8 @@
           <div class="swatch" style="background:#d0553f"></div>
           <div class="swatch" style="background:#e7c35a"></div>
         </div>
-        <p>The warmest one. An alpine meadow in June: light, airy, full of feeling. Built around how much you love weddings, with your own letter and signature.</p>
-        <span class="view-link">View direction →</span>
+        <p><strong>A wedding that looks like nobody else&rsquo;s.</strong> The warmest one. An alpine meadow in June: light, airy, full of feeling. Built around how much you love weddings, with your own letter and signature.</p>
+        <span class="view-link">See the direction</span>
       </a>
     </div>
   </div>
@@ -231,8 +194,8 @@
 <section class="direction-divider">
   <div class="dd-inner">
     <div>
-      <div class="dd-progress">Direction 01 — of 04</div>
-      <h2 class="dd-name">North to South<em>.</em></h2>
+      <p class="dd-progress ks-label">Direction 1 of 4</p>
+      <h2 class="dd-name">North to South</h2>
     </div>
     <p class="dd-sub">Sandstone cream, alpine sky, juniper, canyon red. Zilla Slab and Chivo. The screenprinted park poster, now a series &mdash; one print for every place she&rsquo;ll go.</p>
   </div>
@@ -280,6 +243,8 @@
 .ns-poster .title { position: absolute; left: 0; right: 0; top: 6%; text-align: center; padding: 0 20px; }
 .ns-poster h1 { font-family: 'Zilla Slab', serif; font-weight: 700; text-transform: uppercase; font-size: clamp(34px, 6.2vw, 92px); line-height: 0.92; margin-top: 12px; }
 .ns-poster h1 span { color: var(--red); }
+/* the search phrase is part of the heading, not a caption above it */
+.ns-poster h1 small { display: block; font-weight: 500; margin-bottom: 12px; }
 .ns-poster .band { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink); color: var(--cream); display: flex; justify-content: space-between; padding: 14px 24px; gap: 20px; flex-wrap: wrap; }
 
 .ns-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; padding: 80px 0 60px; align-items: start; }
@@ -290,7 +255,7 @@
 .ns-roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; background: var(--ink); border: 3px solid var(--ink); margin-bottom: 90px; }
 .ns-roles > div { padding: 26px 22px 30px; background: var(--cream); }
 .ns-roles > div:nth-child(1) { background: var(--juniper); color: var(--cream); }
-.ns-roles h3 { font-size: 26px; line-height: 1; margin: 10px 0 12px; }
+.ns-roles h3 { font-size: 26px; line-height: 1; margin: 0 0 12px; }
 .ns-roles p { font-size: 15px; line-height: 1.6; }
 
 .ns-series { padding-bottom: 90px; }
@@ -345,8 +310,7 @@
 
     <div class="ns-poster">
       <div class="title">
-        <p class="kicker">Adventure elopements &amp; micro weddings &middot; Utah</p>
-        <h1>From the Uintas<br><span>to the red rock.</span></h1>
+        <h1><small class="kicker">Utah adventure elopements and micro weddings</small>From the Uintas<br><span>to the red rock.</span></h1>
       </div>
       <svg viewBox="0 -110 1200 870" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Screenprinted Uinta scene: snowcapped peaks, pine forest, alpine lake">
         <rect y="-110" width="1200" height="870" fill="#b9d3d6"/>
@@ -373,10 +337,10 @@
     </div>
 
     <div class="ns-roles">
-      <div><p class="kicker">01</p><h3 class="slab">I marry you</h3><p>I&rsquo;m a Utah county clerk designee, which means I can legally marry you, as long as you bring at least 2 witnesses.</p></div>
-      <div><p class="kicker">02</p><h3 class="slab">iPhone photos</h3><p>The big, emotional moments and all the tiny details you worked so hard to curate.</p></div>
-      <div><p class="kicker">03</p><h3 class="slab">iPhone video</h3><p>Filmed at the same time, on the same phone. Your first clips arrive the next day.</p></div>
-      <div><p class="kicker">04</p><h3 class="slab">Flowers</h3><p>I started as a florist. Simple florals, made by me and carried in.</p></div>
+      <div><h3 class="slab">I marry you</h3><p>I&rsquo;m a Utah county clerk designee, which means I can legally marry you, as long as you bring at least 2 witnesses.</p></div>
+      <div><h3 class="slab">iPhone photos</h3><p>The big, emotional moments and all the tiny details you worked so hard to curate.</p></div>
+      <div><h3 class="slab">iPhone video</h3><p>Filmed at the same time, on the same phone. Your first clips arrive the next day.</p></div>
+      <div><h3 class="slab">Flowers</h3><p>I started as a florist. Simple florals, made by me and carried in.</p></div>
     </div>
 
     <div class="ns-series">
@@ -438,10 +402,10 @@
 <section class="direction-divider">
   <div class="dd-inner">
     <div>
-      <div class="dd-progress">Direction 02 — of 04</div>
-      <h2 class="dd-name">Golden Hour<em>.</em></h2>
+      <p class="dd-progress ks-label">Direction 2 of 4</p>
+      <h2 class="dd-name">Golden Hour</h2>
     </div>
-    <p class="dd-sub">Warm dark, champagne, ember. Hedvig Letters Serif and Onest. A portfolio &mdash; the pictures fill the screen and the words stay out of their way.</p>
+    <p class="dd-sub">Warm dark, champagne, ember. Hedvig Letters Serif and Onest. A portfolio that opens on a phone-shaped video loop, because that is what an iPhone makes. The words stay out of the way.</p>
   </div>
 </section>
 
@@ -466,30 +430,29 @@
 .gh .label { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--mute); }
 .gh .serif { font-family: 'Hedvig Letters Serif', serif; font-weight: 400; }
 
-.gh-nav { position: absolute; left: 0; right: 0; top: 0; z-index: 2; }
-.gh-nav .bar { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; }
+.gh-nav .bar { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--rule); }
 .gh-mark { font-size: 24px; letter-spacing: 0.02em; }
 .gh-links { display: flex; gap: 34px; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 .gh-links a:hover { color: var(--ember); }
 .gh-btn { display: inline-block; border: 1px solid var(--ink); padding: 12px 24px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; }
 .gh-btn:hover { background: var(--ink); color: var(--bg); }
 
-/* type sits over the photo, low left, on a gradient so it reads over any image */
-.gh-hero { position: relative; }
-.gh-hero .area { border: 0; height: min(92vh, 900px); min-height: 560px; align-items: flex-start; padding-top: 18vh; }
-.gh-hero .over { position: absolute; left: 0; right: 0; bottom: 0; padding: 140px 0 64px; background: linear-gradient(transparent, rgba(21,18,15,0.92)); }
-.gh-hero h1 { font-size: clamp(44px, 6.4vw, 104px); line-height: 0.98; letter-spacing: -0.02em; max-width: 13ch; }
-.gh-hero h1 span { color: var(--ember); }
-.gh-hero .row { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; flex-wrap: wrap; }
-.gh-hero p { font-size: 17px; line-height: 1.7; color: var(--soft); max-width: 40ch; }
+/* the opening shot is a vertical video loop in a phone-shaped frame:
+   honest about the medium, and the one thing a camera portfolio can't show */
+.gh-hero { display: grid; grid-template-columns: minmax(240px, 380px) 1fr; gap: 72px; align-items: center; padding: 64px 0 110px; }
+.gh-phone { position: relative; width: 100%; padding: 12px; border-radius: 44px; border: 1px solid rgba(233,216,186,0.28); background: var(--panel); }
+.gh-phone .area { border: 0; border-radius: 34px; align-items: flex-end; padding-bottom: 36px; }
+.gh-phone .play { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; border: 1px solid var(--ember); }
+.gh-phone .play::after { content: ""; position: absolute; left: 25px; top: 19px; border-left: 18px solid var(--ember); border-top: 12px solid transparent; border-bottom: 12px solid transparent; }
+.gh-hero h1 { font-size: clamp(40px, 5.2vw, 84px); line-height: 1; letter-spacing: -0.02em; max-width: 14ch; margin: 18px 0 28px; }
+.gh-hero p { font-size: 17px; line-height: 1.7; color: var(--soft); max-width: 44ch; }
 
 .gh-roles { padding: 110px 0 90px; }
 .gh-roles h2 { font-size: clamp(32px, 4vw, 58px); line-height: 1.05; letter-spacing: -0.015em; max-width: 18ch; margin: 16px 0 60px; }
 .gh-roles .grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--rule); }
 .gh-roles .grid > div { padding: 30px 28px 10px 0; }
 .gh-roles .grid > div + div { padding-left: 28px; border-left: 1px solid var(--rule); }
-.gh-roles .n { font-size: 56px; line-height: 1; color: var(--ember); }
-.gh-roles h3 { font-size: 24px; margin: 18px 0 10px; }
+.gh-roles h3 { font-size: 24px; margin: 0 0 10px; }
 .gh-roles p { font-size: 15px; line-height: 1.65; color: var(--soft); }
 
 .gh-pair { display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; }
@@ -531,23 +494,23 @@
 </style>
 
 <section id="goldenhour" class="gh">
-  <div class="gh-hero">
+  <div class="wrap">
     <div class="gh-nav">
-      <div class="wrap">
-        <div class="bar">
-          <div class="gh-mark serif">Lova</div>
-          <nav class="gh-links"><a href="#goldenhour">Work</a><a href="#goldenhour">Places</a><a href="#goldenhour">About</a></nav>
-          <a href="#goldenhour" class="gh-btn">Inquire</a>
-        </div>
+      <div class="bar">
+        <div class="gh-mark serif">Lova</div>
+        <nav class="gh-links"><a href="#goldenhour">Work</a><a href="#goldenhour">Places</a><a href="#goldenhour">About</a></nav>
+        <a href="#goldenhour" class="gh-btn">Inquire</a>
       </div>
     </div>
-    <div class="area"><span>Full-bleed hero, video loop or still<br>couple on a ridge at last light, backlit, veil catching the sun</span></div>
-    <div class="over">
-      <div class="wrap">
-        <div class="row">
-          <h1 class="serif">Be wildly present. <span>I&rsquo;ll take care of everything else.</span></h1>
-          <p>Adventure elopements and micro weddings in Utah&rsquo;s mountains, springs and national parks. Officiant, iPhone photos and video, and flowers &mdash; one person.</p>
-        </div>
+    <div class="gh-hero">
+      <div class="gh-phone">
+        <div class="area" style="aspect-ratio:9/16"><span>Vertical video loop<br>couple on a ridge at last light, backlit, veil catching the sun</span></div>
+        <span class="play" aria-hidden="true"></span>
+      </div>
+      <div>
+        <p class="label">Utah adventure elopements, shot on iPhone</p>
+        <h1 class="serif">Be wildly present. I&rsquo;ll take care of everything else.</h1>
+        <p>Adventure elopements and micro weddings in Utah&rsquo;s mountains, springs and national parks. Officiant, iPhone photos and video, and flowers &mdash; one person.</p>
       </div>
     </div>
   </div>
@@ -557,10 +520,10 @@
       <p class="label">One person, four jobs</p>
       <h2 class="serif">Fewer people on the trail. Nothing missed.</h2>
       <div class="grid">
-        <div><div class="n serif">01</div><h3 class="serif">Officiant</h3><p>I&rsquo;m a Utah county clerk designee, which means I can legally marry you, as long as you bring at least 2 witnesses.</p></div>
-        <div><div class="n serif">02</div><h3 class="serif">Photos</h3><p>Shot on iPhone. The whole story: the big, emotional moments and the tiny details you worked so hard to curate.</p></div>
-        <div><div class="n serif">03</div><h3 class="serif">Video</h3><p>Filmed on the same iPhone at the same time, so you get both without a second crew.</p></div>
-        <div><div class="n serif">04</div><h3 class="serif">Florals</h3><p>Simple florals from a former florist, carried in and arranged on site.</p></div>
+        <div><h3 class="serif">Officiant</h3><p>I&rsquo;m a Utah county clerk designee, which means I can legally marry you, as long as you bring at least 2 witnesses.</p></div>
+        <div><h3 class="serif">Photos</h3><p>Shot on iPhone. The whole story: the big, emotional moments and the tiny details you worked so hard to curate.</p></div>
+        <div><h3 class="serif">Video</h3><p>Filmed on the same iPhone at the same time, so you get both without a second crew.</p></div>
+        <div><h3 class="serif">Florals</h3><p>Simple florals from a former florist, carried in and arranged on site.</p></div>
       </div>
     </div>
   </div>
@@ -615,8 +578,8 @@
 <section class="direction-divider">
   <div class="dd-inner">
     <div>
-      <div class="dd-progress">Direction 03 — of 04</div>
-      <h2 class="dd-name">Topo<em>.</em></h2>
+      <p class="dd-progress ks-label">Direction 3 of 4</p>
+      <h2 class="dd-name">Topo</h2>
     </div>
     <p class="dd-sub">Map paper, forest, lake blue, aspen gold. Literata, Instrument Sans and Martian Mono. Contour lines, a pinned map of Utah, and a packing list of everything she brings.</p>
   </div>
@@ -715,7 +678,7 @@
     </div>
 
     <div class="tp-hero">
-      <svg class="tp-contours" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true" fill="none" stroke="rgba(36,56,44,0.09)" stroke-width="1.2">
+      <svg class="tp-contours" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true" fill="none" stroke="rgba(36,56,44,0.22)" stroke-width="1.4">
         <path d="M-50 480 C150 420 260 520 420 470 S700 380 860 430 1100 520 1250 470"/>
         <path d="M-50 430 C140 370 280 470 430 420 S690 330 860 380 1110 470 1250 420"/>
         <path d="M-50 380 C130 320 300 420 440 370 S680 280 860 330 1120 420 1250 370"/>
@@ -822,8 +785,8 @@
 <section class="direction-divider">
   <div class="dd-inner">
     <div>
-      <div class="dd-progress">Direction 04 — of 04</div>
-      <h2 class="dd-name">Wildflower<em>.</em></h2>
+      <p class="dd-progress ks-label">Direction 4 of 4</p>
+      <h2 class="dd-name">Wildflower</h2>
     </div>
     <p class="dd-sub">Snow white, meadow, lupine, paintbrush, pollen. Castoro and Albert Sans, with her signature. An alpine meadow in June &mdash; the warmest of the four, built on how much she loves weddings.</p>
   </div>
@@ -860,7 +823,7 @@
 
 .wf-nav { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; gap: 24px; }
 .wf-mark { font-size: 28px; }
-.wf-mark span { color: var(--brush); }
+.wf-mark span { color: var(--lupine); }
 .wf-nav nav { display: flex; gap: 32px; font-size: 14px; }
 .wf-nav nav a:hover { color: var(--lupine); }
 .wf-btn { display: inline-block; background: var(--lupine); color: #fff; padding: 13px 26px; border-radius: 999px; font-size: 14px; font-weight: 600; }
@@ -868,10 +831,9 @@
 
 .wf-hero { text-align: center; padding: 50px 0 0; }
 .wf-hero h1 { font-size: clamp(42px, 6vw, 92px); line-height: 1.02; letter-spacing: -0.02em; max-width: 15ch; margin: 18px auto 24px; }
-.wf-hero h1 em { color: var(--brush); }
 .wf-hero p { font-size: 19px; line-height: 1.7; color: var(--soft); max-width: 52ch; margin: 0 auto; }
 .wf-hero .btns { margin: 34px 0 50px; display: flex; justify-content: center; gap: 20px; align-items: center; flex-wrap: wrap; }
-.wf-hero .btns a.txt { font-weight: 600; border-bottom: 2px solid var(--pollen); }
+.wf-hero .btns a.txt { font-weight: 600; border-bottom: 2px solid var(--meadow); }
 /* the meadow grows up out of the bottom edge of the hero photo */
 .wf-photo { position: relative; }
 .wf-photo .area { border-radius: 4px; }
@@ -885,9 +847,7 @@
 .wf-how h2 { font-size: clamp(30px, 3.8vw, 52px); letter-spacing: -0.015em; margin-top: 12px; }
 .wf-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
 .wf-steps .n { font-family: 'Castoro', serif; font-size: 72px; line-height: 1; }
-.wf-steps > div:nth-child(1) .n { color: var(--meadow); }
-.wf-steps > div:nth-child(2) .n { color: var(--lupine); }
-.wf-steps > div:nth-child(3) .n { color: var(--brush); }
+.wf-steps .n { color: var(--meadow); }
 .wf-steps h3 { font-family: 'Castoro', serif; font-weight: 400; font-size: 28px; margin: 14px 0 12px; }
 .wf-steps p { font-size: 16px; line-height: 1.7; color: var(--soft); }
 .wf-steps ul { margin-top: 12px; }
@@ -902,8 +862,7 @@
 .wf-places h2 { font-size: clamp(28px, 3.2vw, 44px); margin: 12px 0 26px; }
 .wf-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
 .wf-tags span { padding: 11px 20px; border-radius: 999px; border: 1.5px solid var(--meadow); font-size: 15px; }
-.wf-tags span.s { border-color: var(--brush); }
-.wf-tags span.a { background: var(--pollen); border-color: var(--pollen); font-weight: 600; }
+.wf-tags span.a { background: var(--lupine); border-color: var(--lupine); color: #fff; font-weight: 600; }
 
 .wf-letter { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 80px; align-items: center; padding: 100px 0; }
 .wf-letter .area { border-radius: 200px 200px 4px 4px; }
@@ -914,7 +873,7 @@
 
 .wf-foot { background: var(--meadow); color: var(--snow); padding: 80px 0 60px; text-align: center; }
 .wf-foot h2 { font-size: clamp(32px, 4.6vw, 64px); line-height: 1.05; }
-.wf-foot a.mail { display: inline-block; margin: 26px 0 40px; font-size: clamp(18px, 2.2vw, 26px); border-bottom: 2px solid var(--pollen); overflow-wrap: anywhere; }
+.wf-foot a.mail { display: inline-block; margin: 26px 0 40px; font-size: clamp(18px, 2.2vw, 26px); border-bottom: 2px solid currentColor; overflow-wrap: anywhere; }
 .wf-foot .fine { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75; }
 
 @media (max-width: 980px) {
@@ -937,7 +896,7 @@
 
     <div class="wf-hero">
       <p class="label">Adventure elopements &amp; micro weddings &middot; Utah</p>
-      <h1 class="serif">Your wedding doesn&rsquo;t have to look like <em>anyone else&rsquo;s.</em></h1>
+      <h1 class="serif">Your wedding doesn&rsquo;t have to look like anyone else&rsquo;s.</h1>
       <p>Be completely, wildly present on your wedding day &mdash; and feel it all again tomorrow. I marry you, capture it all on iPhone, and bring the flowers, anywhere from a Uinta meadow to the red rock.</p>
       <div class="btns">
         <a href="#wildflower" class="wf-btn">Let&rsquo;s plan it</a>
@@ -993,7 +952,7 @@
       <p class="label">Where</p>
       <h2 class="serif">Close to home, or as far as you want to go.</h2>
       <div class="wf-tags">
-        <span>The Uintas</span><span>Cascade Springs</span><span>The Wasatch</span><span class="s">Zion</span><span class="s">Bryce Canyon</span><span class="s">Capitol Reef</span><span class="s">Arches</span><span class="a">Anywhere else</span>
+        <span>The Uintas</span><span>Cascade Springs</span><span>The Wasatch</span><span>Zion</span><span>Bryce Canyon</span><span>Capitol Reef</span><span>Arches</span><span class="a">Anywhere else</span>
       </div>
     </div>
 
@@ -1023,18 +982,6 @@
    Every direction gets its own phone layout rather than a plain stack:
    rails for card sets, 2×2 for the four roles, tighter section rhythm. */
 @media (max-width: 900px) {
-  .proposal-nav { align-items: stretch; gap: 6px; padding: 10px 16px; font-size: 10px; }
-  .proposal-nav .nav-links { flex-wrap: nowrap; overflow-x: auto; gap: 16px; white-space: nowrap; scrollbar-width: none; }
-  .proposal-nav .nav-links::-webkit-scrollbar { display: none; }
-  .intro { padding: 44px 16px 52px; }
-  .intro h1 { font-size: 40px; margin-bottom: 18px; }
-  .intro p.lead { font-size: 18px; margin-bottom: 22px; }
-  .intro .placeholder-note { flex-direction: column; gap: 6px; padding: 14px 16px; font-size: 11px; }
-  .option-cards { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin: 28px -16px 0; padding: 0 16px 8px; }
-  .option-card { scroll-snap-align: start; padding: 22px 20px; }
-  .direction-divider { padding: 34px 16px; }
-  .dd-name { font-size: 44px; }
-  .dd-sub { font-size: 15px; }
 }
 
 @media (max-width: 600px) {
@@ -1050,6 +997,7 @@
   .ns-poster svg { height: 460px; }
   .ns-poster .title { position: absolute; top: 22px; padding: 0 16px; }
   .ns-poster .kicker { font-size: 10px; letter-spacing: 0.14em; }
+  .ns-poster h1 small { margin-bottom: 8px; }
   .ns-poster h1 { font-size: 34px; }
   .ns-poster .band { justify-content: center; gap: 4px 16px; padding: 12px 14px; font-size: 10px; letter-spacing: 0.14em; }
   .ns-intro { padding: 44px 0 32px; gap: 18px; }
@@ -1057,7 +1005,7 @@
   .ns-intro p { font-size: 16px; }
   .ns-roles { grid-template-columns: 1fr 1fr; margin-bottom: 56px; }
   .ns-roles > div { padding: 16px 14px 18px; }
-  .ns-roles h3 { font-size: 19px; margin: 6px 0 8px; }
+  .ns-roles h3 { font-size: 19px; margin: 0 0 8px; }
   .ns-roles p { font-size: 13px; line-height: 1.5; }
   .ns-series { padding-bottom: 56px; }
   .ns-series header { margin-bottom: 18px; }
@@ -1075,9 +1023,10 @@
   .gh .wrap { padding: 0 16px; }
   .gh-nav .bar { padding: 18px 0; }
   .gh-btn { padding: 10px 16px; font-size: 11px; }
-  .gh-hero .area { height: 86svh; min-height: 540px; padding-top: 90px; }
-  .gh-hero .over { padding: 100px 0 32px; }
-  .gh-hero h1 { font-size: 40px; }
+  .gh-hero { grid-template-columns: 1fr; gap: 36px; padding: 28px 0 60px; }
+  .gh-phone { max-width: 250px; margin: 0 auto; padding: 9px; border-radius: 34px; }
+  .gh-phone .area { border-radius: 26px; }
+  .gh-hero h1 { font-size: 38px; margin: 12px 0 18px; }
   .gh-hero p { font-size: 15px; }
   .gh-roles { padding: 56px 0 44px; }
   .gh-roles h2 { font-size: 30px; margin: 10px 0 28px; }
@@ -1085,8 +1034,7 @@
   .gh-roles .grid > div, .gh-roles .grid > div + div { padding: 20px 12px 18px 0; border-left: 0; border-top: 0; }
   .gh-roles .grid > div:nth-child(even) { padding: 20px 0 18px 14px; border-left: 1px solid var(--rule); }
   .gh-roles .grid > div:nth-child(n+3) { border-top: 1px solid var(--rule); }
-  .gh-roles .n { font-size: 34px; }
-  .gh-roles h3 { font-size: 19px; margin: 10px 0 6px; }
+  .gh-roles h3 { font-size: 19px; margin: 0 0 6px; }
   .gh-roles p { font-size: 13px; line-height: 1.55; }
   .gh-pair { gap: 6px; }
   .gh-places { padding: 56px 0 60px; }
