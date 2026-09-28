@@ -3,6 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import faq from '../data/faq.json';
 
+const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 const siteUrl = Astro.site as URL;
 const faqJsonLd = {
   '@context': 'https://schema.org',
@@ -27,10 +29,17 @@ const faqJsonLd = {
   </section>
 
   <section class="section-tight">
-    <div class="container">
+    <div class="container faq-layout">
+      <nav class="faq-index" aria-label="Question groups">
+        <ul>
+          {faq.groups.map((group) => (
+            <li><a href={`#${slug(group.title)}`}>{group.title}</a></li>
+          ))}
+        </ul>
+      </nav>
       <div class="faq-groups">
         {faq.groups.map((group) => (
-          <div class="faq-group">
+          <div class="faq-group" id={slug(group.title)}>
             <h2>{group.title}</h2>
             <div class="faq-list">
               {group.items.map((item) => (
@@ -59,6 +68,26 @@ const faqJsonLd = {
 </BaseLayout>
 
 <style>
+  .faq-layout { display: grid; gap: var(--space-4); }
+  .faq-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+  .faq-index a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .faq-index a:hover { text-decoration: underline; }
+  .faq-group { scroll-margin-top: 6rem; }
+  @media (min-width: 900px) {
+    .faq-layout { grid-template-columns: 14rem minmax(0, 1fr); column-gap: var(--space-5); align-items: start; }
+    /* Sticks under the 63px header (60 min-height plus the 3px rule). */
+    .faq-index { position: sticky; top: calc(63px + var(--space-3)); }
+    .faq-index ul { display: grid; gap: 0; }
+    .faq-index li { border-top: 1px solid var(--color-border); }
+    .faq-index a { min-height: 48px; width: 100%; }
+  }
+
   .faq-groups { display: grid; gap: var(--space-5); max-width: var(--maxw-prose); }
   .faq-group h2 { margin-bottom: var(--space-2); }
   .faq-list { display: grid; }
