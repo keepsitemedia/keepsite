@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "title": "Who we are | Keepsite Media",
+    "description": "Keepsite is two people who run businesses too. We build your website and keep it running, so it stays off your list."
+  },
+  "heading": "Who we are",
+  "lead": "Keepsite builds and runs websites for business owners who have other things to do. We're small on purpose, and we run businesses of our own, so we know what the evenings look like.",
+  "statement": {
+    "heading": "We run businesses too.",
+    "body": [
+      "We know what it's like to answer client emails at 10pm, to lose a week to something that should have taken a morning, and to feel like the only one holding it all together. Your website was about to be one more of those things.",
+      "That's the whole reason Keepsite exists. We take the website off your plate, make the decisions you don't have room for, and tell you what's happening in plain words."
+    ]
+  },
+  "how": {
+    "heading": "How we work",
+    "pillars": [
+      { "title": "Make it useful.", "body": "Every site has a job. We find out what yours is, build for that, and leave out the rest." },
+      { "title": "Keep it simple.", "body": "Three decisions, one round of changes at each, and no homework in between." },
+      { "title": "Show your work.", "body": "Clear prices, clear scope, and a summary every quarter you can read in two minutes." },
+      { "title": "Build for real life.", "body": "We run businesses too. We know what it's like to be the only one holding it all together. The site fits around your week, not the other way round." }
+    ]
+  },
+  "photo": { "src": "", "alt": "" },
+  "no": {
+    "heading": "What we say no to",
+    "items": [
+      "Selling you the bigger package. If the smaller one is enough, we'll say so, and we'll say why.",
+      "Selling pages one at a time. If what you need is more strategy, we move you to the package that covers it.",
+      "Giving you a login. You send us the change, we make it. Nothing to learn, nothing to break."
+    ]
+  },
+  "closing": { "heading": "Keep your business moving.", "sub": "We'll take care of the website.", "ctaLabel": "Start your site", "ctaHref": "/start/" }
+}

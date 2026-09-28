@@ -39,6 +39,7 @@ const PAGES = [
   'packages/range/index.html',
   'how-it-works/index.html',
   'faq/index.html',
+  'about/index.html',
   'privacy/index.html',
   'lockii/index.html',
   'start/index.html',
@@ -266,6 +267,7 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
     // it opens at the top of the viewport, only JS can.
     'how-it-works/index.html': 2,
     'faq/index.html': 2,
+    'about/index.html': 1,
     'privacy/index.html': 1,
     'lockii/index.html': 1,
     'start/index.html': 2,

@@ -13,9 +13,11 @@ npm run preview  # serve the production build
 
 ## Editing content
 
-Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`, `privacy.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
+Page copy lives in `src/data/*.json`, one file per page: `site.json`, `home.json`, `packages.json`, `process.json`, `faq.json`, `about.json`, `privacy.json`. Work entries are markdown files in `src/content/work/`. All of it is editable in the browser at `/admin` (DecapCMS) once Identity and Git Gateway are enabled.
 
-The `/admin` sidebar has two collections. **Site Settings** holds the five page files (Site & Navigation, Home Page, Packages Page, How It Works, FAQ). **Work** is the folder collection you add projects to.
+The `/admin` sidebar has two collections. **Site Settings** holds the six page files (Site & Navigation, Home Page, Packages Page, How It Works, FAQ, About Page). **Work** is the folder collection you add projects to.
+
+Each package also has its own page at `/packages/<id>/`, built from the tier's fields in `packages.json` plus its **Package page** object (title, description, the "Not this one if" lines and which FAQ topics to show). An unknown package ID or FAQ topic there fails the build.
 
 **Testing CMS changes locally**, without committing to `main`. Both commands run from the repo root:
 

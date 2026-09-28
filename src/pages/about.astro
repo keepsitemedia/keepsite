@@ -1,0 +1,71 @@
+---
+// Who we are, in the voice guide's terms: we run businesses too, and that is
+// why we understand the client. The wedding work that taught us that is never
+// the subject. The page speaks as "we" and names nobody.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ClosingCta from '../components/ClosingCta.astro';
+import about from '../data/about.json';
+---
+<BaseLayout title={about.meta.title} description={about.meta.description}>
+
+  <section class="section-tight">
+    <div class="container">
+      <h1>{about.heading}</h1>
+      <p class="lead">{about.lead}</p>
+    </div>
+  </section>
+
+  <section class="section section-slate">
+    <div class="container">
+      <h2 class="statement">{about.statement.heading}</h2>
+      <div class="statement-body">
+        {about.statement.body.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>{about.how.heading}</h2>
+      <div class="rule-row pillars">
+        {about.how.pillars.map((pillar) => (
+          <div>
+            <h3>{pillar.title}</h3>
+            <p class="muted">{pillar.body}</p>
+          </div>
+        ))}
+      </div>
+      <!-- Renders nothing until a photograph exists. No stock, no placeholder. -->
+      {about.photo.src && (
+        <img class="photo" src={about.photo.src} alt={about.photo.alt} width="1600" height="1000" loading="lazy" decoding="async" />
+      )}
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2>{about.no.heading}</h2>
+      <ul class="no-list">
+        {about.no.items.map((item) => <li>{item}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <ClosingCta
+    heading={about.closing.heading}
+    sub={about.closing.sub}
+    ctaLabel={about.closing.ctaLabel}
+    ctaHref={about.closing.ctaHref}
+  />
+
+</BaseLayout>
+
+<style>
+  .statement-body { margin-top: var(--space-3); display: grid; gap: var(--space-2); }
+  .statement-body p { font-size: var(--step-2); max-width: var(--maxw-lead); margin: 0; }
+  .pillars { margin-top: var(--space-4); }
+  .pillars h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
+  .photo { display: block; width: 100%; height: auto; margin-top: var(--space-5); border-radius: var(--radius); }
+  .no-list { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: var(--space-2); max-width: var(--maxw-prose); }
+  .no-list li { padding: var(--space-2) 0; border-top: 1px solid var(--color-border); font-size: var(--step-1); }
+</style>

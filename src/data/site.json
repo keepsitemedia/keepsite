@@ -22,6 +22,11 @@
       "cta": false
     },
     {
+      "label": "About",
+      "href": "/about/",
+      "cta": false
+    },
+    {
       "label": "FAQ",
       "href": "/faq/",
       "cta": false

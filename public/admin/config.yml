@@ -356,6 +356,56 @@ collections:
               - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
               - { name: "ctaHref", label: "Button link", widget: "string", required: true }
 
+      - name: "about"
+        label: "About Page"
+        file: "src/data/about.json"
+        fields:
+          - name: "meta"
+            label: "Search listing"
+            widget: "object"
+            fields:
+              - { name: "title", label: "Page title", widget: "string", required: true }
+              - { name: "description", label: "Meta description", widget: "text", required: true }
+          - { name: "heading", label: "Heading", widget: "string", required: true }
+          - { name: "lead", label: "Lead", widget: "text", required: true }
+          - name: "statement"
+            label: "We run businesses too"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Statement", widget: "string", required: true, hint: "The largest line on the page." }
+              - { name: "body", label: "Paragraphs", widget: "list", required: true, field: { name: "p", label: "Paragraph", widget: "text" } }
+          - name: "how"
+            label: "How we work"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - name: "pillars"
+                label: "Pillars"
+                widget: "list"
+                fields:
+                  - { name: "title", label: "Title", widget: "string" }
+                  - { name: "body", label: "Body", widget: "text" }
+          - name: "photo"
+            label: "Photo"
+            widget: "object"
+            fields:
+              - { name: "src", label: "Image", widget: "image", required: false, hint: "Leave empty and nothing renders. No stock photos." }
+              - { name: "alt", label: "Alt text", widget: "string", required: false }
+          - name: "no"
+            label: "What we say no to"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "items", label: "Lines", widget: "list", required: true, field: { name: "line", label: "Line", widget: "string" } }
+          - name: "closing"
+            label: "Closing CTA"
+            widget: "object"
+            fields:
+              - { name: "heading", label: "Heading", widget: "string", required: true }
+              - { name: "sub", label: "Subhead", widget: "string", required: true }
+              - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+              - { name: "ctaHref", label: "Button link", widget: "string", required: true }
+
   - name: "work"
     label: "Work"
     folder: "src/content/work"
