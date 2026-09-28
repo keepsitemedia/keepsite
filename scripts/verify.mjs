@@ -255,9 +255,8 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
   const analytics = JSON.parse(fs.readFileSync('src/data/site.json', 'utf8')).analyticsId ? 2 : 0;
   const expect = {
     'index.html': 1,
-    // Plus the tier-open script: a link to /packages/#growth should land on
-    // that disclosure open, and only JS can open a <details>.
-    'packages/index.html': 3,
+    // The layout's JSON-LD plus the four Service nodes. Rows are open; no script.
+    'packages/index.html': 2,
     // The layout's JSON-LD plus the tier's own Service node.
     'packages/presence/index.html': 2,
     'packages/growth/index.html': 2,
@@ -322,6 +321,14 @@ check('each package page carries its Service with the page url', () => {
     if (s.url !== `https://www.keepsitemedia.com/packages/${id}/`) throw new Error(`${id}: url ${s.url}`);
     if (s.offers[0].price !== b) throw new Error(`${id} build ${s.offers[0].price}`);
     if (s.offers[1].priceSpecification.price !== m) throw new Error(`${id} monthly ${s.offers[1].priceSpecification.price}`);
+  }
+});
+// Links from the home page and elsewhere use /packages/#<id>; the rows are
+// articles now, so the anchors have to be on them.
+check('every tier id anchors a row on the overview', () => {
+  const h = read('packages/index.html');
+  for (const t of data('packages.json').tiers) {
+    if (!new RegExp(`<article[^>]*id="${t.id}"`).test(h)) throw new Error(`no row with id="${t.id}"`);
   }
 });
 check('FAQPage lives only on /faq/', () => {

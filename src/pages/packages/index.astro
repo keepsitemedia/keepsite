@@ -1,8 +1,11 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import ClosingCta from '../components/ClosingCta.astro';
-import packages from '../data/packages.json';
-import faq from '../data/faq.json';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ClosingCta from '../../components/ClosingCta.astro';
+import packages from '../../data/packages.json';
+import faq from '../../data/faq.json';
+import TierLists from '../../components/TierLists.astro';
+import FaqList from '../../components/FaqList.astro';
+import { serviceNode, linkPackages, faqItems, tierHref } from '../../scripts/tiers.mjs';
 
 type Cell = boolean | string;
 type Row = { group: string; feature: string; presence: Cell; growth: Cell; agile: Cell; range: Cell };
@@ -23,65 +26,17 @@ const normalize = (cell: Cell): boolean | string => {
   return String(cell);
 };
 
-// A broken slug fails the build instead of silently rendering four
-// questions where five were intended.
-const allFaqItems = faq.groups.flatMap((g) => g.items);
-const scopeItems = packages.scopeFaq.topics.map((topic) => {
-  const item = allFaqItems.find((i) => i.topic === topic);
-  if (!item) throw new Error(`packages.json scopeFaq references unknown FAQ topic: ${topic}`);
-  return item;
-});
+const scopeItems = faqItems(faq, packages.scopeFaq.topics);
 
 const siteUrl = Astro.site as URL;
 const businessId = `${siteUrl}#business`;
 const packagesUrl = new URL('/packages/', siteUrl).href;
 
-// Derived from the same strings the page renders, so the structured
-// data can never drift from the visible price.
-const amount = (display: string) => {
-  const digits = display.replace(/[^0-9.]/g, '');
-  const n = Number(digits);
-  if (!digits || !Number.isFinite(n) || n <= 0) {
-    throw new Error(`packages.json price is not a single parseable amount: ${JSON.stringify(display)}`);
-  }
-  return n.toFixed(2);
-};
-
+// The four Services live here with the overview as their url; each package
+// page repeats its own node with the page url (same @id, same entity).
 const packagesJsonLd = {
   '@context': 'https://schema.org',
-  '@graph': packages.tiers.map((tier) => ({
-    '@type': 'Service',
-    '@id': `${packagesUrl}#${tier.id}`,
-    name: `${tier.name} website package`,
-    description: tier.sub,
-    serviceType: 'Website design and maintenance',
-    url: packagesUrl,
-    provider: { '@id': businessId },
-    offers: [
-      {
-        '@type': 'Offer',
-        name: `${tier.name} build`,
-        category: 'One-time build',
-        price: amount(tier.buildPrice),
-        priceCurrency: 'USD',
-        url: packagesUrl,
-      },
-      {
-        '@type': 'Offer',
-        name: `${tier.name} subscription`,
-        category: 'Subscription',
-        priceCurrency: 'USD',
-        url: packagesUrl,
-        priceSpecification: {
-          '@type': 'UnitPriceSpecification',
-          price: amount(tier.monthlyPrice),
-          priceCurrency: 'USD',
-          billingDuration: 'P1M',
-          billingIncrement: 1,
-        },
-      },
-    ],
-  })),
+  '@graph': packages.tiers.map((tier) => serviceNode(tier, { packagesUrl, pageUrl: packagesUrl, businessId })),
 };
 ---
 <BaseLayout
@@ -100,55 +55,38 @@ const packagesJsonLd = {
   <section class="section-tight">
     <div class="container">
       <h2 class="visually-hidden">The four packages</h2>
-      <!-- Four stacked disclosures. Closed, each shows the name, the promise
-           and one paragraph; everything else waits behind the marker. summary
-           allows one heading plus phrasing content, so the two lines under
-           the name are spans. -->
-      <div class="tier-stack">
+      <!-- Four open rows. Nothing about a package waits behind a marker:
+           the promise, the lists and the price are all on the page. -->
+      <div class="tier-rows">
         {packages.tiers.map((tier) => (
-          <details class="card tier" id={tier.id}>
-            <summary class="tier-summary">
-              <span class="tier-head">
-                <h3 class="tier-name">{tier.name}</h3>
-                <span class="serif tier-line">{tier.line}</span>
-                <span class="tier-sub">{tier.sub}</span>
-              </span>
-              <span class="marker" aria-hidden="true"></span>
-            </summary>
-
-            <h4 class="tier-h">Who it's for</h4>
-            <p class="tier-who">{tier.who}</p>
-            <p class="tier-feeling muted">&ldquo;{tier.feeling}&rdquo;</p>
-
-            <h4 class="tier-h">What we do</h4>
-            <ul class="tier-includes">
-              {tier.weDo.map((line) => <li>{line}</li>)}
-            </ul>
-
-            <h4 class="tier-h">What we don't</h4>
-            <ul class="tier-excludes muted">
-              {tier.weDont.map((line) => <li>{line}</li>)}
-            </ul>
-
-            <div class="tier-cost">
-              <p class="tier-price price">
-                {tier.quoted && <span class="tier-floor">Starting at </span>}{tier.buildPrice}
-                <span class="tier-price-note muted">{tier.buildPriceNote}</span>
+          <article class="tier" id={tier.id}>
+            <div class="tier-lead">
+              <h3 class="tier-name">{tier.name}</h3>
+              <p class="serif tier-line">{tier.line}</p>
+              <p class="tier-sub">{tier.sub}</p>
+              <div class="tier-cost">
+                <p class="tier-price price">
+                  {tier.quoted && <span class="tier-floor">Starting at </span>}{tier.buildPrice}
+                  <span class="tier-price-note muted">{tier.buildPriceNote}</span>
+                </p>
+                <p class="tier-monthly price muted">
+                  + {tier.quoted ? 'Starting at ' : ''}{tier.monthlyPrice}/month
+                </p>
+                {tier.quoted && <p class="tier-quoted muted">Quoted after one conversation.</p>}
+              </div>
+              <p class="tier-actions">
+                <a class="btn" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel}</a>
+                <a class="link-arrow" href={tierHref(tier.id)}>More about {tier.name}</a>
               </p>
-              <p class="tier-monthly price muted">
-                + {tier.quoted ? 'Starting at ' : ''}{tier.monthlyPrice}/month
-              </p>
-              {tier.quoted && <p class="tier-quoted muted">Quoted after one conversation.</p>}
             </div>
-
-            <a class="btn tier-cta" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel} &rarr;</a>
-          </details>
+            <TierLists weDo={tier.weDo} weDont={tier.weDont} level={4} />
+          </article>
         ))}
       </div>
     </div>
   </section>
 
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
       <h2 class="serif">{packages.payment.heading}</h2>
       {packages.payment.lead && <p class="lead">{packages.payment.lead}</p>}
@@ -165,16 +103,23 @@ const packagesJsonLd = {
     </div>
   </section>
 
-  <section class="section">
+  <section class="section section-slate">
     <div class="container">
-      <h2>{packages.sorter.heading}</h2>
+      <h2 class="statement">{packages.sorter.heading}</h2>
       <p class="lead">{packages.sorter.lead}</p>
       <ol class="sorter">
         {packages.sorter.questions.map((q) => (
           <li>
             <p class="sorter-q">{q.q}</p>
             <ul class="sorter-a">
-              {q.answers.map((a) => <li><span>{a.a}</span> <strong>{a.package}</strong></li>)}
+              {q.answers.map((a) => (
+                <li>
+                  <span>{a.a}</span>{' '}
+                  <strong>{linkPackages(a.package, packages.tiers).map((seg: { text: string; href?: string }) =>
+                    seg.href ? <a class="slate-link" href={seg.href}>{seg.text}</a> : seg.text
+                  )}</strong>
+                </li>
+              ))}
             </ul>
           </li>
         ))}
@@ -281,19 +226,9 @@ const packagesJsonLd = {
   <section class="section">
     <div class="container">
       <h2>{packages.scopeFaq.heading}</h2>
-      <div class="scope-faq">
-        {scopeItems.map((item) => (
-          <details class="faq-item">
-            <summary>
-              <span>{item.q}</span>
-              <span class="marker" aria-hidden="true"></span>
-            </summary>
-            <p class="answer muted">{item.a}</p>
-          </details>
-        ))}
-      </div>
+      <FaqList items={scopeItems} />
       <p>
-        <a class="link-arrow" href={packages.scopeFaq.moreHref}>{packages.scopeFaq.moreLabel} &rarr;</a>
+        <a class="link-arrow" href={packages.scopeFaq.moreHref}>{packages.scopeFaq.moreLabel}</a>
       </p>
     </div>
   </section>
@@ -307,50 +242,28 @@ const packagesJsonLd = {
 
 </BaseLayout>
 
-<script is:inline>
-  // A link to /packages/#growth should land on Growth open, not on a
-  // closed card the reader then has to find the marker on.
-  (function () {
-    var open = function () {
-      var t = location.hash && document.querySelector('details.tier' + location.hash);
-      if (t) t.open = true;
-    };
-    open();
-    window.addEventListener('hashchange', open);
-  })();
-</script>
-
 <style>
-  .tier-stack { display: grid; gap: var(--space-3); max-width: 48rem; }
-  .tier { scroll-margin-top: 6rem; }
-  /* One stripe color per tier, top edge of the card. Range takes the
+  .tier-rows { display: grid; gap: var(--space-4); }
+  /* One row per tier, the stripe color on its left edge. Range takes the
      logo's copper so the four stay distinct. */
-  .tier { border-top: 6px solid var(--color-ink); }
-  #presence { border-top-color: var(--color-slate); }
-  #growth { border-top-color: var(--color-mustard); }
-  #agile { border-top-color: var(--color-brand); }
-  #range { border-top-color: var(--color-copper); }
-  .tier-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+  .tier {
+    display: grid;
     gap: var(--space-3);
-    cursor: pointer;
-    list-style: none;
+    padding: var(--space-3) 0 var(--space-3) var(--space-3);
+    border-left: 6px solid var(--color-ink);
+    scroll-margin-top: 6rem;
   }
-  .tier-summary::-webkit-details-marker { display: none; }
-  .tier-summary .marker { margin-top: 0.45em; }
-  .tier-head { display: block; }
-  .tier-name { font-size: var(--step-2); margin-bottom: var(--space-0); transition: color 120ms ease; }
-  .tier-summary:hover .tier-name { color: var(--color-brand); }
-  .tier-line { display: block; color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
-  .tier-sub { display: block; max-width: var(--maxw-prose); }
-  .tier[open] .tier-summary { margin-bottom: var(--space-2); }
-  .tier-h { font-size: var(--step-0); margin: var(--space-3) 0 var(--space-0); }
-  .tier-feeling { margin-top: var(--space-1); }
-  .tier-excludes li { list-style: none; }
-  .tier-excludes li::before { content: "\2014  "; }
-
+  #presence { border-left-color: var(--color-slate); }
+  #growth { border-left-color: var(--color-mustard); }
+  #agile { border-left-color: var(--color-brand); }
+  #range { border-left-color: var(--color-copper); }
+  @media (min-width: 900px) {
+    .tier { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); column-gap: var(--space-5); align-items: start; }
+  }
+  .tier-name { font-size: var(--step-3); margin-bottom: var(--space-0); }
+  .tier-line { color: var(--color-brand); font-size: var(--step-1); margin-bottom: var(--space-2); }
+  .tier-sub { max-width: var(--maxw-lead); }
+  .tier-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: var(--space-3) 0 0; }
   .tier-cost {
     margin-top: var(--space-3);
     padding-top: var(--space-3);
@@ -366,29 +279,6 @@ const packagesJsonLd = {
   .tier-price-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
   .tier-monthly { font-size: var(--step-1); margin: var(--space-0) 0 0; }
   .tier-floor, .tier-quoted { font-size: var(--step--1); }
-
-  .tier-bestfor { font-size: var(--step--1); margin-bottom: var(--space-3); }
-
-  .tier-includes {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 var(--space-3);
-    display: grid;
-    gap: var(--space-1);
-  }
-  .tier-includes li { padding-left: 1.5rem; position: relative; }
-  .tier-includes li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.62em;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--color-brand);
-  }
-
-  .tier-cta { margin-top: var(--space-3); align-self: flex-start; }
 
   .monthly-heading { font-size: var(--step-3); color: var(--color-brand); }
   .monthly-lead { max-width: var(--maxw-prose); }
@@ -419,7 +309,7 @@ const packagesJsonLd = {
   .sorter { display: grid; gap: var(--space-3); max-width: var(--maxw-prose); padding-left: 1.25rem; }
   .sorter-q { font-weight: 600; margin-bottom: var(--space-0); }
   .sorter-a { list-style: none; padding: 0; display: grid; gap: var(--space-0); }
-  .sorter-a strong { color: var(--color-brand); }
+  .sorter-a strong { color: var(--color-ink); }
 
   /* Secondary by design: a plain list, no cards, no price emphasis.
      Clients should not have to assemble their own package. */
@@ -431,27 +321,4 @@ const packagesJsonLd = {
 
   .upgrade-rule { margin-top: var(--space-4); max-width: var(--maxw-lead); font-size: var(--step-1); }
 
-  .scope-faq { display: grid; gap: var(--space-2); margin: var(--space-3) 0 var(--space-3); max-width: var(--maxw-prose); }
-  .faq-item { border-bottom: 1px solid var(--color-border); }
-  .faq-item summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    padding: var(--space-3) 0;
-    min-height: 44px;
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-  }
-  .faq-item summary::-webkit-details-marker { display: none; }
-  .faq-item[open] summary { color: var(--color-brand); }
-  .marker { position: relative; flex: 0 0 auto; width: 14px; height: 14px; }
-  .marker::before,
-  .marker::after { content: ""; position: absolute; background: currentColor; transition: opacity 120ms ease; }
-  .marker::before { top: 6px; left: 0; width: 14px; height: 2px; }
-  .marker::after { top: 0; left: 6px; width: 2px; height: 14px; }
-  .faq-item[open] .marker::after,
-  .tier[open] .marker::after { opacity: 0; }
-  .answer { margin: 0; padding-bottom: var(--space-3); }
 </style>
