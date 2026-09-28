@@ -87,7 +87,13 @@ const jsonLd = {
         <p class="cost-monthly price muted">+ {tier.quoted ? 'Starting at ' : ''}{tier.monthlyPrice}/month</p>
         {tier.quoted && <p class="muted">Quoted after one conversation.</p>}
       </div>
-      <p class="cost-terms">Half at kickoff and half at launch, or the build spread over twelve monthly payments. The monthly starts the day the site goes live.</p>
+      <!-- The same terms the overview states, from the same data: a landing
+           page that names a price has to name the plan premium and the term. -->
+      <div class="cost-terms">
+        {packages.payment.options.map((o) => <p><strong>{o.title}.</strong> {o.body}</p>)}
+        <p>{packages.payment.monthlyStarts}</p>
+        <p class="muted">{packages.payment.terms}</p>
+      </div>
       <p><a class="btn" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel}</a></p>
     </div>
   </section>
@@ -128,6 +134,7 @@ const jsonLd = {
   .cost-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
   .cost-monthly { font-size: var(--step-1); margin: var(--space-0) 0 0; }
   .cost-floor { font-size: var(--step--1); }
-  .cost-terms { max-width: var(--maxw-lead); }
+  .cost-terms { max-width: var(--maxw-lead); margin-bottom: var(--space-3); }
+  .cost-terms p { margin-bottom: var(--space-1); }
   .more { margin-top: var(--space-3); }
 </style>

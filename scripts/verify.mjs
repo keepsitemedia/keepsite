@@ -333,6 +333,18 @@ check('every tier id anchors a row on the overview', () => {
     if (!new RegExp(`<article[^>]*id="${t.id}"`).test(h)) throw new Error(`no row with id="${t.id}"`);
   }
 });
+// A package page is a landing page: its price block has to carry the same
+// payment terms the overview states, from the same data, not a paraphrase.
+check('each package page carries the payment terms from packages.json', () => {
+  const pay = data('packages.json').payment;
+  const needles = [...pay.options.map((o) => o.body), pay.monthlyStarts, pay.terms.split('. ')[0]];
+  for (const t of data('packages.json').tiers) {
+    const h = read(`packages/${t.id}/index.html`).replace(/&#39;|&apos;/g, "'");
+    for (const n of needles) {
+      if (!h.includes(n.replace(/'/g, "'"))) throw new Error(`${t.id}: missing "${n.slice(0, 40)}"`);
+    }
+  }
+});
 check('FAQPage lives only on /faq/', () => {
   const f = ld('faq/index.html')[1];
   if (f['@type'] !== 'FAQPage') throw new Error('faq page type');
