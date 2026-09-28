@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import WorkCard from '../components/WorkCard.astro';
 import Checklist from '../components/Checklist.astro';
+import { tierHref } from '../scripts/tiers.mjs';
 import home from '../data/home.json';
 import packages from '../data/packages.json';
 
@@ -14,7 +15,7 @@ const featuredWork = (await getCollection('work'))
 ---
 <BaseLayout title={home.meta.title} description={home.meta.description}>
 
-  <!-- 1 + 2: hero and problem run continuously, no hard break -->
+  <!-- 1: hero -->
   <section class="section hero">
     <div class="container">
       <div class="hero-top">
@@ -32,15 +33,19 @@ const featuredWork = (await getCollection('work'))
         <Checklist caption={home.hero.list.heading} items={home.hero.list.items} />
       </div>
 
-      <div class="problem">
-        <h2>{home.problem.heading}</h2>
-        <p class="lead">{home.problem.body}</p>
-      </div>
+    </div>
+  </section>
+
+  <!-- 2: the problem, said out loud. The page's one slate band. -->
+  <section class="section section-slate">
+    <div class="container">
+      <h2 class="statement">{home.problem.heading}</h2>
+      <p class="lead problem-body">{home.problem.body}</p>
     </div>
   </section>
 
   <!-- 3: solution -->
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
       <h2>{home.solution.heading}</h2>
       <div class="grid grid-3 beats">
@@ -56,33 +61,18 @@ const featuredWork = (await getCollection('work'))
   </section>
 
   <!-- 4: packages -->
-  <section class="section">
+  <section class="section section-alt">
     <div class="container">
       <h2>{home.packages.heading}</h2>
       <div class="rule-row tier-lines">
         {packages.tiers.map((tier) => (
-          <a class="tier-link" href={`/packages/#${tier.id}`}>
+          <a class="tier-link" href={tierHref(tier.id)}>
             <h3>{tier.name}</h3>
             <p class="serif tier-line">{tier.line}</p>
           </a>
         ))}
       </div>
-      <p class="tier-more"><a class="link-arrow" href={home.packages.linkHref}>{home.packages.linkLabel} &rarr;</a></p>
-    </div>
-  </section>
-
-  <!-- 5: why keepsite -->
-  <section class="section section-alt">
-    <div class="container">
-      <h2>{home.why.heading}</h2>
-      <div class="rule-row pillars">
-        {home.why.pillars.map((pillar) => (
-          <div>
-            <h3>{pillar.title}</h3>
-            <p class="muted">{pillar.body}</p>
-          </div>
-        ))}
-      </div>
+      <p class="tier-more"><a class="link-arrow" href={home.packages.linkHref}>{home.packages.linkLabel}</a></p>
     </div>
   </section>
 
@@ -94,7 +84,7 @@ const featuredWork = (await getCollection('work'))
         <div class="grid grid-3 work-strip">
           {featuredWork.map((entry) => <WorkCard entry={entry} />)}
         </div>
-        <p><a class="link-arrow" href={home.work.linkHref}>{home.work.linkLabel} &rarr;</a></p>
+        <p><a class="link-arrow" href={home.work.linkHref}>{home.work.linkLabel}</a></p>
       </div>
     </section>
   )}
@@ -127,8 +117,7 @@ const featuredWork = (await getCollection('work'))
     .hero-top :global(.checklist) { padding-bottom: 0.2rem; }
   }
 
-  .problem { margin-top: var(--space-6); }
-  .problem h2 { max-width: 20ch; }
+  .problem-body { margin-top: var(--space-3); font-size: var(--step-2); max-width: var(--maxw-lead); }
 
   .beats { margin-top: var(--space-4); }
   .beat h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
@@ -157,6 +146,4 @@ const featuredWork = (await getCollection('work'))
 
   .work-strip { margin-top: var(--space-4); }
 
-  .pillars { margin-top: var(--space-4); }
-  .pillars h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
 </style>

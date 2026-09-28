@@ -71,27 +71,6 @@
     "linkLabel": "See what's included, and what it costs",
     "linkHref": "/packages/"
   },
-  "why": {
-    "heading": "Why Keepsite",
-    "pillars": [
-      {
-        "title": "Make it useful.",
-        "body": "Every site has a job. We find out what yours is, build for that, and leave out the rest."
-      },
-      {
-        "title": "Keep it simple.",
-        "body": "Three decisions, one round of changes at each, and no homework in between."
-      },
-      {
-        "title": "Show your work.",
-        "body": "Clear prices, clear scope, and a summary every quarter you can read in two minutes."
-      },
-      {
-        "title": "Build for real life.",
-        "body": "We run businesses too. We know what it's like to be the only one holding it all together. The site fits around your week, not the other way round."
-      }
-    ]
-  },
   "work": {
     "heading": "Recent work",
     "linkLabel": "See all work",
