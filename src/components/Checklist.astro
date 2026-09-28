@@ -23,7 +23,7 @@ const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
             <svg class="check" viewBox="0 0 32 26" width="32" height="26"><path d="M4 12c2 2 4 6 5.5 9.5C13 13 20 5 30 1.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
           )}
         </span>
-        <span class="text">{item.text}</span>
+        <span class="text"><span class="line">{item.text}</span></span>
         {item.done && <span class="visually-hidden"> {doneLabel}</span>}
       </li>
     ))}
@@ -61,8 +61,12 @@ const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
      out past its top right corner the way a hand does. */
   .check { flex: none; margin: -8px -12px 0 -4px; }
   /* Scratched out by hand, not ruled through: two passes of a loose stroke,
-     stretched to whatever width the word lands on. */
-  .done .text {
+     stretched to whatever width the word lands on. The stroke sits on an
+     inline span with box-decoration-break: clone, so an item that wraps on a
+     phone gets one stroke per line rather than one across the gap. */
+  .done .line {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
     background-position: center 56%;
     background-size: 104% 0.6em;
     background-repeat: no-repeat;
@@ -71,16 +75,16 @@ const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
   /* Rust: the hero, on white. The tick and the strokes are the brand color
      and the struck word drops to muted. */
   .tone-rust .done .box { border-color: var(--color-brand); color: var(--color-brand); }
-  .tone-rust .done .text {
-    color: var(--color-muted);
+  .tone-rust .done .text { color: var(--color-muted); }
+  .tone-rust .done .line {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23B8512C' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
   }
 
   /* Ink: inside a slate band, where rust and muted both fail contrast. The
      word stays ink at full strength; the stroke does the work. */
   .tone-ink .done .box { color: var(--color-ink); }
-  .tone-ink .done .text {
-    color: var(--color-ink);
+  .tone-ink .done .text { color: var(--color-ink); }
+  .tone-ink .done .line {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23111111' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
   }
   .tone-ink figcaption { color: var(--color-ink); }

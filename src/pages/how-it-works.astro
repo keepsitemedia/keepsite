@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ClosingCta from '../components/ClosingCta.astro';
+import Checklist from '../components/Checklist.astro';
 import process from '../data/process.json';
 
 const signature = process.signature as { name: string; role: string } | null;
@@ -241,26 +242,28 @@ const endStation = {
     </div>
   </section>
 
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
-      <div class="grid grid-2 expectations">
-        <div>
-          <h2>{process.needFromYou.heading}</h2>
-          <ul>
-            {process.needFromYou.items.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-        <div>
-          <h2>{process.wontHaveTo.heading}</h2>
-          <ul>
-            {process.wontHaveTo.items.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-      </div>
-
+      <h2>{process.needFromYou.heading}</h2>
+      <ul class="need">
+        {process.needFromYou.items.map((item) => <li>{item}</li>)}
+      </ul>
       {signature?.name && signature?.role && (
         <p class="signature">&mdash; {signature.name}, {signature.role}</p>
       )}
+    </div>
+  </section>
+
+  <!-- The page ends on the relief: the homework, crossed off by hand. The
+       hero's list, reprised once, in ink because it sits on slate. -->
+  <section class="section section-slate">
+    <div class="container wont">
+      <h2 class="statement">{process.wontHaveTo.heading}</h2>
+      <Checklist
+        items={process.wontHaveTo.items.map((text) => ({ text, done: true }))}
+        tone="ink"
+        doneLabel="(crossed off)"
+      />
     </div>
   </section>
 
@@ -690,8 +693,15 @@ const endStation = {
   .timeline { margin-top: var(--space-1); }
   .meetings { margin-top: var(--space-5); max-width: var(--maxw-prose); }
 
-  .expectations ul { padding-left: 1.1rem; margin: 0; }
-  .expectations li { margin-bottom: var(--space-2); color: var(--color-muted); }
+
+  .need { padding-left: 1.1rem; margin: 0; max-width: var(--maxw-prose); }
+  .need li { margin-bottom: var(--space-2); color: var(--color-muted); }
+
+  .wont { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) {
+    .wont { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; column-gap: var(--space-5); }
+    .wont .statement { margin-bottom: 0; }
+  }
 
   /* Kept unreachable: signature is null in process.json; activating founder presence must stay a data edit. */
   /* Setting it also means retiring the no-persona-name assertion in scripts/verify.mjs. */

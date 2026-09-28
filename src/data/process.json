@@ -111,11 +111,11 @@
   "wontHaveTo": {
     "heading": "What you won't have to do",
     "items": [
-      "No web-building homework.",
-      "No blank page to stare at.",
-      "No logging into anything.",
-      "No switching off the tools you already use.",
-      "No decisions about hosting, plugins, or platforms."
+      "Web-building homework",
+      "A blank page to stare at",
+      "Logging into anything",
+      "Switching off the tools you already use",
+      "Decisions about hosting, plugins, or platforms"
     ]
   },
   "signature": null,
