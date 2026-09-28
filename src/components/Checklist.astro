@@ -1,0 +1,87 @@
+---
+// The handwritten list: printed boxes, a hand-drawn tick and a scratched-out
+// line for whatever is done. The home hero draws the owner's week with it;
+// how-it-works crosses off the homework they will not have to do. Caveat is
+// imported here, so only pages that render the list fetch it.
+import '@fontsource/caveat/latin-500.css';
+
+interface Props {
+  caption?: string;
+  items: { text: string; done: boolean }[];
+  tone?: 'rust' | 'ink';
+  doneLabel?: string;
+}
+const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
+---
+<figure class:list={['checklist', `tone-${tone}`]}>
+  {caption && <figcaption class="label">{caption}</figcaption>}
+  <ul>
+    {items.map((item) => (
+      <li class:list={{ done: item.done }}>
+        <span class="box" aria-hidden="true">
+          {item.done && (
+            <svg class="check" viewBox="0 0 32 26" width="32" height="26"><path d="M4 12c2 2 4 6 5.5 9.5C13 13 20 5 30 1.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          )}
+        </span>
+        <span class="text">{item.text}</span>
+        {item.done && <span class="visually-hidden"> {doneLabel}</span>}
+      </li>
+    ))}
+  </ul>
+</figure>
+
+<style>
+  .checklist { margin: 0; }
+  .checklist figcaption { margin-bottom: var(--space-2); color: var(--color-muted); }
+  .checklist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+  /* Printed boxes, handwritten lines. Caveat sits small for its size, so it
+     runs a step above the lead. */
+  .checklist li {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: 'Caveat', var(--font-sans);
+    font-weight: 500;
+    font-size: clamp(1.6rem, 2.6vw, 1.9rem);
+    line-height: 1.25;
+  }
+  /* The box borrows the buttons' 2px ink edge and the site radius, scaled. */
+  .box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-ink);
+    border-radius: 4px;
+  }
+  .done .box { overflow: visible; }
+  /* The tick is a pen stroke, not a glyph: it starts inside the box and runs
+     out past its top right corner the way a hand does. */
+  .check { flex: none; margin: -8px -12px 0 -4px; }
+  /* Scratched out by hand, not ruled through: two passes of a loose stroke,
+     stretched to whatever width the word lands on. */
+  .done .text {
+    background-position: center 56%;
+    background-size: 104% 0.6em;
+    background-repeat: no-repeat;
+  }
+
+  /* Rust: the hero, on white. The tick and the strokes are the brand color
+     and the struck word drops to muted. */
+  .tone-rust .done .box { border-color: var(--color-brand); color: var(--color-brand); }
+  .tone-rust .done .text {
+    color: var(--color-muted);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23B8512C' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  /* Ink: inside a slate band, where rust and muted both fail contrast. The
+     word stays ink at full strength; the stroke does the work. */
+  .tone-ink .done .box { color: var(--color-ink); }
+  .tone-ink .done .text {
+    color: var(--color-ink);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23111111' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+  .tone-ink figcaption { color: var(--color-ink); }
+</style>
