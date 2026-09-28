@@ -33,6 +33,10 @@ if (!fs.existsSync('dist')) {
 const PAGES = [
   'index.html',
   'packages/index.html',
+  'packages/presence/index.html',
+  'packages/growth/index.html',
+  'packages/agile/index.html',
+  'packages/range/index.html',
   'how-it-works/index.html',
   'faq/index.html',
   'privacy/index.html',
@@ -254,6 +258,11 @@ check('only JSON-LD, plus the prefill, resume and stage-scroll scripts', () => {
     // Plus the tier-open script: a link to /packages/#growth should land on
     // that disclosure open, and only JS can open a <details>.
     'packages/index.html': 3,
+    // The layout's JSON-LD plus the tier's own Service node.
+    'packages/presence/index.html': 2,
+    'packages/growth/index.html': 2,
+    'packages/agile/index.html': 2,
+    'packages/range/index.html': 2,
     // Plus the stage-scroll script: the CSS accordion cannot put the station
     // it opens at the top of the viewport, only JS can.
     'how-it-works/index.html': 2,
@@ -300,6 +309,19 @@ check('Service prices match the rendered prices', () => {
     if (s.offers[0].price !== b) throw new Error(id + ' build ' + s.offers[0].price);
     if (s.offers[1].priceSpecification.price !== m) throw new Error(id + ' monthly ' + s.offers[1].priceSpecification.price);
     if (s.provider['@id'] !== 'https://www.keepsitemedia.com/#business') throw new Error(id + ' provider');
+  }
+});
+// Each package page carries the same Service entity as the overview, with
+// its url pointed at the page itself.
+check('each package page carries its Service with the page url', () => {
+  const expect = { presence: ['2400.00', '85.00'], growth: ['3600.00', '225.00'], agile: ['4200.00', '595.00'], range: ['4200.00', '490.00'] };
+  for (const [id, [b, m]] of Object.entries(expect)) {
+    const s = ld(`packages/${id}/index.html`)[1];
+    if (s['@type'] !== 'Service') throw new Error(`${id}: type ${s['@type']}`);
+    if (s['@id'] !== `https://www.keepsitemedia.com/packages/#${id}`) throw new Error(`${id}: @id ${s['@id']}`);
+    if (s.url !== `https://www.keepsitemedia.com/packages/${id}/`) throw new Error(`${id}: url ${s.url}`);
+    if (s.offers[0].price !== b) throw new Error(`${id} build ${s.offers[0].price}`);
+    if (s.offers[1].priceSpecification.price !== m) throw new Error(`${id} monthly ${s.offers[1].priceSpecification.price}`);
   }
 });
 check('FAQPage lives only on /faq/', () => {

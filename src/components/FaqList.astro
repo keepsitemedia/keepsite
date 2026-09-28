@@ -1,0 +1,46 @@
+---
+// A short list of questions with the plus marker, for pages that show a
+// handful of FAQ items. /faq/ keeps its own list and the FAQPage JSON-LD.
+interface Props {
+  items: { topic: string; q: string; a: string }[];
+}
+const { items } = Astro.props;
+---
+<div class="faq-list">
+  {items.map((item) => (
+    <details class="faq-item">
+      <summary>
+        <span>{item.q}</span>
+        <span class="marker" aria-hidden="true"></span>
+      </summary>
+      <p class="answer muted">{item.a}</p>
+    </details>
+  ))}
+</div>
+
+<style>
+  .faq-list { display: grid; gap: var(--space-2); max-width: var(--maxw-prose); }
+  .faq-item { border-bottom: 1px solid var(--color-border); }
+  .faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    min-height: 44px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    transition: color 120ms ease;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary:hover,
+  .faq-item[open] summary { color: var(--color-brand); }
+  .marker { position: relative; flex: 0 0 auto; width: 14px; height: 14px; }
+  .marker::before,
+  .marker::after { content: ""; position: absolute; background: currentColor; transition: opacity 120ms ease; }
+  .marker::before { top: 6px; left: 0; width: 14px; height: 2px; }
+  .marker::after { top: 0; left: 6px; width: 2px; height: 14px; }
+  .faq-item[open] .marker::after { opacity: 0; }
+  .answer { margin: 0; padding-bottom: var(--space-3); }
+</style>

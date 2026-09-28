@@ -35,7 +35,24 @@
         "A plain-English summary every quarter",
         "Email support"
       ],
-      "ctaLabel": "Start with Presence"
+      "ctaLabel": "Start with Presence",
+      "page": {
+        "title": "Presence | Keepsite Media",
+        "description": "A custom site we build and keep running, for businesses that already find clients in person or on social. $2,400 to build, $85 a month.",
+        "notIf": [
+          {
+            "tier": "growth",
+            "text": "You want customers you've never met to find you on Google. Presence does no search work at all, so that's"
+          }
+        ],
+        "faqTopics": [
+          "switch-tools",
+          "edit-myself",
+          "who-writes-copy",
+          "what-monthly-covers",
+          "start-small-move-up"
+        ]
+      }
     },
     {
       "id": "growth",
@@ -68,7 +85,28 @@
         "Updates to pages and structure tied to your search goals",
         "A summary every quarter, tied to those goals"
       ],
-      "ctaLabel": "Start with Growth"
+      "ctaLabel": "Start with Growth",
+      "page": {
+        "title": "Growth | Keepsite Media",
+        "description": "A site built from research into the searches you want to win, then kept showing up. $3,600 to build, $225 a month.",
+        "notIf": [
+          {
+            "tier": "presence",
+            "text": "People already find you and you just need somewhere for them to land. You don't need search work, and we'd rather not sell it to you. That's"
+          },
+          {
+            "tier": "agile",
+            "text": "You can't say in a few words what someone would type to find you, or the business is still changing shape. There's no playbook to build from yet. That's"
+          }
+        ],
+        "faqTopics": [
+          "which-package",
+          "ai-writing",
+          "who-writes-copy",
+          "what-monthly-covers",
+          "just-hosting"
+        ]
+      }
     },
     {
       "id": "agile",
@@ -101,7 +139,28 @@
         "Research that keeps going as the business changes",
         "Testing on what works and adapting constantly"
       ],
-      "ctaLabel": "Start with Agile"
+      "ctaLabel": "Start with Agile",
+      "page": {
+        "title": "Agile | Keepsite Media",
+        "description": "For new or evolving offerings where the search strategy has to be invented. We research, meet every month, and change the site as you change. $4,200 to build, $595 a month.",
+        "notIf": [
+          {
+            "tier": "growth",
+            "text": "You can name the searches you want to win and what you sell isn't going to change much. Then the strategy can be set once and built in, and the better buy is"
+          },
+          {
+            "tier": "range",
+            "text": "You're really several businesses under one roof, each with its own customers. That's a size question more than a strategy question. That's"
+          }
+        ],
+        "faqTopics": [
+          "why-agile-costs-more",
+          "do-we-meet",
+          "ai-writing",
+          "what-monthly-covers",
+          "locked-in"
+        ]
+      }
     },
     {
       "id": "range",
@@ -131,7 +190,24 @@
         "Search monitoring per facet of your business",
         "Updates tied to growth"
       ],
-      "ctaLabel": "Talk about Range"
+      "ctaLabel": "Talk about Range",
+      "page": {
+        "title": "Range | Keepsite Media",
+        "description": "One site for a business that's really several. Search research for every arm, and pages to match. Quoted, starting at $4,200 to build and $490 a month.",
+        "notIf": [
+          {
+            "tier": "growth",
+            "text": "You sell one or two things to one kind of customer. One search strategy covers it, and the right size is"
+          }
+        ],
+        "faqTopics": [
+          "why-range-no-price",
+          "which-package",
+          "how-long",
+          "what-monthly-covers",
+          "new-page"
+        ]
+      }
     }
   ],
   "payment": {

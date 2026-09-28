@@ -1,0 +1,133 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ClosingCta from '../../components/ClosingCta.astro';
+import TierLists from '../../components/TierLists.astro';
+import FaqList from '../../components/FaqList.astro';
+import packages from '../../data/packages.json';
+import process from '../../data/process.json';
+import faq from '../../data/faq.json';
+import { serviceNode, stageLines, faqItems, notIfLinks } from '../../scripts/tiers.mjs';
+
+export const getStaticPaths: GetStaticPaths = () =>
+  packages.tiers.map((tier) => ({ params: { tier: tier.id }, props: { tier } }));
+
+type Tier = (typeof packages.tiers)[number];
+const { tier } = Astro.props as { tier: Tier };
+
+const siteUrl = Astro.site as URL;
+const packagesUrl = new URL('/packages/', siteUrl).href;
+const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
+
+const notIf = notIfLinks(tier, packages.tiers);
+const stages = stageLines(process, tier.name);
+const questions = faqItems(faq, tier.page.faqTopics);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  ...serviceNode(tier, { packagesUrl, pageUrl, businessId: `${siteUrl}#business` }),
+};
+---
+<BaseLayout title={tier.page.title} description={tier.page.description} jsonLd={jsonLd}>
+
+  <section class="section-tight">
+    <div class="container">
+      <h1>{tier.name}</h1>
+      <p class="serif tier-line">{tier.line}</p>
+      <p class="lead">{tier.sub}</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <h2>Who it's for</h2>
+      <p class="who">{tier.who}</p>
+      <p class="feeling muted">&ldquo;{tier.feeling}&rdquo;</p>
+      <div class="lists">
+        <TierLists weDo={tier.weDo} weDont={tier.weDont} level={3} />
+      </div>
+    </div>
+  </section>
+
+  <!-- The plain-truth moment: which neighbour to buy instead, and why. -->
+  <section class="section section-slate">
+    <div class="container">
+      <h2 class="statement">Not this one if</h2>
+      <div class="not-if">
+        {notIf.map((n: { text: string; name: string; href: string }) => (
+          <p>{n.text} <a class="slate-link" href={n.href}>{n.name}</a>.</p>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2>What the build looks like on {tier.name}</h2>
+      <div class="rule-row stages">
+        {stages.map((s: { title: string; body: string }) => (
+          <div>
+            <h3>{s.title}</h3>
+            <p class="muted">{s.body}</p>
+          </div>
+        ))}
+      </div>
+      <p class="stages-more"><a class="link-arrow" href="/how-it-works/">How the three stages work</a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>What it costs</h2>
+      <div class="cost">
+        <p class="cost-build price">
+          {tier.quoted && <span class="cost-floor">Starting at </span>}{tier.buildPrice}
+          <span class="cost-note muted">{tier.buildPriceNote}</span>
+        </p>
+        <p class="cost-monthly price muted">+ {tier.quoted ? 'Starting at ' : ''}{tier.monthlyPrice}/month</p>
+        {tier.quoted && <p class="muted">Quoted after one conversation.</p>}
+      </div>
+      <p class="cost-terms">Half at kickoff and half at launch, or the build spread over twelve monthly payments. The monthly starts the day the site goes live.</p>
+      <p><a class="btn" href={`/start/?tier=${tier.id}`}>{tier.ctaLabel}</a></p>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <h2>Questions about {tier.name}</h2>
+      <FaqList items={questions} />
+      <p class="more"><a class="link-arrow" href="/faq/">More questions</a></p>
+    </div>
+  </section>
+
+  <ClosingCta
+    heading={packages.closing.heading}
+    sub={packages.closing.sub}
+    ctaLabel={packages.closing.ctaLabel}
+    ctaHref={packages.closing.ctaHref}
+  />
+
+</BaseLayout>
+
+<style>
+  .tier-line { font-size: var(--step-2); margin-bottom: var(--space-2); }
+  .who { max-width: var(--maxw-lead); font-size: var(--step-1); }
+  .feeling { margin-bottom: var(--space-4); }
+  .lists { padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+
+  .not-if { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
+  .not-if p { font-size: var(--step-2); max-width: var(--maxw-lead); margin: 0; }
+
+  .stages { margin-top: var(--space-4); }
+  @media (min-width: 900px) { .stages { grid-template-columns: repeat(3, 1fr); } }
+  .stages h3 { font-size: var(--step-1); margin-bottom: var(--space-1); }
+  .stages-more { margin-top: var(--space-3); }
+
+  .cost { margin: var(--space-3) 0; }
+  .cost-build { font-size: var(--step-4); font-weight: 600; line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+  .cost-note { display: block; font-size: var(--step--1); font-weight: 400; letter-spacing: 0; }
+  .cost-monthly { font-size: var(--step-1); margin: var(--space-0) 0 0; }
+  .cost-floor { font-size: var(--step--1); }
+  .cost-terms { max-width: var(--maxw-lead); }
+  .more { margin-top: var(--space-3); }
+</style>

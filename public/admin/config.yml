@@ -158,6 +158,21 @@ collections:
               - { name: "quoted", label: "Quoted package", widget: "boolean", default: false, hint: "Range only. Shows 'from' before the prices." }
               - { name: "monthlySummary", label: "What this monthly covers", widget: "list", required: true, field: { name: "line", label: "Line", widget: "string" } }
               - { name: "ctaLabel", label: "Button label", widget: "string", required: true }
+              - name: "page"
+                label: "Package page"
+                widget: "object"
+                hint: "The page at /packages/<id>/."
+                fields:
+                  - { name: "title", label: "Page title", widget: "string", required: true }
+                  - { name: "description", label: "Meta description", widget: "text", required: true, hint: "Aim for 150 to 160 characters. Prices in it must match the ones above." }
+                  - name: "notIf"
+                    label: "Not this one if"
+                    widget: "list"
+                    hint: "One per neighbouring package. The text ends mid-sentence; the page adds the linked package name and a period."
+                    fields:
+                      - { name: "tier", label: "Points to (package ID)", widget: "string", required: true, pattern: ['^[a-z0-9-]+$', "A package ID such as growth"] }
+                      - { name: "text", label: "Text", widget: "text", required: true }
+                  - { name: "faqTopics", label: "Questions to show", widget: "list", required: true, field: { name: "topic", label: "FAQ topic ID", widget: "string" }, hint: "Topic IDs from the FAQ page. An unknown one fails the build." }
           - name: "payment"
             label: "How you pay"
             widget: "object"

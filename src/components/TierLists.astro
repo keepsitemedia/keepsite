@@ -1,0 +1,47 @@
+---
+// What we do beside what we don't, for one tier. The overview rows and the
+// package pages share it; `level` keeps the heading order legal on each.
+interface Props {
+  weDo: string[];
+  weDont: string[];
+  level: 3 | 4;
+}
+const { weDo, weDont, level } = Astro.props;
+const H = `h${level}` as 'h3' | 'h4';
+---
+<div class="tier-lists">
+  <div>
+    <H class="tier-h">What we do</H>
+    <ul class="tier-includes">
+      {weDo.map((line) => <li>{line}</li>)}
+    </ul>
+  </div>
+  <div>
+    <H class="tier-h">What we don't</H>
+    <ul class="tier-excludes muted">
+      {weDont.map((line) => <li>{line}</li>)}
+    </ul>
+  </div>
+</div>
+
+<style>
+  .tier-lists { display: grid; gap: var(--space-3); }
+  @media (min-width: 640px) {
+    .tier-lists { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  }
+  .tier-h { font-size: var(--step-0); margin: 0 0 var(--space-1); max-width: none; }
+  .tier-includes,
+  .tier-excludes { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-1); }
+  .tier-includes li { padding-left: 1.5rem; position: relative; }
+  .tier-includes li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+  .tier-excludes li::before { content: "\2014  "; }
+</style>
