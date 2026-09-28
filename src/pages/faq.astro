@@ -3,6 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import faq from '../data/faq.json';
 
+// A group's anchor is its title, so renaming a group in the CMS moves the
+// anchor. The CMS field says so.
 const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 const siteUrl = Astro.site as URL;

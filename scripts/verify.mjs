@@ -208,11 +208,28 @@ check('noindex on 404, thanks, and every questionnaire route', () => {
     if (has !== should) throw new Error(`${p} noindex=${has}, expected ${should}`);
   }
 });
-// Spec 2026-09-27 §4: one slate band per page at most, ink text only inside it.
-check('slate bands hold ink only', () => {
+// Spec 2026-09-27 §4: exactly one slate band on the pages that have a plain
+// truth to say, none anywhere else, ink text only inside it, and never
+// touching the alt band.
+check('slate bands: one where the spec says, ink only, never beside alt', () => {
+  const one = new Set([
+    'index.html', 'packages/index.html', 'packages/presence/index.html', 'packages/growth/index.html',
+    'packages/agile/index.html', 'packages/range/index.html', 'about/index.html', 'how-it-works/index.html',
+  ]);
   for (const p of PAGES) {
-    const bad = slateViolations(read(p));
+    const bad = slateViolations(read(p), one.has(p) ? 1 : 0);
     if (bad.length) throw new Error(`${p}: ${bad.join('; ')}`);
+  }
+});
+// Search engines cut a description around 160 characters; a longer one
+// ends mid-sentence in the listing.
+check('no indexed page has a meta description over 160 characters', () => {
+  for (const p of PAGES) {
+    const h = read(p);
+    if (h.includes('noindex,follow')) continue;
+    const m = h.match(/<meta name="description" content="([^"]*)"/);
+    if (!m) throw new Error(`${p} has no description`);
+    if (m[1].length > 160) throw new Error(`${p}: ${m[1].length} characters`);
   }
 });
 // The Lockii page is shared by link and found by search, never navigated to.

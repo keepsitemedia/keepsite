@@ -127,7 +127,7 @@ const packagesJsonLd = {
     </div>
   </section>
 
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
       <h2 class="serif monthly-heading">{packages.monthly.heading}</h2>
       <p class="lead monthly-lead">{packages.monthly.lead}</p>
@@ -149,7 +149,7 @@ const packagesJsonLd = {
     </div>
   </section>
 
-  <section class="section">
+  <section class="section section-alt">
     <div class="container">
       <h2>Full comparison</h2>
 
@@ -203,7 +203,7 @@ const packagesJsonLd = {
     </div>
   </section>
 
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
       <h2>{packages.addOns.heading}</h2>
       <dl class="add-ons">
@@ -223,10 +223,12 @@ const packagesJsonLd = {
 
   <!-- These five Q&As render visually only. FAQPage JSON-LD lives on /faq/
        alone, so the same answers do not compete across two URLs. -->
-  <section class="section">
+  <section class="section section-alt">
     <div class="container">
       <h2>{packages.scopeFaq.heading}</h2>
-      <FaqList items={scopeItems} />
+      <div class="scope-faq">
+        <FaqList items={scopeItems} />
+      </div>
       <p>
         <a class="link-arrow" href={packages.scopeFaq.moreHref}>{packages.scopeFaq.moreLabel}</a>
       </p>
@@ -318,6 +320,8 @@ const packagesJsonLd = {
   .add-on dt { font-size: var(--step--1); font-weight: 600; display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; }
   .add-on-price { font-weight: 400; }
   .add-on dd { margin: var(--space-0) 0 0; font-size: var(--step--1); }
+
+  .scope-faq { margin: var(--space-3) 0; }
 
   .upgrade-rule { margin-top: var(--space-4); max-width: var(--maxw-lead); font-size: var(--step-1); }
 

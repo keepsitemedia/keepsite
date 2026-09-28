@@ -99,9 +99,9 @@ Sections, in order:
 
 3. How you pay: unchanged in content, moved to white so the slate band that follows does not touch the alt band.
 4. **Which one is you: the slate band.** The sorter's heading becomes the `.statement`. The four questions and their answers set in ink. The package name after each answer is bold ink, not rust, and links to that tier page.
-5. Keep your site working (the monthly): unchanged in content, on `.section-alt`.
-6. Full comparison: unchanged, on white.
-7. Add-ons on `.section-alt`, Questions about scope on white: unchanged in content.
+5. Keep your site working (the monthly): unchanged in content, on white, so the slate band before it does not touch the alt band.
+6. Full comparison: unchanged, on `.section-alt`.
+7. Add-ons on white, Questions about scope on `.section-alt`: unchanged in content.
 8. Closing: unchanged.
 
 JSON-LD is unchanged: the four `Service` nodes stay here with `url` pointing at `/packages/`, so the verify check on service count still holds.
@@ -131,14 +131,14 @@ The per-stage lines for the tier come from `process.json` (`stages.items[].tiers
 
 ### Sections
 
-Backgrounds run white, white, slate, alt, white, alt, then the closing band.
+Backgrounds run white, white, slate, white, alt, white, then the closing band.
 
 1. Heading: the tier name as h1, the serif headline under it, the sub line as lead. The stripe block above the h1 as on every page. White.
 2. Who it's for and the two lists, one white section: `tier.who`, then `tier.feeling` as a quoted line in muted, then What we do / What we don't side by side under a hairline, same component as the overview row.
 3. **Not this one if: the slate band.** Heading "Not this one if" as the `.statement`, then one paragraph per `notIf` entry in ink, each ending in a bold ink link to the neighbouring tier page.
-4. What the build looks like on Presence: the three stage names with this tier's line under each, as a rule-separated row of three. Links to `/how-it-works/`. `.section-alt`.
-5. Price, on white: the price block, the payment split in one sentence, the "Start with Presence" button linking to `/start/?tier=presence`. Range shows the floor and "Quoted after one conversation."
-6. Questions about Presence: the `faqTopics` items as the same `details` list the overview uses, plus the "More questions" link to `/faq/`. `.section-alt`.
+4. What the build looks like on Presence: the three stage names with this tier's line under each, as a rule-separated row of three. Links to `/how-it-works/`. White.
+5. Price, on `.section-alt`: the price block, the payment split in one sentence, the "Start with Presence" button linking to `/start/?tier=presence`. Range shows the floor and "Quoted after one conversation."
+6. Questions about Presence: the `faqTopics` items as the same `details` list the overview uses, plus the "More questions" link to `/faq/`. White.
 7. Closing: the shared component.
 
 ### Search

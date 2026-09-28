@@ -142,7 +142,7 @@
       "ctaLabel": "Start with Agile",
       "page": {
         "title": "Agile | Keepsite Media",
-        "description": "For new or evolving offerings where the search strategy has to be invented. We research, meet every month, and change the site as you change. $4,200 to build, $595 a month.",
+        "description": "For offerings that are new or still taking shape. We invent the search strategy, meet monthly, and change the site as you change. $4,200 to build, $595 a month.",
         "notIf": [
           {
             "tier": "growth",

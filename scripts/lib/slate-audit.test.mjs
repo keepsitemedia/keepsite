@@ -26,3 +26,16 @@ test('two bands on one page is a violation', () => {
   const html = band('<p>a</p>') + band('<p>b</p>');
   assert.match(slateViolations(html)[0], /2 slate bands/);
 });
+
+test('an expected count makes a missing band a violation', () => {
+  assert.match(slateViolations('<main><section class="section"><p>a</p></section></main>', 1)[0], /0 slate bands, expected 1/);
+  assert.deepEqual(slateViolations(band('<p>a</p>'), 1), []);
+  assert.match(slateViolations(band('<p>a</p>'), 0)[0], /1 slate bands, expected 0/);
+});
+
+test('a slate band touching an alt band is a violation', () => {
+  const alt = '<section class="section section-alt"><p>x</p></section>';
+  assert.match(slateViolations('<main>' + band('<p>a</p>') + alt + '</main>')[0], /next to a section-alt/);
+  assert.match(slateViolations('<main>' + alt + band('<p>a</p>') + '</main>')[0], /next to a section-alt/);
+  assert.deepEqual(slateViolations('<main>' + alt + '<section class="section"><p>w</p></section>' + band('<p>a</p>') + '</main>'), []);
+});

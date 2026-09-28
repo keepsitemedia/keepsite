@@ -159,7 +159,7 @@ collections:
                     widget: "list"
                     hint: "One per neighbouring package. The text ends mid-sentence; the page adds the linked package name and a period."
                     fields:
-                      - { name: "tier", label: "Points to (package ID)", widget: "string", required: true, pattern: ['^[a-z0-9-]+$', "A package ID such as growth"] }
+                      - { name: "tier", label: "Points to", widget: "select", required: true, options: [{ label: "Presence", value: "presence" }, { label: "Growth", value: "growth" }, { label: "Agile", value: "agile" }, { label: "Range", value: "range" }] }
                       - { name: "text", label: "Text", widget: "text", required: true }
                   - { name: "faqTopics", label: "Questions to show", widget: "list", required: true, field: { name: "topic", label: "FAQ topic ID", widget: "string" }, hint: "Topic IDs from the FAQ page. An unknown one fails the build." }
           - name: "payment"
@@ -328,7 +328,7 @@ collections:
             widget: "list"
             required: true
             fields:
-              - { name: "title", label: "Group title", widget: "string" }
+              - { name: "title", label: "Group title", widget: "string", hint: "Also the group's link anchor on the page (#getting-started). Renaming it changes any shared link to the group." }
               - name: "items"
                 label: "Questions"
                 widget: "list"
