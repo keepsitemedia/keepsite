@@ -43,6 +43,8 @@
 /* Type ---------------------------------------------------------- */
 
 .office h1 { font-size: var(--step-3); margin: 0; letter-spacing: -0.02em; }
+/* The marketing site caps headline measures; the office's headings are names and dates and wrap on their own. */
+.office h1, .office h2 { max-width: none; }
 .office h1.file-name {
   font-family: var(--font-serif);
   font-weight: 400;

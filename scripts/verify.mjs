@@ -5,6 +5,7 @@
 // `npm run verify` alone checks whatever dist/ is already on disk.
 import fs from 'node:fs';
 import path from 'node:path';
+import { slateViolations } from './lib/slate-audit.mjs';
 
 const results = [];
 const fail = [];
@@ -200,6 +201,13 @@ check('noindex on 404, thanks, and every questionnaire route', () => {
     const has = read(p).includes('noindex,follow');
     const should = p === '404.html' || p.endsWith('thanks/index.html') || p.startsWith('questionnaire/') || p === 'pay/cancelled/index.html';
     if (has !== should) throw new Error(`${p} noindex=${has}, expected ${should}`);
+  }
+});
+// Spec 2026-09-27 §4: one slate band per page at most, ink text only inside it.
+check('slate bands hold ink only', () => {
+  for (const p of PAGES) {
+    const bad = slateViolations(read(p));
+    if (bad.length) throw new Error(`${p}: ${bad.join('; ')}`);
   }
 });
 // The Lockii page is shared by link and found by search, never navigated to.

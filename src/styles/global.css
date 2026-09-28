@@ -92,8 +92,10 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
-h1 { font-size: var(--step-4); }
-h2 { font-size: var(--step-3); }
+/* Headlines carry the personality: one step up from the rebrand, with a
+   measure short enough that lines break in two or three words. */
+h1 { font-size: var(--step-5); max-width: 14ch; }
+h2 { font-size: var(--step-4); max-width: 18ch; }
 h3 { font-size: var(--step-2); }
 p { margin: 0 0 var(--space-2); max-width: var(--maxw-prose); }
 ul, ol { max-width: var(--maxw-prose); }
@@ -120,6 +122,7 @@ h2::before {
   margin-bottom: var(--space-2);
   background: var(--color-ink);
 }
+.center :is(h1, h2) { margin-inline: auto; }
 .center :is(h1, h2)::before { margin-inline: auto; }
 .visually-hidden::before { content: none; }
 
@@ -152,6 +155,34 @@ a[href^="mailto:"] {
 .section-deep h2,
 .section-deep h3,
 .section-deep p { color: var(--color-bg); }
+
+/* The slate band: once per page, for the plain-truth moment. Ink text only.
+   White on slate is 3.8:1, muted 2.2:1 and rust 1.3:1, so every color token
+   that could be inherited inside is forced back to ink here. */
+.section-slate { background: var(--color-slate); color: var(--color-ink); }
+.section-slate h1,
+.section-slate h2,
+.section-slate h3,
+.section-slate p,
+.section-slate li,
+.section-slate .lead { color: var(--color-ink); }
+.section-slate .slate-link {
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+.section-slate .slate-link:hover { text-decoration-thickness: 3px; color: var(--color-ink); }
+
+/* The band's statement is the largest type on its page. */
+.statement {
+  font-size: var(--step-5);
+  max-width: 16ch;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
 
 .prose { max-width: var(--maxw-prose); }
 .narrow { max-width: var(--maxw-narrow); }
@@ -421,6 +452,7 @@ a[href^="mailto:"] {
 }
 .section-alt :focus-visible { box-shadow: 0 0 0 2px var(--color-surface-alt), 0 0 0 4px var(--color-ink); }
 .section-deep :focus-visible { box-shadow: 0 0 0 2px var(--color-ink), 0 0 0 4px var(--color-bg); }
+.section-slate :focus-visible { box-shadow: 0 0 0 2px var(--color-slate), 0 0 0 4px var(--color-ink); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
