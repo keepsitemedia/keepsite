@@ -60,8 +60,8 @@ const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
   /* The tick is a pen stroke, not a glyph: it starts inside the box and runs
      out past its top right corner the way a hand does. */
   .check { flex: none; margin: -8px -12px 0 -4px; }
-  /* Scratched out by hand, not ruled through: two passes of a loose stroke,
-     stretched to whatever width the word lands on. The stroke sits on an
+  /* Scratched out by hand, not ruled through: one loose stroke, stretched
+     to whatever width the word lands on. The stroke sits on an
      inline span with box-decoration-break: clone, so an item that wraps on a
      phone gets one stroke per line rather than one across the gap. */
   .done .line {
@@ -77,7 +77,7 @@ const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
   .tone-rust .done .box { border-color: var(--color-brand); color: var(--color-brand); }
   .tone-rust .done .text { color: var(--color-muted); }
   .tone-rust .done .line {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23B8512C' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5' fill='none' stroke='%23B8512C' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
   }
 
   /* Ink: inside a slate band, where rust and muted both fail contrast. The
@@ -85,7 +85,7 @@ const { caption, items, tone = 'rust', doneLabel = '(done)' } = Astro.props;
   .tone-ink .done .box { color: var(--color-ink); }
   .tone-ink .done .text { color: var(--color-ink); }
   .tone-ink .done .line {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5M96 8C80 12 62 5 45 10S16 7 4 12' fill='none' stroke='%23111111' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16' preserveAspectRatio='none'%3E%3Cpath d='M3 9C18 4 34 12 50 7S80 10 97 5' fill='none' stroke='%23111111' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
   }
   .tone-ink figcaption { color: var(--color-ink); }
 </style>

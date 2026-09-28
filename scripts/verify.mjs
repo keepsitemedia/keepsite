@@ -215,6 +215,7 @@ check('slate bands: one where the spec says, ink only, never beside alt', () => 
   const one = new Set([
     'index.html', 'packages/index.html', 'packages/presence/index.html', 'packages/growth/index.html',
     'packages/agile/index.html', 'packages/range/index.html', 'about/index.html', 'how-it-works/index.html',
+    'lockii/index.html',
   ]);
   for (const p of PAGES) {
     const bad = slateViolations(read(p), one.has(p) ? 1 : 0);

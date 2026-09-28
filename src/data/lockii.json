@@ -11,33 +11,61 @@
   },
   "hero": {
     "heading": "A website that books your Lockii rentals",
-    "lead": "Lockii runs your rentals without staff. We build the website that gets them found and booked, with your Lockii booking built in from day one, for rental businesses anywhere.",
+    "lead": "Lockii runs your rentals without staff. We build the website that gets them found and booked, with your Lockii booking built in from day one. For rental businesses anywhere in the US.",
     "ctaLabel": "Start your site",
     "image": {
       "src": "",
-      "alt": "",
-      "slot": "Your picture goes here: the fleet, or a phone with a Lockii booking open. Landscape, at least 1600 pixels wide."
+      "alt": ""
     }
   },
   "why": {
-    "heading": "Your website does the job your staff would",
-    "body": "Nobody answers the phone at an unstaffed rental, so the site has to explain how pickup works, whether a hitch is needed and what the deposit covers. Customers search for a trailer or a kayak when they need one, usually on a phone, and the site has to show up for that search and reach your booking in two taps. Lockii takes the booking, the ID check and the payment. A clear, fast site around it is what gets someone to start."
+    "heading": "Nobody answers the phone at an unstaffed rental.",
+    "lead": "So the website does the job your staff would:",
+    "jobs": [
+      "Explain how pickup works, whether a hitch is needed, and what the deposit covers.",
+      "Show up when someone searches for a trailer or a kayak on their phone, the moment they need one.",
+      "Reach your Lockii booking in two taps. Lockii takes the booking, the ID check and the payment."
+    ],
+    "close": "A clear, fast site around it is what gets someone to start."
   },
   "includes": {
     "heading": "Every Lockii site includes",
     "items": [
-      { "kind": "widget", "label": "Your Lockii booking widget, set up and tested" },
-      { "kind": "pickup", "label": "How pickup and return work, step by step" },
-      { "kind": "rules", "label": "Requirements and rules: ID, hitch, deposit, damage" },
-      { "kind": "faq", "label": "Answers to the questions customers would otherwise call about" },
-      { "kind": "locations", "label": "A page for each pickup location" },
-      { "kind": "profile", "label": "Your Google Business Profile, set up and linked" }
+      {
+        "kind": "widget",
+        "label": "Your Lockii booking widget, set up and tested"
+      },
+      {
+        "kind": "pickup",
+        "label": "How pickup and return work, step by step"
+      },
+      {
+        "kind": "rules",
+        "label": "Requirements and rules: ID, hitch, deposit, damage"
+      },
+      {
+        "kind": "faq",
+        "label": "Answers to the questions customers would otherwise call about"
+      },
+      {
+        "kind": "locations",
+        "label": "A page for each pickup location"
+      },
+      {
+        "kind": "profile",
+        "label": "Your Google Business Profile, set up and linked"
+      }
     ]
   },
   "packages": {
     "heading": "Pick the package that fits your fleet",
     "intro": "Every package includes the Lockii setup. Prices below are the Lockii prices.",
-    "moreLabel": "Compare everything on the packages page"
+    "moreLabel": "Compare everything on the packages page",
+    "tiers": {
+      "presence": "Your fleet is already booked through repeat customers and word of mouth. Give them a pickup page that answers the questions, and a booking that works.",
+      "growth": "You want people typing \"trailer rental\" and your town to find you. We study those searches and build the site to show up for them.",
+      "agile": "A new kind of rental, or a fleet that keeps changing. We research where the data doesn't exist yet and keep adjusting the site as you go."
+    }
   },
   "closing": {
     "heading": "Let's get your rentals booked.",

@@ -78,21 +78,37 @@ const pages: Record<string, string> = {
         <p class="label">For Lockii customers</p>
         <h1>{hero.heading}</h1>
         <p class="lead">{hero.lead}</p>
-        <p class="offer">Lockii customers get <strong>{summary}</strong>.</p>
+        <p class="offer">Lockii customers get {summary}.</p>
         <p><a class="btn" href={startHref()}>{hero.ctaLabel}</a></p>
       </div>
       {hero.image.src ? (
         <img class="hero-art" src={hero.image.src} alt={hero.image.alt} width="1600" height="1200" loading="eager" />
       ) : (
-        <div class="hero-art hero-slot" aria-hidden="true"><span class="label">{hero.image.slot}</span></div>
+        <!-- The subject, drawn: the booking page a Lockii site is built
+             around, at phone scale. A photograph replaces it when one exists. -->
+        <figure class="hero-art hero-phone" aria-hidden="true">
+          <svg class="page phone-page" viewBox="0 0 120 150">
+            <rect x="18" y="14" width="10" height="10" rx="2" class="ink" />
+            <rect x="34" y="17" width="20" height="4" rx="2" class="ink" />
+            <rect x="58" y="17" width="20" height="4" rx="2" class="ink" />
+            <Fragment set:html={pages.widget} />
+          </svg>
+        </figure>
       )}
     </div>
   </section>
 
-  <section class="section section-alt">
-    <div class="container">
-      <h2>{lockii.why.heading}</h2>
-      <p class="why">{lockii.why.body}</p>
+  <!-- The plain truth about an unstaffed rental: the page's one slate band. -->
+  <section class="section section-slate">
+    <div class="container why">
+      <h2 class="statement">{lockii.why.heading}</h2>
+      <div>
+        <p class="why-lead">{lockii.why.lead}</p>
+        <ol class="jobs">
+          {lockii.why.jobs.map((job) => <li>{job}</li>)}
+        </ol>
+        <p class="why-close">{lockii.why.close}</p>
+      </div>
     </div>
   </section>
 
@@ -124,7 +140,7 @@ const pages: Record<string, string> = {
           <div class={`card tier tier-${tier.id}`}>
             <h3 class="tier-name">{tier.name}</h3>
             <p class="serif tier-line">{tier.line}</p>
-            <p class="tier-sub muted">{tier.sub}</p>
+            <p class="tier-sub muted">{lockii.packages.tiers[tier.id as keyof typeof lockii.packages.tiers] ?? tier.sub}</p>
             <div class="tier-cost">
               <p class="tier-was price muted">
                 <span class="visually-hidden">Normally </span><s>{tier.buildPrice}</s>
@@ -157,22 +173,25 @@ const pages: Record<string, string> = {
   .hero { display: grid; gap: var(--space-4); align-items: center; }
   .offer { font-size: var(--step-1); margin: 0 0 var(--space-3); }
   .hero-art { width: 100%; height: auto; border-radius: var(--radius); }
-  /* Stands in until the photograph arrives; the same box the image will fill. */
-  .hero-slot {
-    aspect-ratio: 4 / 3;
-    display: flex; align-items: center; justify-content: center;
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    background: var(--color-surface-alt);
-    color: var(--color-muted);
-    text-align: center;
+  /* A phone: the drawing's page inside a rounded ink frame. */
+  .hero-phone {
+    margin: 0 auto;
+    width: min(100%, 300px);
+    padding: 10px;
+    border: 3px solid var(--color-ink);
+    border-radius: 28px;
+    background: var(--color-surface);
   }
-  .hero-slot .label { max-width: 28ch; }
+  .phone-page { border-radius: 18px; }
 
-  .why { margin-top: var(--space-3); }
+  .why { display: grid; gap: var(--space-4); }
+  .why-lead { font-size: var(--step-2); margin-bottom: var(--space-2); }
+  .jobs { margin: 0 0 var(--space-3); padding-left: 1.25rem; display: grid; gap: var(--space-1); font-size: var(--step-1); max-width: var(--maxw-lead); }
+  .why-close { font-size: var(--step-1); margin: 0; }
 
-  .pages { list-style: none; padding: 0; margin: var(--space-4) 0 0; max-width: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
-  .pages li { display: grid; align-content: start; gap: var(--space-2); font-size: var(--step--1); line-height: 1.4; }
+  /* The drawings carry the page, so they run three across and large. */
+  .pages { list-style: none; padding: 0; margin: var(--space-4) 0 0; max-width: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4) var(--space-3); }
+  .pages li { display: grid; align-content: start; gap: var(--space-2); line-height: 1.45; }
   .page { display: block; width: 100%; height: auto; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface); }
   /* :global because the drawings arrive through set:html and carry no scope attribute. */
   .page :global(.ink) { fill: var(--color-ink); opacity: 0.32; }
@@ -198,7 +217,11 @@ const pages: Record<string, string> = {
 
   @media (min-width: 900px) {
     .hero { grid-template-columns: 1.1fr 1fr; gap: var(--space-5); }
-    .pages { grid-template-columns: repeat(6, 1fr); }
+    .why { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--space-5); align-items: start; }
+    .why .statement { margin-bottom: 0; }
+  }
+  @media (min-width: 720px) {
+    .pages { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 900px) {
     .tier-grid { grid-template-columns: 1fr; }
