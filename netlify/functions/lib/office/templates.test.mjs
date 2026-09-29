@@ -44,7 +44,7 @@ test('validateTemplates names each problem', () => {
 
 test('loadTemplates prefers the stored copy', async () => {
   const s = createStore({ office: memoryBackend(), questionnaires: memoryBackend() });
-  assert.equal((await loadTemplates(s))[0].id, 'agreement');
+  assert.equal((await loadTemplates(s))[0].id, 'demo');
   await s.settings.put('templates', [{ id: 'only', name: 'Only', subject: 's', body: 'b' }]);
   assert.equal((await loadTemplates(s))[0].id, 'only');
   assert.equal(findTemplate(seed, 'nope'), undefined);
@@ -198,7 +198,7 @@ test('needsSignLink is true only for templates that carry the signing link', () 
   assert.equal(needsSignLink({ subject: '{{ links.sign }}', body: 'b' }), true);
   assert.equal(needsSignLink({ subject: 'S', body: '{{links.intro}} {{agreement.name}}' }), false);
   assert.equal(needsSignLink(seed.find((t) => t.id === 'agreement')), true);
-  assert.equal(needsSignLink(seed.find((t) => t.id === 'intro')), false);
+  assert.equal(needsSignLink(seed.find((t) => t.id === 'demo')), false);
 });
 
 test('removeTemplate refuses ids the code or a pipeline stage sends', () => {

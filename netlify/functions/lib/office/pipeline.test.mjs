@@ -128,12 +128,23 @@ test('advancing creates only the tasks whose tiers include the client', () => {
   assert.deepEqual(undecided.tasks.map((t) => t.title), ['Everyone']);
 });
 
+test('the seed runs intro, demo, agreement, then the post-demo questionnaires', () => {
+  const p = website();
+  assert.deepEqual(p.stages.slice(0, 4).map((s) => s.id), ['inquiry', 'demo', 'agreement', 'post-demo']);
+  // The intro is answered on the Start page before the client exists, so no
+  // stage may wait on it: such a task would never close.
+  assert.ok(!p.stages.some((s) => s.tasks.some((t) => t.questionnaire === 'intro')));
+  assert.equal(p.stages[1].email, 'demo');
+  assert.equal(p.stages[3].email, 'post-demo');
+});
+
 test('the seed gives each tier the meetings the package promises', () => {
   const p = website();
   const titles = (tier, stage) => advance({ client: { ...fresh(), tier }, pipeline: p, stageId: stage, today: '2026-09-04', now: NOW }).tasks.map((t) => t.title);
-  assert.ok(titles('Growth', 'agreement').includes('Kickoff call'));
-  assert.ok(!titles('Presence', 'agreement').includes('Kickoff call'));
-  assert.ok(titles('Agile', 'intro').includes('Discovery session'));
+  // The call after the demo is offered, not required, and to every package.
+  assert.ok(titles('Presence', 'demo').includes('Demo call, if wanted'));
+  assert.ok(!titles('Presence', 'agreement').some((t) => /call/i.test(t)));
+  assert.ok(titles('Agile', 'post-demo').includes('Discovery session'));
   assert.ok(titles('Agile', 'layouts').includes('Research check-in'));
   assert.ok(titles('Growth', 'layouts').includes('Stage check-in'));
   assert.deepEqual(titles('Agile', 'live'), ['Strategy meeting', 'Research and test review', 'Search summary to client', 'Annual recap']);

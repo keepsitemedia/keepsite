@@ -1,6 +1,8 @@
 // Netlify calls this after every verified form submission on the site. Only
-// the inquiry form matters; anything else is acknowledged and ignored. It
-// must return 200 whatever happens, or Netlify retries and the log fills.
+// the Start page's form matters (still named "inquiry" in Netlify, though it
+// now carries the intro questionnaire); anything else is acknowledged and
+// ignored. It must return 200 whatever happens, or Netlify retries and the
+// log fills.
 import { recordInquiry } from './lib/office/inquiry.mjs';
 
 export const handler = async (event) => {

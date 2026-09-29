@@ -36,7 +36,7 @@ test('create writes the client, its inquiry tasks, and redirects to it', async (
   const c = await s.clients.get('lova');
   assert.equal(c.stage, 'inquiry');
   assert.equal(c.pipeline, 'website');
-  assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Reply with recommendation']);
+  assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Build demo']);
 });
 
 // A slug is reusable, so anything left behind under it is inherited by the
@@ -86,7 +86,7 @@ test('two creates in flight together make one client and one task set', async ()
   assert.equal(a.headers.get('Location'), '/office/clients/lova/');
   assert.equal(b.headers.get('Location'), '/office/clients/lova/');
   assert.deepEqual((await s.clients.list()).map((c) => c.slug), ['lova']);
-  assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Reply with recommendation']);
+  assert.deepEqual((await s.tasks.list('lova')).map((t) => t.title), ['Build demo']);
 });
 
 test('create refuses a bad csrf token, a bad pipeline, and bad fields', async () => {

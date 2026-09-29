@@ -29,13 +29,13 @@ test('advancing writes the stage and its tasks; Agreement lands on the agreement
   assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=agreements&hint=agreement');
   assert.equal((await s.clients.get('lova')).stage, 'agreement');
   const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();
-  assert.deepEqual(titles, ['Client signs agreement', 'Deposit received', 'Reply with recommendation', 'Send agreement']);
+  assert.deepEqual(titles, ['Build demo', 'Client signs agreement', 'Deposit received', 'Send agreement']);
 });
 
 test('a stage email that needs no signing link opens the send screen', async () => {
   const s = await seeded();
-  const res = await stage(post({ csrf, slug: 'lova', stage: 'intro' }), ctx(), s);
-  assert.equal(res.headers.get('Location'), '/office/send/lova/intro/');
+  const res = await stage(post({ csrf, slug: 'lova', stage: 'demo' }), ctx(), s);
+  assert.equal(res.headers.get('Location'), '/office/send/lova/demo/');
 });
 
 test('entering Agreement with an agreement already out for signature opens the agreement email', async () => {
@@ -47,8 +47,8 @@ test('entering Agreement with an agreement already out for signature opens the a
 
 test('a stage without an email, or re-setting the same stage, lands on the client page', async () => {
   const s = await seeded();
-  const demo = await stage(post({ csrf, slug: 'lova', stage: 'demo' }), ctx(), s);
-  assert.equal(demo.headers.get('Location'), '/office/clients/lova/');
+  const live = await stage(post({ csrf, slug: 'lova', stage: 'live' }), ctx(), s);
+  assert.equal(live.headers.get('Location'), '/office/clients/lova/');
   await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s);
   const again = await stage(post({ csrf, slug: 'lova', stage: 'agreement' }), ctx(), s);
   assert.equal(again.headers.get('Location'), '/office/clients/lova/');
@@ -65,14 +65,14 @@ test('a double-clicked Advance creates the stage tasks once and lands both on th
   assert.equal((await s.clients.get('lova')).stage, 'agreement');
   assert.equal((await s.clients.get('lova')).stages.length, 2);
   const titles = (await s.tasks.list('lova')).map((t) => t.title).sort();
-  assert.deepEqual(titles, ['Client signs agreement', 'Deposit received', 'Reply with recommendation', 'Send agreement']);
+  assert.deepEqual(titles, ['Build demo', 'Client signs agreement', 'Deposit received', 'Send agreement']);
 });
 
 test('a first entry whose lock is already held writes nothing and still redirects', async () => {
   const s = await seeded();
   const created = (await s.clients.get('lova')).createdAt.replace(/\D/g, '');
-  assert.equal(await s.locks.acquire(`stage-lova-demo-${created}`), true);
-  const res = await stage(post({ csrf, slug: 'lova', stage: 'demo' }), ctx(), s);
+  assert.equal(await s.locks.acquire(`stage-lova-live-${created}`), true);
+  const res = await stage(post({ csrf, slug: 'lova', stage: 'live' }), ctx(), s);
   assert.equal(res.headers.get('Location'), '/office/clients/lova/');
   assert.equal((await s.clients.get('lova')).stage, 'inquiry');
   assert.equal((await s.tasks.list('lova')).length, 1);

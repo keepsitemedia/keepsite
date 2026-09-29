@@ -16,8 +16,23 @@
         "name": "Inquiry",
         "tasks": [
           {
-            "title": "Reply with recommendation",
-            "due": 1
+            "title": "Build demo",
+            "due": 5
+          }
+        ]
+      },
+      {
+        "id": "demo",
+        "name": "Demo",
+        "email": "demo",
+        "tasks": [
+          {
+            "title": "Send demo",
+            "due": 0
+          },
+          {
+            "title": "Demo call, if wanted",
+            "due": 5
           }
         ]
       },
@@ -40,54 +55,6 @@
             "title": "Deposit received",
             "due": 7,
             "payment": "deposit"
-          },
-          {
-            "title": "Kickoff call",
-            "due": 3,
-            "tiers": ["Growth", "Agile", "Range"]
-          }
-        ]
-      },
-      {
-        "id": "intro",
-        "name": "Intro questionnaire",
-        "email": "intro",
-        "tasks": [
-          {
-            "title": "Intro questionnaire back",
-            "due": 5,
-            "questionnaire": "intro"
-          },
-          {
-            "title": "Discovery session",
-            "due": 3,
-            "tiers": ["Agile"]
-          }
-        ]
-      },
-      {
-        "id": "demo",
-        "name": "Demo",
-        "tasks": [
-          {
-            "title": "Build demo",
-            "due": 5
-          },
-          {
-            "title": "Send demo",
-            "due": 5
-          },
-          {
-            "title": "Run search research",
-            "due": 5,
-            "tiers": ["Growth", "Agile", "Range"],
-            "tab": "research"
-          },
-          {
-            "title": "Research check-in",
-            "due": 7,
-            "tiers": ["Agile"],
-            "repeat": "biweekly"
           }
         ]
       },
@@ -96,6 +63,16 @@
         "name": "Post-demo questionnaires",
         "email": "post-demo",
         "tasks": [
+          {
+            "title": "Run search research",
+            "due": 5,
+            "tiers": [
+              "Growth",
+              "Agile",
+              "Range"
+            ],
+            "tab": "research"
+          },
           {
             "title": "Brand questionnaire back",
             "due": 7,
@@ -107,9 +84,18 @@
             "questionnaire": "build"
           },
           {
+            "title": "Discovery session",
+            "due": 3,
+            "tiers": [
+              "Agile"
+            ]
+          },
+          {
             "title": "Research check-in",
             "due": 7,
-            "tiers": ["Agile"],
+            "tiers": [
+              "Agile"
+            ],
             "repeat": "biweekly"
           }
         ]
@@ -130,12 +116,17 @@
           {
             "title": "Stage check-in",
             "due": 5,
-            "tiers": ["Growth", "Range"]
+            "tiers": [
+              "Growth",
+              "Range"
+            ]
           },
           {
             "title": "Research check-in",
             "due": 7,
-            "tiers": ["Agile"],
+            "tiers": [
+              "Agile"
+            ],
             "repeat": "biweekly"
           }
         ]
@@ -156,12 +147,17 @@
           {
             "title": "Stage check-in",
             "due": 5,
-            "tiers": ["Growth", "Range"]
+            "tiers": [
+              "Growth",
+              "Range"
+            ]
           },
           {
             "title": "Research check-in",
             "due": 7,
-            "tiers": ["Agile"],
+            "tiers": [
+              "Agile"
+            ],
             "repeat": "biweekly"
           }
         ]
@@ -194,11 +190,45 @@
         "id": "live",
         "name": "Live",
         "tasks": [
-          { "title": "Strategy meeting", "due": 30, "tiers": ["Agile"], "repeat": "monthly" },
-          { "title": "Research and test review", "due": 30, "tiers": ["Agile"], "repeat": "monthly" },
-          { "title": "Search summary to client", "due": 90, "tiers": ["Growth", "Agile", "Range"], "repeat": "quarterly" },
-          { "title": "Analytics summary to client", "due": 90, "tiers": ["Presence"], "repeat": "quarterly" },
-          { "title": "Annual recap", "due": 365, "repeat": "yearly" }
+          {
+            "title": "Strategy meeting",
+            "due": 30,
+            "tiers": [
+              "Agile"
+            ],
+            "repeat": "monthly"
+          },
+          {
+            "title": "Research and test review",
+            "due": 30,
+            "tiers": [
+              "Agile"
+            ],
+            "repeat": "monthly"
+          },
+          {
+            "title": "Search summary to client",
+            "due": 90,
+            "tiers": [
+              "Growth",
+              "Agile",
+              "Range"
+            ],
+            "repeat": "quarterly"
+          },
+          {
+            "title": "Analytics summary to client",
+            "due": 90,
+            "tiers": [
+              "Presence"
+            ],
+            "repeat": "quarterly"
+          },
+          {
+            "title": "Annual recap",
+            "due": 365,
+            "repeat": "yearly"
+          }
         ]
       }
     ]

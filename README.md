@@ -299,10 +299,16 @@ in the `questionnaires` store and are read from there.
 
 ### Inquiries
 
-Every verified `/start/` submission also creates a client at the Inquiry
-stage, through `netlify/functions/submission-created.mjs`. The email
-notification is unchanged. A second inquiry from an email already on file is
-added to that client's notes instead.
+The `/start/` page is the intro questionnaire. Every verified submission
+creates a client at the Inquiry stage and files the answers as that client's
+intro submission, through `netlify/functions/submission-created.mjs`. The
+email notification is unchanged. A second inquiry from an email already on
+file is added to that client's notes instead, and the first answers stay.
+
+The order from there: build and send the four directions, a call if the
+client wants one, the agreement, then the brand and build questionnaires
+once the deposit is in. A client who picks a direction by email skips the
+call: delete the task and advance.
 
 ### Contacts
 

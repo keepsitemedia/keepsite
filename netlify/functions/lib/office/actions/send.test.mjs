@@ -25,12 +25,12 @@ test('a filled email is sent to the client and logged', async () => {
   const s = await make();
   let sent;
   const fetchFn = async (_, i) => { sent = JSON.parse(i.body); return ok(); };
-  const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 'Ten minutes', body: 'Hi Sierra\n\nhttps://x' }), ctx(), s, fetchFn);
+  const res = await send(post({ csrf, slug: 'lova', template: 'demo', subject: 'Four directions', body: 'Hi Sierra\n\nhttps://x' }), ctx(), s, fetchFn);
   assert.equal(res.headers.get('Location'), '/office/clients/lova/?tab=emails&sent=1');
   assert.deepEqual(sent.to, ['s@example.com']);
-  assert.equal(sent.subject, 'Ten minutes');
+  assert.equal(sent.subject, 'Four directions');
   const [log] = await s.emails.list('lova');
-  assert.equal(log.template, 'intro');
+  assert.equal(log.template, 'demo');
   assert.equal(log.kind, 'template');
 });
 
@@ -38,7 +38,7 @@ test('an unfilled optional field is stripped rather than refused', async () => {
   const s = await make();
   let sent;
   const fetchFn = async (_, i) => { sent = JSON.parse(i.body); return ok(); };
-  const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 'x', body: 'Hi\n\n{{note}}\n\nBye' }), ctx(), s, fetchFn);
+  const res = await send(post({ csrf, slug: 'lova', template: 'demo', subject: 'x', body: 'Hi\n\n{{note}}\n\nBye' }), ctx(), s, fetchFn);
   assert.equal(res.status, 303);
   assert.equal(sent.text, 'Hi\n\nBye');
 });
@@ -56,17 +56,17 @@ test('a leftover placeholder goes back to the send screen and sends nothing', as
 test('an empty subject, an unknown template, a bad csrf and a missing client are refused', async () => {
   const s = await make();
   const none = async () => { throw new Error('must not send'); };
-  let res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: '', body: 'b' }), ctx(), s, none);
+  let res = await send(post({ csrf, slug: 'lova', template: 'demo', subject: '', body: 'b' }), ctx(), s, none);
   assert.match(decodeURIComponent(res.headers.get('Location')), /error=.*subject/);
   assert.equal((await send(post({ csrf, slug: 'lova', template: 'nope', subject: 's', body: 'b' }), ctx(), s, none)).status, 400);
-  assert.equal((await send(post({ csrf: 'x', slug: 'lova', template: 'intro', subject: 's', body: 'b' }), ctx(), s, none)).status, 403);
-  assert.equal((await send(post({ csrf, slug: 'ghost', template: 'intro', subject: 's', body: 'b' }), ctx(), s, none)).status, 404);
+  assert.equal((await send(post({ csrf: 'x', slug: 'lova', template: 'demo', subject: 's', body: 'b' }), ctx(), s, none)).status, 403);
+  assert.equal((await send(post({ csrf, slug: 'ghost', template: 'demo', subject: 's', body: 'b' }), ctx(), s, none)).status, 404);
 });
 
 test('a failed send lands on the emails tab with the reason', async () => {
   const s = await make();
   const bad = async () => new Response('{"message":"domain not verified"}', { status: 403 });
-  const res = await send(post({ csrf, slug: 'lova', template: 'intro', subject: 's', body: 'b' }), ctx(), s, bad);
+  const res = await send(post({ csrf, slug: 'lova', template: 'demo', subject: 's', body: 'b' }), ctx(), s, bad);
   assert.match(decodeURIComponent(res.headers.get('Location')), /tab=emails&error=domain not verified/);
   assert.equal((await s.emails.list('lova'))[0].status, 'failed');
 });

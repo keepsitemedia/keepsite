@@ -16,6 +16,11 @@ interface Question {
   type: string;
   options?: string[];
   required?: boolean;
+  // For short answers only: the input type and autocomplete token, so the
+  // email question gets the browser's address check and autofill. A string
+  // for the same JSON-widening reason as `type` above.
+  input?: string;
+  autocomplete?: string;
 }
 
 interface Props {
@@ -31,14 +36,24 @@ interface Props {
   slug: string;
   token: string;
   directions?: Array<{ number: number; id: string }>;
+  // The Start page renders the intro for people who are not clients yet, so
+  // it posts to Netlify Forms under this name instead of the token-checked
+  // endpoint, and the slot carries the fields that are not intro questions.
+  netlifyForm?: string;
 }
 
-const { definition, slug, token, directions = [] } = Astro.props;
+const { definition, slug, token, directions = [], netlifyForm } = Astro.props;
 
 const describedBy = (q: Question) => (q.help ? `${q.key}-help` : undefined);
 
 const isGroup = (type: Question['type']) =>
   type === 'checkboxes' || type === 'openChecklist' || type === 'choice' || type === 'demoPick';
+
+// Netlify Forms keeps one value per field name unless the name ends in [],
+// so a multi-pick posted through it would arrive as its last tick. The hook
+// (netlify/functions/lib/office/inquiry.mjs) strips the suffix again.
+const multi = (type: Question['type']) => type === 'checkboxes' || type === 'openChecklist';
+const fieldName = (q: Question) => (netlifyForm && multi(q.type) ? `${q.key}[]` : q.key);
 
 const demoOptions = [
   ...directions.map((d) => ({ value: d.id, text: `Demo ${d.number}` })),
@@ -47,18 +62,22 @@ const demoOptions = [
 ---
 <form
   method="POST"
-  action="/api/questionnaire"
-  enctype="multipart/form-data"
+  action={netlifyForm ? '/start/thanks/' : '/api/questionnaire'}
+  enctype={netlifyForm ? undefined : 'multipart/form-data'}
   class="questionnaire"
   data-form={definition.form}
   data-slug={slug}
+  name={netlifyForm}
+  data-netlify={netlifyForm ? 'true' : undefined}
+  data-netlify-honeypot={netlifyForm ? 'bot-field' : undefined}
 >
+  {netlifyForm && <input type="hidden" name="form-name" value={netlifyForm} />}
   <input type="hidden" name="form" value={definition.form} />
   <input type="hidden" name="formVersion" value={definition.formVersion} />
-  <input type="hidden" name="c" value={slug} />
-  <input type="hidden" name="t" value={token} />
+  {!netlifyForm && <input type="hidden" name="c" value={slug} />}
+  {!netlifyForm && <input type="hidden" name="t" value={token} />}
 
-  <noscript>
+  {!netlifyForm && <noscript>
     {/* The pages are static and one page serves every client, so ?c= and ?t=
         are read by the inline script; with it off the hidden fields ship empty
         and every submission is a 403. Better one sentence read up front than
@@ -66,17 +85,17 @@ const demoOptions = [
     <p class="noscript-note">
       {shared.noscript} <a href={`mailto:${site.email}`}>{site.email}</a>.
     </p>
-  </noscript>
+  </noscript>}
 
   {/* Shown by the inline script when the link arrived without its ?t= code:
       the form stays usable so a saved draft is not lost, but the submission
       would be a 403, and that is better read now than after forty answers.
       Same box as the noscript note above, for the same reason. */}
-  <p class="noscript-note" data-missing-code hidden>
+  {!netlifyForm && <p class="noscript-note" data-missing-code hidden>
     This link is missing its access code, so your answers cannot be sent from
     here. Please open the link from your email instead, or write to us at{' '}
     <a href={`mailto:${site.email}`}>{site.email}</a>.
-  </p>
+  </p>}
 
   <p class="hidden-field">
     <label>Don't fill this out: <input name="bot-field" /></label>
@@ -108,7 +127,7 @@ const demoOptions = [
                     <label class="option">
                       <input
                         type={q.type === 'choice' ? 'radio' : 'checkbox'}
-                        name={q.key}
+                        name={fieldName(q)}
                         value={o}
                       />
                       <span>{o}</span>
@@ -123,10 +142,10 @@ const demoOptions = [
               )}
             </fieldset>
           ) : (
-            // .field is the site-wide single-control label pattern (see
-            // src/pages/start/index.astro); reusing it here keeps text
-            // inputs, textareas and file inputs visually consistent with
-            // the rest of the site without inventing new field styles.
+            // .field is the site-wide single-control label pattern
+            // (src/styles/global.css); reusing it here keeps text inputs,
+            // textareas and file inputs visually consistent with the rest
+            // of the site without inventing new field styles.
             <label class="field">
               <span>
                 {q.label}
@@ -136,7 +155,7 @@ const demoOptions = [
                 <textarea name={q.key} rows={4} required={q.required} aria-describedby={describedBy(q)} />
               )}
               {q.type === 'short' && (
-                <input type="text" name={q.key} required={q.required} aria-describedby={describedBy(q)} />
+                <input type={(q.input ?? 'text') as astroHTML.JSX.HTMLInputTypeAttribute} name={q.key} required={q.required} autocomplete={q.autocomplete} aria-describedby={describedBy(q)} />
               )}
               {q.type === 'file' && (
                 <input type="file" name={q.key} aria-describedby={describedBy(q)} />
@@ -148,6 +167,8 @@ const demoOptions = [
       ))}
     </fieldset>
   ))}
+
+  <slot />
 
   <button type="submit" class="btn">Send</button>
 </form>
