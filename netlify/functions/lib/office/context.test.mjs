@@ -27,6 +27,19 @@ test('buildContext fills client, links, site and admin', () => {
   assert.equal(c.questionnaire, undefined);
 });
 
+test('a client whose demo lives under another folder gets that folder in the demo and brand links', () => {
+  delete process.env.URL;
+  const c = buildContext({ client: { ...client, demo: 'lova-adventure-content' }, admin: { email: 'me@x' }, secret: 'sec' });
+  assert.equal(c.links.demo, 'https://www.keepsitemedia.com/demo/lova-adventure-content/');
+  // the token still binds the client's own slug; the demo folder rides along as ?d=
+  assert.equal(c.links.brand, `https://www.keepsitemedia.com/questionnaire/brand/?c=lova&t=${mint('sec', 'lova', 'brand')}&d=lova-adventure-content`);
+  assert.equal(c.links.build, `https://www.keepsitemedia.com/questionnaire/build/?c=lova&t=${mint('sec', 'lova', 'build')}`);
+  const plain = buildContext({ client, admin: { email: 'me@x' }, secret: 'sec' });
+  assert.equal(plain.links.brand, `https://www.keepsitemedia.com/questionnaire/brand/?c=lova&t=${mint('sec', 'lova', 'brand')}`);
+  const form = buildContext({ client: { ...client, demo: 'lova-adventure-content' }, admin: { email: 'me@x' }, secret: 'sec', form: 'brand' });
+  assert.equal(form.questionnaire.link, form.links.brand);
+});
+
 test('no secret means no questionnaire links, and a form adds the questionnaire block', () => {
   const c = buildContext({ client, admin: { email: 'me@x' }, secret: '', form: 'brand' });
   assert.equal(c.links.intro, '');

@@ -28,6 +28,7 @@ import build from '../../../data/questionnaires/build.json';
 // than casting the whole store to any.
 type ClientDoc = {
   business: string; name: string; email: string; phone: string; website: string; tier: string; pipeline: string; stage: string;
+  demo?: string;
   stages: { stage: string; at: string }[];
   dates: { inquiry: string; signed: string | null; launched: string | null };
   archivedAt: string | null; archivedReason: string;
@@ -90,6 +91,7 @@ const files = (tab === 'questionnaires' ? await s.questionnaires.files(slug) : [
 // directory the client can only choose "A mix of several". Globbed at build
 // time because this page runs in a function, where public/ is not on disk.
 const demoSlugs = new Set(Object.keys(import.meta.glob('/public/demo/*/index.html')).map((p) => p.split('/').at(-2)));
+const demoSlug = client?.demo || slug;
 const sent = Astro.url.searchParams.get('sent');
 const emails = tab === 'emails' ? ((await s.emails.list(slug)) as EmailDoc[]).reverse() : [];
 const documents = tab === 'documents' ? ((await listDocuments(slug, s)) as DocumentRow[]) : [];
@@ -297,7 +299,7 @@ const host = (url: string) => { try { return new URL(url).host; } catch { return
                   <input value={f.link} readonly aria-label={`${f.form} questionnaire link`} data-copy />
                   <button type="button" class="btn-quiet" data-copy-button>Copy</button>
                 </div>
-                {f.form === 'brand' && !demoSlugs.has(slug) && <p class="field-hint">No demo at public/demo/{slug}, so the form will offer only "A mix of several".</p>}
+                {f.form === 'brand' && !demoSlugs.has(demoSlug) && <p class="field-hint">No demo at public/demo/{demoSlug}, so the form will offer only "A mix of several". Set the demo folder on the client if it lives elsewhere.</p>}
               </>
             )
           )}

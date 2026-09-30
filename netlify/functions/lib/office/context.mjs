@@ -17,11 +17,14 @@ const TITLES = {
 
 export const siteUrl = () => process.env.URL || 'https://www.keepsitemedia.com';
 
-const questionnaireLink = (secret, slug, form) =>
-  secret ? `${siteUrl()}/questionnaire/${form}/?c=${slug}&t=${mint(secret, slug, form)}` : '';
+// The token binds the client's slug. When the demo lives under another
+// folder, the brand form learns which one from ?d= (src/scripts/questionnaire.js).
+const questionnaireLink = (secret, slug, form, demo = slug) =>
+  secret ? `${siteUrl()}/questionnaire/${form}/?c=${slug}&t=${mint(secret, slug, form)}${form === 'brand' && demo !== slug ? `&d=${demo}` : ''}` : '';
 
 export function buildContext({ client, admin, secret, form, meeting, agreement, now = new Date() }) {
   const url = siteUrl();
+  const demo = client.demo || client.slug;
   const ctx = {
     client: {
       name: client.name,
@@ -31,14 +34,14 @@ export function buildContext({ client, admin, secret, form, meeting, agreement, 
     },
     links: {
       intro: questionnaireLink(secret, client.slug, 'intro'),
-      brand: questionnaireLink(secret, client.slug, 'brand'),
+      brand: questionnaireLink(secret, client.slug, 'brand', demo),
       build: questionnaireLink(secret, client.slug, 'build'),
-      demo: `${url}/demo/${client.slug}/`,
+      demo: `${url}/demo/${demo}/`,
     },
     site: { brand: site.brand, url, email: site.email, phone: site.phone },
     admin: { email: admin?.email ?? site.email },
   };
-  if (form) ctx.questionnaire = { title: TITLES[form] ?? `${form} questionnaire`, link: questionnaireLink(secret, client.slug, form) };
+  if (form) ctx.questionnaire = { title: TITLES[form] ?? `${form} questionnaire`, link: questionnaireLink(secret, client.slug, form, demo) };
   if (meeting) {
     ctx.meeting = {
       title: meeting.title,

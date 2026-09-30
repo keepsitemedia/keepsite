@@ -2,7 +2,11 @@ import packages from '../../../../src/data/packages.json' with { type: 'json' };
 
 export const TIERS = packages.tiers.map((t) => t.name);
 export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const EDITABLE = ['name', 'business', 'email', 'phone', 'address', 'website', 'tier', 'notes'];
+const EDITABLE = ['name', 'business', 'email', 'phone', 'address', 'website', 'tier', 'notes', 'demo'];
+// A folder under public/demo. Blank means the client's own slug; set when
+// the demo was renamed after the client existed or two brands share one
+// inbox, so their inquiries land on different slugs.
+export const DEMO = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 export function slugify(text) {
   const s = String(text ?? '')
@@ -37,6 +41,7 @@ export function validateClient(fields, existing = null) {
   // keep working and the first edit moves them to a current package.
   const keepsRetired = isRetiredTier(fields.tier) && existing?.tier === fields.tier;
   if (fields.tier && !TIERS.includes(fields.tier) && !keepsRetired) errors.push(`tier must be one of ${TIERS.join(', ')}`);
+  if (fields.demo && !DEMO.test(fields.demo)) errors.push('demo must be a folder name under /demo: lowercase letters, digits and hyphens');
   return errors;
 }
 

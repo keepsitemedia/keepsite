@@ -10,6 +10,7 @@ const retired = isRetiredTier(c.tier ?? '');
   <label class="field"><span>Email</span><input type="email" name="email" required value={c.email ?? ''} /></label>
   <label class="field"><span>Phone</span><input name="phone" value={c.phone ?? ''} /></label>
   <label class="field"><span>Website</span><input name="website" value={c.website ?? ''} placeholder="https://" /></label>
+  <label class="field"><span>Demo folder</span><input name="demo" value={c.demo ?? ''} placeholder={c.slug ?? 'same as the slug'} pattern="[a-z0-9][a-z0-9-]{0,63}" /></label>
   <label class="field"><span>Tier</span>
     <select name="tier">
       <option value="" selected={!c.tier}>Not decided</option>

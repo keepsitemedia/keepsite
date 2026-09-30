@@ -75,7 +75,7 @@
   .intro p.lead { font-size: clamp(19px, 2vw, 22px); line-height: 1.5; color: var(--ks-muted); max-width: 56ch; margin-bottom: 32px; }
   .intro .placeholder-note { max-width: 68ch; padding: 4px 0 4px 20px; border-left: 3px solid var(--ks-ink); font-size: 15px; line-height: 1.6; color: var(--ks-muted); }
   .intro .placeholder-note .note-label { display: block; margin-bottom: 6px; color: var(--ks-ink); }
-  .option-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 56px; }
+  .option-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 32px; }
   @media (max-width: 1100px) { .option-cards { grid-template-columns: repeat(2, 1fr); } }
   .option-card {
     background: #fff; border: 1px solid var(--ks-border); border-radius: 10px;
@@ -90,6 +90,10 @@
   .option-card .swatch { flex: 1; }
   .option-card p { font-size: 16px; line-height: 1.55; color: var(--ks-muted); }
   .option-card p strong { color: var(--ks-ink); }
+  .remix-note { margin-top: 48px; padding: 28px 28px 30px; border: 1px solid var(--ks-ink); border-radius: 10px; display: grid; gap: 12px; }
+  .remix-note h3 { font-size: 26px; font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+  .remix-note p:not(.ks-label) { font-size: 17px; line-height: 1.55; color: var(--ks-muted); max-width: 72ch; }
+  .remix-note .view-link { color: var(--ks-rust); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
   .option-card .view-link { margin-top: auto; padding-top: 12px; color: var(--ks-rust); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
 
   /* ============ DIRECTION DIVIDER ============
@@ -129,6 +133,7 @@
     <a href="#noticed">Noticed</a>
     <a href="#present">Present</a>
     <a href="#heirloom">Heirloom</a>
+    <a href="#remix">Remixed</a>
   </div>
 </nav>
 
@@ -140,6 +145,12 @@
     <div class="placeholder-note">
       <span class="note-label ks-label">Heads up</span>
       <span class="note-body">There are no photographs in here on purpose. Every picture is drawn as a plain box, sized to the shape the real photo or video will fill and labelled with what belongs there. The lily is lifted from the Canva preview of your logo, so it is a little soft at large sizes; the full file replaces it. Every palette is built to hold up with colour blindness: nothing depends on telling red from green, and all text meets the AA contrast standard.</span>
+    </div>
+    <div class="remix-note">
+      <p class="ks-label">Direction 5, built from your notes</p>
+      <h3>Present, remixed</h3>
+      <p>Direction 3&rsquo;s split page in Direction 1&rsquo;s cream and olive with its IM Fell and Crimson Pro. It opens on a film loop, keeps the &ldquo;You picked it&rdquo; card and the olive bar under it, says what you didn&rsquo;t get to see, puts a limewash on the cream, and adds a prices section that opens tier by tier. The four originals are still below it.</p>
+      <a href="#remix" class="view-link">See the remix</a>
     </div>
     <div class="option-cards">
       <a href="#lily" class="option-card">
@@ -866,6 +877,290 @@
         <p class="fine">Wedding films, content and florals in Utah, Salt Lake, Wasatch and Cache counties. Micro weddings and elopements welcome.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     DIRECTION 05 — PRESENT, REMIXED (from her notes on the four)
+     ============================================================ -->
+<section class="direction-divider">
+  <div class="dd-inner">
+    <div>
+      <p class="dd-progress ks-label">Direction 5, from your notes</p>
+      <h2 class="dd-name">Present, remixed</h2>
+    </div>
+    <p class="dd-sub">Direction 3&rsquo;s split page in Direction 1&rsquo;s cream, olive, IM Fell and Crimson Pro. Opens on a film loop, keeps the menu card and the olive band, says what you didn&rsquo;t get to see, and adds the prices page you asked for. The cream is limewashed.</p>
+  </div>
+</section>
+
+<style>
+.rx {
+  --cream: #f1e6d3;
+  --paper: #f8f2e6;
+  --olive: #45453b;
+  --deep: #35352d;
+  --soft: #57564a;
+  --rule: rgba(69,69,59,0.32);
+  --pb: rgba(69,69,59,0.4);
+  --pf: rgba(248,242,230,0.7);
+  --pi: #57564a;
+  --pfont: 'Crimson Pro', Georgia, serif;
+  /* the limewash: two layers of stitched fractal noise in olive over the cream,
+     one cloudy and one grainy, drawn once as a 900px tile and repeated */
+  --wash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='w' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0035' numOctaves='4' seed='5' stitchTiles='stitch' result='c'/%3E%3CfeColorMatrix in='c' type='matrix' values='0 0 0 0 0.27 0 0 0 0 0.27 0 0 0 0 0.23 0 0 0 0.28 -0.05' result='cloud'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='9' stitchTiles='stitch' result='g'/%3E%3CfeColorMatrix in='g' type='matrix' values='0 0 0 0 0.27 0 0 0 0 0.27 0 0 0 0 0.23 0 0 0 0.09 0' result='grain'/%3E%3CfeMerge%3E%3CfeMergeNode in='cloud'/%3E%3CfeMergeNode in='grain'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23w)'/%3E%3C/svg%3E");
+  background: var(--cream) var(--wash); color: var(--olive);
+  font-family: 'Crimson Pro', Georgia, serif; font-size: 20px; line-height: 1.6;
+}
+.rx .fell { font-family: 'IM Fell Double Pica', Georgia, serif; font-weight: 400; }
+.rx .wrap { max-width: 1120px; margin: 0 auto; padding: 0 40px; }
+.rx-btn { display: inline-block; border: 1px solid var(--olive); padding: 11px 30px 14px; font-family: 'IM Fell Double Pica', Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.2; }
+.rx-btn:hover { background: var(--olive); color: var(--cream); }
+.rx .you .rx-btn, .rx-foot .rx-btn { border-color: var(--cream); }
+.rx .you .rx-btn:hover, .rx-foot .rx-btn:hover { background: var(--cream); color: var(--olive); }
+
+/* the split: her half on olive, Sierra's half on the washed cream */
+.rx-row { display: grid; grid-template-columns: 1fr 1fr; }
+.rx-row > * { padding: 44px clamp(24px, 5vw, 88px); }
+.rx-row .you { background: var(--olive); color: var(--cream); }
+.rx-row + .rx-row .you { border-top: 1px solid rgba(241,230,211,0.22); }
+.rx-row + .rx-row .me { border-top: 1px solid var(--rule); }
+
+.rx-nav > * { padding-top: 22px; padding-bottom: 22px; display: flex; align-items: center; }
+.rx-nav .me { justify-content: flex-end; gap: 30px; font-style: italic; font-size: 21px; }
+.rx-nav .me a { border-bottom: 1px solid transparent; }
+.rx-nav .me a:hover { border-bottom-color: var(--olive); }
+.rx-nav .me .rx-btn { font-size: 19px; padding: 6px 20px 8px; }
+.rx-nav .me .rx-btn:hover { border-bottom-color: var(--olive); }
+
+/* the opening frame is a film on a loop, full width, with nothing printed over it */
+.rx-loop .area { border-left: 0; border-right: 0; }
+
+.rx-head > * { padding-top: clamp(48px, 8vw, 110px); padding-bottom: clamp(44px, 6vw, 84px); border-top: 0 !important; }
+.rx-big { font-size: clamp(40px, 5.6vw, 88px); line-height: 1.02; letter-spacing: -0.01em; }
+.rx-head p.sub { font-size: 21px; max-width: 30ch; margin-top: 26px; }
+.rx-head .me p.sub { color: var(--soft); margin-bottom: 30px; }
+
+.rx-said { font-size: clamp(26px, 2.8vw, 42px); line-height: 1.15; max-width: 16ch; }
+.rx-row .me .rx-said { max-width: 20ch; margin-top: 20px; }
+.rx-row .me .area { max-width: var(--w, 420px); }
+@media (min-width: 901px) { .rx-row:not(.rx-nav):not(.rx-head) .you .rx-said { position: sticky; top: 100px; } }
+
+/* the menu card from Direction 1, and the olive bar beneath it */
+.rx-menu { max-width: 640px; margin: 96px auto; background: var(--paper); border: 1px solid var(--rule); padding: 12px; }
+.rx-menu .in { border: 1px solid var(--rule); padding: 52px 48px 56px; text-align: center; }
+.rx-menu .lily { width: 44px; margin: 0 auto 30px; }
+.rx-menu h3 { font-style: italic; font-size: 30px; line-height: 1.2; margin-bottom: 10px; }
+.rx-menu p { color: var(--soft); max-width: 25em; margin: 0 auto; }
+.rx-menu .course + .course { margin-top: 34px; padding-top: 34px; border-top: 1px solid var(--rule); }
+.rx-band { background: var(--deep); color: var(--cream); text-align: center; padding: 96px 24px; }
+.rx-band h2 { font-size: clamp(32px, 4.4vw, 60px); line-height: 1.14; max-width: 18ch; margin: 0 auto; }
+.rx-band p { max-width: 36em; margin: 24px auto 0; color: #d9cfbb; }
+.rx-band p + p { margin-top: 14px; font-style: italic; }
+
+.rx-more { max-width: 1120px; margin: 0 auto; padding: 100px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px 72px; align-items: center; }
+.rx-more h2 { font-style: italic; font-size: clamp(30px, 3.2vw, 44px); line-height: 1.15; margin-bottom: 20px; }
+.rx-more p { max-width: 30em; color: var(--soft); }
+.rx-more p + p { margin-top: 14px; }
+.rx-more .link { color: var(--olive); font-style: italic; border-bottom: 1px solid var(--olive); }
+.rx-more .frame { border: 1px solid var(--rule); padding: 12px; }
+
+/* prices: three tiers stacked, each a details element that opens on the number */
+.rx-prices { border-top: 1px solid var(--rule); padding: 100px 0 110px; }
+.rx-prices h2 { font-style: italic; font-size: clamp(34px, 4vw, 56px); line-height: 1.1; }
+.rx-prices .lead { max-width: 34em; margin: 16px 0 44px; color: var(--soft); }
+.rx-tier { border-top: 1px solid var(--olive); }
+.rx-tier:last-of-type { border-bottom: 1px solid var(--olive); }
+.rx-tier summary { display: grid; grid-template-columns: 1fr 1fr auto; gap: 24px; align-items: baseline; padding: 26px 0; cursor: pointer; list-style: none; }
+.rx-tier summary::-webkit-details-marker { display: none; }
+.rx-tier summary .name { font-size: clamp(26px, 2.6vw, 36px); line-height: 1.15; }
+.rx-tier summary .hours { color: var(--soft); }
+.rx-tier summary .tog { font-style: italic; font-size: 21px; white-space: nowrap; border-bottom: 1px solid var(--olive); }
+.rx-tier summary .tog::after { content: "The details"; }
+.rx-tier[open] summary .tog::after { content: "Close"; }
+.rx-tier .body { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 0 0 36px; }
+.rx-tier .body p.say { font-style: italic; font-size: 24px; line-height: 1.4; }
+.rx-tier .body ul { color: var(--soft); }
+.rx-tier .body li { padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.rx-tier .price { font-family: 'IM Fell Double Pica', Georgia, serif; font-size: clamp(34px, 3.6vw, 48px); line-height: 1; margin: 22px 0 18px; }
+.rx-tier .price small { font-family: 'Crimson Pro', Georgia, serif; font-size: 18px; color: var(--soft); margin-left: 10px; }
+.rx-prices .fine { margin-top: 30px; max-width: 40em; color: var(--soft); }
+
+.rx-foot { background: var(--olive); color: var(--cream); padding: 100px clamp(24px, 5vw, 88px) 44px; }
+.rx-foot h2 { font-size: clamp(40px, 5.6vw, 88px); line-height: 1.02; margin-bottom: 36px; }
+.rx-foot .rx-btn { overflow-wrap: anywhere; }
+.rx-foot .fine { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 90px; padding-top: 24px; border-top: 1px solid rgba(241,230,211,0.25); font-size: 18px; color: #d9cfbb; }
+.rx-foot .fine > span:last-child { max-width: 40ch; }
+
+@media (max-width: 900px) {
+  .rx { font-size: 19px; }
+  .rx .wrap { padding: 0 20px; }
+  .rx-row { grid-template-columns: 1fr; }
+  .rx-row > * { padding: 30px 20px; }
+  .rx-row + .rx-row .me { border-top: 0; }
+  .rx-nav { grid-template-columns: 1fr auto; }
+  .rx-nav > * { padding: 16px 20px; }
+  .rx-nav .me { background: var(--olive); color: var(--cream); }
+  .rx-nav .me a:not(.rx-btn) { display: none; }
+  .rx-nav .me .rx-btn { border-color: var(--cream); }
+  .rx-loop .area { aspect-ratio: 4 / 3 !important; }
+  .rx-head .you { padding-bottom: 36px; }
+  .rx-head .me { padding-top: 36px; }
+  .rx-row .you .rx-said { max-width: none; }
+  .rx-menu { margin: 56px auto; padding: 8px; }
+  .rx-menu .in { padding: 36px 20px 40px; }
+  .rx-band { padding: 64px 20px; }
+  .rx-more { grid-template-columns: 1fr; gap: 34px; padding: 64px 20px; }
+  .rx-prices { padding: 64px 0 72px; }
+  .rx-tier summary { grid-template-columns: 1fr auto; }
+  .rx-tier summary .hours { grid-column: 1 / -1; margin-top: -14px; }
+  .rx-tier .body { grid-template-columns: 1fr; gap: 20px; }
+  .rx-foot { padding: 64px 20px 36px; }
+  .rx-foot .fine { margin-top: 56px; }
+}
+</style>
+
+<section id="remix" class="rx">
+  <div class="rx-row rx-nav">
+    <div class="you"><a href="#remix" class="logo"><span class="lily" aria-hidden="true"></span><b>Lova<br>Content Creation</b></a></div>
+    <div class="me fell"><a href="#remix">What I notice</a><a href="#remix">Prices</a><a href="#remix">Florals</a><a href="#remix">About</a><a href="#remix" class="rx-btn">Inquire</a></div>
+  </div>
+
+  <div class="rx-loop"><div class="area" style="aspect-ratio:21/9"><span>Film on a loop, no sound<br>The reception room, finished, five minutes before the doors open</span></div></div>
+
+  <div class="rx-row rx-head">
+    <div class="you">
+      <p class="rx-big fell" aria-hidden="true">You live it.</p>
+      <p class="sub">Your wedding deserves your full attention.</p>
+    </div>
+    <div class="me">
+      <h1 class="rx-big fell"><span class="sr-only">You live it. </span>I&rsquo;ll pay attention.</h1>
+      <p class="sub">You&rsquo;ll probably miss half the things that happen at your wedding. That&rsquo;s kind of the point. You&rsquo;re supposed to be busy getting married. I film the rest.</p>
+      <a href="#remix" class="rx-btn">Tell me what you&rsquo;re planning</a>
+    </div>
+  </div>
+
+  <div class="rx-row">
+    <div class="you"><p class="rx-said fell">You were saying your vows.</p></div>
+    <div class="me">
+      <div class="area" style="aspect-ratio:3/2"><span>Still<br>Her mother, second row</span></div>
+      <p class="rx-said fell">I noticed your mom, looking at you.</p>
+    </div>
+  </div>
+  <div class="rx-row">
+    <div class="you"><p class="rx-said fell">You were still getting ready.</p></div>
+    <div class="me">
+      <div class="area" style="aspect-ratio:16/9;--w:480px"><span>Film<br>The reception room, finished and empty</span></div>
+      <p class="rx-said fell">I noticed the room, finished, before anyone walked into it.</p>
+    </div>
+  </div>
+  <div class="rx-row">
+    <div class="you"><p class="rx-said fell">You were hugging everyone at once.</p></div>
+    <div class="me">
+      <div class="area" style="aspect-ratio:1/1;--w:260px"><span>Still, close<br>One place setting</span></div>
+      <p class="rx-said fell">I noticed the napkins. You picked the napkins.</p>
+    </div>
+  </div>
+  <div class="rx-row">
+    <div class="you"><p class="rx-said fell">You were having your first dance.</p></div>
+    <div class="me">
+      <div class="area" style="aspect-ratio:3/2"><span>Still<br>Father of the bride, off to one side</span></div>
+      <p class="rx-said fell">I noticed Dad, when he thought no one was looking.</p>
+    </div>
+  </div>
+  <div class="rx-row">
+    <div class="you"><p class="rx-said fell">You were somewhere on the dance floor.</p></div>
+    <div class="me">
+      <div class="area" style="aspect-ratio:9/16;--w:200px"><span>Vertical video<br>Under table nine</span></div>
+      <p class="rx-said fell">I noticed someone under a table, looking for a missing shoe.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="rx-menu">
+      <div class="in">
+        <span class="lily" aria-hidden="true"></span>
+        <div class="course">
+          <h3 class="fell">You picked it. I&rsquo;m filming it.</h3>
+          <p>The invitation suite that took three months to choose. The cake before someone sticks a knife in it. The napkins. (You picked the napkins.)</p>
+        </div>
+        <div class="course">
+          <h3 class="fell">While you were busy</h3>
+          <p>Your mom&rsquo;s face during your vows. Dad&rsquo;s expression when he thinks no one is looking. Your friends being ridiculous while getting ready.</p>
+        </div>
+        <div class="course">
+          <h3 class="fell">Someone made that.</h3>
+          <p>Someone loaded a van, steamed the linens and carried it all up three flights of stairs. Their work gets screen time too.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rx-band">
+    <h2 class="fell">The things you didn&rsquo;t see while you were busy getting married.</h2>
+    <p>The room before anyone walked into it. Your florist&rsquo;s last adjustment. The friend who cried before she was supposed to. You won&rsquo;t see any of it on the day. That&rsquo;s the point. You&rsquo;ll see it the day after.</p>
+    <p>Lova is Swedish for &ldquo;to promise.&rdquo;</p>
+  </div>
+
+  <div class="rx-more">
+    <div>
+      <h2 class="fell">Your wedding doesn&rsquo;t have to prove anything.</h2>
+      <p>A venue, a backyard, a church, a temple, a courthouse. A big budget or a modest one. Two hundred guests or twelve. If you cared about it, I&rsquo;m filming it.</p>
+    </div>
+    <div class="frame"><div class="area" style="aspect-ratio:3/2"><span>Still<br>The cake, before someone sticks a knife in it</span></div></div>
+    <div class="frame" style="max-width:420px"><div class="area" style="aspect-ratio:4/5"><span>Sierra, portrait</span></div></div>
+    <div>
+      <h2 class="fell">A florist&rsquo;s eye for detail.</h2>
+      <p>I&rsquo;m Sierra. I know what it takes to load a van, steam the linens and make a room look effortless before guests arrive. That&rsquo;s why the people doing that work end up in your film.</p>
+      <p>I&rsquo;m still a florist at heart (and technically in real life), so florals are available too. Same eye, making the wedding instead of filming it.</p>
+      <p><a href="#remix" class="link">Ask about florals</a></p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="rx-prices">
+      <h2 class="fell">Prices</h2>
+      <p class="lead">Three ways to book me. Every one comes with the full gallery of photos and clips within 48 hours, and the film, the short edits and the edited photos within a week. Sales tax on top.</p>
+      <details class="rx-tier">
+        <summary><span class="name fell">Doors to Dance Floor</span><span class="hours">Up to five hours, split once at no charge</span><span class="tog"></span></summary>
+        <div class="body">
+          <div>
+            <p class="say">Up to five hours, split once if your day splits. Temple at ten, reception at six? I don&rsquo;t charge for the hours in between.</p>
+            <p class="price">$1,900<small>plus tax</small></p>
+            <a href="#remix" class="rx-btn">Tell me what you&rsquo;re planning</a>
+          </div>
+          <ul><li>A film of two to three minutes, with your vows or a toast in it</li><li>Three short edits</li><li>Eighty edited photos</li><li>The full gallery within 48 hours</li></ul>
+        </div>
+      </details>
+      <details class="rx-tier">
+        <summary><span class="name fell">Start to Send-Off</span><span class="hours">Up to eight hours, split once at no charge</span><span class="tog"></span></summary>
+        <div class="body">
+          <div>
+            <p class="say">Up to eight hours. Someone steaming a dress at the start, a send-off at the end, and everything your people did in the middle.</p>
+            <p class="price">$2,400<small>plus tax</small></p>
+            <a href="#remix" class="rx-btn">Tell me what you&rsquo;re planning</a>
+          </div>
+          <ul><li>A film of three to four minutes</li><li>Four short edits</li><li>120 edited photos</li><li>The full gallery within 48 hours</li></ul>
+        </div>
+      </details>
+      <details class="rx-tier">
+        <summary><span class="name fell">Yes, Even the Napkins</span><span class="hours">Up to ten hours</span><span class="tog"></span></summary>
+        <div class="body">
+          <div>
+            <p class="say">Up to ten hours. I&rsquo;m in the room before anyone walks into it: the tables, the flowers, the cake before someone sticks a knife in it. You picked the napkins. I&rsquo;m filming the napkins.</p>
+            <p class="price">$2,750<small>plus tax</small></p>
+            <a href="#remix" class="rx-btn">Tell me what you&rsquo;re planning</a>
+          </div>
+          <ul><li>Everything in Start to Send-Off</li><li>Five short edits and 150 edited photos</li><li>A one-minute film of the room before anyone walks in</li><li>The full gallery within 48 hours</li></ul>
+        </div>
+      </details>
+      <p class="fine">Extra hours are $260. Holiday weekends and school breaks are 20% more. That&rsquo;s what it costs for me to miss them. I&rsquo;m also a florist: if you&rsquo;d like me to make yours, I&rsquo;ll bring them with me. (And yes, they&rsquo;ll get more than 0.4 seconds of screen time.)</p>
+    </div>
+  </div>
+
+  <div class="rx-foot">
+    <h2 class="fell">Go get married.<br>I&rsquo;ve got this.</h2>
+    <a href="#remix" class="rx-btn">lovacontentcreation@gmail.com</a>
+    <div class="fine"><span class="logo"><span class="lily" aria-hidden="true"></span><b>Lova<br>Content Creation</b></span><span>Wedding films, content and florals in Utah, Salt Lake, Wasatch and Cache counties. Micro weddings and elopements welcome.</span></div>
   </div>
 </section>
 

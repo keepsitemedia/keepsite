@@ -28,11 +28,12 @@
 
   // The brand page ships every published demo as JSON (one static page
   // serving any client) so the placeholder radios are swapped here for the
-  // four directions belonging to the client named by ?c=.
+  // four directions belonging to the client named by ?c=, or by ?d= when the
+  // office says the demo lives under another folder.
   var demos = document.getElementById('demos');
   if (demos) {
     var group = form.querySelector('input[name="pick"]');
-    var list = JSON.parse(demos.textContent)[slug];
+    var list = JSON.parse(demos.textContent)[params.get('d') || slug];
     if (group && list) {
       var container = group.closest('fieldset');
       container.querySelectorAll('.option').forEach(function (el) { el.remove(); });

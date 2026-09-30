@@ -63,6 +63,19 @@ test('newClient honours a given slug and applyEdit changes only editable fields'
   assert.equal(e.updatedAt, later.toISOString());
 });
 
+// Two brands can share one person and one inbox, and a demo folder can be
+// renamed after the client exists, so the demo a client's links point at
+// may differ from the slug.
+test('demo is editable and must look like a folder name under /demo', () => {
+  assert.deepEqual(validateClient({ ...good, demo: 'lova-adventure-content' }), []);
+  assert.deepEqual(validateClient({ ...good, demo: '' }), []);
+  assert.match(validateClient({ ...good, demo: 'Lova Adventure' }).join(), /demo/);
+  assert.match(validateClient({ ...good, demo: '../office' }).join(), /demo/);
+  const c = newClient({ ...good, demo: 'lova-adventure-content' }, { pipeline: 'website', stage: 'inquiry', today: '2026-09-04', now: NOW });
+  assert.equal(c.demo, 'lova-adventure-content');
+  assert.equal(applyEdit(c, { ...good, demo: '' }).demo, '');
+});
+
 test('the own-tasks slug is never handed to a client', () => {
   assert.equal(OWN_SLUG, 'office');
   assert.equal(uniqueSlug('office', new Set()), 'office-2');
