@@ -425,12 +425,20 @@ check('the retired palette is gone from every stylesheet', () => {
 });
 
 section('Questionnaires');
+// Each client's site review is its own page under questionnaire/review/, built
+// from src/data/questionnaires/reviews/. They get the same checks as the
+// three shared forms.
+const REVIEW_SRC = path.join('src', 'data', 'questionnaires', 'reviews');
+const REVIEW_FORMS = fs.existsSync(REVIEW_SRC)
+  ? fs.readdirSync(REVIEW_SRC).filter((f) => f.endsWith('.json')).map((f) => `review/${f.slice(0, -5)}`)
+  : [];
+const FORM_PAGES = ['intro', 'brand', 'build', ...REVIEW_FORMS];
+const definitionOf = (form) =>
+  JSON.parse(fs.readFileSync(path.join('src', 'data', 'questionnaires', form.startsWith('review/') ? `reviews/${form.slice(7)}.json` : `${form}.json`), 'utf8'));
 check('every question renders a labelled control inside a fieldset', () => {
-  for (const form of ['intro', 'brand', 'build']) {
+  for (const form of FORM_PAGES) {
     const html = read(`questionnaire/${form}/index.html`);
-    const def = JSON.parse(
-      fs.readFileSync(path.join('src', 'data', 'questionnaires', `${form}.json`), 'utf8'),
-    );
+    const def = definitionOf(form);
     // Grouped question types (checkboxes, choice, ...) get their own nested
     // fieldset/legend for the group label, so a plain <legend> count would
     // also tally those. Section legends carry no class; only they count here.
@@ -449,7 +457,7 @@ check('every question renders a labelled control inside a fieldset', () => {
   }
 });
 check('no question label is an input placeholder', () => {
-  for (const form of ['intro', 'brand', 'build']) {
+  for (const form of FORM_PAGES) {
     if (/placeholder="[^"]{40,}/.test(read(`questionnaire/${form}/index.html`))) {
       throw new Error(`${form} uses a placeholder as a label`);
     }
@@ -477,6 +485,7 @@ check('the honeypot is hidden on every page that renders one', () => {
     'questionnaire/intro/index.html',
     'questionnaire/brand/index.html',
     'questionnaire/build/index.html',
+    ...REVIEW_FORMS.map((form) => `questionnaire/${form}/index.html`),
   ];
   for (const p of FORMS) {
     const html = read(p);
@@ -493,7 +502,7 @@ check('the honeypot is hidden on every page that renders one', () => {
   }
 });
 check('every questionnaire page carries the resume script', () => {
-  for (const form of ['intro', 'brand', 'build']) {
+  for (const form of FORM_PAGES) {
     const html = read(`questionnaire/${form}/index.html`);
     if (!html.includes('keepsite:questionnaire:')) {
       throw new Error(`${form} has no localStorage key`);
@@ -504,7 +513,7 @@ check('every questionnaire page carries the resume script', () => {
 // there loses the draft on every 403, 400 and 500. Only the redirect to the
 // thanks page proves the answers were stored.
 check('the saved draft is cleared on the thanks page, nowhere else', () => {
-  for (const form of ['intro', 'brand', 'build']) {
+  for (const form of FORM_PAGES) {
     if (read(`questionnaire/${form}/index.html`).includes('removeItem')) {
       throw new Error(`${form} clears the draft before the server has accepted it`);
     }

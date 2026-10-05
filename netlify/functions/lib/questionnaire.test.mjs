@@ -90,6 +90,31 @@ test('an unknown form name is refused', async () => {
   });
 });
 
+test('a review for a client with none on file is refused', async () => {
+  await withSecret(SECRET, async () => {
+    const t = mint(SECRET, SLUG, 'review');
+    const res = await handler(request({ form: 'review', c: SLUG, t }));
+    assert.equal(res.status, 403);
+  });
+});
+
+test('a review token for one client does not open another client\'s review', async () => {
+  await withSecret(SECRET, async () => {
+    const t = mint(SECRET, SLUG, 'review');
+    const res = await handler(request({ form: 'review', c: 'makeup-by-brynlie', t }));
+    assert.equal(res.status, 403);
+  });
+});
+
+test('a review submission is validated against that client\'s own questions', async () => {
+  await withSecret(SECRET, async () => {
+    const t = mint(SECRET, 'makeup-by-brynlie', 'review');
+    const res = await handler(request({ form: 'review', c: 'makeup-by-brynlie', t, notAQuestion: 'x' }));
+    assert.equal(res.status, 400);
+    assert.match(await res.text(), /unknown field: notAQuestion/);
+  });
+});
+
 test('the honeypot field short-circuits to the thanks redirect', async () => {
   const res = await handler(request({ 'bot-field': 'x', form: 'intro', c: SLUG }));
   assert.equal(res.status, 302);

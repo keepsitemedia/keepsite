@@ -17,11 +17,26 @@ const check = (label, fn) => {
   try { fn(); } catch (e) { fail.push(`${label}: ${e.message}`); }
 };
 
+// A review is one client's own file under reviews/, dated when it was
+// written rather than pinned to the shared forms' version.
+const REVIEW_DIR = path.join(DIR, 'reviews');
+const reviews = fs.existsSync(REVIEW_DIR)
+  ? fs.readdirSync(REVIEW_DIR).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5))
+  : [];
+const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
 const seen = new Set();
-for (const form of FORMS) {
+for (const entry of [...FORMS.map((form) => ({ form })), ...reviews.map((slug) => ({ form: `reviews/${slug}`, review: slug }))]) {
+  const { form, review } = entry;
   const def = JSON.parse(fs.readFileSync(path.join(DIR, `${form}.json`), 'utf8'));
 
   check(`${form} declares the current version and its own name`, () => {
+    if (review) {
+      if (!SLUG.test(review)) throw new Error(`bad slug ${review}`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(def.formVersion)) throw new Error(def.formVersion);
+      if (def.form !== 'review') throw new Error(def.form);
+      return;
+    }
     if (def.formVersion !== VERSION) throw new Error(def.formVersion);
     if (def.form !== form) throw new Error(def.form);
   });
@@ -31,6 +46,9 @@ for (const form of FORMS) {
       if (!section.legend) throw new Error('no legend');
       if (!Array.isArray(section.questions) || !section.questions.length) {
         throw new Error('no questions');
+      }
+      for (const link of section.links ?? []) {
+        if (!link.label || !/^https:\/\//.test(link.href ?? '')) throw new Error(`bad link ${link.href}`);
       }
     });
     for (const q of section.questions) {

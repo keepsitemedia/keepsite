@@ -13,6 +13,7 @@ const TITLES = {
   intro: 'intro questionnaire',
   brand: 'brand and demo questionnaire',
   build: 'site build questionnaire',
+  review: 'site review',
 };
 
 export const siteUrl = () => process.env.URL || 'https://www.keepsitemedia.com';

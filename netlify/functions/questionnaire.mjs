@@ -1,4 +1,5 @@
-// One endpoint for all three questionnaires.
+// One endpoint for every questionnaire: the three shared forms and each
+// client's site review.
 //
 // Blobs before email, deliberately: Blobs is the durable record and the email
 // is the notification. A send that fails after the client has hit submit must
@@ -9,6 +10,7 @@ import { verify } from './lib/token.mjs';
 import { validate } from './lib/validate.mjs';
 import { fileKey, safeName } from './lib/blob-key.mjs';
 import { markQuestionnaireDone } from './lib/office/hooks.mjs';
+import { REVIEW, REVIEWS } from './lib/reviews.mjs';
 
 // `with { type: 'json' }` is required, not optional: this module is imported
 // under raw Node by lib/questionnaire.test.mjs, where a bare JSON import
@@ -84,7 +86,9 @@ export default async (request) => {
 
   const slug = String(data.get('c') ?? '');
   const form = String(data.get('form') ?? '');
-  const definition = DEFINITIONS[form];
+  // A review belongs to one client, so the slug picks it; a client with no
+  // review on file is refused like any unknown form.
+  const definition = form === REVIEW ? (SLUG.test(slug) ? REVIEWS[slug] : undefined) : DEFINITIONS[form];
   if (!definition || !SLUG.test(slug)) return problem(403, 'no');
 
   // Never fail open: with no secret configured, no token can verify, so

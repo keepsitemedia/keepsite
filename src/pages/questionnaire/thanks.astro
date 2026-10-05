@@ -31,7 +31,7 @@ import site from '../../data/site.json';
     var params = new URLSearchParams(window.location.search);
     var form = params.get('f');
     var slug = params.get('c');
-    if (['intro', 'brand', 'build'].indexOf(form) === -1 || !slug) return;
+    if (['intro', 'brand', 'build', 'review'].indexOf(form) === -1 || !slug) return;
     try {
       window.localStorage.removeItem('keepsite:questionnaire:' + form + ':' + slug);
     } catch (e) { /* a cleared or blocked store is not an error */ }

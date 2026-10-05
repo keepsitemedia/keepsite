@@ -6,6 +6,10 @@ import path from 'node:path';
 
 export const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export const FORMS = ['intro', 'brand', 'build'];
+// Every envelope the questionnaire function can write. The review is not in
+// FORMS because only a client who has been sent one has it: listing it there
+// would report it missing for everyone else.
+export const ENVELOPE_FORMS = [...FORMS, 'review'];
 
 export async function pullIntake({ slug, dir, source, write }) {
   if (!SLUG.test(String(slug))) throw new Error(`bad slug: ${slug}`);
@@ -21,6 +25,7 @@ export async function pullIntake({ slug, dir, source, write }) {
   for (const key of await source.list(`${slug}/`)) {
     // Only the three form records are skipped, by exact name: an upload the
     // client happened to name x.json is stored as logo-x.json and is theirs.
+    // A review envelope is not skipped, so it lands in intake/ with the files.
     if (FORMS.some((form) => key === `${slug}/${form}.json`)) continue;
     const bytes = await source.getBytes(key);
     if (!bytes) continue;

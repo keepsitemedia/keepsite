@@ -3,7 +3,7 @@
 // rewrite of this file and no other.
 import { fileBackend, blobsBackend } from './backends.mjs';
 import { ID } from './ids.mjs';
-import { FORMS } from '../intake.mjs';
+import { ENVELOPE_FORMS } from '../intake.mjs';
 
 export const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SETTING = /^[a-z]+$/;
@@ -105,7 +105,7 @@ export const TYPES = ['tasks', 'meetings', 'payments', 'agreements', 'emails'];
 // The questionnaire function keeps each form's answers as {form}.json next to
 // the files the client attached. Only those envelopes are hidden from the
 // file listing: an attachment can itself be named something.json.
-const ENVELOPES = new Set(FORMS.map((f) => `${f}.json`));
+const ENVELOPES = new Set(ENVELOPE_FORMS.map((f) => `${f}.json`));
 
 export function createStore({ office, questionnaires }) {
   const clientKey = (slug) => `clients/${assertSlug(slug)}.json`;

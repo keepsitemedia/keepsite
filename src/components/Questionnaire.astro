@@ -1,5 +1,5 @@
 ---
-// One component renders any of the three definitions in src/data/questionnaires/.
+// One component renders any definition in src/data/questionnaires/.
 // Sections become real fieldset/legend and help text becomes aria-describedby
 // because that structure is what a screen reader needs on a 39-question form —
 // see src/data/questionnaires/build.json for the hardest case.
@@ -30,6 +30,10 @@ interface Props {
     sections: Array<{
       legend: string;
       help?: string;
+      // A site review walks a client through their own pages: the pages to
+      // open for this section, and what to look for while reading them.
+      links?: Array<{ label: string; href: string }>;
+      prompts?: string[];
       questions: Question[];
     }>;
   };
@@ -105,6 +109,12 @@ const demoOptions = [
     <fieldset>
       <legend>{s.legend}</legend>
       {s.help && <p class="section-help">{s.help}</p>}
+      {s.prompts && <ul class="section-prompts">{s.prompts.map((p) => <li>{p}</li>)}</ul>}
+      {s.links && (
+        <p class="section-links">
+          {s.links.map((l) => <a href={l.href} target="_blank" rel="noopener">{l.label}<span class="visually-hidden"> (opens in a new tab)</span></a>)}
+        </p>
+      )}
 
       {s.questions.map((q) => (
         <div class="question">

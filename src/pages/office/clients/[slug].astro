@@ -22,6 +22,7 @@ import { mint } from '../../../../netlify/functions/lib/token.mjs';
 import intro from '../../../data/questionnaires/intro.json';
 import brand from '../../../data/questionnaires/brand.json';
 import build from '../../../data/questionnaires/build.json';
+import { REVIEW, REVIEWS, reviewPath } from '../../../../netlify/functions/lib/reviews.mjs';
 
 // store.mjs and pipeline.mjs have no type declarations, so astro check sees
 // their returns as any; these narrow to what this page actually reads rather
@@ -71,17 +72,24 @@ const secret = process.env.KEEPSITE_TOKEN_SECRET ?? '';
 // mistake silent.
 const site = import.meta.env.DEV ? Astro.url.origin : (Astro.site?.origin ?? Astro.url.origin);
 const pipelineForms = pipeline?.questionnaires ?? [];
+// A site review is not a pipeline step: it exists only for a client who has
+// one on file, so it is listed with their forms but kept out of the
+// pipeline's reminders and attention counts.
+// The registry is a null-prototype literal, which TypeScript reads as
+// having a `__proto__` key and no index signature.
+const review = (REVIEWS as Record<string, any>)[slug];
+const listedForms = review ? [...pipelineForms, REVIEW] : pipelineForms;
 const wantForms = tab === 'questionnaires' || tab === 'overview';
 const forms = wantForms
-  ? await Promise.all(pipelineForms.map(async (form: string) => {
+  ? await Promise.all(listedForms.map(async (form: string) => {
       const submission = await s.questionnaires.get(slug, form);
       const task = tasks.find((t) => t.questionnaire === form);
       return {
         form,
-        definition: DEFINITIONS[form],
+        definition: form === REVIEW ? review : DEFINITIONS[form],
         submission,
         status: submission ? 'submitted' : task ? 'sent' : 'not sent',
-        link: secret ? `${site}/questionnaire/${form}/?c=${slug}&t=${mint(secret, slug, form)}` : '',
+        link: secret ? `${site}${form === REVIEW ? reviewPath(slug) : `/questionnaire/${form}/`}?c=${slug}&t=${mint(secret, slug, form)}` : '',
       };
     }))
   : [];
@@ -129,7 +137,7 @@ const dollarsOf = (cents: number | null) => (cents == null ? '' : (cents / 100).
 // so a validation error doesn't erase what the admin typed.
 const posted = (name: string) => Astro.url.searchParams.get(name);
 const facts = tab === 'overview'
-  ? (glance({ today, tasks, agreements, payments, forms: pipelineForms, submitted: forms.filter((f) => f.submission).map((f) => f.form), plan: Boolean(pipelinePlan) }) as Fact[])
+  ? (glance({ today, tasks, agreements, payments, forms: pipelineForms, submitted: forms.filter((f) => f.submission && pipelineForms.includes(f.form)).map((f) => f.form), plan: Boolean(pipelinePlan) }) as Fact[])
   : [];
 const markOf = (status: string): Fact['state'] =>
   ['paid', 'completed', 'signed', 'sent', 'active', 'submitted'].includes(status) ? 'done'

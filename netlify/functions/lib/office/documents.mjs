@@ -9,13 +9,13 @@
 export const UPLOAD_MAX = 4 * 1024 * 1024;
 
 import { DOC_NAME } from './store.mjs';
-import { FORMS } from '../intake.mjs';
+import { ENVELOPE_FORMS } from '../intake.mjs';
 
 // The questionnaire store keeps each form's answers as {form}.json beside the
 // files the client attached; the listing hides those envelopes, so the route
 // that streams an attachment has to refuse them by the same rule. Only the
-// three envelopes, by whole name: an upload the client named x.json is theirs.
-const ENVELOPES = new Set(FORMS.map((form) => `${form}.json`));
+// envelopes, by whole name: an upload the client named x.json is theirs.
+const ENVELOPES = new Set(ENVELOPE_FORMS.map((form) => `${form}.json`));
 export const isIntakeFile = (name) => {
   const s = String(name);
   return DOC_NAME.test(s) && !ENVELOPES.has(s) && !s.endsWith('.meta.json');

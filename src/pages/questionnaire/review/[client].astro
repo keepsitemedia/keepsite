@@ -1,0 +1,40 @@
+---
+import fs from 'node:fs';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Questionnaire from '../../../components/Questionnaire.astro';
+import { REVIEWS } from '../../../../netlify/functions/lib/reviews.mjs';
+
+// One static page per client with a review on file. The other questionnaires
+// serve every client from one page; a review's questions are about one
+// client's pages, so the page is theirs too. The token still gates the
+// submission, not the page.
+export function getStaticPaths() {
+  // Cast: the registry is a null-prototype literal, which TypeScript reads
+  // as having a `__proto__: null` entry.
+  return Object.entries(REVIEWS as Record<string, any>).map(([client, definition]) => ({ params: { client }, props: { definition } }));
+}
+
+const { definition } = Astro.props;
+
+// Read at build time, inlined below, so the one script source
+// (src/scripts/questionnaire.js) ships to every form page without Astro
+// splitting it into a separately-fetched shared chunk.
+const questionnaireScript = fs.readFileSync('src/scripts/questionnaire.js', 'utf8');
+---
+<BaseLayout title={`${definition.title} | Keepsite Media`} description={definition.lead} noindex={true}>
+  <section class="section">
+    <div class="container narrow">
+      <h1>{definition.title}</h1>
+      <p class="lead">{definition.lead}</p>
+      {(definition.intro ?? []).map((paragraph: string) => <p class="review-intro">{paragraph}</p>)}
+      <Questionnaire definition={definition} slug="" token="" />
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline set:html={questionnaireScript} />
+
+<style>
+  .review-intro { max-width: var(--maxw-lead); margin-bottom: var(--space-3); }
+  .review-intro:last-of-type { margin-bottom: var(--space-5); }
+</style>

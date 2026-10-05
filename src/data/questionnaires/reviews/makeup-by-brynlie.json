@@ -1,0 +1,482 @@
+{
+  "formVersion": "2026-10-05",
+  "form": "review",
+  "title": "Make this site yours",
+  "lead": "Your gut check on the Makeup by Brynlie site. Take it in chunks; your answers save as you type.",
+  "intro": [
+    "You do not need to proofread every word, and you cannot break the SEO. If you ask for a change that affects search, usability or strategy, we'll tell you why it's there and find another way to get you what you want.",
+    "As you read, we're mostly asking four things. Does this sound like me? Does it accurately represent my business? Would I be excited for a bride to read it? Is there anything I want to make more personal?",
+    "Almost every box is optional. Anything you leave blank is approved as it is. This doesn't have to be the final version forever: we keep refining after launch."
+  ],
+  "sections": [
+    {
+      "legend": "Start here: five minutes as a bride",
+      "help": "Set a five-minute timer and scan the site the way a bride would. Read what looks interesting, click what you'd click. Then answer these with your business owner's hat back on. Don't spend more than 15 minutes here; a few answers is fine.",
+      "links": [
+        {
+          "label": "Open your site",
+          "href": "https://makeupbybrynlie.com/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "love",
+          "label": "What are three things you love about the site right now?",
+          "help": "A sentence, a feeling, something we captured about you, the way something is explained. Anything that made you excited.",
+          "type": "paragraph"
+        },
+        {
+          "key": "wrong",
+          "label": "Did you find anything factually incorrect, outdated, or a promise you wouldn't personally make to a client?",
+          "type": "paragraph"
+        },
+        {
+          "key": "missing",
+          "label": "Is anything important about your experience, personality, process or approach missing?",
+          "help": "Don't feel like you have to invent something. \"No, I think we covered it\" is a great answer.",
+          "type": "paragraph"
+        },
+        {
+          "key": "soundsLikeMe",
+          "label": "How much does the site sound like Makeup by Brynlie?",
+          "help": "1 is \"This doesn't sound like me.\" 10 is \"I could have written this myself.\"",
+          "type": "choice",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10"
+          ]
+        },
+        {
+          "key": "moreLikeMe",
+          "label": "If you chose anything below a 10, what would make it feel more like you?",
+          "help": "You can tell us what feels off without knowing how you'd rewrite it. That's what we're here for.",
+          "type": "paragraph"
+        },
+        {
+          "key": "soundsOff",
+          "label": "Did anything sound off? Too polished, formal, generic, salesy or cheesy, or too casual for the experience you provide?",
+          "help": "Paste the sentence or tell us the page. You don't have to fix it.",
+          "type": "paragraph"
+        },
+        {
+          "key": "dreamBride",
+          "label": "Imagine your dream bride reads the whole site, then texts her best friend about you. What do you hope she says?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "The details only you know",
+      "help": "These are the blanks still on the site. We ask each one once and put the answer everywhere it belongs. Short answers are perfect, and \"I'd rather not publish this\" is an answer too.",
+      "questions": [
+        {
+          "key": "priceBridalMakeup",
+          "label": "Bridal makeup price",
+          "type": "short"
+        },
+        {
+          "key": "priceBridalHair",
+          "label": "Bridal hair price, added to a makeup booking",
+          "type": "short"
+        },
+        {
+          "key": "priceTrial",
+          "label": "Bridal trial price",
+          "type": "short"
+        },
+        {
+          "key": "pricePartyMakeup",
+          "label": "Wedding party makeup price, per person",
+          "type": "short"
+        },
+        {
+          "key": "pricePartyHair",
+          "label": "Wedding party hair price, per person",
+          "type": "short"
+        },
+        {
+          "key": "minimums",
+          "label": "What is your minimum number of services for a wedding, and what is the Saturday minimum?",
+          "type": "paragraph"
+        },
+        {
+          "key": "travelRate",
+          "label": "How do you charge for travel, and is any distance included before travel is added?",
+          "type": "paragraph"
+        },
+        {
+          "key": "travelFar",
+          "label": "For Moab and out-of-state weddings, what are your travel terms and availability?",
+          "type": "paragraph"
+        },
+        {
+          "key": "partySize",
+          "label": "What is the smallest and the largest wedding party you take, and at what size do you add a second makeup artist?",
+          "type": "paragraph"
+        },
+        {
+          "key": "serviceTimes",
+          "label": "How many minutes do you allow for bridal makeup, bridal hair, and each wedding party member?",
+          "type": "paragraph"
+        },
+        {
+          "key": "arrivalLead",
+          "label": "How early does the team usually arrive before the first service?",
+          "type": "short"
+        },
+        {
+          "key": "brideFinished",
+          "label": "How long before the ceremony is the bride usually finished?",
+          "type": "short"
+        },
+        {
+          "key": "trialLocation",
+          "label": "Where do bridal trials happen: a studio, or on location?",
+          "type": "short"
+        },
+        {
+          "key": "replyTime",
+          "label": "How quickly do you usually reply to a new inquiry?",
+          "type": "short"
+        },
+        {
+          "key": "books2027",
+          "label": "When do your 2027 books open?",
+          "type": "short"
+        },
+        {
+          "key": "contactEmail",
+          "label": "The email address to show on the site",
+          "type": "short",
+          "input": "email",
+          "autocomplete": "email"
+        },
+        {
+          "key": "contactPhone",
+          "label": "The phone number to show on the site",
+          "help": "Leave this blank if you don't want a number published.",
+          "type": "short",
+          "input": "tel",
+          "autocomplete": "tel"
+        }
+      ]
+    },
+    {
+      "legend": "New since you last looked",
+      "help": "Three things changed after your last look, so these deserve a direct yes or no from you.",
+      "links": [
+        {
+          "label": "The new team post",
+          "href": "https://makeupbybrynlie.com/journal/meet-the-mbb-x-sss-team/"
+        },
+        {
+          "label": "The team section on About",
+          "href": "https://makeupbybrynlie.com/about/"
+        },
+        {
+          "label": "The Sundance page",
+          "href": "https://makeupbybrynlie.com/areas-served/sundance/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "teamPost",
+          "label": "We wrote \"Meet the MBB x SSS team\" from your Instagram post. Is it accurate, and is there anything you'd change?",
+          "type": "paragraph"
+        },
+        {
+          "key": "teamBlurbs",
+          "label": "Is every name, title and line in the team section right, and is everyone happy to be shown?",
+          "type": "paragraph"
+        },
+        {
+          "key": "sundance",
+          "label": "La Caille is off the site for now and the venue page is Sundance only. Is that right, and do you have Sundance work we can show?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Home",
+      "help": "The job of this page: quickly answer who you are, what you do, where you work, what makes the experience different, and what to do next.",
+      "prompts": [
+        "If someone had never seen your Instagram, would she understand what you do?",
+        "Do the sections we chose feel like the most important things about working with you?",
+        "Is anything getting too much attention, or is something important buried?"
+      ],
+      "links": [
+        {
+          "label": "Open Home",
+          "href": "https://makeupbybrynlie.com/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageHome",
+          "label": "Anything to change on Home?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Services",
+      "help": "The job of these pages: match a bride's specific need, help her understand what she's paying for, and make the next step feel easy. \"How it works\" on the Services page is your process, step by step.",
+      "prompts": [
+        "Is each service described accurately, with nothing included that shouldn't be?",
+        "Does it explain the experience, and not just a block of time and a makeup application?",
+        "Is \"How it works\" actually how your process works, in the right order?"
+      ],
+      "links": [
+        {
+          "label": "Services",
+          "href": "https://makeupbybrynlie.com/services/"
+        },
+        {
+          "label": "Wedding party",
+          "href": "https://makeupbybrynlie.com/services/wedding-party-hair-makeup/"
+        },
+        {
+          "label": "On location",
+          "href": "https://makeupbybrynlie.com/services/on-location/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageServices",
+          "label": "Anything to change on the Services pages?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Pricing",
+      "help": "The job of this page: give brides enough transparency to know whether you're within their budget, and help them see they're investing in much more than the hour of makeup. Your numbers go in once you've answered the details section above.",
+      "prompts": [
+        "Does the copy explain why the service is priced this way without sounding defensive?",
+        "Are the minimums explained clearly enough?",
+        "Would you feel comfortable sending someone straight to this page?"
+      ],
+      "links": [
+        {
+          "label": "Open Pricing",
+          "href": "https://makeupbybrynlie.com/pricing/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pagePricing",
+          "label": "Anything to change on Pricing?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "About",
+      "help": "The job of this page: make someone who already likes your work like and trust the person behind it. It isn't your whole biography. We chose details that help a bride think, \"I want her there on my wedding morning.\"",
+      "prompts": [
+        "Would someone who knows you recognize you here?",
+        "Is the balance between expertise and personality right?",
+        "Is anything more personal than you want your website to be?"
+      ],
+      "links": [
+        {
+          "label": "Open About",
+          "href": "https://makeupbybrynlie.com/about/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageAbout",
+          "label": "Anything to change on About?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "FAQ",
+      "help": "The job of this page: answer real objections and logistics so a bride doesn't have to contact you for every detail.",
+      "prompts": [
+        "Are all of these answers accurate?",
+        "Could any answer create the wrong expectation?"
+      ],
+      "links": [
+        {
+          "label": "Open the FAQ",
+          "href": "https://makeupbybrynlie.com/faq/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageFaq",
+          "label": "Anything to change on the FAQ?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        },
+        {
+          "key": "faqMissing",
+          "label": "Are there questions brides ask you all the time that we've missed, or one you'd rather answer personally after someone inquires?",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Where you work",
+      "help": "The job of these pages: show up when a bride searches for an artist in a specific place. They are worded a little more explicitly than you'd write on Instagram, because Google needs the context.",
+      "prompts": [
+        "Are these the places you want more weddings in?",
+        "Is anything about travel or getting-ready locations wrong for a place?"
+      ],
+      "links": [
+        {
+          "label": "Salt Lake City",
+          "href": "https://makeupbybrynlie.com/areas-served/salt-lake-city/"
+        },
+        {
+          "label": "Park City",
+          "href": "https://makeupbybrynlie.com/areas-served/park-city/"
+        },
+        {
+          "label": "Moab",
+          "href": "https://makeupbybrynlie.com/areas-served/moab/"
+        },
+        {
+          "label": "Sundance",
+          "href": "https://makeupbybrynlie.com/areas-served/sundance/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageAreas",
+          "label": "Anything to change on the location pages?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Gallery",
+      "help": "The job of this page: let the work speak. It is mostly empty frames until your photos are in; the email explains how to send them.",
+      "prompts": [
+        "Are the filters the right way to sort your work: bridal makeup, bridal hair, wedding party, before and after?"
+      ],
+      "links": [
+        {
+          "label": "Open the Gallery",
+          "href": "https://makeupbybrynlie.com/gallery/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageGallery",
+          "label": "Anything to change on the Gallery?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Journal",
+      "help": "Please do not line-edit seven blog posts unless you enjoy that. Their job is to answer what brides search for, show your expertise and support the service pages. They don't need to sound like an Instagram caption.",
+      "prompts": [
+        "Is the advice accurate, and advice you would actually give a bride?",
+        "Is anything presented as your opinion that you disagree with?",
+        "Is there an obvious tip that feels very Brynlie that we should add?"
+      ],
+      "links": [
+        {
+          "label": "Open the Journal",
+          "href": "https://makeupbybrynlie.com/journal/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageJournal",
+          "label": "Anything to change in the Journal posts?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Inquire",
+      "help": "The job of this page: make contacting you feel easy. Your HoneyBook form will sit in the large box once you've sent us its embed code; the email has the steps.",
+      "prompts": [
+        "Is it clear what happens after someone inquires?",
+        "Is \"Before you inquire\" asking for the right things?"
+      ],
+      "links": [
+        {
+          "label": "Open Inquire",
+          "href": "https://makeupbybrynlie.com/inquiry/"
+        }
+      ],
+      "questions": [
+        {
+          "key": "pageInquiry",
+          "label": "Anything to change on Inquire?",
+          "help": "Leaving the box blank means this page is approved as it is.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Two things to paste",
+      "help": "The email walks through both. Paste the results here when you have them, or reply to the email instead.",
+      "questions": [
+        {
+          "key": "instagramFeed",
+          "label": "Your Behold feed ID or feed URL",
+          "help": "This is what puts your live Instagram feed on the home page.",
+          "type": "short"
+        },
+        {
+          "key": "honeybookEmbed",
+          "label": "Your HoneyBook embed code",
+          "help": "Paste the whole snippet exactly as HoneyBook gives it to you.",
+          "type": "paragraph"
+        },
+        {
+          "key": "photoCredits",
+          "label": "Photographers to credit for the photos you've sent",
+          "help": "A name and Instagram handle per photographer is enough.",
+          "type": "paragraph"
+        }
+      ]
+    },
+    {
+      "legend": "Sign-off",
+      "questions": [
+        {
+          "key": "approved",
+          "label": "One box to tick when you're done",
+          "type": "checkboxes",
+          "options": [
+            "Everything I left blank is approved as it is"
+          ]
+        },
+        {
+          "key": "anythingElse",
+          "label": "Anything else you want us to know?",
+          "type": "paragraph"
+        },
+        {
+          "key": "excited",
+          "label": "Now that you've seen your brand turned into a full website, what are you most excited about?",
+          "type": "paragraph"
+        }
+      ]
+    }
+  ]
+}
