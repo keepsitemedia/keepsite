@@ -77,19 +77,26 @@ const pipelineForms = pipeline?.questionnaires ?? [];
 // pipeline's reminders and attention counts.
 // The registry is a null-prototype literal, which TypeScript reads as
 // having a `__proto__` key and no index signature.
-const review = (REVIEWS as Record<string, any>)[slug];
+const reviews = REVIEWS as Record<string, any>;
+// A review is filed under the slug the client's site and demo use. An office
+// record created under a different slug finds it through its demo folder,
+// and the link and the answers then live under that slug, where the client's
+// other answers already are.
+const reviewSlug = reviews[slug] ? slug : client?.demo && reviews[client.demo] ? client.demo : '';
+const review = reviewSlug ? reviews[reviewSlug] : undefined;
 const listedForms = review ? [...pipelineForms, REVIEW] : pipelineForms;
 const wantForms = tab === 'questionnaires' || tab === 'overview';
 const forms = wantForms
   ? await Promise.all(listedForms.map(async (form: string) => {
-      const submission = await s.questionnaires.get(slug, form);
+      const owner = form === REVIEW ? reviewSlug : slug;
+      const submission = await s.questionnaires.get(owner, form);
       const task = tasks.find((t) => t.questionnaire === form);
       return {
         form,
         definition: form === REVIEW ? review : DEFINITIONS[form],
         submission,
         status: submission ? 'submitted' : task ? 'sent' : 'not sent',
-        link: secret ? `${site}${form === REVIEW ? reviewPath(slug) : `/questionnaire/${form}/`}?c=${slug}&t=${mint(secret, slug, form)}` : '',
+        link: secret ? `${site}${form === REVIEW ? reviewPath(owner) : `/questionnaire/${form}/`}?c=${owner}&t=${mint(secret, owner, form)}` : '',
       };
     }))
   : [];
