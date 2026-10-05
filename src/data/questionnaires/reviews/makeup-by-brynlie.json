@@ -148,11 +148,6 @@
           "type": "short"
         },
         {
-          "key": "books2027",
-          "label": "When do your 2027 books open?",
-          "type": "short"
-        },
-        {
           "key": "contactEmail",
           "label": "The email address to show on the site",
           "type": "short",
@@ -199,7 +194,7 @@
         },
         {
           "key": "sundance",
-          "label": "La Caille is off the site for now and the venue page is Sundance only. Is that right, and do you have Sundance work we can show?",
+          "label": "The venue page is Sundance only. Is that right, and do you have Sundance work we can show?",
           "type": "paragraph"
         }
       ]
