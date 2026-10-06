@@ -34,6 +34,11 @@ interface Props {
       // open for this section, and what to look for while reading them.
       links?: Array<{ label: string; href: string }>;
       prompts?: string[];
+      // A long reference list, folded per heading so it never buries the
+      // questions: the review's photo spots, page by page.
+      list?: Array<{ heading: string; href?: string; items: string[] }>;
+      // A line set before the section as a resting point in a long form.
+      pause?: string;
       questions: Question[];
     }>;
   };
@@ -106,6 +111,8 @@ const demoOptions = [
   </p>
 
   {definition.sections.map((s) => (
+    <>
+    {s.pause && <p class="pause"><strong>{s.pause}</strong></p>}
     <fieldset>
       <legend>{s.legend}</legend>
       {s.help && <p class="section-help">{s.help}</p>}
@@ -114,6 +121,17 @@ const demoOptions = [
         <p class="section-links">
           {s.links.map((l) => <a href={l.href} target="_blank" rel="noopener">{l.label}<span class="visually-hidden"> (opens in a new tab)</span></a>)}
         </p>
+      )}
+      {s.list && (
+        <div class="section-list">
+          {s.list.map((group) => (
+            <details>
+              <summary>{group.heading} <span class="count">{group.items.length}</span></summary>
+              {group.href && <p><a href={group.href} target="_blank" rel="noopener">Open this page<span class="visually-hidden"> (opens in a new tab)</span></a></p>}
+              <ul>{group.items.map((item) => <li>{item}</li>)}</ul>
+            </details>
+          ))}
+        </div>
       )}
 
       {s.questions.map((q) => (
@@ -176,6 +194,7 @@ const demoOptions = [
         </div>
       ))}
     </fieldset>
+    </>
   ))}
 
   <slot />

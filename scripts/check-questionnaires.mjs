@@ -47,6 +47,10 @@ for (const entry of [...FORMS.map((form) => ({ form })), ...reviews.map((slug) =
       if (!Array.isArray(section.questions) || !section.questions.length) {
         throw new Error('no questions');
       }
+      for (const group of section.list ?? []) {
+        if (!group.heading || !Array.isArray(group.items) || !group.items.length) throw new Error(`bad list group ${group.heading}`);
+        if (group.href && !/^https:\/\//.test(group.href)) throw new Error(`bad link ${group.href}`);
+      }
       for (const link of section.links ?? []) {
         if (!link.label || !/^https:\/\//.test(link.href ?? '')) throw new Error(`bad link ${link.href}`);
       }
