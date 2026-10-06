@@ -75,7 +75,7 @@
     },
     {
       "legend": "Photos",
-      "help": "The site has 79 photo spots. Add your photos to the shared album below, named or captioned so we can tell which spot they're for. Each line says the shape, the proportions and what we pictured there; if you have a better photo for a spot, use it. Originals from your photographer are best, not screenshots.",
+      "help": "The site has 79 photo spots. Add your photos to the shared album below, named or captioned so we can tell which spot they're for. Each line says the shape, whether it is portrait or landscape, and what we pictured there; if you have a better photo for a spot, use it. Originals from your photographer are best, not screenshots.",
       "prompts": [
         "Arch: rounded at the top like a window. Portrait photos work best, and the top gets curved off, so keep faces below the top edge.",
         "Rectangle: a plain frame.",
@@ -92,53 +92,53 @@
           "heading": "Home",
           "href": "https://makeupbybrynlie.com/",
           "items": [
-            "Arch, portrait (4:5): Bride in the chair on the wedding morning, beside the page heading.",
-            "Rectangle, portrait (4:5): Bridal portrait, soft daylight, in the \"Recent work\" row.",
-            "Rectangle, portrait (4:5): Bride and bridesmaids getting ready, in the \"Recent work\" row.",
-            "Rectangle, portrait (4:5): Close detail of finished bridal makeup, in the \"Recent work\" row.",
-            "Rectangle, portrait (4:5): Bridal hair, veil going in, in the \"Recent work\" row.",
-            "Rectangle, portrait (4:5): Mother of the bride, finished look, in the \"Recent work\" row.",
-            "Rectangle, portrait (4:5): Brynlie working at the chair, in the \"Recent work\" row.",
-            "Arch, portrait (4:5): Owner portrait, Brynlie Peay, in the \"Meet Brynlie\" section."
+            "Arch, portrait: Bride in the chair on the wedding morning, beside the page heading.",
+            "Rectangle, portrait: Bridal portrait, soft daylight, in the \"Recent work\" row.",
+            "Rectangle, portrait: Bride and bridesmaids getting ready, in the \"Recent work\" row.",
+            "Rectangle, portrait: Close detail of finished bridal makeup, in the \"Recent work\" row.",
+            "Rectangle, portrait: Bridal hair, veil going in, in the \"Recent work\" row.",
+            "Rectangle, portrait: Mother of the bride, finished look, in the \"Recent work\" row.",
+            "Rectangle, portrait: Brynlie working at the chair, in the \"Recent work\" row.",
+            "Arch, portrait: Owner portrait, Brynlie Peay, in the \"Meet Brynlie\" section."
           ]
         },
         {
           "heading": "Services",
           "href": "https://makeupbybrynlie.com/services/",
           "items": [
-            "Arch, portrait (4:5): Bride in the chair, makeup in progress, beside the page heading.",
-            "Arch, portrait (4:5): Bride in the chair, trial in progress, in \"The trial\" section."
+            "Arch, portrait: Bride in the chair, makeup in progress, beside the page heading.",
+            "Arch, portrait: Bride in the chair, trial in progress, in \"The trial\" section."
           ]
         },
         {
           "heading": "Wedding party makeup + hair",
           "href": "https://makeupbybrynlie.com/services/wedding-party-hair-makeup/",
           "items": [
-            "Arch, portrait (4:5): Bridesmaids getting ready together, beside the page heading.",
-            "Arch, portrait (4:5): Two artists working side by side, in the first section.",
-            "Rectangle, landscape (16:11): Wedding party in the getting-ready room, in the work grid.",
-            "Rectangle, portrait (4:5): Bridesmaid, finished look, in the work grid.",
-            "Rectangle, portrait (4:5): Mother of the bride, finished look, in the work grid.",
-            "Rectangle, landscape (16:11): Chairs set up on location, in the work grid."
+            "Arch, portrait: Bridesmaids getting ready together, beside the page heading.",
+            "Arch, portrait: Two artists working side by side, in the first section.",
+            "Rectangle, landscape: Wedding party in the getting-ready room, in the work grid.",
+            "Rectangle, portrait: Bridesmaid, finished look, in the work grid.",
+            "Rectangle, portrait: Mother of the bride, finished look, in the work grid.",
+            "Rectangle, landscape: Chairs set up on location, in the work grid."
           ]
         },
         {
           "heading": "On-location makeup + hair",
           "href": "https://makeupbybrynlie.com/services/on-location/",
           "items": [
-            "Arch, portrait (4:5): Chair set up by the window of a bridal suite, beside the page heading.",
-            "Arch, portrait (4:5): Kit unpacked on location, in the first section.",
-            "Rectangle, landscape (16:11): Getting ready on location, bridal suite, in the work grid.",
-            "Rectangle, portrait (4:5): Bride in the chair, morning light, in the work grid.",
-            "Rectangle, portrait (4:5): Kit on the vanity, in the work grid.",
-            "Rectangle, landscape (16:11): Wedding party in a rented house, in the work grid."
+            "Arch, portrait: Chair set up by the window of a bridal suite, beside the page heading.",
+            "Arch, portrait: Kit unpacked on location, in the first section.",
+            "Rectangle, landscape: Getting ready on location, bridal suite, in the work grid.",
+            "Rectangle, portrait: Bride in the chair, morning light, in the work grid.",
+            "Rectangle, portrait: Kit on the vanity, in the work grid.",
+            "Rectangle, landscape: Wedding party in a rented house, in the work grid."
           ]
         },
         {
           "heading": "Pricing",
           "href": "https://makeupbybrynlie.com/pricing/",
           "items": [
-            "Arch, portrait (4:5): Finished bridal look, detail, beside the page heading."
+            "Arch, portrait: Finished bridal look, detail, beside the page heading."
           ]
         },
         {
@@ -146,9 +146,9 @@
           "href": "https://makeupbybrynlie.com/about/",
           "items": [
             "Cutout: Brynlie standing, background removed, beside the page heading.",
-            "Arch, portrait (4:5): Owner portrait, Brynlie Peay, in \"Your Type A bridal bestie\".",
-            "Arch, portrait (4:5): Brynlie on her own wedding day, 2024, in \"The story\".",
-            "Arch, portrait (4:5): Soft glam bridal makeup, finished look, in \"Timeless soft glam\".",
+            "Arch, portrait: Owner portrait, Brynlie Peay, in \"Your Type A bridal bestie\".",
+            "Arch, portrait: Brynlie on her own wedding day, 2024, in \"The story\".",
+            "Arch, portrait: Soft glam bridal makeup, finished look, in \"Timeless soft glam\".",
             "Arch, square: Portrait of Brynlie Peay, in the team section.",
             "Arch, square: Portrait of Cady, in the team section.",
             "Arch, square: Portrait of Samantha, in the team section.",
@@ -168,129 +168,129 @@
           "heading": "Gallery",
           "href": "https://makeupbybrynlie.com/gallery/",
           "items": [
-            "Arch, portrait (4:5): Bridal portrait, finished look, beside the page heading.",
-            "Rectangle, portrait (4:5): Bridal makeup, finished look, in the gallery grid.",
-            "Rectangle, portrait (4:5): Bridal portrait, soft daylight, in the gallery grid.",
-            "Rectangle, portrait (4:5): Bridal updo, back detail, in the gallery grid.",
-            "Rectangle, portrait (4:5): Soft waves with a veil, in the gallery grid.",
-            "Rectangle, portrait (4:5): Bridesmaids finished together, in the gallery grid.",
-            "Rectangle, portrait (4:5): Mother of the bride, finished look, in the gallery grid.",
-            "Rectangle, portrait (4:5): Eye detail, soft glam finish, in the gallery grid.",
-            "Rectangle, portrait (4:5): Getting-ready room, full party, in the gallery grid.",
-            "Rectangle, portrait (4:5): Hairline detail, pinned, in the gallery grid.",
-            "Rectangle, before-and-after pair, portrait (4:5): Before and after, bridal makeup: before, \"Before, bare skin\"; after, \"After, finished bridal makeup\", in the gallery grid.",
-            "Rectangle, before-and-after pair, portrait (4:5): Before and after, bridal hair: before, \"Before, hair down\"; after, \"After, finished bridal hair\", in the gallery grid."
+            "Arch, portrait: Bridal portrait, finished look, beside the page heading.",
+            "Rectangle, portrait: Bridal makeup, finished look, in the gallery grid.",
+            "Rectangle, portrait: Bridal portrait, soft daylight, in the gallery grid.",
+            "Rectangle, portrait: Bridal updo, back detail, in the gallery grid.",
+            "Rectangle, portrait: Soft waves with a veil, in the gallery grid.",
+            "Rectangle, portrait: Bridesmaids finished together, in the gallery grid.",
+            "Rectangle, portrait: Mother of the bride, finished look, in the gallery grid.",
+            "Rectangle, portrait: Eye detail, soft glam finish, in the gallery grid.",
+            "Rectangle, portrait: Getting-ready room, full party, in the gallery grid.",
+            "Rectangle, portrait: Hairline detail, pinned, in the gallery grid.",
+            "Rectangle, before-and-after pair, portrait: Before and after, bridal makeup: before, \"Before, bare skin\"; after, \"After, finished bridal makeup\", in the gallery grid.",
+            "Rectangle, before-and-after pair, portrait: Before and after, bridal hair: before, \"Before, hair down\"; after, \"After, finished bridal hair\", in the gallery grid."
           ]
         },
         {
           "heading": "Journal",
           "href": "https://makeupbybrynlie.com/journal/",
           "items": [
-            "Arch, portrait (4:5): Brynlie working at the chair, beside the page heading."
+            "Arch, portrait: Brynlie working at the chair, beside the page heading."
           ]
         },
         {
           "heading": "Journal: A calm wedding morning timeline",
           "href": "https://makeupbybrynlie.com/journal/a-calm-wedding-morning-timeline/",
           "items": [
-            "Arch, portrait (4:5): Getting-ready room early in the morning, beside the post heading."
+            "Arch, portrait: Getting-ready room early in the morning, beside the post heading."
           ]
         },
         {
           "heading": "Journal: Bridal makeup for mature skin",
           "href": "https://makeupbybrynlie.com/journal/bridal-makeup-for-mature-skin/",
           "items": [
-            "Arch, portrait (4:5): Mother of the bride, finished look, beside the post heading."
+            "Arch, portrait: Mother of the bride, finished look, beside the post heading."
           ]
         },
         {
           "heading": "Journal: Meet the MBB x SSS team",
           "href": "https://makeupbybrynlie.com/journal/meet-the-mbb-x-sss-team/",
           "items": [
-            "Arch, portrait (4:5): The MBB x SSS team, beside the post heading."
+            "Arch, portrait: The MBB x SSS team, beside the post heading."
           ]
         },
         {
           "heading": "Journal: Makeup and hair: on location or in a salon?",
           "href": "https://makeupbybrynlie.com/journal/on-location-or-in-a-salon/",
           "items": [
-            "Arch, portrait (4:5): Getting ready on location, beside the post heading."
+            "Arch, portrait: Getting ready on location, beside the post heading."
           ]
         },
         {
           "heading": "Journal: Soft glam vs full glam",
           "href": "https://makeupbybrynlie.com/journal/soft-glam-vs-full-glam/",
           "items": [
-            "Arch, portrait (4:5): Timeless soft glam, beside the post heading."
+            "Arch, portrait: Timeless soft glam, beside the post heading."
           ]
         },
         {
           "heading": "Journal: What wedding makeup and hair costs in Utah",
           "href": "https://makeupbybrynlie.com/journal/what-wedding-hair-and-makeup-costs/",
           "items": [
-            "Arch, portrait (4:5): Bride and bridal party, getting ready, beside the post heading."
+            "Arch, portrait: Bride and bridal party, getting ready, beside the post heading."
           ]
         },
         {
           "heading": "Journal: When to book your bridal trial",
           "href": "https://makeupbybrynlie.com/journal/when-to-book-your-bridal-trial/",
           "items": [
-            "Arch, portrait (4:5): Bridal trial, beside the post heading."
+            "Arch, portrait: Bridal trial, beside the post heading."
           ]
         },
         {
           "heading": "Inquire",
           "href": "https://makeupbybrynlie.com/inquiry/",
           "items": [
-            "Arch, portrait (4:5): Brynlie with a bride on the wedding morning, beside the page heading."
+            "Arch, portrait: Brynlie with a bride on the wedding morning, beside the page heading."
           ]
         },
         {
           "heading": "Wedding hair and makeup in Salt Lake City",
           "href": "https://makeupbybrynlie.com/areas-served/salt-lake-city/",
           "items": [
-            "Arch, landscape (3:2): Salt Lake City, beside the page heading.",
-            "Arch, portrait (4:5): Bride getting ready, in the second section.",
-            "Rectangle, landscape (16:11): Finished bridal look, in the work grid.",
-            "Rectangle, portrait (4:5): Bridal portrait, in the work grid.",
-            "Rectangle, portrait (4:5): Getting ready, in the work grid.",
-            "Rectangle, landscape (16:11): Wedding party, finished looks, in the work grid."
+            "Arch, landscape: Salt Lake City, beside the page heading.",
+            "Arch, portrait: Bride getting ready, in the second section.",
+            "Rectangle, landscape: Finished bridal look, in the work grid.",
+            "Rectangle, portrait: Bridal portrait, in the work grid.",
+            "Rectangle, portrait: Getting ready, in the work grid.",
+            "Rectangle, landscape: Wedding party, finished looks, in the work grid."
           ]
         },
         {
           "heading": "Park City Utah hair and makeup",
           "href": "https://makeupbybrynlie.com/areas-served/park-city/",
           "items": [
-            "Arch, landscape (3:2): Park City, beside the page heading.",
-            "Arch, portrait (4:5): Bride getting ready, in the second section.",
-            "Rectangle, landscape (16:11): Finished bridal look, in the work grid.",
-            "Rectangle, portrait (4:5): Bridal portrait, in the work grid.",
-            "Rectangle, portrait (4:5): Getting ready, in the work grid.",
-            "Rectangle, landscape (16:11): Wedding party, finished looks, in the work grid."
+            "Arch, landscape: Park City, beside the page heading.",
+            "Arch, portrait: Bride getting ready, in the second section.",
+            "Rectangle, landscape: Finished bridal look, in the work grid.",
+            "Rectangle, portrait: Bridal portrait, in the work grid.",
+            "Rectangle, portrait: Getting ready, in the work grid.",
+            "Rectangle, landscape: Wedding party, finished looks, in the work grid."
           ]
         },
         {
           "heading": "Moab Utah wedding hair and makeup",
           "href": "https://makeupbybrynlie.com/areas-served/moab/",
           "items": [
-            "Arch, landscape (3:2): Red rock near Moab, beside the page heading.",
-            "Arch, portrait (4:5): Bride getting ready, in the second section.",
-            "Rectangle, landscape (16:11): Finished bridal look, in the work grid.",
-            "Rectangle, portrait (4:5): Bridal portrait, in the work grid.",
-            "Rectangle, portrait (4:5): Getting ready, in the work grid.",
-            "Rectangle, landscape (16:11): Wedding party, finished looks, in the work grid."
+            "Arch, landscape: Red rock near Moab, beside the page heading.",
+            "Arch, portrait: Bride getting ready, in the second section.",
+            "Rectangle, landscape: Finished bridal look, in the work grid.",
+            "Rectangle, portrait: Bridal portrait, in the work grid.",
+            "Rectangle, portrait: Getting ready, in the work grid.",
+            "Rectangle, landscape: Wedding party, finished looks, in the work grid."
           ]
         },
         {
           "heading": "Bridal hair and makeup at Sundance",
           "href": "https://makeupbybrynlie.com/areas-served/sundance/",
           "items": [
-            "Arch, landscape (3:2): Sundance Mountain Resort, Provo Canyon, beside the page heading.",
-            "Arch, portrait (4:5): Bride getting ready, in the second section.",
-            "Rectangle, landscape (16:11): Finished bridal look, in the work grid.",
-            "Rectangle, portrait (4:5): Bridal portrait, in the work grid.",
-            "Rectangle, portrait (4:5): Getting ready, in the work grid.",
-            "Rectangle, landscape (16:11): Wedding party, finished looks, in the work grid."
+            "Arch, landscape: Sundance Mountain Resort, Provo Canyon, beside the page heading.",
+            "Arch, portrait: Bride getting ready, in the second section.",
+            "Rectangle, landscape: Finished bridal look, in the work grid.",
+            "Rectangle, portrait: Bridal portrait, in the work grid.",
+            "Rectangle, portrait: Getting ready, in the work grid.",
+            "Rectangle, landscape: Wedding party, finished looks, in the work grid."
           ]
         }
       ],
